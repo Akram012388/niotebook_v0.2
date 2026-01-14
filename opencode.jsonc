@@ -1,11 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
 
-  // Default when you run `opencode` with no agent selected
   "model": "openai/GPT-5.2 Codex OpenAI",
   "small_model": "openai/GPT-5.2 Codex OpenAI",
 
-  // Global safety rails; agents can override
   "permission": {
     "bash": "ask",
     "edit": "ask",
@@ -13,7 +11,6 @@
     "patch": "ask"
   },
 
-  // Always-load steering docs (keep these files present; empty is fine initially)
   "instructions": [
     "docs/specs.md",
     "docs/PRD.md",
@@ -21,7 +18,6 @@
     "docs/guidelines.md"
   ],
 
-  // Keep context clean
   "watcher": {
     "ignore": [
       "node_modules/**",
@@ -33,63 +29,34 @@
     ]
   },
 
-  // Four-role system: planner -> strategist -> critic gate -> builder
   "agent": {
     "planner": {
       "description": "Planning only. Produces PRD + plan drafts. No file edits, no bash.",
       "model": "openai/GPT-5.1 Codex Max OpenAI",
-      "prompt": [
-        "ROLE: Planner.",
-        "Deliverables: (1) PRD deltas, (2) Plan steps with IDs (P1..Pn) + acceptance criteria, (3) Risks/assumptions.",
-        "Hard rules: KISS + functional core/imperative shell. No scope creep.",
-        "Never modify files, never run bash. Propose changes as unified diffs in chat only."
-      ].join("\n"),
+      "prompt": "ROLE: Planner.\nDeliverables: (1) PRD deltas, (2) Plan steps with IDs (P1..Pn) + acceptance criteria, (3) Risks/assumptions.\nHard rules: KISS + functional core/imperative shell. No scope creep.\nNever modify files, never run bash. Propose changes as unified diffs in chat only.",
       "permission": { "write": "deny", "edit": "deny", "patch": "deny", "bash": "deny" }
     },
 
     "strategist": {
       "description": "Review & drift control. Simplifies PRD/plan against specs. No file edits, no bash.",
       "model": "opencode/opus-4.5",
-      "prompt": [
-        "ROLE: Strategist (Reviewer).",
-        "Primary objective: reduce drift and complexity. Enforce originality and intent.",
-        "Compare docs/PRD.md and docs/plan.md against docs/specs.md and docs/guidelines.md.",
-        "Output: a concise, prioritized delta list with rationale (no rewrites).",
-        "Never modify files, never run bash."
-      ].join("\n"),
+      "prompt": "ROLE: Strategist (Reviewer).\nPrimary objective: reduce drift and complexity. Enforce originality and intent.\nCompare docs/PRD.md and docs/plan.md against docs/specs.md and docs/guidelines.md.\nOutput: a concise, prioritized delta list with rationale (no rewrites).\nNever modify files, never run bash.",
       "permission": { "write": "deny", "edit": "deny", "patch": "deny", "bash": "deny" }
     },
 
     "critic": {
       "description": "Binary gate. GO/NO-GO on plan against specs/PRD/guidelines. No creativity.",
       "model": "openai/GPT-5.1 Codex Max OpenAI",
-      "prompt": [
-        "ROLE: Critic (Gatekeeper).",
-        "Task: Evaluate docs/plan.md for GO/NO-GO against docs/specs.md, docs/PRD.md, docs/guidelines.md.",
-        "Output format MUST be exactly:",
-        "DECISION: GO|NO-GO",
-        "BLOCKERS: (numbered; only blocking items)",
-        "REQUIRED FIXES: (file + section + exact change)",
-        "NOTES: (max 5 bullets; no optional improvements).",
-        "Rules: No scope expansion. No new tech. No implementation. No file edits or bash."
-      ].join("\n"),
+      "prompt": "ROLE: Critic (Gatekeeper).\nTask: Evaluate docs/plan.md for GO/NO-GO against docs/specs.md, docs/PRD.md, docs/guidelines.md.\nOutput format MUST be exactly:\nDECISION: GO|NO-GO\nBLOCKERS: (numbered; only blocking items)\nREQUIRED FIXES: (file + section + exact change)\nNOTES: (max 5 bullets; no optional improvements).\nRules: No scope expansion. No new tech. No implementation. No file edits or bash.",
       "permission": { "write": "deny", "edit": "deny", "patch": "deny", "bash": "deny" }
     },
 
     "builder": {
       "description": "Implementation agent. Minimal diffs. Executes plan step-by-step.",
       "model": "openai/GPT-5.2 Codex OpenAI",
-      "prompt": [
-        "ROLE: Builder.",
-        "Implement ONLY what docs/plan.md specifies, step-by-step (P1..Pn).",
-        "Precondition: docs/plan.md must be FROZEN (Plan Status: FROZEN). If not, refuse and request Critic gate.",
-        "Hard rules: minimal diffs; keep domain pure; isolate side-effects.",
-        "If plan is ambiguous, stop and ask. Before large changes, summarize intended diffs.",
-        "Bash usage requires approval."
-      ].join("\n"),
+      "prompt": "ROLE: Builder.\nImplement ONLY what docs/plan.md specifies, step-by-step (P1..Pn).\nPrecondition: docs/plan.md must be FROZEN (Plan Status: FROZEN). If not, refuse and request Critic gate.\nHard rules: minimal diffs; keep domain pure; isolate side-effects.\nIf plan is ambiguous, stop and ask. Before large changes, summarize intended diffs.\nBash usage requires approval.",
       "permission": { "write": "allow", "edit": "allow", "patch": "allow", "bash": "ask" }
     }
   }
 }
-
 
