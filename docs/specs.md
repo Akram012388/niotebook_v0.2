@@ -48,7 +48,7 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 * YouTube embedded MOOC content.
 * Unified UI: Video + Code + AI.
 * Continuous temporal sync (video ↔ AI thread), code sync on edit.
-* In-browser execution for at least: JS/TS + Python + HTML/CSS; C handled via the “KISS premium” plan in §6.
+* In-browser execution for at least: JS + Python + HTML/CSS; C handled via the “KISS premium” plan in §6.
 * Cross-device resume.
 
 ### Deferred (explicit non-goals)
@@ -117,6 +117,7 @@ Layouts are user-selectable per session and persisted.
 * Light-first palette; dark mode optional.
 * Monospace-forward typography for “abstract terminal” feel.
 * Minimal chrome, strong spacing discipline, subtle separators.
+* ChatGPT web app feel: YouTube + simple code lab embedded in a clean chat‑centric interface.
 
 ### 5.3 Required UI micro-interactions
 
@@ -169,7 +170,7 @@ Define a uniform executor interface:
 
 Executors run in isolated contexts:
 
-* JS/TS/Python in **WebWorkers**
+* JS/Python in **WebWorkers**
 * HTML/CSS in sandboxed iframe
 
 ### 6.3 Latency strategy (how we meet “premium”)
@@ -192,10 +193,9 @@ Mechanism:
 * Native execution in Worker.
 * Capture console.log → stdout.
 
-**TS**
+**TS (deferred)**
 
-* In-browser transpile (WASM bundler) → execute JS in Worker.
-* Cache the transpiler artifact.
+* Defer TypeScript execution to post‑alpha to reduce runtime complexity.
 
 **Python**
 
@@ -401,7 +401,7 @@ Suggested layout:
 Infer these and the spec becomes implementation-ready:
 
 1. **First few courses to ship in alpha:** CS50x (latest 2026), CS50P, CS50W, CS50AI with Python.
-2. **Lesson granularity:** one YouTube video = one course with each lecture/video marked as chapters.
+2. **Lesson granularity:** playlist = course, video = lesson, chapters = timestamped segments.
 3. **Invite code admin UX:** integration via a simple yet sleek cockpit style “admin-only” page only for admin to access, therefore the app must gatekeep 3 types of users -> admin (full access), user (workspace acess but no admin control strictly), guest (only landing page + login + signup page access, strictly).
 
 With these pointers also produce directives for:

@@ -15,9 +15,10 @@
 - Confirm no manual overrides in v0.2 (mirror CS50 exactly).
 
 ## P3 — Admin Cockpit MVP (Analytics‑First)
-- Define minimal dashboard: invite redemption %, activation %, D1/D7 retention, median active session length, lesson completion rate, AI engagement rate.
-- Define time‑range selector and cohort filters (invite cohort, course/lesson).
-- Define read‑only admin capabilities for v0.2 (no curriculum editing).
+- Alpha: minimal dashboard (invite redemption %, activation %, D1/D7 retention, median active session length, lesson completion rate, AI engagement rate).
+- Capture full event data for deep analysis; dashboard stays minimal until beta.
+- Define time‑range selector and cohort filters (invite cohort, course/lesson) for beta.
+- Define admin capabilities for v0.2: invite management + analytics; no curriculum editing.
 
 ## P4 — Nio Persona & Anti‑Drift Rules
 - Persona: Nio UI name; backend persona modeled on Prof. David Malan (humble, gentle, super‑smart, encouraging).
@@ -32,3 +33,18 @@
 - Define event taxonomy and storage (Convex schema or analytics layer).
 - Define data retention, privacy flags, and minimal dashboard queries.
 - Ensure all events tie back to P1 metrics.
+
+## P7 — C Runtime Spike + Fallback Gate
+- Implement TCC-in-WASM spike to validate performance.
+- Acceptance: <500ms compile+run after warm-up; <100ms perceived switch latency.
+- Fallback if perf fails: syntax highlight + “C runtime warming up” notice.
+
+## P8 — Data Model / Convex Schema
+- Reference ADR: `docs/ADR-002-schema.md`.
+- Draft Convex schema and relationships.
+- Lock indexes, access rules, and core tables.
+
+## P9 — Error + Security Model
+- Reference ADR: `docs/ADR-003-error-security.md`.
+- Enumerate failure modes and degradation paths.
+- Define invite validation, role enforcement, and prompt-injection guards.
