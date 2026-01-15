@@ -11,6 +11,11 @@ import {
   type InviteSummary,
   type InviteUpsertResult
 } from "../src/domain/invites";
+import {
+  INVITE_REDEEM_LIMIT,
+  INVITE_REDEEM_WINDOW_MS
+} from "../src/domain/rate-limits";
+import { consumeRateLimit } from "./rateLimits";
 
 type InviteIndexFields = ["code"];
 
@@ -91,9 +96,25 @@ const upsertInvite = mutationGeneric({
 const redeemInvite = mutationGeneric({
   args: {
     code: v.string(),
-    userId: v.id("users")
+    userId: v.id("users"),
+    ip: v.string()
   },
   handler: async (ctx, args): Promise<InviteRedeemResult> => {
+    const limitDecision = await consumeRateLimit(
+      ctx,
+      "invite_redeem",
+      args.ip,
+      INVITE_REDEEM_WINDOW_MS,
+      INVITE_REDEEM_LIMIT
+    );
+
+    if (!limitDecision.ok) {
+      return {
+        ok: false,
+        error: buildInviteError("RATE_LIMITED", "Invite redemption rate limited.")
+      };
+    }
+
     const invite = (await ctx.db
       .query("invites")
       .withIndex("by_code", (query) => {

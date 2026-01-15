@@ -26,7 +26,8 @@ type InviteRedeemInput = {
 type InviteErrorCode =
   | "invite_not_found"
   | "invite_already_used"
-  | "INVITE_EXPIRED";
+  | "INVITE_EXPIRED"
+  | "RATE_LIMITED";
 
 type InviteError = {
   code: InviteErrorCode;
