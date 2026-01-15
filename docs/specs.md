@@ -48,7 +48,7 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 * YouTube embedded MOOC content.
 * Unified UI: Video + Code + AI.
 * Continuous temporal sync (video ↔ AI thread), code sync on edit.
-* In-browser execution for at least: JS/TS + Python + HTML/CSS; C handled via the “KISS premium” plan in §6.
+* In-browser execution for at least: JS + Python + HTML/CSS; C handled via the “KISS premium” plan in §6.
 * Cross-device resume.
 
 ### Deferred (explicit non-goals)
@@ -70,6 +70,8 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 * attribution
 * license label
 * source link (in an info modal)
+* transcript ingestion (official CS50 SRT via /x/weeks/ parsing; SRT only; stored in Convex as segment-per-row; AI context only; no transcript UI; no local transcript storage)
+* ingestion cadence: deploy-only (manual re-ingest later if needed)
 
 ---
 
@@ -117,6 +119,7 @@ Layouts are user-selectable per session and persisted.
 * Light-first palette; dark mode optional.
 * Monospace-forward typography for “abstract terminal” feel.
 * Minimal chrome, strong spacing discipline, subtle separators.
+* ChatGPT web app feel: YouTube + simple code lab embedded in a clean chat‑centric interface.
 
 ### 5.3 Required UI micro-interactions
 
@@ -127,6 +130,8 @@ Layouts are user-selectable per session and persisted.
   * send button as circular icon button
   * autoscroll indicator/button appears when user scrolls up
   * streaming text render; no layout shifts
+* Share icon always visible (social handles + copy link; app-level link only).
+* Feedback icon always visible; emoji/scale (1–5) + optional text; non-intrusive.
 * “Context affinity” in chat thread:
 
   * each message shows a subtle badge: `Lesson • 12:34`
@@ -141,6 +146,39 @@ Layouts are user-selectable per session and persisted.
   * resume
   * building AI context safely
   * e2e assertions
+
+### 5.5 Admin cockpit (analytics)
+
+* Admin-only route with ChatGPT-level polish and minimal chrome.
+* Dashboard includes KPI cards and a compact invites panel (create/revoke, status).
+* Filters: time range (UTC), course, lesson, cohort (inviteBatchId).
+* KPI cards:
+
+  * invite redemption %
+  * onboarding conversion %
+  * activation %
+  * D1/D7 retention %
+  * median active session length
+  * lesson completion %
+  * AI engagement %
+  * share actions
+  * feedback rating (median)
+  * feedback response rate
+* KPI definitions:
+
+  * invite redemption = invite_redeemed / invite_issued
+  * onboarding conversion = lesson_started / magic_link_verified
+  * activation = activated_users / magic_link_verified
+  * activation criteria = lesson_started + 1 code run + 1 Nio message within 24h
+  * D1/D7 retention = active users day 1/7 after activation / activated_users
+  * median session length = median time between first/last meaningful action (30m inactivity ends session)
+  * lesson completion = lessons_completed / lessons_started; lessons_completed when video ≥80% OR ≥1 successful code run
+  * AI engagement = sessions_with_nio_message / sessions
+  * share actions = share_copy + share_social
+  * feedback rating = median rating from feedback_submitted
+  * feedback response rate = feedback_submitted / feedback_opened
+* Analytics timezone: UTC.
+* Sessionization: client heartbeat every 60s; session ends after 30m inactivity.
 
 ---
 
@@ -169,7 +207,7 @@ Define a uniform executor interface:
 
 Executors run in isolated contexts:
 
-* JS/TS/Python in **WebWorkers**
+* JS/Python in **WebWorkers**
 * HTML/CSS in sandboxed iframe
 
 ### 6.3 Latency strategy (how we meet “premium”)
@@ -192,10 +230,9 @@ Mechanism:
 * Native execution in Worker.
 * Capture console.log → stdout.
 
-**TS**
+**TS (deferred)**
 
-* In-browser transpile (WASM bundler) → execute JS in Worker.
-* Cache the transpiler artifact.
+* Defer TypeScript execution to post‑alpha to reduce runtime complexity.
 
 **Python**
 
@@ -257,15 +294,23 @@ Store canonical state in Convex:
 * `userId + lessonId` → last known frame
 * latest code snapshot per language
 * continuous chat thread per lesson
+* transcript segments per lesson stored in Convex (segment-per-row; AI context only; no local storage)
 
 Local-only (IndexedDB) used for:
 
 * last state cache to make reload feel instant
 * optimistic UI while Convex syncs
 
+Conflict resolution:
+
+* Convex is the source of truth.
+* On reconnect, Convex state overwrites IndexedDB cache.
+
 ---
 
 ## 8) AI (Nio) — strict TA mode
+
+System prompt is defined in `docs/ADR-005-nio-prompt.md`.
 
 ### 8.1 Providers
 
@@ -283,6 +328,7 @@ Inputs:
 
 * lesson metadata
 * current time window
+* transcript snippet for current time window (from SRT)
 * last code snapshot (or selection)
 * last N messages
 
@@ -294,6 +340,13 @@ Output:
 
 * Next.js Route Handler streams tokens to client.
 * Store final assistant message via Convex mutation once complete.
+
+### 8.5 Token budget + fallback
+
+* Total budget: 4096 tokens (context + response).
+* Response cap: 1024 tokens; remaining budget reserved for context.
+* Fallback triggers: 5xx/429 errors or timeout ≥10s.
+* Log fallback events to analytics for visibility.
 
 ---
 
@@ -401,14 +454,18 @@ Suggested layout:
 Infer these and the spec becomes implementation-ready:
 
 1. **First few courses to ship in alpha:** CS50x (latest 2026), CS50P, CS50W, CS50AI with Python.
-2. **Lesson granularity:** one YouTube video = one course with each lecture/video marked as chapters.
+2. **Lesson granularity:** playlist = course, video = lesson, chapters = timestamped segments.
 3. **Invite code admin UX:** integration via a simple yet sleek cockpit style “admin-only” page only for admin to access, therefore the app must gatekeep 3 types of users -> admin (full access), user (workspace acess but no admin control strictly), guest (only landing page + login + signup page access, strictly).
 
 With these pointers also produce directives for:
 
 * the exact `package.json` scripts (bun-first),
 * the GitHub Actions workflows (PR checks + Playwright on `vercel.deployment.success`),
-* and the Convex schema + minimal function set that matches the domain model.
+* and the Convex schema + minimal function set that matches the domain model:
+
+  * queries: getCourses, getLessonsByCourse, getLesson, getTranscriptWindow, getChatThread, getChatMessages, getLatestFrame, getCodeSnapshot
+  * mutations: upsertInvite, redeemInvite, upsertFrame, upsertCodeSnapshot, createChatMessage, setLessonCompleted, logEvent
+  * actions: ingestCourse, ingestTranscripts
 
 # References
 
