@@ -44,7 +44,9 @@ describe("content selectors", (): void => {
         videoId: "vid-2",
         title: "Lesson 2",
         durationSec: 1200,
-        order: 2
+        order: 2,
+        transcriptStatus: "warn",
+        segmentCount: 20
       },
       {
         id: "lesson-1" as GenericId<"lessons">,
@@ -52,7 +54,12 @@ describe("content selectors", (): void => {
         videoId: "vid-1",
         title: "Lesson 1",
         durationSec: 900,
-        order: 1
+        order: 1,
+        transcriptStatus: "ok",
+        segmentCount: 42,
+        transcriptUrl: "https://example.com/lesson-1.txt",
+        transcriptDurationSec: 880,
+        ingestVersion: 1
       },
       {
         id: "lesson-3" as GenericId<"lessons">,
@@ -74,7 +81,12 @@ describe("content selectors", (): void => {
       videoId: "vid-1",
       title: "Lesson 1",
       durationSec: 900,
-      order: 1
+      order: 1,
+      transcriptStatus: "ok",
+      segmentCount: 42,
+      transcriptUrl: "https://example.com/lesson-1.txt",
+      transcriptDurationSec: 880,
+      ingestVersion: 1
     });
   });
 });
