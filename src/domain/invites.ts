@@ -24,8 +24,8 @@ type InviteRedeemInput = {
 };
 
 type InviteErrorCode =
-  | "invite_not_found"
-  | "invite_already_used"
+  | "INVITE_NOT_FOUND"
+  | "INVITE_ALREADY_USED"
   | "INVITE_EXPIRED"
   | "RATE_LIMITED";
 
@@ -92,13 +92,17 @@ const buildInviteUsedSummary = (
   };
 };
 
-const buildInviteError = (
-  code: InviteErrorCode,
-  message: string
-): InviteError => {
+const INVITE_ERROR_MESSAGES: Record<InviteErrorCode, string> = {
+  INVITE_NOT_FOUND: "Invite not found.",
+  INVITE_ALREADY_USED: "Invite already used.",
+  INVITE_EXPIRED: "Invite expired.",
+  RATE_LIMITED: "Invite redemption rate limited."
+};
+
+const buildInviteError = (code: InviteErrorCode): InviteError => {
   return {
     code,
-    message
+    message: INVITE_ERROR_MESSAGES[code]
   };
 };
 
@@ -114,14 +118,14 @@ const resolveInviteRedeem = (
   if (invite.usedAt) {
     return {
       ok: false,
-      error: buildInviteError("invite_already_used", "Invite already used.")
+      error: buildInviteError("INVITE_ALREADY_USED")
     };
   }
 
   if (isInviteExpired(invite, nowMs)) {
     return {
       ok: false,
-      error: buildInviteError("INVITE_EXPIRED", "Invite expired.")
+      error: buildInviteError("INVITE_EXPIRED")
     };
   }
 

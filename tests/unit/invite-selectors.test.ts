@@ -63,11 +63,11 @@ describe("invite helpers", (): void => {
   });
 
   it("builds invite errors", (): void => {
-    const error = buildInviteError("invite_not_found", "Missing");
+    const error = buildInviteError("INVITE_NOT_FOUND");
 
     expect(error).toEqual({
-      code: "invite_not_found",
-      message: "Missing"
+      code: "INVITE_NOT_FOUND",
+      message: "Invite not found."
     });
   });
 

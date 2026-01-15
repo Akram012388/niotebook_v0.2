@@ -56,7 +56,7 @@ const upsertInvite = mutationGeneric({
     if (invite?.usedAt) {
       return {
         ok: false,
-        error: buildInviteError("invite_already_used", "Invite already used.")
+        error: buildInviteError("INVITE_ALREADY_USED")
       };
     }
 
@@ -111,7 +111,7 @@ const redeemInvite = mutationGeneric({
     if (!limitDecision.ok) {
       return {
         ok: false,
-        error: buildInviteError("RATE_LIMITED", "Invite redemption rate limited.")
+        error: buildInviteError("RATE_LIMITED")
       };
     }
 
@@ -127,7 +127,7 @@ const redeemInvite = mutationGeneric({
     if (!invite) {
       return {
         ok: false,
-        error: buildInviteError("invite_not_found", "Invite not found.")
+        error: buildInviteError("INVITE_NOT_FOUND")
       };
     }
 
