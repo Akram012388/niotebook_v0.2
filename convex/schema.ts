@@ -88,16 +88,17 @@ const schema = defineSchema({
     userId: v.id("users"),
     lessonId: v.id("lessons"),
     videoTimeSec: v.number(),
+    threadId: v.optional(v.id("chatThreads")),
     codeHash: v.optional(v.string()),
-    threadId: v.optional(v.id("chatThreads"))
+    updatedAt: v.number()
   }).index("by_userId_lessonId", ["userId", "lessonId"]),
   codeSnapshots: defineTable({
     userId: v.id("users"),
     lessonId: v.id("lessons"),
     language: v.string(),
     code: v.string(),
-    updatedAt: v.number(),
-    codeHash: v.optional(v.string())
+    codeHash: v.string(),
+    updatedAt: v.number()
   }).index("by_userId_lessonId_language", ["userId", "lessonId", "language"]),
   chatThreads: defineTable({
     userId: v.id("users"),
