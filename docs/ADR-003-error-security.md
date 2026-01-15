@@ -31,6 +31,11 @@ Define baseline failure modes, degradation paths, and security rules for v0.2.
 - User prompts are scoped to lesson/time/code; off-topic is refused.
 - Strip or neutralize jailbreak patterns before model call.
 
+### Boundary validation (no any/unknown)
+- All external inputs are validated at the infra boundary before reaching domain logic.
+- Use schema validators to decode raw payloads into typed domain objects.
+- Invalid payloads fail fast with safe errors; no raw data persists.
+
 ### Data privacy
 - Store minimal data required for resume and analytics.
 - Analytics events exclude raw code unless explicitly needed.

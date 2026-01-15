@@ -143,6 +143,31 @@ Layouts are user-selectable per session and persisted.
   * building AI context safely
   * e2e assertions
 
+### 5.5 Admin cockpit (analytics)
+
+* Admin-only route with ChatGPT-level polish and minimal chrome.
+* Dashboard includes KPI cards and a compact invites panel (create/revoke, status).
+* Filters: time range, course, lesson, cohort.
+* KPI cards:
+
+  * invite redemption %
+  * onboarding conversion %
+  * activation %
+  * D1/D7 retention %
+  * median active session length
+  * lesson completion %
+  * AI engagement %
+* KPI definitions:
+
+  * invite redemption = invite_redeemed / invite_issued
+  * onboarding conversion = lesson_started / magic_link_verified
+  * activation = activated_users / magic_link_verified
+  * activation criteria = lesson_started + 1 code run + 1 Nio message within 24h
+  * D1/D7 retention = active users day 1/7 after activation / activated_users
+  * median session length = median time between first/last meaningful action (30m inactivity ends session)
+  * lesson completion = lessons_completed / lessons_started
+  * AI engagement = sessions_with_nio_message / sessions
+
 ---
 
 ## 6) Code editor + execution

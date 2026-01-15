@@ -1,7 +1,7 @@
 # PRD Status: DRAFT
 Niotebook v0.2 PRD (Minimal)
 
-Note: Implementation details live in `docs/ARD.md` to keep this PRD product‑level.
+Note: Implementation details live in `docs/ADR-001-prd-scope.md` to keep this PRD product‑level.
 
 Problem
 - Solo learners need a unified place to watch CS50-derived lessons, code inline, and get strict, narrow-focused, context-aware AI help without latency or jank.

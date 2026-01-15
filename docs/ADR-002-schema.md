@@ -29,6 +29,25 @@ Adopt the following baseline Convex schema (names are canonical):
 ### Analytics
 - `events`: immutable event log (userId, lessonId?, type, metadata, createdAt)
 
+### Event taxonomy (v0.2)
+- All events include: userId, createdAt, sessionId (when applicable).
+- Event metadata is structured per event (no untyped blobs).
+- Core events:
+  - `invite_issued` (inviteId, createdBy)
+  - `invite_redeemed` (inviteId, redeemedBy)
+  - `magic_link_sent` (emailHash)
+  - `magic_link_verified` (userId)
+  - `course_selected` (courseId)
+  - `lesson_started` (courseId, lessonId)
+  - `video_play` / `video_pause` / `video_seek` (lessonId, videoTimeSec)
+  - `code_edit` (lessonId, language)
+  - `code_run` (lessonId, language, success, runtimeMs)
+  - `nio_message_sent` (lessonId, threadId)
+  - `nio_message_received` (lessonId, threadId, latencyMs)
+  - `lesson_completed` (lessonId, completionPct)
+  - `session_start` / `session_end` (sessionId, durationMs)
+  - `runtime_warmup_start` / `runtime_warmup_end` (language, durationMs)
+
 ## Relationships
 - `courses` 1→N `lessons`
 - `lessons` 1→N `chapters`

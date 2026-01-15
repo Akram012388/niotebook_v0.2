@@ -1,12 +1,16 @@
 # Plan Status: DRAFT
 
 ## P1 — Success Metrics & Funnels
-- Define PMF metrics: onboarding conversion %, median active session length, D1/D7 retention.
-- Define activation (north star): invite redeemed → lesson started → 1 code run + 1 Nio message within 24h.
+- Define PMF metrics: invite redemption %, onboarding conversion %, activation %, median active session length, D1/D7 retention.
+- Define invite redemption rate = invite_redeemed / invite_issued.
+- Define onboarding conversion = lesson_started / magic_link_verified.
+- Define activation (north star) = activated_users / magic_link_verified; activation = lesson_started + 1 code run + 1 Nio message within 24h.
 - Define early‑alpha activation proxy: invite redeemed → lesson started + (code run OR Nio message OR ≥8 min active time).
+- Define D1/D7 retention = active users on day 1/7 after activation / activated_users.
 - Define “active”: ≥1 meaningful action or ≥5 min active time.
+- Define session length: time between first and last meaningful action; session ends after 30m inactivity.
+- Enumerate meaningful actions (lesson start, video play/seek, code edit/run, Nio message).
 - Enumerate funnel events (invite issued, invite redeemed, magic link verified, course selected, lesson started, code run, Nio message, lesson completed).
-- Define retention windows (D1/D7).
 
 ## P2 — YouTube Sync Model (Mirror CS50)
 - Map playlist → course, video → lesson, chapter → timestamped segments.
