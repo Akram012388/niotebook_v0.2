@@ -30,7 +30,7 @@ Engineering Principles
 
 Functional Requirements
 - Auth: invite code + email magic link; admin-only cockpit for invite management; roles: admin (invite and role management), user (learning workspace), guest (landing + login only).
-- Admin cockpit UX: ultra-polished, analytics-first dashboard (ChatGPT-level interface quality).
+- Admin cockpit UX: ultra-polished, analytics-first dashboard (ChatGPT-level interface quality); analytics use UTC and cohort = inviteBatchId.
 - Layout: fixed presets (1-col 100, 2-col 60/40, 3-col 40/30/30); persisted per session.
 - Video: YouTube embed; time sampled every 2–5s and on seek/pause; clicking chat badge seeks smoothly.
 - Code Editor: CodeMirror 6 with syntax highlight/indent, run, clear output, stop, optional reset-per-lesson.

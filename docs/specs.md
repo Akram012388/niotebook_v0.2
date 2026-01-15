@@ -301,6 +301,11 @@ Local-only (IndexedDB) used for:
 * last state cache to make reload feel instant
 * optimistic UI while Convex syncs
 
+Conflict resolution:
+
+* Convex is the source of truth.
+* On reconnect, Convex state overwrites IndexedDB cache.
+
 ---
 
 ## 8) AI (Nio) — strict TA mode
@@ -341,6 +346,7 @@ Output:
 * Total budget: 4096 tokens (context + response).
 * Response cap: 1024 tokens; remaining budget reserved for context.
 * Fallback triggers: 5xx/429 errors or timeout ≥10s.
+* Log fallback events to analytics for visibility.
 
 ---
 
@@ -455,7 +461,11 @@ With these pointers also produce directives for:
 
 * the exact `package.json` scripts (bun-first),
 * the GitHub Actions workflows (PR checks + Playwright on `vercel.deployment.success`),
-* and the Convex schema + minimal function set that matches the domain model.
+* and the Convex schema + minimal function set that matches the domain model:
+
+  * queries: getCourses, getLessonsByCourse, getLesson, getTranscriptWindow, getChatThread, getChatMessages, getLatestFrame, getCodeSnapshot
+  * mutations: upsertInvite, redeemInvite, upsertFrame, upsertCodeSnapshot, createChatMessage, setLessonCompleted, logEvent
+  * actions: ingestCourse, ingestTranscripts
 
 # References
 
