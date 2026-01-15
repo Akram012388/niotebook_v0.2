@@ -120,7 +120,7 @@ const schema = defineSchema({
     .index("by_threadId", ["threadId"])
     .index("by_threadId_createdAt", ["threadId", "createdAt"]),
   events: defineTable({
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
     lessonId: v.optional(v.id("lessons")),
     sessionId: v.optional(v.string()),
     type: v.string(),
