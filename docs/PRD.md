@@ -38,6 +38,7 @@ Functional Requirements
 - Sync/Resume: Frame = lessonId + videoTimeSec + codeHash? + threadId; persist in Convex; IndexedDB for instant reload cache; chat messages stamped with time window ±60s and codeHash?. Internal-only checkpoints support resume, AI context reconstruction, and deterministic E2E assertions; no checkpoint UI.
 - AI: Providers Gemini 3 Flash preview primary, Groq llama-3.3-70b-versatile fallback; strict CS50 TA behavior, context-bound to lesson/time/code; refuses off-topic prompts and redirects to the active lesson; streaming via Next.js route handler; store assistant message on completion.
 - Content Compliance: Each course/lesson shows attribution, license label, source link (info modal); treat CS50x content as CC BY-NC-SA (non-commercial).
+- Transcripts are AI-only (no transcript UI).
 
 Out of Scope (v0.2)
 - Valkey introduction, rate-limit/cache queues; offline playback; transcript UI; multi-user collaboration.
