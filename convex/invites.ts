@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import {
   buildInviteError,
   buildInviteSummary,
-  buildInviteUsedSummary,
+  resolveInviteRedeem,
   toInviteSummary,
   type InviteRecord,
   type InviteRedeemResult,
@@ -110,24 +110,22 @@ const redeemInvite = mutationGeneric({
       };
     }
 
-    if (invite.usedAt) {
-      return {
-        ok: false,
-        error: buildInviteError("invite_already_used", "Invite already used.")
-      };
+    const nowMs = Date.now();
+    const summary = toInviteSummary(invite);
+    const redemption = resolveInviteRedeem(summary, args.userId, nowMs);
+
+    if (!redemption.ok) {
+      return redemption;
     }
 
-    const usedAt = Date.now();
+    const usedAt = redemption.value.usedAt ?? nowMs;
 
     await ctx.db.patch(invite._id, {
       usedAt,
       usedByUserId: args.userId
     });
 
-    return {
-      ok: true,
-      value: buildInviteUsedSummary(toInviteSummary(invite), args.userId, usedAt)
-    };
+    return redemption;
   }
 });
 

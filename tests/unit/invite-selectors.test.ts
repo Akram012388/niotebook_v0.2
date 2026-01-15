@@ -1,9 +1,11 @@
 import type { GenericId } from "convex/values";
 import { describe, expect, it } from "vitest";
 import {
+  INVITE_TTL_MS,
   buildInviteError,
   buildInviteSummary,
   buildInviteUsedSummary,
+  resolveInviteRedeem,
   toInviteSummary,
   type InviteRecord
 } from "../../src/domain/invites";
@@ -67,5 +69,45 @@ describe("invite helpers", (): void => {
       code: "invite_not_found",
       message: "Missing"
     });
+  });
+
+  it("redeems invite within TTL", (): void => {
+    const invite = buildInviteSummary(
+      "invite-4" as GenericId<"invites">,
+      { code: "CODE-4", inviteBatchId: "batch-4", role: "user" },
+      0
+    );
+
+    const userId = "user-2" as GenericId<"users">;
+    const nowMs = INVITE_TTL_MS - 1000;
+
+    const result = resolveInviteRedeem(invite, userId, nowMs);
+
+    expect(result.ok).toBe(true);
+
+    if (result.ok) {
+      expect(result.value.usedAt).toBe(nowMs);
+      expect(result.value.usedByUserId).toBe(userId);
+    }
+  });
+
+  it("rejects expired invites", (): void => {
+    const invite = buildInviteSummary(
+      "invite-5" as GenericId<"invites">,
+      { code: "CODE-5", inviteBatchId: "batch-5", role: "admin" },
+      0
+    );
+
+    const result = resolveInviteRedeem(
+      invite,
+      "user-3" as GenericId<"users">,
+      INVITE_TTL_MS + 1
+    );
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.error.code).toBe("INVITE_EXPIRED");
+    }
   });
 });
