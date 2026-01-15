@@ -23,13 +23,15 @@ Deliverables:
 Phase: 0 → 1
 Dependencies: none
 Tasks:
-- Map playlist → course, video → lesson, chapter → timestamped segments.
-- Ingest official CS50 SRT transcripts from Harvard source URLs; map each SRT to the correct lesson.
-- Parse SRT into timestamped segments and store in Convex with source URL.
-- Define sync cadence, retries, and failure handling.
+- Enumerate slugs from https://cs50.harvard.edu/x/weeks/ and validate CS50x 2026 pages.
+- Parse each week page to extract SRT (Subtitles), TXT (metadata only), and YouTube ID; no hardcoded CDN URLs.
+- Ingest SRT into transcriptSegments (segment-per-row) and store transcript metadata on lessons.
+- Set transcriptStatus (ok|warn|missing|error); warn on duration mismatch >120s; emit transcript ingest events.
+- Deploy-only ingest with idempotent re-ingest (delete+reinsert per lessonId + ingestVersion).
 Deliverables:
 - YouTube + transcript ingestion spec.
 - Transcript source URL list, mapping rules, and failure policy.
+- Idempotent ingest + transcript status rules.
 
 ## P3 — Admin Cockpit MVP (Analytics‑First)
 Phase: 4
@@ -69,6 +71,7 @@ Dependencies: P1, P8
 Tasks:
 - Implement event logger and session tracking rules.
 - Emit share/feedback events from UI actions.
+- Emit transcript ingest events and duration warnings.
 - Enforce privacy constraints for analytics payloads.
 Deliverables:
 - Event emission map tied to user flows.
@@ -88,19 +91,19 @@ Deliverables:
 Phase: 0 → 1
 Dependencies: P2
 Tasks:
-- Implement schema from ADR-002 (including transcripts).
+- Implement schema from ADR-002 (lessons transcript metadata + transcriptSegments).
 - Lock indexes, access rules, and core tables.
-- Define seed/sync pipeline for CS50 content + transcripts.
+- Define seed/sync pipeline for CS50 content + transcriptSegments.
 Deliverables:
 - Convex schema + index list.
-- Seed/sync spec for courses, lessons, transcripts.
+- Seed/sync spec for courses, lessons, transcriptSegments.
 
 ## P9 — Error + Security Model
 Phase: 0 → 2
 Dependencies: P2, P4, P8
 Tasks:
 - Map failure modes to explicit UI states.
-- Add transcript ingest failure handling.
+- Add transcript ingest failure handling and mismatch warn threshold (>120s).
 - Enforce role checks, invite TTL, rate limits, and boundary validation.
 Deliverables:
 - Error-state UX map.

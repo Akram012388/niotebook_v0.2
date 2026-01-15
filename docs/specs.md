@@ -70,7 +70,8 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 * attribution
 * license label
 * source link (in an info modal)
-* transcript ingestion (official CS50 SRT) for AI context only; no transcript UI
+* transcript ingestion (official CS50 SRT via /x/weeks/ parsing; SRT only; stored in Convex as segment-per-row; AI context only; no transcript UI; no local transcript storage)
+* ingestion cadence: deploy-only (manual re-ingest later if needed)
 
 ---
 
@@ -291,7 +292,7 @@ Store canonical state in Convex:
 * `userId + lessonId` → last known frame
 * latest code snapshot per language
 * continuous chat thread per lesson
-* transcript segments per lesson (official CS50 SRT; AI context only)
+* transcript segments per lesson stored in Convex (segment-per-row; AI context only; no local storage)
 
 Local-only (IndexedDB) used for:
 

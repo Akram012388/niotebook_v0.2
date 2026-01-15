@@ -11,9 +11,9 @@ Adopt the following baseline Convex schema (names are canonical):
 
 ### Core content
 - `courses`: playlist-level metadata (source playlist ID, title, description, license, source URL)
-- `lessons`: video-level metadata (courseId, video ID, title, duration, order)
+- `lessons`: video-level metadata (courseId, video ID, title, durationSec, order, subtitlesUrl, transcriptUrl[TXT metadata only], transcriptDurationSec, segmentCount, ingestVersion, transcriptStatus)
 - `chapters`: timestamped segments within a lesson (lessonId, title, startSec, endSec)
-- `transcripts`: parsed SRT segments per lesson (lessonId, sourceUrl, segments[{startSec,endSec,text}])
+- `transcriptSegments`: segment-per-row SRT storage (lessonId, idx, startSec, endSec, textRaw, textNormalized)
 
 ### Users + access
 - `users`: profile + role (admin/user/guest)
@@ -48,6 +48,10 @@ Adopt the following baseline Convex schema (names are canonical):
   - `lesson_completed` (lessonId, completionPct)
   - `session_start` / `session_end` (sessionId, durationMs)
   - `runtime_warmup_start` / `runtime_warmup_end` (language, durationMs)
+  - `transcript_ingest_started` (lessonId)
+  - `transcript_ingest_succeeded` (lessonId, segmentCount, transcriptDurationSec)
+  - `transcript_ingest_failed` (lessonId, reason)
+  - `transcript_duration_warn` (lessonId, lessonDurationSec, transcriptDurationSec)
   - `share_opened` (surface)
   - `share_copy` (surface)
   - `share_social` (surface, network)
@@ -58,14 +62,15 @@ Adopt the following baseline Convex schema (names are canonical):
 ## Relationships
 - `courses` 1→N `lessons`
 - `lessons` 1→N `chapters`
-- `lessons` 1→1 `transcripts`
+- `lessons` 1→N `transcriptSegments`
 - `users` 1→N `frames`, `codeSnapshots`, `chatThreads`, `events`
 - `chatThreads` 1→N `chatMessages`
 
 ## Indexes
 - `lessons` by `courseId`
 - `chapters` by `lessonId`
-- `transcripts` by `lessonId`
+- `transcriptSegments` by `lessonId+startSec`
+- `transcriptSegments` by `lessonId+idx` (optional)
 - `frames` by `userId+lessonId`
 - `codeSnapshots` by `userId+lessonId+language`
 - `chatThreads` by `userId+lessonId`
