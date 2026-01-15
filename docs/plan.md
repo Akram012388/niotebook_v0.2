@@ -1,4 +1,4 @@
-# Plan Status: DRAFT
+# Plan Status: FROZEN
 
 ## Implementation Phases
 - Phase 0 — Spec lock: finalize P1, P2, P8, P9 definitions.
