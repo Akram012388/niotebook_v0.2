@@ -5,6 +5,7 @@ const baseURL = process.env.BASE_URL ?? "http://localhost:3000";
 
 export default defineConfig({
   testDir: "tests/e2e",
+  testMatch: "**/*.e2e.ts",
   retries: isCi ? 2 : 0,
   use: {
     baseURL,
