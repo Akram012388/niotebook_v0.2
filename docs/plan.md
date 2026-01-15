@@ -112,3 +112,19 @@ Tasks:
 Deliverables:
 - Error-state UX map.
 - Security checklist aligned to ADR-003.
+
+## P10 — Repo Bootstrap + CI/CD Baseline
+Phase: 0
+Dependencies: none
+Tasks:
+- Scaffold Next.js app (Bun, TypeScript, App Router, src/, Tailwind, @/* alias, Turbopack).
+- Add Bun/Node version pinning and bun-first scripts (dev, dev:convex, build, start, lint, typecheck, test, test:e2e).
+- Initialize Convex config and dev workflow.
+- Add lint/format tooling (ESLint + Prettier) and Lefthook pre-commit (lint + typecheck).
+- Add Vitest + Playwright (smoke test) + configs.
+- Add Sentry SDK wiring + env placeholders.
+- Add CI workflows (PR checks, Semgrep, Vercel preview E2E) and Vercel build command.
+- Add .env.example with required vars (Convex, AI, Sentry, app URL).
+Deliverables:
+- Bootstrapped repo ready for Phase 0 implementation.
+- CI pipelines aligned to ADR-004.

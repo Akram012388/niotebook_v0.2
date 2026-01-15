@@ -1,0 +1,20 @@
+name: e2e
+
+on:
+  repository_dispatch:
+    types:
+      - vercel.deployment.success
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ github.event.client_payload.deployment_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.1.19"
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps
+      - run: bun run test:e2e
