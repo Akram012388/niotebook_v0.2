@@ -11,6 +11,7 @@ Define baseline failure modes, degradation paths, and security rules for v0.2.
 
 ### Failure modes + degradation
 - **YouTube API sync fails**: show cached metadata; retry with backoff; surface non-blocking banner.
+- **Transcript fetch/mapping fails**: proceed without transcript context; retry with backoff; log for admin review.
 - **YouTube playback error**: show retry CTA; preserve code + chat state.
 - **Convex unreachable**: switch to IndexedDB cache; queue writes; show subtle “syncing” badge.
 - **AI provider down**: fail over to fallback; if both fail, show non-blocking error and keep chat input enabled for retry.

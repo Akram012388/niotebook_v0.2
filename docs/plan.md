@@ -1,54 +1,107 @@
 # Plan Status: DRAFT
 
+## Implementation Phases
+- Phase 0 — Spec lock: finalize P1, P2, P8, P9 definitions.
+- Phase 1 — Foundations: schema, auth/invites, YouTube sync + transcript ingest.
+- Phase 2 — Core loop: player, editor, runtimes, resume.
+- Phase 3 — AI + chat: Nio prompt, context builder, streaming.
+- Phase 4 — Analytics + admin: events, dashboard, share/feedback tracking.
+- Phase 5 — QA + release: E2E coverage, CI/CD alignment.
+
 ## P1 — Success Metrics & Funnels
-- Define PMF metrics: invite redemption %, onboarding conversion %, activation %, median active session length, D1/D7 retention.
-- Define invite redemption rate = invite_redeemed / invite_issued.
-- Define onboarding conversion = lesson_started / magic_link_verified.
-- Define activation (north star) = activated_users / magic_link_verified; activation = lesson_started + 1 code run + 1 Nio message within 24h.
-- Define early‑alpha activation proxy: invite redeemed → lesson started + (code run OR Nio message OR ≥8 min active time).
-- Define D1/D7 retention = active users on day 1/7 after activation / activated_users.
-- Define “active”: ≥1 meaningful action or ≥5 min active time.
-- Define session length: time between first and last meaningful action; session ends after 30m inactivity.
-- Enumerate meaningful actions (lesson start, video play/seek, code edit/run, Nio message).
-- Enumerate funnel events (invite issued, invite redeemed, magic link verified, course selected, lesson started, code run, Nio message, lesson completed).
+Phase: 0
+Dependencies: none
+Tasks:
+- Finalize KPI formulas, denominators, and sessionization rules.
+- Define activation and retention windows, plus share/feedback metrics.
+- Map each KPI to required events.
+Deliverables:
+- Metrics glossary and KPI formulas embedded in docs.
+- Event-to-KPI mapping aligned to ADR-002.
 
 ## P2 — YouTube Sync Model (Mirror CS50)
+Phase: 0 → 1
+Dependencies: none
+Tasks:
 - Map playlist → course, video → lesson, chapter → timestamped segments.
-- Define sync cadence and failure handling.
-- Define stored fields: course metadata, lesson metadata, chapter timestamps, source links, license info.
-- Confirm no manual overrides in v0.2 (mirror CS50 exactly).
+- Ingest official CS50 SRT transcripts from Harvard source URLs; map each SRT to the correct lesson.
+- Parse SRT into timestamped segments and store in Convex with source URL.
+- Define sync cadence, retries, and failure handling.
+Deliverables:
+- YouTube + transcript ingestion spec.
+- Transcript source URL list, mapping rules, and failure policy.
 
 ## P3 — Admin Cockpit MVP (Analytics‑First)
-- Alpha: minimal dashboard (invite redemption %, activation %, D1/D7 retention, median active session length, lesson completion rate, AI engagement rate).
-- Capture full event data for deep analysis; dashboard stays minimal until beta.
-- Define time‑range selector and cohort filters (invite cohort, course/lesson) for beta.
-- Define admin capabilities for v0.2: invite management + analytics; no curriculum editing.
+Phase: 4
+Dependencies: P1, P6, P8
+Tasks:
+- Define cockpit layout and KPI card ordering.
+- Define share + feedback counters and queries for analytics panel.
+- Define invite management UI (create/revoke/status).
+- Define filter behaviors and time-range presets (start with 1d/7d/30d).
+Deliverables:
+- Admin cockpit UX spec (see `docs/specs.md`).
+- KPI query list for dashboard cards.
 
 ## P4 — Nio Persona & Anti‑Drift Rules
-- Persona: Nio UI name; backend persona modeled on Prof. David Malan (humble, gentle, super‑smart, encouraging).
-- Strict, narrow focus on current lesson/time window/code; refuse off‑topic.
-- Define system prompt rules and enforcement checks (tests/guards).
+Phase: 3
+Dependencies: P2, P8, P9
+Tasks:
+- Draft system prompt and refusal rules.
+- Define context builder inputs: lesson metadata, time window, code snapshot, transcript snippet.
+- Define tests for tone, refusal, and context fidelity.
+Deliverables:
+- System prompt + guardrails spec.
+- Context builder contract + test checklist.
 
 ## P5 — PRD vs Spec Scope Boundaries
-- Keep PRD product‑level; move implementation detail to Spec/ADR.
-- Create ADR to house CI/CD + infra details (Sentry/Semgrep/Vercel/Convex/TCC).
+Phase: 0 → 1
+Dependencies: none
+Tasks:
+- Create ADR for CI/CD, scripts, and infra choices.
+- Keep PRD product-level and stable.
+Deliverables:
+- ADR for CI/CD + scripts (ADR‑004).
 
 ## P6 — Instrumentation Plan
-- Define event taxonomy and storage (Convex schema or analytics layer).
-- Define data retention, privacy flags, and minimal dashboard queries.
-- Ensure all events tie back to P1 metrics.
+Phase: 1 → 4
+Dependencies: P1, P8
+Tasks:
+- Implement event logger and session tracking rules.
+- Emit share/feedback events from UI actions.
+- Enforce privacy constraints for analytics payloads.
+Deliverables:
+- Event emission map tied to user flows.
+- Sessionization rules + QA checklist.
 
 ## P7 — C Runtime Spike + Fallback Gate
-- Implement TCC-in-WASM spike to validate performance.
-- Acceptance: <500ms compile+run after warm-up; <100ms perceived switch latency.
-- Fallback if perf fails: syntax highlight + “C runtime warming up” notice.
+Phase: 2
+Dependencies: P2
+Tasks:
+- Spike TCC-in-WASM and measure warm-up + run latency.
+- Implement fallback UX if perf fails.
+Deliverables:
+- Spike report with go/no-go decision.
+- Runtime fallback UX spec.
 
 ## P8 — Data Model / Convex Schema
-- Reference ADR: `docs/ADR-002-schema.md`.
-- Draft Convex schema and relationships.
+Phase: 0 → 1
+Dependencies: P2
+Tasks:
+- Implement schema from ADR-002 (including transcripts).
 - Lock indexes, access rules, and core tables.
+- Define seed/sync pipeline for CS50 content + transcripts.
+Deliverables:
+- Convex schema + index list.
+- Seed/sync spec for courses, lessons, transcripts.
 
 ## P9 — Error + Security Model
-- Reference ADR: `docs/ADR-003-error-security.md`.
-- Enumerate failure modes and degradation paths.
-- Define invite validation, role enforcement, and prompt-injection guards.
+Phase: 0 → 2
+Dependencies: P2, P4, P8
+Tasks:
+- Map failure modes to explicit UI states.
+- Add transcript ingest failure handling.
+- Enforce role checks, invite TTL, rate limits, and boundary validation.
+Deliverables:
+- Error-state UX map.
+- Security checklist aligned to ADR-003.

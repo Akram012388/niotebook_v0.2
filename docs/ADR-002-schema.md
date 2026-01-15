@@ -13,6 +13,7 @@ Adopt the following baseline Convex schema (names are canonical):
 - `courses`: playlist-level metadata (source playlist ID, title, description, license, source URL)
 - `lessons`: video-level metadata (courseId, video ID, title, duration, order)
 - `chapters`: timestamped segments within a lesson (lessonId, title, startSec, endSec)
+- `transcripts`: parsed SRT segments per lesson (lessonId, sourceUrl, segments[{startSec,endSec,text}])
 
 ### Users + access
 - `users`: profile + role (admin/user/guest)
@@ -47,16 +48,24 @@ Adopt the following baseline Convex schema (names are canonical):
   - `lesson_completed` (lessonId, completionPct)
   - `session_start` / `session_end` (sessionId, durationMs)
   - `runtime_warmup_start` / `runtime_warmup_end` (language, durationMs)
+  - `share_opened` (surface)
+  - `share_copy` (surface)
+  - `share_social` (surface, network)
+  - `feedback_opened` (surface)
+  - `feedback_submitted` (surface, rating[1-5], textLength)
+  - `feedback_dismissed` (surface)
 
 ## Relationships
 - `courses` 1→N `lessons`
 - `lessons` 1→N `chapters`
+- `lessons` 1→1 `transcripts`
 - `users` 1→N `frames`, `codeSnapshots`, `chatThreads`, `events`
 - `chatThreads` 1→N `chatMessages`
 
 ## Indexes
 - `lessons` by `courseId`
 - `chapters` by `lessonId`
+- `transcripts` by `lessonId`
 - `frames` by `userId+lessonId`
 - `codeSnapshots` by `userId+lessonId+language`
 - `chatThreads` by `userId+lessonId`

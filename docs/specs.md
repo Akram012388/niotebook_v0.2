@@ -70,6 +70,7 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 * attribution
 * license label
 * source link (in an info modal)
+* transcript ingestion (official CS50 SRT) for AI context only; no transcript UI
 
 ---
 
@@ -128,6 +129,8 @@ Layouts are user-selectable per session and persisted.
   * send button as circular icon button
   * autoscroll indicator/button appears when user scrolls up
   * streaming text render; no layout shifts
+* Share icon always visible (social handles + copy link; app-level link only).
+* Feedback icon always visible; emoji/scale (1–5) + optional text; non-intrusive.
 * “Context affinity” in chat thread:
 
   * each message shows a subtle badge: `Lesson • 12:34`
@@ -157,6 +160,9 @@ Layouts are user-selectable per session and persisted.
   * median active session length
   * lesson completion %
   * AI engagement %
+  * share actions
+  * feedback rating (median)
+  * feedback response rate
 * KPI definitions:
 
   * invite redemption = invite_redeemed / invite_issued
@@ -167,6 +173,9 @@ Layouts are user-selectable per session and persisted.
   * median session length = median time between first/last meaningful action (30m inactivity ends session)
   * lesson completion = lessons_completed / lessons_started
   * AI engagement = sessions_with_nio_message / sessions
+  * share actions = share_copy + share_social
+  * feedback rating = median rating from feedback_submitted
+  * feedback response rate = feedback_submitted / feedback_opened
 
 ---
 
@@ -282,6 +291,7 @@ Store canonical state in Convex:
 * `userId + lessonId` → last known frame
 * latest code snapshot per language
 * continuous chat thread per lesson
+* transcript segments per lesson (official CS50 SRT; AI context only)
 
 Local-only (IndexedDB) used for:
 
@@ -308,6 +318,7 @@ Inputs:
 
 * lesson metadata
 * current time window
+* transcript snippet for current time window (from SRT)
 * last code snapshot (or selection)
 * last N messages
 
