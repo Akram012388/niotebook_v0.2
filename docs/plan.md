@@ -12,8 +12,10 @@
 Phase: 0
 Dependencies: none
 Tasks:
-- Finalize KPI formulas, denominators, and sessionization rules.
+- Finalize KPI formulas, denominators, and sessionization rules (30m inactivity, 60s heartbeat).
 - Define activation and retention windows, plus share/feedback metrics.
+- Define lesson completion trigger (video ≥80% OR ≥1 successful code run).
+- Define cohort = inviteBatchId and analytics timezone = UTC.
 - Map each KPI to required events.
 Deliverables:
 - Metrics glossary and KPI formulas embedded in docs.
@@ -49,11 +51,12 @@ Deliverables:
 Phase: 3
 Dependencies: P2, P8, P9
 Tasks:
-- Draft system prompt and refusal rules.
+- Reference ADR-005 system prompt and refusal rules.
 - Define context builder inputs: lesson metadata, time window, code snapshot, transcript snippet.
+- Enforce token budget (4096 total, 1024 response).
 - Define tests for tone, refusal, and context fidelity.
 Deliverables:
-- System prompt + guardrails spec.
+- ADR-005 system prompt + guardrails.
 - Context builder contract + test checklist.
 
 ## P5 — PRD vs Spec Scope Boundaries
@@ -104,7 +107,8 @@ Dependencies: P2, P4, P8
 Tasks:
 - Map failure modes to explicit UI states.
 - Add transcript ingest failure handling and mismatch warn threshold (>120s).
-- Enforce role checks, invite TTL, rate limits, and boundary validation.
+- Enforce role checks, invite TTL (7 days), rate limits, and boundary validation.
+- Define AI fallback triggers (5xx/429 or timeout ≥10s).
 Deliverables:
 - Error-state UX map.
 - Security checklist aligned to ADR-003.

@@ -16,8 +16,8 @@ Adopt the following baseline Convex schema (names are canonical):
 - `transcriptSegments`: segment-per-row SRT storage (lessonId, idx, startSec, endSec, textRaw, textNormalized)
 
 ### Users + access
-- `users`: profile + role (admin/user/guest)
-- `invites`: invite codes (createdBy, redeemedBy, status, createdAt, expiresAt)
+- `users`: profile + role (admin/user/guest), inviteBatchId (copied on redemption)
+- `invites`: invite codes (createdBy, redeemedBy, status, createdAt, expiresAt, inviteBatchId)
 
 ### Learning state
 - `frames`: last known frame per user+lesson (lessonId, userId, videoTimeSec, codeHash?, threadId)
@@ -59,6 +59,10 @@ Adopt the following baseline Convex schema (names are canonical):
   - `feedback_submitted` (surface, rating[1-5], textLength)
   - `feedback_dismissed` (surface)
 
+### Transcript ingest rules
+- Deploy-only ingest; idempotent per lessonId when ingestVersion changes (delete + insert).
+- transcriptStatus values: ok | warn | missing | error.
+
 ## Relationships
 - `courses` 1→N `lessons`
 - `lessons` 1→N `chapters`
@@ -75,6 +79,7 @@ Adopt the following baseline Convex schema (names are canonical):
 - `codeSnapshots` by `userId+lessonId+language`
 - `chatThreads` by `userId+lessonId`
 - `chatMessages` by `threadId`
+- `users` by `inviteBatchId`
 - `events` by `userId` and `type+createdAt`
 
 ## Access Control (high-level)

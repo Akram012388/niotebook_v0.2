@@ -151,7 +151,7 @@ Layouts are user-selectable per session and persisted.
 
 * Admin-only route with ChatGPT-level polish and minimal chrome.
 * Dashboard includes KPI cards and a compact invites panel (create/revoke, status).
-* Filters: time range, course, lesson, cohort.
+* Filters: time range (UTC), course, lesson, cohort (inviteBatchId).
 * KPI cards:
 
   * invite redemption %
@@ -172,11 +172,13 @@ Layouts are user-selectable per session and persisted.
   * activation criteria = lesson_started + 1 code run + 1 Nio message within 24h
   * D1/D7 retention = active users day 1/7 after activation / activated_users
   * median session length = median time between first/last meaningful action (30m inactivity ends session)
-  * lesson completion = lessons_completed / lessons_started
+  * lesson completion = lessons_completed / lessons_started; lessons_completed when video ≥80% OR ≥1 successful code run
   * AI engagement = sessions_with_nio_message / sessions
   * share actions = share_copy + share_social
   * feedback rating = median rating from feedback_submitted
   * feedback response rate = feedback_submitted / feedback_opened
+* Analytics timezone: UTC.
+* Sessionization: client heartbeat every 60s; session ends after 30m inactivity.
 
 ---
 
@@ -303,6 +305,8 @@ Local-only (IndexedDB) used for:
 
 ## 8) AI (Nio) — strict TA mode
 
+System prompt is defined in `docs/ADR-005-nio-prompt.md`.
+
 ### 8.1 Providers
 
 Primary: Gemini 3 Flash preview (`gemini-3-flash-preview`). ([Google Cloud Documentation][3])
@@ -331,6 +335,12 @@ Output:
 
 * Next.js Route Handler streams tokens to client.
 * Store final assistant message via Convex mutation once complete.
+
+### 8.5 Token budget + fallback
+
+* Total budget: 4096 tokens (context + response).
+* Response cap: 1024 tokens; remaining budget reserved for context.
+* Fallback triggers: 5xx/429 errors or timeout ≥10s.
 
 ---
 
