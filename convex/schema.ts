@@ -75,12 +75,11 @@ const schema = defineSchema({
   }).index("by_inviteBatchId", ["inviteBatchId"]),
   invites: defineTable({
     code: v.string(),
-    createdBy: v.optional(v.id("users")),
-    redeemedBy: v.optional(v.id("users")),
-    status: v.union(v.literal("active"), v.literal("redeemed"), v.literal("expired")),
     createdAt: v.number(),
-    expiresAt: v.number(),
-    inviteBatchId: v.string()
+    usedAt: v.optional(v.number()),
+    usedByUserId: v.optional(v.id("users")),
+    inviteBatchId: v.string(),
+    role: v.union(v.literal("user"), v.literal("admin"))
   })
     .index("by_code", ["code"])
     .index("by_inviteBatchId", ["inviteBatchId"]),
