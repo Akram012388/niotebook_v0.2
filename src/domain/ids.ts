@@ -25,6 +25,8 @@ type ChatMessageId = DomainId<"chatMessages">;
 
 type EventId = DomainId<"events">;
 
+type LessonCompletionId = DomainId<"lessonCompletions">;
+
 type RateLimitId = DomainId<"rateLimits">;
 
 export type {
@@ -40,5 +42,6 @@ export type {
   ChatThreadId,
   ChatMessageId,
   EventId,
+  LessonCompletionId,
   RateLimitId,
 };
