@@ -1,43 +1,49 @@
-import type { GenericId } from "convex/values";
+import type {
+  ChatThreadId,
+  CodeSnapshotId,
+  FrameId,
+  LessonId,
+  UserId,
+} from "./ids";
 
 type FrameSummary = {
-  id: GenericId<"frames">;
-  userId: GenericId<"users">;
-  lessonId: GenericId<"lessons">;
+  id: FrameId;
+  userId: UserId;
+  lessonId: LessonId;
   videoTimeSec: number;
-  threadId?: GenericId<"chatThreads">;
+  threadId?: ChatThreadId;
   codeHash?: string;
   updatedAt: number;
 };
 
 type FrameUpsertInput = {
-  userId: GenericId<"users">;
-  lessonId: GenericId<"lessons">;
+  userId: UserId;
+  lessonId: LessonId;
   videoTimeSec: number;
-  threadId?: GenericId<"chatThreads">;
+  threadId?: ChatThreadId;
   codeHash?: string;
 };
 
 type FramePatch = {
   videoTimeSec: number;
   updatedAt: number;
-  threadId?: GenericId<"chatThreads">;
+  threadId?: ChatThreadId;
   codeHash?: string;
 };
 
 type FrameInsert = FramePatch & {
-  userId: GenericId<"users">;
-  lessonId: GenericId<"lessons">;
+  userId: UserId;
+  lessonId: LessonId;
 };
 
 type FrameRecord = FrameInsert & {
-  _id: GenericId<"frames">;
+  _id: FrameId;
 };
 
 type CodeSnapshotSummary = {
-  id: GenericId<"codeSnapshots">;
-  userId: GenericId<"users">;
-  lessonId: GenericId<"lessons">;
+  id: CodeSnapshotId;
+  userId: UserId;
+  lessonId: LessonId;
   language: string;
   code: string;
   codeHash: string;
@@ -45,8 +51,8 @@ type CodeSnapshotSummary = {
 };
 
 type CodeSnapshotUpsertInput = {
-  userId: GenericId<"users">;
-  lessonId: GenericId<"lessons">;
+  userId: UserId;
+  lessonId: LessonId;
   language: string;
   code: string;
   codeHash: string;
@@ -59,13 +65,13 @@ type CodeSnapshotPatch = {
 };
 
 type CodeSnapshotInsert = CodeSnapshotPatch & {
-  userId: GenericId<"users">;
-  lessonId: GenericId<"lessons">;
+  userId: UserId;
+  lessonId: LessonId;
   language: string;
 };
 
 type CodeSnapshotRecord = CodeSnapshotInsert & {
-  _id: GenericId<"codeSnapshots">;
+  _id: CodeSnapshotId;
 };
 
 const toFrameSummary = (record: FrameRecord): FrameSummary => {
@@ -76,15 +82,15 @@ const toFrameSummary = (record: FrameRecord): FrameSummary => {
     videoTimeSec: record.videoTimeSec,
     threadId: record.threadId,
     codeHash: record.codeHash,
-    updatedAt: record.updatedAt
+    updatedAt: record.updatedAt,
   };
 };
 
 const resolveFrameSummary = (
-  id: GenericId<"frames">,
+  id: FrameId,
   existing: FrameSummary | null,
   input: FrameUpsertInput,
-  updatedAt: number
+  updatedAt: number,
 ): FrameSummary => {
   return {
     id,
@@ -93,17 +99,17 @@ const resolveFrameSummary = (
     videoTimeSec: input.videoTimeSec,
     threadId: input.threadId ?? existing?.threadId,
     codeHash: input.codeHash ?? existing?.codeHash,
-    updatedAt
+    updatedAt,
   };
 };
 
 const buildFramePatch = (
   input: FrameUpsertInput,
-  updatedAt: number
+  updatedAt: number,
 ): FramePatch => {
   const patch: FramePatch = {
     videoTimeSec: input.videoTimeSec,
-    updatedAt
+    updatedAt,
   };
 
   if (input.threadId !== undefined) {
@@ -119,17 +125,17 @@ const buildFramePatch = (
 
 const buildFrameInsert = (
   input: FrameUpsertInput,
-  updatedAt: number
+  updatedAt: number,
 ): FrameInsert => {
   return {
     userId: input.userId,
     lessonId: input.lessonId,
-    ...buildFramePatch(input, updatedAt)
+    ...buildFramePatch(input, updatedAt),
   };
 };
 
 const toCodeSnapshotSummary = (
-  record: CodeSnapshotRecord
+  record: CodeSnapshotRecord,
 ): CodeSnapshotSummary => {
   return {
     id: record._id,
@@ -138,14 +144,14 @@ const toCodeSnapshotSummary = (
     language: record.language,
     code: record.code,
     codeHash: record.codeHash,
-    updatedAt: record.updatedAt
+    updatedAt: record.updatedAt,
   };
 };
 
 const resolveCodeSnapshotSummary = (
-  id: GenericId<"codeSnapshots">,
+  id: CodeSnapshotId,
   input: CodeSnapshotUpsertInput,
-  updatedAt: number
+  updatedAt: number,
 ): CodeSnapshotSummary => {
   return {
     id,
@@ -154,30 +160,30 @@ const resolveCodeSnapshotSummary = (
     language: input.language,
     code: input.code,
     codeHash: input.codeHash,
-    updatedAt
+    updatedAt,
   };
 };
 
 const buildCodeSnapshotPatch = (
   input: CodeSnapshotUpsertInput,
-  updatedAt: number
+  updatedAt: number,
 ): CodeSnapshotPatch => {
   return {
     code: input.code,
     codeHash: input.codeHash,
-    updatedAt
+    updatedAt,
   };
 };
 
 const buildCodeSnapshotInsert = (
   input: CodeSnapshotUpsertInput,
-  updatedAt: number
+  updatedAt: number,
 ): CodeSnapshotInsert => {
   return {
     userId: input.userId,
     lessonId: input.lessonId,
     language: input.language,
-    ...buildCodeSnapshotPatch(input, updatedAt)
+    ...buildCodeSnapshotPatch(input, updatedAt),
   };
 };
 
@@ -187,7 +193,7 @@ export type {
   CodeSnapshotUpsertInput,
   FrameRecord,
   FrameSummary,
-  FrameUpsertInput
+  FrameUpsertInput,
 };
 export {
   buildCodeSnapshotInsert,
@@ -197,5 +203,5 @@ export {
   resolveCodeSnapshotSummary,
   resolveFrameSummary,
   toCodeSnapshotSummary,
-  toFrameSummary
+  toFrameSummary,
 };

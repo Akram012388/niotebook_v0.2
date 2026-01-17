@@ -1,13 +1,12 @@
-import type { GenericId } from "convex/values";
 import { describe, expect, it } from "vitest";
 import {
   toTranscriptWindowSegments,
-  type TranscriptSegment
+  type TranscriptSegment,
 } from "../../src/domain/transcript";
 
 describe("transcript window", (): void => {
   it("returns ordered window segments with overlaps", (): void => {
-    const lessonId = "lesson-1" as GenericId<"lessons">;
+    const lessonId = "lesson-1" as TranscriptSegment["lessonId"];
 
     const segments: TranscriptSegment[] = [
       {
@@ -15,22 +14,22 @@ describe("transcript window", (): void => {
         idx: 2,
         startSec: 3,
         endSec: 6,
-        textNormalized: "overlap"
+        textNormalized: "overlap",
       },
       {
         lessonId,
         idx: 1,
         startSec: 0,
         endSec: 2,
-        textNormalized: "intro"
+        textNormalized: "intro",
       },
       {
         lessonId,
         idx: 3,
         startSec: 7,
         endSec: 9,
-        textNormalized: "middle"
-      }
+        textNormalized: "middle",
+      },
     ];
 
     const windowSegments = toTranscriptWindowSegments(segments, 5, 10);
@@ -40,13 +39,13 @@ describe("transcript window", (): void => {
       idx: 2,
       startSec: 3,
       endSec: 6,
-      textNormalized: "overlap"
+      textNormalized: "overlap",
     });
     expect(windowSegments[1]).toMatchObject({
       idx: 3,
       startSec: 7,
       endSec: 9,
-      textNormalized: "middle"
+      textNormalized: "middle",
     });
   });
 

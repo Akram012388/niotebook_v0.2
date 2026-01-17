@@ -1,90 +1,189 @@
-import type { GenericId } from "convex/values";
-import type { InviteRole } from "./invites";
-import type { RateLimitScope } from "./rate-limits";
+import type {
+  ChatThreadId,
+  CourseId,
+  EventId,
+  InviteId,
+  LessonId,
+  UserId,
+} from "./ids";
 
 type EventType =
+  | "invite_issued"
+  | "invite_redeemed"
+  | "magic_link_sent"
+  | "magic_link_verified"
+  | "course_selected"
+  | "lesson_started"
+  | "video_play"
+  | "video_pause"
+  | "video_seek"
+  | "code_edit"
+  | "code_run"
+  | "nio_message_sent"
+  | "nio_message_received"
+  | "lesson_completed"
+  | "session_start"
+  | "session_end"
+  | "runtime_warmup_start"
+  | "runtime_warmup_end"
   | "transcript_ingest_started"
   | "transcript_ingest_succeeded"
   | "transcript_ingest_failed"
   | "transcript_duration_warn"
-  | "invite_created"
-  | "invite_redeemed"
-  | "rate_limit_denied"
-  | "ai_fallback_triggered"
-  | "lesson_completed"
-  | "session_heartbeat";
+  | "share_opened"
+  | "share_copy"
+  | "share_social"
+  | "feedback_opened"
+  | "feedback_submitted"
+  | "feedback_dismissed";
+
+type InviteIssuedMetadata = {
+  inviteId: InviteId;
+  createdBy: UserId;
+};
+
+type InviteRedeemedMetadata = {
+  inviteId: InviteId;
+  redeemedBy: UserId;
+};
+
+type MagicLinkSentMetadata = {
+  emailHash: string;
+};
+
+type MagicLinkVerifiedMetadata = {
+  userId: UserId;
+};
+
+type CourseSelectedMetadata = {
+  courseId: CourseId;
+};
+
+type LessonStartedMetadata = {
+  courseId: CourseId;
+  lessonId: LessonId;
+};
+
+type VideoEventMetadata = {
+  lessonId: LessonId;
+  videoTimeSec: number;
+};
+
+type CodeEditMetadata = {
+  lessonId: LessonId;
+  language: string;
+};
+
+type CodeRunMetadata = {
+  lessonId: LessonId;
+  language: string;
+  success: boolean;
+  runtimeMs: number;
+};
+
+type NioMessageMetadata = {
+  lessonId: LessonId;
+  threadId: ChatThreadId;
+};
+
+type NioMessageReceivedMetadata = NioMessageMetadata & {
+  latencyMs: number;
+};
+
+type LessonCompletedMetadata = {
+  lessonId: LessonId;
+  completionPct?: number;
+};
+
+type SessionEventMetadata = {
+  sessionId: string;
+  durationMs: number;
+};
+
+type RuntimeWarmupMetadata = {
+  language: string;
+  durationMs: number;
+};
 
 type TranscriptIngestStartedMetadata = {
-  lessonId: GenericId<"lessons">;
+  lessonId: LessonId;
 };
 
 type TranscriptIngestSucceededMetadata = {
-  lessonId: GenericId<"lessons">;
+  lessonId: LessonId;
   segmentCount: number;
   transcriptDurationSec: number;
 };
 
 type TranscriptIngestFailedMetadata = {
-  lessonId: GenericId<"lessons">;
+  lessonId: LessonId;
   reason: string;
 };
 
 type TranscriptDurationWarnMetadata = {
-  lessonId: GenericId<"lessons">;
+  lessonId: LessonId;
   lessonDurationSec: number;
   transcriptDurationSec: number;
 };
 
-type InviteCreatedMetadata = {
-  inviteId: GenericId<"invites">;
-  inviteBatchId: string;
-  role: InviteRole;
+type ShareMetadata = {
+  surface: string;
 };
 
-type InviteRedeemedMetadata = {
-  inviteId: GenericId<"invites">;
-  inviteBatchId: string;
-  role: InviteRole;
+type ShareSocialMetadata = {
+  surface: string;
+  network: string;
 };
 
-type RateLimitDeniedMetadata = {
-  scope: RateLimitScope;
-  limit: number;
-  windowMs: number;
+type FeedbackOpenedMetadata = {
+  surface: string;
 };
 
-type AiFallbackTriggeredMetadata = {
-  reason: "status" | "timeout";
-  status?: number;
-  timeoutMs?: number;
+type FeedbackSubmittedMetadata = {
+  surface: string;
+  rating: number;
+  textLength: number;
 };
 
-type LessonCompletedMetadata = {
-  lessonId: GenericId<"lessons">;
-  completionPct?: number;
-};
-
-type SessionHeartbeatMetadata = {
-  intervalMs: number;
+type FeedbackDismissedMetadata = {
+  surface: string;
 };
 
 type EventMetadataMap = {
+  invite_issued: InviteIssuedMetadata;
+  invite_redeemed: InviteRedeemedMetadata;
+  magic_link_sent: MagicLinkSentMetadata;
+  magic_link_verified: MagicLinkVerifiedMetadata;
+  course_selected: CourseSelectedMetadata;
+  lesson_started: LessonStartedMetadata;
+  video_play: VideoEventMetadata;
+  video_pause: VideoEventMetadata;
+  video_seek: VideoEventMetadata;
+  code_edit: CodeEditMetadata;
+  code_run: CodeRunMetadata;
+  nio_message_sent: NioMessageMetadata;
+  nio_message_received: NioMessageReceivedMetadata;
+  lesson_completed: LessonCompletedMetadata;
+  session_start: SessionEventMetadata;
+  session_end: SessionEventMetadata;
+  runtime_warmup_start: RuntimeWarmupMetadata;
+  runtime_warmup_end: RuntimeWarmupMetadata;
   transcript_ingest_started: TranscriptIngestStartedMetadata;
   transcript_ingest_succeeded: TranscriptIngestSucceededMetadata;
   transcript_ingest_failed: TranscriptIngestFailedMetadata;
   transcript_duration_warn: TranscriptDurationWarnMetadata;
-  invite_created: InviteCreatedMetadata;
-  invite_redeemed: InviteRedeemedMetadata;
-  rate_limit_denied: RateLimitDeniedMetadata;
-  ai_fallback_triggered: AiFallbackTriggeredMetadata;
-  lesson_completed: LessonCompletedMetadata;
-  session_heartbeat: SessionHeartbeatMetadata;
+  share_opened: ShareMetadata;
+  share_copy: ShareMetadata;
+  share_social: ShareSocialMetadata;
+  feedback_opened: FeedbackOpenedMetadata;
+  feedback_submitted: FeedbackSubmittedMetadata;
+  feedback_dismissed: FeedbackDismissedMetadata;
 };
 
 type EventInput<T extends EventType = EventType> = {
   eventType: T;
-  userId?: GenericId<"users">;
-  lessonId?: GenericId<"lessons">;
+  userId?: UserId;
+  lessonId?: LessonId;
   sessionId?: string;
   metadata: EventMetadataMap[T];
 };
@@ -101,104 +200,153 @@ type EventLogError = {
 };
 
 type EventLogResult =
-  | { ok: true; eventId: GenericId<"events"> }
+  | { ok: true; eventId: EventId }
   | { ok: false; error: EventLogError };
 
-type EventValidationResult =
-  | { ok: true }
-  | { ok: false; error: EventLogError };
+type EventValidationResult = { ok: true } | { ok: false; error: EventLogError };
 
-const EVENT_ERROR_MESSAGES: Record<EventLogErrorCode, string> = {
-  INVALID_EVENT_METADATA: "Invalid event metadata."
+type EventMetadataInput = Record<string, string | number | boolean | undefined>;
+
+type EventMetadataValidator = (
+  metadata: EventMetadataInput,
+) => EventValidationResult;
+
+const EVENT_METADATA_VALIDATORS: Record<EventType, EventMetadataValidator> = {
+  invite_issued: (metadata) =>
+    metadata.inviteId && metadata.createdBy
+      ? { ok: true }
+      : invalidEventMetadata(),
+  invite_redeemed: (metadata) =>
+    metadata.inviteId && metadata.redeemedBy
+      ? { ok: true }
+      : invalidEventMetadata(),
+  magic_link_sent: (metadata) =>
+    metadata.emailHash ? { ok: true } : invalidEventMetadata(),
+  magic_link_verified: (metadata) =>
+    metadata.userId ? { ok: true } : invalidEventMetadata(),
+  course_selected: (metadata) =>
+    metadata.courseId ? { ok: true } : invalidEventMetadata(),
+  lesson_started: (metadata) =>
+    metadata.courseId && metadata.lessonId
+      ? { ok: true }
+      : invalidEventMetadata(),
+  video_play: (metadata) =>
+    metadata.lessonId && typeof metadata.videoTimeSec === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  video_pause: (metadata) =>
+    metadata.lessonId && typeof metadata.videoTimeSec === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  video_seek: (metadata) =>
+    metadata.lessonId && typeof metadata.videoTimeSec === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  code_edit: (metadata) =>
+    metadata.lessonId && metadata.language
+      ? { ok: true }
+      : invalidEventMetadata(),
+  code_run: (metadata) =>
+    metadata.lessonId &&
+    metadata.language &&
+    typeof metadata.success === "boolean" &&
+    typeof metadata.runtimeMs === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  nio_message_sent: (metadata) =>
+    metadata.lessonId && metadata.threadId
+      ? { ok: true }
+      : invalidEventMetadata(),
+  nio_message_received: (metadata) =>
+    metadata.lessonId &&
+    metadata.threadId &&
+    typeof metadata.latencyMs === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  lesson_completed: (metadata) =>
+    metadata.lessonId ? { ok: true } : invalidEventMetadata(),
+  session_start: (metadata) =>
+    metadata.sessionId && typeof metadata.durationMs === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  session_end: (metadata) =>
+    metadata.sessionId && typeof metadata.durationMs === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  runtime_warmup_start: (metadata) =>
+    metadata.language && typeof metadata.durationMs === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  runtime_warmup_end: (metadata) =>
+    metadata.language && typeof metadata.durationMs === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  transcript_ingest_started: (metadata) =>
+    metadata.lessonId ? { ok: true } : invalidEventMetadata(),
+  transcript_ingest_succeeded: (metadata) =>
+    metadata.lessonId &&
+    typeof metadata.segmentCount === "number" &&
+    typeof metadata.transcriptDurationSec === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  transcript_ingest_failed: (metadata) =>
+    metadata.lessonId && metadata.reason
+      ? { ok: true }
+      : invalidEventMetadata(),
+  transcript_duration_warn: (metadata) =>
+    metadata.lessonId &&
+    typeof metadata.lessonDurationSec === "number" &&
+    typeof metadata.transcriptDurationSec === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  share_opened: (metadata) =>
+    metadata.surface ? { ok: true } : invalidEventMetadata(),
+  share_copy: (metadata) =>
+    metadata.surface ? { ok: true } : invalidEventMetadata(),
+  share_social: (metadata) =>
+    metadata.surface && metadata.network
+      ? { ok: true }
+      : invalidEventMetadata(),
+  feedback_opened: (metadata) =>
+    metadata.surface ? { ok: true } : invalidEventMetadata(),
+  feedback_submitted: (metadata) =>
+    metadata.surface &&
+    typeof metadata.rating === "number" &&
+    typeof metadata.textLength === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  feedback_dismissed: (metadata) =>
+    metadata.surface ? { ok: true } : invalidEventMetadata(),
 };
 
 const buildEventLogError = (code: EventLogErrorCode): EventLogError => {
   return {
     code,
-    message: EVENT_ERROR_MESSAGES[code]
+    message: "Invalid event metadata.",
   };
 };
 
-const isNumber = (value: unknown): value is number => {
-  return typeof value === "number" && Number.isFinite(value);
-};
-
-const isString = (value: unknown): value is string => {
-  return typeof value === "string" && value.length > 0;
-};
-
-const isInviteRole = (value: unknown): value is InviteRole => {
-  return value === "user" || value === "admin";
-};
-
-const isRateLimitScope = (value: unknown): value is RateLimitScope => {
-  return value === "invite_redeem" || value === "ai_request";
-};
-
-const isFallbackReason = (value: unknown): value is "status" | "timeout" => {
-  return value === "status" || value === "timeout";
+const invalidEventMetadata = (): EventValidationResult => {
+  return { ok: false, error: buildEventLogError("INVALID_EVENT_METADATA") };
 };
 
 const validateEventMetadata = (
   eventType: EventType,
-  metadata: Record<string, unknown>
+  metadata: EventMetadataInput,
 ): EventValidationResult => {
-  const invalid = { ok: false, error: buildEventLogError("INVALID_EVENT_METADATA") } as const;
+  const validator = EVENT_METADATA_VALIDATORS[eventType];
 
-  switch (eventType) {
-    case "transcript_ingest_started":
-      return isString(metadata.lessonId) ? { ok: true } : invalid;
-    case "transcript_ingest_succeeded":
-      return isString(metadata.lessonId) &&
-        isNumber(metadata.segmentCount) &&
-        isNumber(metadata.transcriptDurationSec)
-        ? { ok: true }
-        : invalid;
-    case "transcript_ingest_failed":
-      return isString(metadata.lessonId) && isString(metadata.reason)
-        ? { ok: true }
-        : invalid;
-    case "transcript_duration_warn":
-      return isString(metadata.lessonId) &&
-        isNumber(metadata.lessonDurationSec) &&
-        isNumber(metadata.transcriptDurationSec)
-        ? { ok: true }
-        : invalid;
-    case "invite_created":
-      return isString(metadata.inviteId) &&
-        isString(metadata.inviteBatchId) &&
-        isInviteRole(metadata.role)
-        ? { ok: true }
-        : invalid;
-    case "invite_redeemed":
-      return isString(metadata.inviteId) &&
-        isString(metadata.inviteBatchId) &&
-        isInviteRole(metadata.role)
-        ? { ok: true }
-        : invalid;
-    case "rate_limit_denied":
-      return isRateLimitScope(metadata.scope) &&
-        isNumber(metadata.limit) &&
-        isNumber(metadata.windowMs)
-        ? { ok: true }
-        : invalid;
-    case "ai_fallback_triggered":
-      if (!isFallbackReason(metadata.reason)) {
-        return invalid;
-      }
-
-      if (metadata.reason === "status") {
-        return isNumber(metadata.status) ? { ok: true } : invalid;
-      }
-
-      return isNumber(metadata.timeoutMs) ? { ok: true } : invalid;
-    case "lesson_completed":
-      return isString(metadata.lessonId) ? { ok: true } : invalid;
-    case "session_heartbeat":
-      return isNumber(metadata.intervalMs) ? { ok: true } : invalid;
-    default:
-      return invalid;
+  if (!validator) {
+    return invalidEventMetadata();
   }
+
+  return validator(metadata);
+};
+
+const EVENT_TYPES = Object.keys(EVENT_METADATA_VALIDATORS) as EventType[];
+
+const isEventType = (value: string): value is EventType => {
+  return EVENT_TYPES.includes(value as EventType);
 };
 
 export type {
@@ -208,6 +356,6 @@ export type {
   EventLogResult,
   EventMetadataMap,
   EventRecord,
-  EventType
+  EventType,
 };
-export { buildEventLogError, validateEventMetadata };
+export { EVENT_TYPES, buildEventLogError, isEventType, validateEventMetadata };

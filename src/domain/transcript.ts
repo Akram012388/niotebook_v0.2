@@ -1,7 +1,7 @@
-import type { GenericId } from "convex/values";
+import type { LessonId } from "./ids";
 
 type TranscriptSegment = {
-  lessonId: GenericId<"lessons">;
+  lessonId: LessonId;
   idx: number;
   startSec: number;
   endSec: number;
@@ -20,16 +20,18 @@ const TRANSCRIPT_START_PAD_SEC = 5;
 const toTranscriptWindowSegments = (
   segments: TranscriptSegment[],
   startSec: number,
-  endSec: number
+  endSec: number,
 ): TranscriptWindowSegment[] => {
   return segments
-    .filter((segment) => segment.endSec >= startSec && segment.startSec <= endSec)
+    .filter(
+      (segment) => segment.endSec >= startSec && segment.startSec <= endSec,
+    )
     .sort((left, right) => left.idx - right.idx)
     .map((segment) => ({
       idx: segment.idx,
       startSec: segment.startSec,
       endSec: segment.endSec,
-      textNormalized: segment.textNormalized
+      textNormalized: segment.textNormalized,
     }));
 };
 

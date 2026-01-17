@@ -1,5 +1,5 @@
-import { mutationGeneric, type IndexRangeBuilder } from "convex/server";
-import { v } from "convex/values";
+import { mutation } from "./_generated/server";
+import type { IndexRangeBuilder } from "convex/server";
 import type { GenericId } from "convex/values";
 import {
   AI_REQUEST_LIMIT,
@@ -7,8 +7,9 @@ import {
   evaluateRateLimit,
   type RateLimitDecision,
   type RateLimitRecord,
-  type RateLimitScope
+  type RateLimitScope,
 } from "../src/domain/rate-limits";
+import { requireMutationUser } from "./auth";
 
 type RateLimitDocument = {
   _id: GenericId<"rateLimits">;
@@ -21,7 +22,7 @@ type RateLimitDocument = {
 
 type RateLimitIndexFields = ["scope", "subject"];
 
-type MutationDefinition = Parameters<typeof mutationGeneric>[0];
+type MutationDefinition = Parameters<typeof mutation>[0];
 
 type MutationConfig = Extract<
   MutationDefinition,
@@ -35,7 +36,7 @@ const toRateLimitRecord = (document: RateLimitDocument): RateLimitRecord => {
     scope: document.scope,
     subject: document.subject,
     windowStartMs: document.windowStartMs,
-    count: document.count
+    count: document.count,
   };
 };
 
@@ -44,12 +45,12 @@ const consumeRateLimit = async (
   scope: RateLimitScope,
   subject: string,
   windowMs: number,
-  limit: number
+  limit: number,
 ): Promise<RateLimitDecision> => {
   const existing = (await ctx.db
     .query("rateLimits")
     .withIndex("by_scope_subject", (query) => {
-      const typedQuery = query as IndexRangeBuilder<
+      const typedQuery = query as unknown as IndexRangeBuilder<
         RateLimitDocument,
         RateLimitIndexFields
       >;
@@ -65,13 +66,13 @@ const consumeRateLimit = async (
     existing ? toRateLimitRecord(existing) : null,
     nowMs,
     windowMs,
-    limit
+    limit,
   );
 
   if (existing) {
     await ctx.db.patch(existing._id, {
       windowStartMs: evaluation.record.windowStartMs,
-      count: evaluation.record.count
+      count: evaluation.record.count,
     });
   } else {
     await ctx.db.insert("rateLimits", evaluation.record);
@@ -80,19 +81,19 @@ const consumeRateLimit = async (
   return evaluation.decision;
 };
 
-const consumeAiRateLimit = mutationGeneric({
-  args: {
-    userId: v.id("users")
-  },
-  handler: async (ctx, args): Promise<RateLimitDecision> => {
+const consumeAiRateLimit = mutation({
+  args: {},
+  handler: async (ctx): Promise<RateLimitDecision> => {
+    const user = await requireMutationUser(ctx);
+
     return consumeRateLimit(
       ctx,
       "ai_request",
-      args.userId,
+      user.id,
       AI_REQUEST_WINDOW_MS,
-      AI_REQUEST_LIMIT
+      AI_REQUEST_LIMIT,
     );
-  }
+  },
 });
 
 export { consumeAiRateLimit, consumeRateLimit };

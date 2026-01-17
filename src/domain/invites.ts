@@ -1,13 +1,13 @@
-import type { GenericId } from "convex/values";
+import type { InviteId, UserId } from "./ids";
 
 type InviteRole = "user" | "admin";
 
 type InviteSummary = {
-  id: GenericId<"invites">;
+  id: InviteId;
   code: string;
   createdAt: number;
   usedAt?: number;
-  usedByUserId?: GenericId<"users">;
+  usedByUserId?: UserId;
   inviteBatchId: string;
   role: InviteRole;
 };
@@ -19,8 +19,8 @@ type InviteUpsertInput = {
 };
 
 type InviteRedeemInput = {
-  inviteId: GenericId<"invites">;
-  userId: GenericId<"users">;
+  inviteId: InviteId;
+  userId: UserId;
 };
 
 type InviteErrorCode =
@@ -43,11 +43,11 @@ type InviteRedeemResult = InviteResult;
 type InviteUpsertResult = InviteResult;
 
 type InviteRecord = {
-  _id: GenericId<"invites">;
+  _id: InviteId;
   code: string;
   createdAt: number;
   usedAt?: number;
-  usedByUserId?: GenericId<"users">;
+  usedByUserId?: UserId;
   inviteBatchId: string;
   role: InviteRole;
 };
@@ -62,33 +62,33 @@ const toInviteSummary = (record: InviteRecord): InviteSummary => {
     usedAt: record.usedAt,
     usedByUserId: record.usedByUserId,
     inviteBatchId: record.inviteBatchId,
-    role: record.role
+    role: record.role,
   };
 };
 
 const buildInviteSummary = (
-  id: GenericId<"invites">,
+  id: InviteId,
   input: InviteUpsertInput,
-  createdAt: number
+  createdAt: number,
 ): InviteSummary => {
   return {
     id,
     code: input.code,
     createdAt,
     inviteBatchId: input.inviteBatchId,
-    role: input.role
+    role: input.role,
   };
 };
 
 const buildInviteUsedSummary = (
   invite: InviteSummary,
-  userId: GenericId<"users">,
-  usedAt: number
+  userId: UserId,
+  usedAt: number,
 ): InviteSummary => {
   return {
     ...invite,
     usedAt,
-    usedByUserId: userId
+    usedByUserId: userId,
   };
 };
 
@@ -96,13 +96,13 @@ const INVITE_ERROR_MESSAGES: Record<InviteErrorCode, string> = {
   INVITE_NOT_FOUND: "Invite not found.",
   INVITE_ALREADY_USED: "Invite already used.",
   INVITE_EXPIRED: "Invite expired.",
-  RATE_LIMITED: "Invite redemption rate limited."
+  RATE_LIMITED: "Invite redemption rate limited.",
 };
 
 const buildInviteError = (code: InviteErrorCode): InviteError => {
   return {
     code,
-    message: INVITE_ERROR_MESSAGES[code]
+    message: INVITE_ERROR_MESSAGES[code],
   };
 };
 
@@ -112,26 +112,26 @@ const isInviteExpired = (invite: InviteSummary, nowMs: number): boolean => {
 
 const resolveInviteRedeem = (
   invite: InviteSummary,
-  userId: GenericId<"users">,
-  nowMs: number
+  userId: UserId,
+  nowMs: number,
 ): InviteRedeemResult => {
   if (invite.usedAt) {
     return {
       ok: false,
-      error: buildInviteError("INVITE_ALREADY_USED")
+      error: buildInviteError("INVITE_ALREADY_USED"),
     };
   }
 
   if (isInviteExpired(invite, nowMs)) {
     return {
       ok: false,
-      error: buildInviteError("INVITE_EXPIRED")
+      error: buildInviteError("INVITE_EXPIRED"),
     };
   }
 
   return {
     ok: true,
-    value: buildInviteUsedSummary(invite, userId, nowMs)
+    value: buildInviteUsedSummary(invite, userId, nowMs),
   };
 };
 
@@ -144,7 +144,7 @@ export type {
   InviteSummary,
   InviteUpsertInput,
   InviteUpsertResult,
-  InviteRecord
+  InviteRecord,
 };
 export {
   INVITE_TTL_MS,
@@ -153,5 +153,5 @@ export {
   buildInviteUsedSummary,
   isInviteExpired,
   resolveInviteRedeem,
-  toInviteSummary
+  toInviteSummary,
 };

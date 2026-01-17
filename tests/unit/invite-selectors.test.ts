@@ -1,4 +1,3 @@
-import type { GenericId } from "convex/values";
 import { describe, expect, it } from "vitest";
 import {
   INVITE_TTL_MS,
@@ -7,17 +6,18 @@ import {
   buildInviteUsedSummary,
   resolveInviteRedeem,
   toInviteSummary,
-  type InviteRecord
+  type InviteRecord,
+  type InviteSummary,
 } from "../../src/domain/invites";
 
 describe("invite helpers", (): void => {
   it("maps invite records to summaries", (): void => {
     const record: InviteRecord = {
-      _id: "invite-1" as GenericId<"invites">,
+      _id: "invite-1" as InviteSummary["id"],
       code: "CODE-1",
       createdAt: 1000,
       inviteBatchId: "batch-1",
-      role: "user"
+      role: "user",
     };
 
     expect(toInviteSummary(record)).toEqual({
@@ -25,15 +25,15 @@ describe("invite helpers", (): void => {
       code: "CODE-1",
       createdAt: 1000,
       inviteBatchId: "batch-1",
-      role: "user"
+      role: "user",
     });
   });
 
   it("builds invite summaries", (): void => {
     const summary = buildInviteSummary(
-      "invite-2" as GenericId<"invites">,
+      "invite-2" as InviteSummary["id"],
       { code: "CODE-2", inviteBatchId: "batch-2", role: "admin" },
-      2000
+      2000,
     );
 
     expect(summary).toEqual({
@@ -41,21 +41,21 @@ describe("invite helpers", (): void => {
       code: "CODE-2",
       createdAt: 2000,
       inviteBatchId: "batch-2",
-      role: "admin"
+      role: "admin",
     });
   });
 
   it("marks invites as used", (): void => {
     const base = buildInviteSummary(
-      "invite-3" as GenericId<"invites">,
+      "invite-3" as InviteSummary["id"],
       { code: "CODE-3", inviteBatchId: "batch-3", role: "user" },
-      3000
+      3000,
     );
 
     const used = buildInviteUsedSummary(
       base,
-      "user-1" as GenericId<"users">,
-      3500
+      "user-1" as NonNullable<InviteSummary["usedByUserId"]>,
+      3500,
     );
 
     expect(used.usedAt).toBe(3500);
@@ -67,18 +67,18 @@ describe("invite helpers", (): void => {
 
     expect(error).toEqual({
       code: "INVITE_NOT_FOUND",
-      message: "Invite not found."
+      message: "Invite not found.",
     });
   });
 
   it("redeems invite within TTL", (): void => {
     const invite = buildInviteSummary(
-      "invite-4" as GenericId<"invites">,
+      "invite-4" as InviteSummary["id"],
       { code: "CODE-4", inviteBatchId: "batch-4", role: "user" },
-      0
+      0,
     );
 
-    const userId = "user-2" as GenericId<"users">;
+    const userId = "user-2" as NonNullable<InviteSummary["usedByUserId"]>;
     const nowMs = INVITE_TTL_MS - 1000;
 
     const result = resolveInviteRedeem(invite, userId, nowMs);
@@ -93,15 +93,15 @@ describe("invite helpers", (): void => {
 
   it("rejects expired invites", (): void => {
     const invite = buildInviteSummary(
-      "invite-5" as GenericId<"invites">,
+      "invite-5" as InviteSummary["id"],
       { code: "CODE-5", inviteBatchId: "batch-5", role: "admin" },
-      0
+      0,
     );
 
     const result = resolveInviteRedeem(
       invite,
-      "user-3" as GenericId<"users">,
-      INVITE_TTL_MS + 1
+      "user-3" as NonNullable<InviteSummary["usedByUserId"]>,
+      INVITE_TTL_MS + 1,
     );
 
     expect(result.ok).toBe(false);

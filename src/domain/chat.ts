@@ -1,4 +1,4 @@
-import type { GenericId } from "convex/values";
+import type { ChatMessageId, ChatThreadId, LessonId, UserId } from "./ids";
 
 type ChatMessageRole = "user" | "assistant";
 
@@ -8,14 +8,14 @@ type ChatTimeWindow = {
 };
 
 type ChatThreadSummary = {
-  id: GenericId<"chatThreads">;
-  userId: GenericId<"users">;
-  lessonId: GenericId<"lessons">;
+  id: ChatThreadId;
+  userId: UserId;
+  lessonId: LessonId;
 };
 
 type ChatMessageSummary = {
-  id: GenericId<"chatMessages">;
-  threadId: GenericId<"chatThreads">;
+  id: ChatMessageId;
+  threadId: ChatThreadId;
   role: ChatMessageRole;
   content: string;
   videoTimeSec: number;
@@ -30,28 +30,28 @@ type ChatMessagePage = {
 };
 
 type ChatThreadResolution = {
-  threadId: GenericId<"chatThreads"> | null;
+  threadId: ChatThreadId | null;
   shouldCreate: boolean;
 };
 
 const resolveChatThreadResolution = (
-  threadId: GenericId<"chatThreads"> | null
+  threadId: ChatThreadId | null,
 ): ChatThreadResolution => {
   return {
     threadId,
-    shouldCreate: threadId === null
+    shouldCreate: threadId === null,
   };
 };
 
 const orderChatMessages = (
-  messages: ChatMessageSummary[]
+  messages: ChatMessageSummary[],
 ): ChatMessageSummary[] => {
   return [...messages].sort((left, right) => left.createdAt - right.createdAt);
 };
 
 const applyChatMessageLimit = (
   messages: ChatMessageSummary[],
-  limit: number
+  limit: number,
 ): ChatMessageSummary[] => {
   return messages.slice(0, limit);
 };
@@ -62,10 +62,10 @@ export type {
   ChatMessageSummary,
   ChatThreadResolution,
   ChatThreadSummary,
-  ChatTimeWindow
+  ChatTimeWindow,
 };
 export {
   applyChatMessageLimit,
   orderChatMessages,
-  resolveChatThreadResolution
+  resolveChatThreadResolution,
 };

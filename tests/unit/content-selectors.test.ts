@@ -1,30 +1,29 @@
-import type { GenericId } from "convex/values";
 import { describe, expect, it } from "vitest";
 import {
   orderCoursesByTitle,
   selectLessonsByCourse,
   type CourseSummary,
-  type LessonSummary
+  type LessonSummary,
 } from "../../src/domain/content";
 
 describe("content selectors", (): void => {
   it("orders courses by title", (): void => {
     const courses: CourseSummary[] = [
       {
-        id: "course-b" as GenericId<"courses">,
+        id: "course-b" as CourseSummary["id"],
         sourcePlaylistId: "playlist-b",
         title: "B Course",
         description: "Second",
         license: "CC",
-        sourceUrl: "https://example.com/b"
+        sourceUrl: "https://example.com/b",
       },
       {
-        id: "course-a" as GenericId<"courses">,
+        id: "course-a" as CourseSummary["id"],
         sourcePlaylistId: "playlist-a",
         title: "A Course",
         license: "CC",
-        sourceUrl: "https://example.com/a"
-      }
+        sourceUrl: "https://example.com/a",
+      },
     ];
 
     const ordered = orderCoursesByTitle(courses);
@@ -34,22 +33,22 @@ describe("content selectors", (): void => {
   });
 
   it("filters and orders lessons by course", (): void => {
-    const courseA = "course-a" as GenericId<"courses">;
-    const courseB = "course-b" as GenericId<"courses">;
+    const courseA = "course-a" as CourseSummary["id"];
+    const courseB = "course-b" as CourseSummary["id"];
 
     const lessons: LessonSummary[] = [
       {
-        id: "lesson-2" as GenericId<"lessons">,
+        id: "lesson-2" as LessonSummary["id"],
         courseId: courseA,
         videoId: "vid-2",
         title: "Lesson 2",
         durationSec: 1200,
         order: 2,
         transcriptStatus: "warn",
-        segmentCount: 20
+        segmentCount: 20,
       },
       {
-        id: "lesson-1" as GenericId<"lessons">,
+        id: "lesson-1" as LessonSummary["id"],
         courseId: courseA,
         videoId: "vid-1",
         title: "Lesson 1",
@@ -59,16 +58,16 @@ describe("content selectors", (): void => {
         segmentCount: 42,
         transcriptUrl: "https://example.com/lesson-1.txt",
         transcriptDurationSec: 880,
-        ingestVersion: 1
+        ingestVersion: 1,
       },
       {
-        id: "lesson-3" as GenericId<"lessons">,
+        id: "lesson-3" as LessonSummary["id"],
         courseId: courseB,
         videoId: "vid-3",
         title: "Lesson 3",
         durationSec: 600,
-        order: 1
-      }
+        order: 1,
+      },
     ];
 
     const selected = selectLessonsByCourse(lessons, courseA);
@@ -86,7 +85,7 @@ describe("content selectors", (): void => {
       segmentCount: 42,
       transcriptUrl: "https://example.com/lesson-1.txt",
       transcriptDurationSec: 880,
-      ingestVersion: 1
+      ingestVersion: 1,
     });
   });
 });

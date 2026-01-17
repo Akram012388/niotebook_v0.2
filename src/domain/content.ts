@@ -1,9 +1,9 @@
-import type { GenericId } from "convex/values";
+import type { CourseId, LessonId } from "./ids";
 
 type TranscriptStatus = "ok" | "warn" | "missing" | "error";
 
 type CourseSummary = {
-  id: GenericId<"courses">;
+  id: CourseId;
   sourcePlaylistId: string;
   title: string;
   description?: string;
@@ -12,8 +12,8 @@ type CourseSummary = {
 };
 
 type LessonSummary = {
-  id: GenericId<"lessons">;
-  courseId: GenericId<"courses">;
+  id: LessonId;
+  courseId: CourseId;
   videoId: string;
   title: string;
   durationSec: number;
@@ -27,12 +27,14 @@ type LessonSummary = {
 };
 
 const orderCoursesByTitle = (courses: CourseSummary[]): CourseSummary[] => {
-  return [...courses].sort((left, right) => left.title.localeCompare(right.title));
+  return [...courses].sort((left, right) =>
+    left.title.localeCompare(right.title),
+  );
 };
 
 const selectLessonsByCourse = (
   lessons: LessonSummary[],
-  courseId: GenericId<"courses">
+  courseId: CourseId,
 ): LessonSummary[] => {
   return lessons
     .filter((lesson) => lesson.courseId === courseId)

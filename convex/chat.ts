@@ -1,4 +1,4 @@
-import { mutationGeneric, queryGeneric, type IndexRangeBuilder } from "convex/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { GenericId } from "convex/values";
 import {
@@ -9,8 +9,10 @@ import {
   type ChatMessageRole,
   type ChatMessageSummary,
   type ChatThreadSummary,
-  type ChatTimeWindow
+  type ChatTimeWindow,
 } from "../src/domain/chat";
+import { requireMutationUser, requireQueryUser } from "./auth";
+import { toDomainId, toGenericId } from "./idUtils";
 
 type ChatThreadRecord = {
   _id: GenericId<"chatThreads">;
@@ -32,128 +34,120 @@ type ChatMessageRecord = {
   createdAt: number;
 };
 
-type ChatThreadIndexFields = ["userId", "lessonId"];
-
-type ChatMessageIndexFields = ["threadId", "createdAt"];
-
 const toChatThreadSummary = (thread: ChatThreadRecord): ChatThreadSummary => {
   return {
-    id: thread._id,
-    userId: thread.userId,
-    lessonId: thread.lessonId
+    id: toDomainId(thread._id as GenericId<"chatThreads">),
+    userId: toDomainId(thread.userId as GenericId<"users">),
+    lessonId: toDomainId(thread.lessonId as GenericId<"lessons">),
   };
 };
 
-const toChatMessageSummary = (message: ChatMessageRecord): ChatMessageSummary => {
+const toChatMessageSummary = (
+  message: ChatMessageRecord,
+): ChatMessageSummary => {
   const timeWindow: ChatTimeWindow = {
     startSec: message.timeWindowStartSec,
-    endSec: message.timeWindowEndSec
+    endSec: message.timeWindowEndSec,
   };
 
   return {
-    id: message._id,
-    threadId: message.threadId,
+    id: toDomainId(message._id as GenericId<"chatMessages">),
+    threadId: toDomainId(message.threadId as GenericId<"chatThreads">),
     role: message.role,
     content: message.content,
     videoTimeSec: message.videoTimeSec,
     timeWindow,
     codeHash: message.codeHash,
-    createdAt: message.createdAt
+    createdAt: message.createdAt,
   };
 };
 
-const getChatThread = queryGeneric({
+const getChatThread = query({
   args: {
-    userId: v.id("users"),
-    lessonId: v.id("lessons")
+    lessonId: v.id("lessons"),
   },
   handler: async (ctx, args): Promise<ChatThreadSummary | null> => {
+    const user = await requireQueryUser(ctx);
+
     const thread = (await ctx.db
       .query("chatThreads")
-      .withIndex("by_userId_lessonId", (query) => {
-        const typedQuery = query as IndexRangeBuilder<
-          ChatThreadRecord,
-          ChatThreadIndexFields
-        >;
-
-        return typedQuery
-          .eq("userId", args.userId)
-          .eq("lessonId", args.lessonId);
-      })
+      .withIndex("by_userId_lessonId", (query) =>
+        query.eq("userId", toGenericId(user.id)).eq("lessonId", args.lessonId),
+      )
       .first()) as ChatThreadRecord | null;
 
     return thread ? toChatThreadSummary(thread) : null;
-  }
+  },
 });
 
-const ensureChatThread = mutationGeneric({
+const ensureChatThread = mutation({
   args: {
-    userId: v.id("users"),
-    lessonId: v.id("lessons")
+    lessonId: v.id("lessons"),
   },
   handler: async (ctx, args): Promise<GenericId<"chatThreads">> => {
+    const user = await requireMutationUser(ctx);
+
     const existing = (await ctx.db
       .query("chatThreads")
-      .withIndex("by_userId_lessonId", (query) => {
-        const typedQuery = query as IndexRangeBuilder<
-          ChatThreadRecord,
-          ChatThreadIndexFields
-        >;
-
-        return typedQuery
-          .eq("userId", args.userId)
-          .eq("lessonId", args.lessonId);
-      })
+      .withIndex("by_userId_lessonId", (query) =>
+        query.eq("userId", toGenericId(user.id)).eq("lessonId", args.lessonId),
+      )
       .first()) as ChatThreadRecord | null;
 
-    const resolution = resolveChatThreadResolution(existing?._id ?? null);
+    const resolution = resolveChatThreadResolution(
+      existing ? toDomainId(existing._id as GenericId<"chatThreads">) : null,
+    );
 
     if (!resolution.shouldCreate && resolution.threadId) {
-      return resolution.threadId;
+      return toGenericId(resolution.threadId);
     }
 
     return ctx.db.insert("chatThreads", {
-      userId: args.userId,
-      lessonId: args.lessonId
+      userId: toGenericId(user.id),
+      lessonId: args.lessonId,
     });
-  }
+  },
 });
 
-const getChatMessages = queryGeneric({
+const getChatMessages = query({
   args: {
     threadId: v.id("chatThreads"),
     limit: v.number(),
-    cursor: v.optional(v.string())
+    cursor: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<ChatMessagePage> => {
+    const user = await requireQueryUser(ctx);
+    const thread = (await ctx.db.get(args.threadId)) as ChatThreadRecord | null;
+
+    if (!thread || thread.userId !== toGenericId(user.id)) {
+      throw new Error("Chat thread not accessible.");
+    }
+
     const page = await ctx.db
       .query("chatMessages")
-      .withIndex("by_threadId_createdAt", (query) => {
-        const typedQuery = query as IndexRangeBuilder<
-          ChatMessageRecord,
-          ChatMessageIndexFields
-        >;
-
-        return typedQuery.eq("threadId", args.threadId);
-      })
+      .withIndex("by_threadId_createdAt", (query) =>
+        query.eq("threadId", args.threadId),
+      )
       .order("asc")
       .paginate({
         cursor: args.cursor ?? null,
-        numItems: args.limit
+        numItems: args.limit,
       });
 
     const messages = orderChatMessages(
-      page.page.map((message) => toChatMessageSummary(message as ChatMessageRecord))
+      page.page.map((message) =>
+        toChatMessageSummary(message as ChatMessageRecord),
+      ),
     );
 
     return {
       messages: applyChatMessageLimit(messages, args.limit),
-      nextCursor: page.continueCursor
+      nextCursor: page.continueCursor,
     };
-  }
+  },
 });
 
-const createChatMessage = mutationGeneric({
+const createChatMessage = mutation({
   args: {
     threadId: v.id("chatThreads"),
     role: v.union(v.literal("user"), v.literal("assistant")),
@@ -161,15 +155,16 @@ const createChatMessage = mutationGeneric({
     videoTimeSec: v.number(),
     timeWindow: v.object({
       startSec: v.number(),
-      endSec: v.number()
+      endSec: v.number(),
     }),
-    codeHash: v.optional(v.string())
+    codeHash: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<ChatMessageSummary> => {
-    const thread = await ctx.db.get(args.threadId);
+    const user = await requireMutationUser(ctx);
+    const thread = (await ctx.db.get(args.threadId)) as ChatThreadRecord | null;
 
-    if (!thread) {
-      throw new Error("Chat thread not found.");
+    if (!thread || thread.userId !== toGenericId(user.id)) {
+      throw new Error("Chat thread not accessible.");
     }
 
     const createdAt = Date.now();
@@ -182,23 +177,23 @@ const createChatMessage = mutationGeneric({
       timeWindowStartSec: args.timeWindow.startSec,
       timeWindowEndSec: args.timeWindow.endSec,
       codeHash: args.codeHash,
-      createdAt
+      createdAt,
     });
 
     return {
-      id: messageId,
-      threadId: args.threadId,
+      id: toDomainId(messageId as GenericId<"chatMessages">),
+      threadId: toDomainId(args.threadId as GenericId<"chatThreads">),
       role: args.role,
       content: args.content,
       videoTimeSec: args.videoTimeSec,
       timeWindow: {
         startSec: args.timeWindow.startSec,
-        endSec: args.timeWindow.endSec
+        endSec: args.timeWindow.endSec,
       },
       codeHash: args.codeHash,
-      createdAt
+      createdAt,
     };
-  }
+  },
 });
 
 export { createChatMessage, ensureChatThread, getChatMessages, getChatThread };
