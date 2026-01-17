@@ -54,6 +54,13 @@ const schema = defineSchema({
   invites: defineTable({
     code: v.string(),
     createdAt: v.number(),
+    createdByUserId: v.optional(v.id("users")),
+    expiresAt: v.number(),
+    status: v.union(
+      v.literal("active"),
+      v.literal("used"),
+      v.literal("expired"),
+    ),
     usedAt: v.optional(v.number()),
     usedByUserId: v.optional(v.id("users")),
     inviteBatchId: v.string(),
@@ -61,14 +68,7 @@ const schema = defineSchema({
   })
     .index("by_code", ["code"])
     .index("by_inviteBatchId", ["inviteBatchId"]),
-  frames: defineTable({
-    userId: v.id("users"),
-    lessonId: v.id("lessons"),
-    videoTimeSec: v.number(),
-    threadId: v.optional(v.id("chatThreads")),
-    codeHash: v.optional(v.string()),
-    updatedAt: v.number(),
-  }).index("by_userId_lessonId", ["userId", "lessonId"]),
+
   codeSnapshots: defineTable({
     userId: v.id("users"),
     lessonId: v.id("lessons"),
