@@ -84,6 +84,12 @@ const requireQueryUser = async (ctx: QueryCtx): Promise<AuthenticatedUser> => {
   return requireUser(ctx);
 };
 
+const requireQueryWorkspaceUser = async (
+  ctx: QueryCtx,
+): Promise<AuthenticatedUser> => {
+  return requireUser(ctx);
+};
+
 const requireQueryAdmin = async (ctx: QueryCtx): Promise<AuthenticatedUser> => {
   return requireAdmin(ctx);
 };
@@ -94,4 +100,5 @@ export {
   requireMutationUser,
   requireQueryAdmin,
   requireQueryUser,
+  requireQueryWorkspaceUser,
 };

@@ -1,9 +1,32 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { GenericId } from "convex/values";
-import { validateEventMetadata } from "../src/domain/events";
+import {
+  validateEventMetadata,
+  type EventLogResult,
+} from "../src/domain/events";
 import { requireMutationUser } from "./auth";
 import { toGenericId, toDomainId } from "./idUtils";
+
+type MutationDefinition = Parameters<typeof mutation>[0];
+
+type MutationConfig = Extract<
+  MutationDefinition,
+  { handler: (...args: never[]) => unknown }
+>;
+
+type MutationCtx = Parameters<MutationConfig["handler"]>[0];
+
+type EventMetadataInput = Parameters<typeof validateEventMetadata>[1];
+
+type EventType = Parameters<typeof validateEventMetadata>[0];
+
+type LogEventInternalArgs = {
+  eventType: EventType;
+  lessonId?: GenericId<"lessons">;
+  sessionId?: string;
+  metadata: EventMetadataInput;
+};
 
 const logEvent = mutation({
   args: {
@@ -67,35 +90,43 @@ const logEvent = mutation({
       textLength: v.optional(v.number()),
     }),
   },
-  handler: async (
-    ctx,
-    args,
-  ): Promise<
-    | { ok: true; eventId: ReturnType<typeof toDomainId> }
-    | { ok: false; error: { code: "INVALID_EVENT_METADATA"; message: string } }
-  > => {
+  handler: async (ctx, args): Promise<EventLogResult> => {
     const user = await requireMutationUser(ctx);
-    const validation = validateEventMetadata(args.eventType, args.metadata);
 
-    if (!validation.ok) {
-      return validation;
-    }
-
-    const createdAt = Date.now();
-    const eventId = await ctx.db.insert("events", {
-      userId: toGenericId(user.id),
+    return logEventInternal(ctx, {
+      eventType: args.eventType,
       lessonId: args.lessonId,
       sessionId: args.sessionId,
-      type: args.eventType,
       metadata: args.metadata,
-      createdAt,
+      userId: toGenericId(user.id),
     });
-
-    return {
-      ok: true,
-      eventId: toDomainId(eventId as GenericId<"events">),
-    };
   },
 });
 
-export { logEvent };
+const logEventInternal = async (
+  ctx: MutationCtx,
+  args: LogEventInternalArgs & { userId?: GenericId<"users"> },
+): Promise<EventLogResult> => {
+  const validation = validateEventMetadata(args.eventType, args.metadata);
+
+  if (!validation.ok) {
+    return validation;
+  }
+
+  const createdAt = Date.now();
+  const eventId = await ctx.db.insert("events", {
+    userId: args.userId,
+    lessonId: args.lessonId,
+    sessionId: args.sessionId,
+    type: args.eventType,
+    metadata: args.metadata,
+    createdAt,
+  });
+
+  return {
+    ok: true,
+    eventId: toDomainId(eventId as GenericId<"events">),
+  };
+};
+
+export { logEvent, logEventInternal };
