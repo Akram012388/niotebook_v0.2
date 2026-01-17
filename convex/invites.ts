@@ -6,13 +6,16 @@ import {
   buildInviteError,
   buildInviteSummary,
   resolveInviteRedeem,
+  resolveInviteStatus,
   toInviteSummary,
-  type InviteRecord,
+  INVITE_TTL_MS,
   type InviteRedeemResult,
+  type InviteRecord,
   type InviteRole,
   type InviteSummary,
   type InviteUpsertResult,
 } from "../src/domain/invites";
+
 import {
   INVITE_REDEEM_LIMIT,
   INVITE_REDEEM_WINDOW_MS,
@@ -57,7 +60,7 @@ const upsertInvite = mutation({
     role: v.optional(v.union(v.literal("user"), v.literal("admin"))),
   },
   handler: async (ctx, args): Promise<InviteUpsertResult> => {
-    await requireMutationAdmin(ctx);
+    const admin = await requireMutationAdmin(ctx);
 
     const invite = (await ctx.db
       .query("invites")
@@ -79,27 +82,42 @@ const upsertInvite = mutation({
     }
 
     const role: InviteRole = args.role ?? "user";
+    const nowMs = Date.now();
 
     if (invite) {
+      const expiresAt = invite.expiresAt ?? invite.createdAt + INVITE_TTL_MS;
+      const summary = {
+        ...toInviteSummary(invite),
+        expiresAt,
+      };
+      const status = resolveInviteStatus(summary, nowMs);
+
       await ctx.db.patch(invite._id, {
         inviteBatchId: args.inviteBatchId,
         role,
+        expiresAt,
+        status,
       });
 
       return {
         ok: true,
         value: {
-          ...toInviteSummary(invite),
+          ...summary,
           inviteBatchId: args.inviteBatchId,
           role,
+          status,
         },
       };
     }
 
-    const createdAt = Date.now();
+    const createdAt = nowMs;
+    const expiresAt = createdAt + INVITE_TTL_MS;
     const inviteId = await ctx.db.insert("invites", {
       code: args.code,
       createdAt,
+      createdByUserId: toGenericId(admin.id),
+      expiresAt,
+      status: "active",
       inviteBatchId: args.inviteBatchId,
       role,
     });
@@ -110,6 +128,7 @@ const upsertInvite = mutation({
         toDomainId(inviteId as GenericId<"invites">),
         { code: args.code, inviteBatchId: args.inviteBatchId, role },
         createdAt,
+        toDomainId(admin.id as GenericId<"users">),
       ),
     };
   },
@@ -157,7 +176,12 @@ const redeemInvite = mutation({
     }
 
     const nowMs = Date.now();
-    const summary = toInviteSummary(invite);
+    const expiresAt = invite.expiresAt ?? invite.createdAt + INVITE_TTL_MS;
+    const summary = {
+      ...toInviteSummary(invite),
+      expiresAt,
+    };
+    const status = resolveInviteStatus(summary, nowMs);
     const redemption = resolveInviteRedeem(
       summary,
       toDomainId(user.id as GenericId<"users">),
@@ -165,12 +189,19 @@ const redeemInvite = mutation({
     );
 
     if (!redemption.ok) {
+      if (status === "expired" && invite.status !== "expired") {
+        await ctx.db.patch(invite._id, {
+          status: "expired",
+        });
+      }
+
       return redemption;
     }
 
     const usedAt = redemption.value.usedAt ?? nowMs;
 
     await ctx.db.patch(invite._id, {
+      status: "used",
       usedAt,
       usedByUserId: toGenericId(user.id),
     });

@@ -2,10 +2,15 @@ import type { InviteId, UserId } from "./ids";
 
 type InviteRole = "user" | "admin";
 
+type InviteStatus = "active" | "used" | "expired";
+
 type InviteSummary = {
   id: InviteId;
   code: string;
   createdAt: number;
+  createdByUserId?: UserId;
+  expiresAt: number;
+  status: InviteStatus;
   usedAt?: number;
   usedByUserId?: UserId;
   inviteBatchId: string;
@@ -46,6 +51,9 @@ type InviteRecord = {
   _id: InviteId;
   code: string;
   createdAt: number;
+  createdByUserId?: UserId;
+  expiresAt: number;
+  status: InviteStatus;
   usedAt?: number;
   usedByUserId?: UserId;
   inviteBatchId: string;
@@ -59,6 +67,9 @@ const toInviteSummary = (record: InviteRecord): InviteSummary => {
     id: record._id,
     code: record.code,
     createdAt: record.createdAt,
+    createdByUserId: record.createdByUserId,
+    expiresAt: record.expiresAt,
+    status: record.status,
     usedAt: record.usedAt,
     usedByUserId: record.usedByUserId,
     inviteBatchId: record.inviteBatchId,
@@ -70,11 +81,15 @@ const buildInviteSummary = (
   id: InviteId,
   input: InviteUpsertInput,
   createdAt: number,
+  createdByUserId?: UserId,
 ): InviteSummary => {
   return {
     id,
     code: input.code,
     createdAt,
+    createdByUserId,
+    expiresAt: createdAt + INVITE_TTL_MS,
+    status: "active",
     inviteBatchId: input.inviteBatchId,
     role: input.role,
   };
@@ -87,6 +102,7 @@ const buildInviteUsedSummary = (
 ): InviteSummary => {
   return {
     ...invite,
+    status: "used",
     usedAt,
     usedByUserId: userId,
   };
@@ -106,8 +122,19 @@ const buildInviteError = (code: InviteErrorCode): InviteError => {
   };
 };
 
-const isInviteExpired = (invite: InviteSummary, nowMs: number): boolean => {
-  return nowMs - invite.createdAt > INVITE_TTL_MS;
+const resolveInviteStatus = (
+  invite: InviteSummary,
+  nowMs: number,
+): InviteStatus => {
+  if (invite.usedAt) {
+    return "used";
+  }
+
+  if (nowMs > invite.expiresAt) {
+    return "expired";
+  }
+
+  return "active";
 };
 
 const resolveInviteRedeem = (
@@ -122,7 +149,7 @@ const resolveInviteRedeem = (
     };
   }
 
-  if (isInviteExpired(invite, nowMs)) {
+  if (nowMs > invite.expiresAt) {
     return {
       ok: false,
       error: buildInviteError("INVITE_EXPIRED"),
@@ -145,13 +172,14 @@ export type {
   InviteUpsertInput,
   InviteUpsertResult,
   InviteRecord,
+  InviteStatus,
 };
 export {
   INVITE_TTL_MS,
   buildInviteError,
   buildInviteSummary,
   buildInviteUsedSummary,
-  isInviteExpired,
   resolveInviteRedeem,
+  resolveInviteStatus,
   toInviteSummary,
 };

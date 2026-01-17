@@ -16,6 +16,8 @@ describe("invite helpers", (): void => {
       _id: "invite-1" as InviteSummary["id"],
       code: "CODE-1",
       createdAt: 1000,
+      expiresAt: 1000 + INVITE_TTL_MS,
+      status: "active",
       inviteBatchId: "batch-1",
       role: "user",
     };
@@ -24,6 +26,9 @@ describe("invite helpers", (): void => {
       id: record._id,
       code: "CODE-1",
       createdAt: 1000,
+      createdByUserId: undefined,
+      expiresAt: 1000 + INVITE_TTL_MS,
+      status: "active",
       inviteBatchId: "batch-1",
       role: "user",
     });
@@ -40,6 +45,9 @@ describe("invite helpers", (): void => {
       id: "invite-2",
       code: "CODE-2",
       createdAt: 2000,
+      createdByUserId: undefined,
+      expiresAt: 2000 + INVITE_TTL_MS,
+      status: "active",
       inviteBatchId: "batch-2",
       role: "admin",
     });
@@ -58,6 +66,7 @@ describe("invite helpers", (): void => {
       3500,
     );
 
+    expect(used.status).toBe("used");
     expect(used.usedAt).toBe(3500);
     expect(used.usedByUserId).toBe("user-1");
   });
@@ -86,6 +95,7 @@ describe("invite helpers", (): void => {
     expect(result.ok).toBe(true);
 
     if (result.ok) {
+      expect(result.value.status).toBe("used");
       expect(result.value.usedAt).toBe(nowMs);
       expect(result.value.usedByUserId).toBe(userId);
     }
