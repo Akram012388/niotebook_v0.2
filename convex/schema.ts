@@ -68,7 +68,21 @@ const schema = defineSchema({
   })
     .index("by_code", ["code"])
     .index("by_inviteBatchId", ["inviteBatchId"]),
-
+  frames: defineTable({
+    userId: v.id("users"),
+    lessonId: v.id("lessons"),
+    videoTimeSec: v.number(),
+    threadId: v.optional(v.id("chatThreads")),
+    codeHash: v.optional(v.string()),
+    updatedAt: v.number(),
+  }).index("by_userId_lessonId", ["userId", "lessonId"]),
+  lessonCompletions: defineTable({
+    userId: v.id("users"),
+    lessonId: v.id("lessons"),
+    completionMethod: v.union(v.literal("video"), v.literal("code")),
+    completionPct: v.optional(v.number()),
+    completedAt: v.number(),
+  }).index("by_userId_lessonId", ["userId", "lessonId"]),
   codeSnapshots: defineTable({
     userId: v.id("users"),
     lessonId: v.id("lessons"),
