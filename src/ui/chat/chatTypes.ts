@@ -5,6 +5,7 @@ type ChatMessage = {
   role: ChatRole;
   content: string;
   badge: string;
+  timestampSec: number;
 };
 
 export type { ChatMessage, ChatRole };
