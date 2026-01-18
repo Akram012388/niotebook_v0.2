@@ -70,7 +70,7 @@ const ChatScroll = ({ children }: ChatScrollProps): ReactElement => {
         <button
           type="button"
           onClick={handleScrollToBottom}
-          className="absolute bottom-3 right-3 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm"
+          className="absolute bottom-3 right-3 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-muted shadow-sm"
         >
           Scroll to bottom
         </button>

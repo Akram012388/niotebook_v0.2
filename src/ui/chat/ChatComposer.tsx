@@ -52,7 +52,7 @@ const ChatComposer = ({ onSend }: ChatComposerProps): ReactElement => {
   );
 
   return (
-    <div className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+    <div className="flex items-end gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm">
       <textarea
         ref={textareaRef}
         rows={1}
@@ -60,12 +60,12 @@ const ChatComposer = ({ onSend }: ChatComposerProps): ReactElement => {
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Ask about the lesson..."
-        className="min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
+        className="min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto bg-transparent text-sm text-foreground outline-none placeholder:text-text-subtle"
       />
       <button
         type="button"
         onClick={handleSend}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white"
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground"
         aria-label="Send message"
       >
         ➜
