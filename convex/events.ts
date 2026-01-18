@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { internalMutation, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { GenericId } from "convex/values";
 import {
@@ -177,4 +177,52 @@ const logSystemEventInternal = async (
   };
 };
 
-export { logEvent, logEventInternal, logSystemEventInternal };
+const logSystemEvent = internalMutation({
+  args: {
+    eventType: v.union(
+      v.literal("transcript_ingest_started"),
+      v.literal("transcript_ingest_succeeded"),
+      v.literal("transcript_ingest_failed"),
+      v.literal("transcript_duration_warn"),
+    ),
+    lessonId: v.optional(v.id("lessons")),
+    sessionId: v.optional(v.string()),
+    metadata: v.object({
+      inviteId: v.optional(v.id("invites")),
+      createdBy: v.optional(v.id("users")),
+      redeemedBy: v.optional(v.id("users")),
+      userId: v.optional(v.id("users")),
+      emailHash: v.optional(v.string()),
+      courseId: v.optional(v.id("courses")),
+      lessonId: v.optional(v.id("lessons")),
+      videoTimeSec: v.optional(v.number()),
+      language: v.optional(v.string()),
+      success: v.optional(v.boolean()),
+      runtimeMs: v.optional(v.number()),
+      threadId: v.optional(v.id("chatThreads")),
+      latencyMs: v.optional(v.number()),
+      completionPct: v.optional(v.number()),
+      sessionId: v.optional(v.string()),
+      durationMs: v.optional(v.number()),
+      segmentCount: v.optional(v.number()),
+      transcriptDurationSec: v.optional(v.number()),
+      lessonDurationSec: v.optional(v.number()),
+      actorUserId: v.optional(v.id("users")),
+      reason: v.optional(v.string()),
+      surface: v.optional(v.string()),
+      network: v.optional(v.string()),
+      rating: v.optional(v.number()),
+      textLength: v.optional(v.number()),
+    }),
+  },
+  handler: async (ctx, args): Promise<EventLogResult> => {
+    return logSystemEventInternal(ctx, {
+      eventType: args.eventType as SystemEventType,
+      lessonId: args.lessonId,
+      sessionId: args.sessionId,
+      metadata: args.metadata,
+    });
+  },
+});
+
+export { logEvent, logEventInternal, logSystemEvent, logSystemEventInternal };

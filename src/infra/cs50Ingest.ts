@@ -7,6 +7,10 @@ import {
   type TranscriptSegmentInput,
 } from "../domain/ingest";
 
+const CS50_BASE_URL = "https://cs50.harvard.edu";
+
+const CS50_X_WEEKS_URL = `${CS50_BASE_URL}/x/weeks/`;
+
 type FetchHtmlResult = {
   ok: boolean;
   html: string | null;
@@ -41,20 +45,42 @@ const fetchSrt = async (url: string): Promise<FetchSrtResult> => {
 
 const parseWeekHtml = (slug: string, html: string): ParsedWeek => {
   const titleMatch = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
-  const title = titleMatch ? titleMatch[1].trim() : slug;
+  const title = titleMatch
+    ? titleMatch[1].replace(/<[^>]+>/g, "").trim()
+    : slug;
 
-  const lessonMatches = [...html.matchAll(/data-video-id="([^"]+)"/g)];
-  const lessons: ParsedWeekLesson[] = lessonMatches.map((match, index) => {
-    const videoId = match[1];
+  const videoMatches = [
+    ...html.matchAll(/https:\/\/video\.cs50\.io\/([A-Za-z0-9_-]+)/g),
+    ...html.matchAll(/https:\/\/youtu\.be\/([A-Za-z0-9_-]+)/g),
+    ...html.matchAll(
+      /https?:\/\/www\.youtube\.com\/watch\?v=([A-Za-z0-9_-]+)/g,
+    ),
+  ];
 
-    return {
-      title: `Lesson ${index + 1}`,
-      videoId,
-      durationSec: 0,
-    };
-  });
+  const lessons: ParsedWeekLesson[] = Array.from(
+    new Map(videoMatches.map((match) => [match[1], match[1]])).values(),
+  ).map((videoId, index) => ({
+    title: `Lesson ${index + 1}`,
+    videoId,
+    durationSec: 0,
+    order: index,
+  }));
 
   return { slug, title, lessons };
+};
+
+const parseWeekSlugs = (html: string): string[] => {
+  const matches = [...html.matchAll(/\/x\/weeks\/([^\/\"\'#\?]+)/g)];
+  const slugs = matches
+    .map((match) => match[1])
+    .filter((slug): slug is string => Boolean(slug))
+    .filter((slug) => slug !== "weeks");
+
+  return Array.from(new Set(slugs));
+};
+
+const buildWeekUrl = (slug: string): string => {
+  return `${CS50_BASE_URL}/x/weeks/${slug}/`;
 };
 
 const parseSrtTimestamp = (value: string): number => {
@@ -103,4 +129,13 @@ const parseSrt = (raw: string): TranscriptParseResult => {
   return { segments, durationSec, rawSegmentCount: blocks.length };
 };
 
-export { fetchSrt, fetchWeekHtml, parseSrt, parseWeekHtml };
+export {
+  CS50_BASE_URL,
+  CS50_X_WEEKS_URL,
+  buildWeekUrl,
+  fetchSrt,
+  fetchWeekHtml,
+  parseSrt,
+  parseWeekHtml,
+  parseWeekSlugs,
+};

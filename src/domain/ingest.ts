@@ -39,6 +39,7 @@ type ParsedWeekLesson = {
   title: string;
   videoId: string;
   durationSec: number;
+  order: number;
   subtitlesUrl?: string;
   transcriptUrl?: string;
 };
