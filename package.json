@@ -17,8 +17,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:local": "playwright install --with-deps && playwright test",
-    "check:any": "rg --hidden --no-ignore-vcs '\\bany\\b' src convex tests --glob '!convex/_generated/**' && echo 'error: any is forbidden in src/convex/tests' && exit 1 || exit 0",
-    "check:unknown": "rg --hidden --no-ignore-vcs '\\bunknown\\b' src/domain && echo 'error: unknown is forbidden in src/domain' && exit 1 || exit 0",
+    "check:any": "command -v rg >/dev/null 2>&1 && { rg --hidden --no-ignore-vcs '\\bany\\b' src convex tests --glob '!convex/_generated/**' >/dev/null 2>&1 && { echo 'error: any is forbidden in src, convex, and tests directories'; exit 1; } || exit 0; } || { echo 'warning: rg (ripgrep) not installed, skipping check:any'; exit 0; }",
+    "check:unknown": "command -v rg >/dev/null 2>&1 && { rg --hidden --no-ignore-vcs '\\bunknown\\b' src/domain >/dev/null 2>&1 && { echo 'error: unknown is forbidden in src/domain'; exit 1; } || exit 0; } || { echo 'warning: rg (ripgrep) not installed, skipping check:unknown'; exit 0; }",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "lefthook install"

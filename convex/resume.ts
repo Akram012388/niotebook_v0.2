@@ -46,31 +46,8 @@ const getFrame = query({
   },
 });
 
-const getLatestFrame = query({
-  args: {
-    lessonId: v.id("lessons"),
-  },
-  handler: async (ctx, args): Promise<FrameSummary | null> => {
-    const user = await requireQueryUser(ctx);
-
-    const frame = (await ctx.db
-      .query("frames")
-      .withIndex("by_userId_lessonId", (query) => {
-        const typedQuery =
-          query as unknown as import("convex/server").IndexRangeBuilder<
-            FrameRecord,
-            FrameIndexFields
-          >;
-
-        return typedQuery
-          .eq("userId", toGenericId(user.id))
-          .eq("lessonId", args.lessonId);
-      })
-      .first()) as FrameRecord | null;
-
-    return frame ? toFrameSummary(frame) : null;
-  },
-});
+// Alias for semantic clarity - matches specs lock list naming convention
+const getLatestFrame = getFrame;
 
 const upsertFrame = mutation({
   args: {
