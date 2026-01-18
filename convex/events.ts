@@ -60,7 +60,6 @@ const logEvent = mutation({
       v.literal("feedback_submitted"),
       v.literal("feedback_dismissed"),
     ),
-    userId: v.optional(v.id("users")),
     lessonId: v.optional(v.id("lessons")),
     sessionId: v.optional(v.string()),
     metadata: v.object({
