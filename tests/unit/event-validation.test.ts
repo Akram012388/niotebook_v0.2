@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildEventLogError,
   validateEventMetadata,
+  validateEventUserId,
 } from "../../src/domain/events";
 
 describe("event validation", (): void => {
@@ -25,6 +26,16 @@ describe("event validation", (): void => {
       expect(result.error).toEqual(
         buildEventLogError("INVALID_EVENT_METADATA"),
       );
+    }
+  });
+
+  it("rejects missing user id", (): void => {
+    const result = validateEventUserId(undefined);
+
+    expect(result.ok).toBe(false);
+
+    if (!result.ok) {
+      expect(result.error).toEqual(buildEventLogError("MISSING_USER_ID"));
     }
   });
 });

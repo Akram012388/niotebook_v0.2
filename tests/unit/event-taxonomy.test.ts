@@ -20,6 +20,7 @@ describe("event taxonomy", (): void => {
   it("accepts transcript ingest success event shape", (): void => {
     const event: EventInput<"transcript_ingest_succeeded"> = {
       eventType: "transcript_ingest_succeeded",
+      userId: "user-1" as EventInput<"transcript_ingest_succeeded">["userId"],
       lessonId:
         "lesson-1" as EventInput<"transcript_ingest_succeeded">["lessonId"],
       metadata: {

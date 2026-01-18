@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import type { GenericId } from "convex/values";
 import {
   validateEventMetadata,
+  validateEventUserId,
   type EventLogResult,
 } from "../src/domain/events";
 import { requireMutationUser } from "./auth";
@@ -106,6 +107,14 @@ const logEventInternal = async (
   ctx: MutationCtx,
   args: LogEventInternalArgs & { userId?: GenericId<"users"> },
 ): Promise<EventLogResult> => {
+  const userValidation = validateEventUserId(
+    args.userId ? toDomainId(args.userId) : undefined,
+  );
+
+  if (!userValidation.ok) {
+    return userValidation;
+  }
+
   const validation = validateEventMetadata(args.eventType, args.metadata);
 
   if (!validation.ok) {

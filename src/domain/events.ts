@@ -182,7 +182,7 @@ type EventMetadataMap = {
 
 type EventInput<T extends EventType = EventType> = {
   eventType: T;
-  userId?: UserId;
+  userId: UserId;
   lessonId?: LessonId;
   sessionId?: string;
   metadata: EventMetadataMap[T];
@@ -192,7 +192,7 @@ type EventRecord<T extends EventType = EventType> = EventInput<T> & {
   createdAt: number;
 };
 
-type EventLogErrorCode = "INVALID_EVENT_METADATA";
+type EventLogErrorCode = "INVALID_EVENT_METADATA" | "MISSING_USER_ID";
 
 type EventLogError = {
   code: EventLogErrorCode;
@@ -320,9 +320,14 @@ const EVENT_METADATA_VALIDATORS: Record<EventType, EventMetadataValidator> = {
 };
 
 const buildEventLogError = (code: EventLogErrorCode): EventLogError => {
+  const message =
+    code === "MISSING_USER_ID"
+      ? "User id is required."
+      : "Invalid event metadata.";
+
   return {
     code,
-    message: "Invalid event metadata.",
+    message,
   };
 };
 
@@ -343,6 +348,14 @@ const validateEventMetadata = (
   return validator(metadata);
 };
 
+const validateEventUserId = (userId?: UserId): EventValidationResult => {
+  if (!userId) {
+    return { ok: false, error: buildEventLogError("MISSING_USER_ID") };
+  }
+
+  return { ok: true };
+};
+
 const EVENT_TYPES = Object.keys(EVENT_METADATA_VALIDATORS) as EventType[];
 
 const isEventType = (value: string): value is EventType => {
@@ -358,4 +371,10 @@ export type {
   EventRecord,
   EventType,
 };
-export { EVENT_TYPES, buildEventLogError, isEventType, validateEventMetadata };
+export {
+  EVENT_TYPES,
+  buildEventLogError,
+  isEventType,
+  validateEventMetadata,
+  validateEventUserId,
+};

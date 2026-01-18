@@ -85,6 +85,7 @@ const setLessonCompleted = mutation({
           lessonId: args.lessonId,
           completionPct: args.completionPct,
         },
+        userId: toGenericId(user.id),
       });
 
       return summary;
@@ -111,6 +112,7 @@ const setLessonCompleted = mutation({
         lessonId: args.lessonId,
         completionPct: args.completionPct,
       },
+      userId: toGenericId(user.id),
     });
 
     return summary;
