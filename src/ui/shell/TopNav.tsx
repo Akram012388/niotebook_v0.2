@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { LayoutPresetToggle } from "../layout/LayoutPresetToggle";
 
 const TopNav = (): ReactElement => {
   return (
@@ -12,24 +13,11 @@ const TopNav = (): ReactElement => {
             type="button"
             className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700"
           >
-            CS50x • Week 1
+            CS50x / Week 1
           </button>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 text-xs font-medium text-slate-600">
-            <button
-              type="button"
-              className="rounded-full bg-white px-2.5 py-1 text-slate-900"
-            >
-              1
-            </button>
-            <button type="button" className="rounded-full px-2.5 py-1">
-              2
-            </button>
-            <button type="button" className="rounded-full px-2.5 py-1">
-              3
-            </button>
-          </div>
+          <LayoutPresetToggle />
           <button
             type="button"
             className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700"
