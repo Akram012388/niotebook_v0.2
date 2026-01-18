@@ -1,37 +1,52 @@
 # ADR Status: DRAFT
 
 ## Title
+
 Convex schema baseline for v0.2
 
 ## Context
+
 v0.2 requires a consistent data model to support resume, chat, code snapshots, analytics, and YouTube-synced content. Without a locked schema, implementation will drift and analytics will be inconsistent.
 
 ## Decision
-Adopt the following baseline Convex schema (names are canonical):
+
+Adopt the following baseline Convex schema (names are canonical and match implementation):
 
 ### Core content
-- `courses`: playlist-level metadata (source playlist ID, title, description, license, source URL)
-- `lessons`: video-level metadata (courseId, video ID, title, durationSec, order, subtitlesUrl, transcriptUrl[TXT metadata only], transcriptDurationSec, segmentCount, ingestVersion, transcriptStatus)
-- `chapters`: timestamped segments within a lesson (lessonId, title, startSec, endSec)
-- `transcriptSegments`: segment-per-row SRT storage (lessonId, idx, startSec, endSec, textRaw, textNormalized)
+
+- `courses`: sourcePlaylistId, title, description?, license, sourceUrl
+- `lessons`: courseId, videoId, title, durationSec, order, subtitlesUrl?, transcriptUrl?, transcriptDurationSec?, segmentCount?, ingestVersion?, transcriptStatus (ok|warn|missing|error)
+- `chapters`: lessonId, title, startSec, endSec
+- `transcriptSegments`: lessonId, idx, startSec, endSec, textRaw, textNormalized
 
 ### Users + access
-- `users`: profile + role (admin/user/guest), inviteBatchId (copied on redemption)
-- `invites`: invite codes (createdBy, redeemedBy, status, createdAt, expiresAt, inviteBatchId)
+
+- `users`: tokenIdentifier, email?, role (admin/user/guest), inviteBatchId?
+- `invites`: code, createdAt, createdByUserId?, expiresAt, status (active|used|expired), usedAt?, usedByUserId?, inviteBatchId, role (user/admin)
 
 ### Learning state
-- `frames`: last known frame per user+lesson (lessonId, userId, videoTimeSec, codeHash?, threadId)
-- `codeSnapshots`: per user+lesson+language (code, language, updatedAt, codeHash)
+
+- `frames`: userId, lessonId, videoTimeSec, threadId?, codeHash?, updatedAt
+- `codeSnapshots`: userId, lessonId, language, code, codeHash, updatedAt
+- `lessonCompletions`: userId, lessonId, completionMethod (video|code), completionPct?, completedAt
 
 ### Chat
-- `chatThreads`: one per user+lesson
-- `chatMessages`: message history (threadId, role, content, videoTimeSec, timeWindow, codeHash?)
+
+- `chatThreads`: userId, lessonId
+- `chatMessages`: threadId, role (user|assistant|system), content, videoTimeSec?, timeWindowStartSec?, timeWindowEndSec?, codeHash?, createdAt
 
 ### Analytics
-- `events`: immutable event log (userId, lessonId?, type, metadata, createdAt)
+
+- `events`: userId, lessonId?, sessionId?, type, metadata, createdAt
+
+### System + abuse
+
+- `rateLimits`: scope (invite_redeem|ai_request), subject, windowStartMs, count
 
 ### Event taxonomy (v0.2)
-- All events include: userId, createdAt, sessionId (when applicable).
+
+- All Phase 0 events are user-scoped and require userId; no system events are defined.
+- All events include createdAt and sessionId when applicable.
 - Event metadata is structured per event (no untyped blobs).
 - Core events:
   - `invite_issued` (inviteId, createdBy)
@@ -58,35 +73,49 @@ Adopt the following baseline Convex schema (names are canonical):
   - `feedback_opened` (surface)
   - `feedback_submitted` (surface, rating[1-5], textLength)
   - `feedback_dismissed` (surface)
+- Event metadata envelope fields (schema): inviteId, createdBy, redeemedBy, userId, emailHash, courseId, lessonId, videoTimeSec, language, success, runtimeMs, threadId, latencyMs, completionPct, sessionId, durationMs, segmentCount, transcriptDurationSec, lessonDurationSec, reason, surface, network, rating, textLength.
 
 ### Transcript ingest rules
+
 - Deploy-only ingest; idempotent per lessonId when ingestVersion changes (delete + insert).
 - transcriptStatus values: ok | warn | missing | error.
 
 ## Relationships
+
 - `courses` 1→N `lessons`
 - `lessons` 1→N `chapters`
 - `lessons` 1→N `transcriptSegments`
-- `users` 1→N `frames`, `codeSnapshots`, `chatThreads`, `events`
+- `lessons` 1→N `lessonCompletions`
+- `users` 1→N `frames`, `codeSnapshots`, `chatThreads`, `events`, `lessonCompletions`
 - `chatThreads` 1→N `chatMessages`
 
 ## Indexes
+
 - `lessons` by `courseId`
 - `chapters` by `lessonId`
 - `transcriptSegments` by `lessonId+startSec`
-- `transcriptSegments` by `lessonId+idx` (optional)
+- `transcriptSegments` by `lessonId+idx`
 - `frames` by `userId+lessonId`
 - `codeSnapshots` by `userId+lessonId+language`
+- `lessonCompletions` by `userId+lessonId`
 - `chatThreads` by `userId+lessonId`
 - `chatMessages` by `threadId`
+- `chatMessages` by `threadId+createdAt`
+- `users` by `tokenIdentifier`
 - `users` by `inviteBatchId`
-- `events` by `userId` and `type+createdAt`
+- `invites` by `code`
+- `invites` by `inviteBatchId`
+- `events` by `userId`
+- `events` by `type+createdAt`
+- `rateLimits` by `scope+subject`
 
 ## Access Control (high-level)
-- Users may only read/write their own frames, snapshots, threads, messages, and events.
+
+- Users may only read/write their own frames, snapshots, threads, messages, events, and completion records.
 - Admin role may read analytics across users and manage invites.
 - Guests only access landing/auth routes.
 
 ## Consequences
+
 - Schema defines the backbone for resume, AI context, analytics, and admin cockpit.
 - Any schema changes require a new ADR update and plan reference.
