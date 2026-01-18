@@ -37,7 +37,7 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 
 ### Analytics
 
-- `events`: userId, lessonId?, sessionId?, type, metadata, createdAt
+- `events`: userId?, lessonId?, sessionId?, type, metadata, createdAt
 
 ### System + abuse
 
@@ -45,7 +45,7 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 
 ### Event taxonomy (v0.2)
 
-- All Phase 0 events are user-scoped and require userId; no system events are defined.
+- Events are user or system scoped. User events require userId and are emitted only by authenticated user mutations. System events omit userId and are emitted only by server-side ingest/migrations; only transcript ingest events may omit userId.
 - All events include createdAt and sessionId when applicable.
 - Event metadata is structured per event (no untyped blobs).
 - Core events:
@@ -63,17 +63,18 @@ Adopt the following baseline Convex schema (names are canonical and match implem
   - `lesson_completed` (lessonId, completionPct)
   - `session_start` / `session_end` (sessionId, durationMs)
   - `runtime_warmup_start` / `runtime_warmup_end` (language, durationMs)
-  - `transcript_ingest_started` (lessonId)
-  - `transcript_ingest_succeeded` (lessonId, segmentCount, transcriptDurationSec)
-  - `transcript_ingest_failed` (lessonId, reason)
-  - `transcript_duration_warn` (lessonId, lessonDurationSec, transcriptDurationSec)
+- `transcript_ingest_started` (lessonId, actorUserId?)
+- `transcript_ingest_succeeded` (lessonId, segmentCount, transcriptDurationSec, actorUserId?)
+- `transcript_ingest_failed` (lessonId, reason, actorUserId?)
+- `transcript_duration_warn` (lessonId, lessonDurationSec, transcriptDurationSec, actorUserId?)
   - `share_opened` (surface)
   - `share_copy` (surface)
   - `share_social` (surface, network)
   - `feedback_opened` (surface)
   - `feedback_submitted` (surface, rating[1-5], textLength)
   - `feedback_dismissed` (surface)
-- Event metadata envelope fields (schema): inviteId, createdBy, redeemedBy, userId, emailHash, courseId, lessonId, videoTimeSec, language, success, runtimeMs, threadId, latencyMs, completionPct, sessionId, durationMs, segmentCount, transcriptDurationSec, lessonDurationSec, reason, surface, network, rating, textLength.
+
+- Event metadata envelope fields (schema): inviteId, createdBy, redeemedBy, userId, emailHash, courseId, lessonId, videoTimeSec, language, success, runtimeMs, threadId, latencyMs, completionPct, sessionId, durationMs, segmentCount, transcriptDurationSec, lessonDurationSec, reason, surface, network, rating, textLength, actorUserId.
 
 ### Transcript ingest rules
 
