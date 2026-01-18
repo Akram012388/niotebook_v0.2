@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { EventInput, SystemEventInput } from "../../src/domain/events";
+import type { EventInput } from "../../src/domain/events";
 
 describe("event taxonomy", (): void => {
   it("accepts invite issued event shape", (): void => {
@@ -18,13 +18,14 @@ describe("event taxonomy", (): void => {
   });
 
   it("accepts transcript ingest success event shape", (): void => {
-    const event: SystemEventInput<"transcript_ingest_succeeded"> = {
+    const event: EventInput<"transcript_ingest_succeeded"> = {
       eventType: "transcript_ingest_succeeded",
+      userId: "user-1" as EventInput<"transcript_ingest_succeeded">["userId"],
       lessonId:
-        "lesson-1" as SystemEventInput<"transcript_ingest_succeeded">["lessonId"],
+        "lesson-1" as EventInput<"transcript_ingest_succeeded">["lessonId"],
       metadata: {
         lessonId:
-          "lesson-1" as SystemEventInput<"transcript_ingest_succeeded">["metadata"]["lessonId"],
+          "lesson-1" as EventInput<"transcript_ingest_succeeded">["metadata"]["lessonId"],
         segmentCount: 10,
         transcriptDurationSec: 1200,
       },

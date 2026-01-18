@@ -1,13 +1,10 @@
-import { internalMutation, mutation } from "./_generated/server";
+import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { GenericId } from "convex/values";
 import {
   validateEventMetadata,
   validateEventUserId,
-  validateSystemEventType,
   type EventLogResult,
-  type SystemEventType,
-  type UserEventType as DomainUserEventType,
 } from "../src/domain/events";
 import { requireMutationUser } from "./auth";
 import { toGenericId, toDomainId } from "./idUtils";
@@ -25,17 +22,8 @@ type EventMetadataInput = Parameters<typeof validateEventMetadata>[1];
 
 type EventType = Parameters<typeof validateEventMetadata>[0];
 
-type UserEventType = Extract<EventType, DomainUserEventType>;
-
 type LogEventInternalArgs = {
-  eventType: UserEventType;
-  lessonId?: GenericId<"lessons">;
-  sessionId?: string;
-  metadata: EventMetadataInput;
-};
-
-type LogSystemEventInternalArgs = {
-  eventType: SystemEventType;
+  eventType: EventType;
   lessonId?: GenericId<"lessons">;
   sessionId?: string;
   metadata: EventMetadataInput;
@@ -62,6 +50,10 @@ const logEvent = mutation({
       v.literal("session_end"),
       v.literal("runtime_warmup_start"),
       v.literal("runtime_warmup_end"),
+      v.literal("transcript_ingest_started"),
+      v.literal("transcript_ingest_succeeded"),
+      v.literal("transcript_ingest_failed"),
+      v.literal("transcript_duration_warn"),
       v.literal("share_opened"),
       v.literal("share_copy"),
       v.literal("share_social"),
@@ -91,7 +83,6 @@ const logEvent = mutation({
       segmentCount: v.optional(v.number()),
       transcriptDurationSec: v.optional(v.number()),
       lessonDurationSec: v.optional(v.number()),
-      actorUserId: v.optional(v.id("users")),
       reason: v.optional(v.string()),
       surface: v.optional(v.string()),
       network: v.optional(v.string()),
@@ -103,7 +94,7 @@ const logEvent = mutation({
     const user = await requireMutationUser(ctx);
 
     return logEventInternal(ctx, {
-      eventType: args.eventType as UserEventType,
+      eventType: args.eventType,
       lessonId: args.lessonId,
       sessionId: args.sessionId,
       metadata: args.metadata,
@@ -146,83 +137,4 @@ const logEventInternal = async (
   };
 };
 
-const logSystemEventInternal = async (
-  ctx: MutationCtx,
-  args: LogSystemEventInternalArgs,
-): Promise<EventLogResult> => {
-  const systemValidation = validateSystemEventType(args.eventType);
-
-  if (!systemValidation.ok) {
-    return systemValidation;
-  }
-
-  const validation = validateEventMetadata(args.eventType, args.metadata);
-
-  if (!validation.ok) {
-    return validation;
-  }
-
-  const createdAt = Date.now();
-  const eventId = await ctx.db.insert("events", {
-    lessonId: args.lessonId,
-    sessionId: args.sessionId,
-    type: args.eventType,
-    metadata: args.metadata,
-    createdAt,
-  });
-
-  return {
-    ok: true,
-    eventId: toDomainId(eventId as GenericId<"events">),
-  };
-};
-
-const logSystemEvent = internalMutation({
-  args: {
-    eventType: v.union(
-      v.literal("transcript_ingest_started"),
-      v.literal("transcript_ingest_succeeded"),
-      v.literal("transcript_ingest_failed"),
-      v.literal("transcript_duration_warn"),
-    ),
-    lessonId: v.optional(v.id("lessons")),
-    sessionId: v.optional(v.string()),
-    metadata: v.object({
-      inviteId: v.optional(v.id("invites")),
-      createdBy: v.optional(v.id("users")),
-      redeemedBy: v.optional(v.id("users")),
-      userId: v.optional(v.id("users")),
-      emailHash: v.optional(v.string()),
-      courseId: v.optional(v.id("courses")),
-      lessonId: v.optional(v.id("lessons")),
-      videoTimeSec: v.optional(v.number()),
-      language: v.optional(v.string()),
-      success: v.optional(v.boolean()),
-      runtimeMs: v.optional(v.number()),
-      threadId: v.optional(v.id("chatThreads")),
-      latencyMs: v.optional(v.number()),
-      completionPct: v.optional(v.number()),
-      sessionId: v.optional(v.string()),
-      durationMs: v.optional(v.number()),
-      segmentCount: v.optional(v.number()),
-      transcriptDurationSec: v.optional(v.number()),
-      lessonDurationSec: v.optional(v.number()),
-      actorUserId: v.optional(v.id("users")),
-      reason: v.optional(v.string()),
-      surface: v.optional(v.string()),
-      network: v.optional(v.string()),
-      rating: v.optional(v.number()),
-      textLength: v.optional(v.number()),
-    }),
-  },
-  handler: async (ctx, args): Promise<EventLogResult> => {
-    return logSystemEventInternal(ctx, {
-      eventType: args.eventType as SystemEventType,
-      lessonId: args.lessonId,
-      sessionId: args.sessionId,
-      metadata: args.metadata,
-    });
-  },
-});
-
-export { logEvent, logEventInternal, logSystemEvent, logSystemEventInternal };
+export { logEvent, logEventInternal };

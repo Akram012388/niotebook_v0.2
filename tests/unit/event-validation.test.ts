@@ -3,7 +3,6 @@ import {
   buildEventLogError,
   validateEventMetadata,
   validateEventUserId,
-  validateSystemEventType,
 } from "../../src/domain/events";
 
 describe("event validation", (): void => {
@@ -38,17 +37,5 @@ describe("event validation", (): void => {
     if (!result.ok) {
       expect(result.error).toEqual(buildEventLogError("MISSING_USER_ID"));
     }
-  });
-
-  it("accepts system event types", (): void => {
-    const result = validateSystemEventType("transcript_ingest_started");
-
-    expect(result.ok).toBe(true);
-  });
-
-  it("rejects non-system event types", (): void => {
-    const result = validateSystemEventType("lesson_started");
-
-    expect(result.ok).toBe(false);
   });
 });

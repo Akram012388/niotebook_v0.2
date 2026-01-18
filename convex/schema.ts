@@ -141,7 +141,6 @@ const schema = defineSchema({
       network: v.optional(v.string()),
       rating: v.optional(v.number()),
       textLength: v.optional(v.number()),
-      actorUserId: v.optional(v.id("users")),
     }),
     createdAt: v.number(),
   })

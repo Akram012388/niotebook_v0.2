@@ -37,21 +37,6 @@ type EventType =
   | "feedback_submitted"
   | "feedback_dismissed";
 
-const SYSTEM_EVENT_TYPES = [
-  "transcript_ingest_started",
-  "transcript_ingest_succeeded",
-  "transcript_ingest_failed",
-  "transcript_duration_warn",
-] as const;
-
-type SystemEventType = (typeof SYSTEM_EVENT_TYPES)[number];
-
-type UserEventType = Exclude<EventType, SystemEventType>;
-
-type SystemEventMetadata = {
-  actorUserId?: UserId;
-};
-
 type InviteIssuedMetadata = {
   inviteId: InviteId;
   createdBy: UserId;
@@ -122,24 +107,24 @@ type RuntimeWarmupMetadata = {
 
 type TranscriptIngestStartedMetadata = {
   lessonId: LessonId;
-} & SystemEventMetadata;
+};
 
 type TranscriptIngestSucceededMetadata = {
   lessonId: LessonId;
   segmentCount: number;
   transcriptDurationSec: number;
-} & SystemEventMetadata;
+};
 
 type TranscriptIngestFailedMetadata = {
   lessonId: LessonId;
   reason: string;
-} & SystemEventMetadata;
+};
 
 type TranscriptDurationWarnMetadata = {
   lessonId: LessonId;
   lessonDurationSec: number;
   transcriptDurationSec: number;
-} & SystemEventMetadata;
+};
 
 type ShareMetadata = {
   surface: string;
@@ -195,7 +180,7 @@ type EventMetadataMap = {
   feedback_dismissed: FeedbackDismissedMetadata;
 };
 
-type EventInput<T extends UserEventType = UserEventType> = {
+type EventInput<T extends EventType = EventType> = {
   eventType: T;
   userId: UserId;
   lessonId?: LessonId;
@@ -203,21 +188,9 @@ type EventInput<T extends UserEventType = UserEventType> = {
   metadata: EventMetadataMap[T];
 };
 
-type SystemEventInput<T extends SystemEventType = SystemEventType> = {
-  eventType: T;
-  lessonId?: LessonId;
-  sessionId?: string;
-  metadata: EventMetadataMap[T];
-};
-
-type EventRecord<T extends UserEventType = UserEventType> = EventInput<T> & {
+type EventRecord<T extends EventType = EventType> = EventInput<T> & {
   createdAt: number;
 };
-
-type SystemEventRecord<T extends SystemEventType = SystemEventType> =
-  SystemEventInput<T> & {
-    createdAt: number;
-  };
 
 type EventLogErrorCode = "INVALID_EVENT_METADATA" | "MISSING_USER_ID";
 
@@ -383,46 +356,25 @@ const validateEventUserId = (userId?: UserId): EventValidationResult => {
   return { ok: true };
 };
 
-const validateSystemEventType = (
-  eventType: EventType,
-): EventValidationResult => {
-  if (!isSystemEventType(eventType)) {
-    return invalidEventMetadata();
-  }
-
-  return { ok: true };
-};
-
 const EVENT_TYPES = Object.keys(EVENT_METADATA_VALIDATORS) as EventType[];
 
 const isEventType = (value: string): value is EventType => {
   return EVENT_TYPES.includes(value as EventType);
 };
 
-const isSystemEventType = (value: string): value is SystemEventType => {
-  return SYSTEM_EVENT_TYPES.includes(value as SystemEventType);
-};
-
 export type {
   EventInput,
-  SystemEventInput,
   EventLogError,
   EventLogErrorCode,
   EventLogResult,
   EventMetadataMap,
   EventRecord,
-  SystemEventRecord,
   EventType,
-  SystemEventType,
-  UserEventType,
 };
 export {
   EVENT_TYPES,
-  SYSTEM_EVENT_TYPES,
   buildEventLogError,
   isEventType,
-  isSystemEventType,
   validateEventMetadata,
   validateEventUserId,
-  validateSystemEventType,
 };
