@@ -5,13 +5,13 @@
 - Builder must refuse requests that don’t cite step IDs (prevents “random build drift”).
 
 - “Functional core, imperative shell” boundaries:
-  - src/domain/** no I/O, no framework imports.
-  - src/infra/** adapters only.
+  - src/domain/\*\* no I/O, no framework imports.
+  - src/infra/\*\* adapters only.
   - UI is src/ui/**, Next routes src/app/**.
 
 - TypeScript rules (strict):
   - any is forbidden (no exceptions).
-  - unknown is forbidden.
+  - unknown is allowed only at trust boundaries (convex/**, src/infra/**) and must be narrowed immediately via guards/validators; unknown is forbidden in src/domain/\*\*.
   - Prefer type aliases over interface unless declaration merging is required.
   - Every function must have an explicit return type.
 

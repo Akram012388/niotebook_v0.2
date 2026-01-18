@@ -15,7 +15,10 @@ jobs:
         with:
           bun-version: "1.1.19"
       - run: bun install --frozen-lockfile
+      - run: sudo apt-get update && sudo apt-get install -y ripgrep
       - run: bun run lint
+      - run: bun run check:any
+      - run: bun run check:unknown
       - run: bun run typecheck
       - run: bun run test
       - run: bun run build
