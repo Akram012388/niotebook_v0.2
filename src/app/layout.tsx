@@ -5,27 +5,31 @@ import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"]
+  subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"]
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "Niotebook",
-  description: "Niotebook v0.2"
+  description: "Niotebook v0.2",
 };
 
 type RootLayoutProps = {
   children: ReactNode;
 };
 
-export default function RootLayout({ children }: RootLayoutProps): ReactElement {
+export default function RootLayout({
+  children,
+}: RootLayoutProps): ReactElement {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+      >
         {children}
       </body>
     </html>
