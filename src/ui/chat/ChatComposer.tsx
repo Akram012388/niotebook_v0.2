@@ -2,7 +2,7 @@
 
 import {
   useCallback,
-  useMemo,
+  useEffect,
   useRef,
   useState,
   type ReactElement,
@@ -12,15 +12,22 @@ type ChatComposerProps = {
   onSend?: (message: string) => void;
 };
 
-const MAX_ROWS = 5;
+const MAX_HEIGHT_PX = 140;
 
 const ChatComposer = ({ onSend }: ChatComposerProps): ReactElement => {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const rows = useMemo((): number => {
-    const lineBreaks = value.split("\n").length;
-    return Math.min(MAX_ROWS, Math.max(1, lineBreaks));
+  useEffect((): void => {
+    const textarea = textareaRef.current;
+
+    if (!textarea) {
+      return;
+    }
+
+    textarea.style.height = "auto";
+    const nextHeight = Math.min(textarea.scrollHeight, MAX_HEIGHT_PX);
+    textarea.style.height = `${nextHeight}px`;
   }, [value]);
 
   const handleSend = useCallback((): void => {
@@ -48,12 +55,12 @@ const ChatComposer = ({ onSend }: ChatComposerProps): ReactElement => {
     <div className="flex items-end gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
       <textarea
         ref={textareaRef}
-        rows={rows}
+        rows={1}
         value={value}
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Ask about the lesson..."
-        className="min-h-[44px] flex-1 resize-none bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
+        className="min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
       />
       <button
         type="button"
