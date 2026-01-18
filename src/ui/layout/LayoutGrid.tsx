@@ -13,7 +13,7 @@ const LayoutGrid = ({ preset, children }: LayoutGridProps): ReactElement => {
   return (
     <div
       className={`grid gap-6 ${columns}`}
-      style={{ gridAutoRows: "minmax(120px, auto)" }}
+      style={{ gridAutoRows: "minmax(160px, auto)" }}
     >
       {children}
     </div>

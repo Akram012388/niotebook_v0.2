@@ -1,27 +1,44 @@
 "use client";
 
 import type { ReactElement } from "react";
+import { AiPane } from "../panes/AiPane";
+import { CodePane } from "../panes/CodePane";
+import { VideoPane } from "../panes/VideoPane";
 import { LayoutGrid } from "./LayoutGrid";
 import { useLayoutPreset } from "./LayoutPresetContext";
 
 const WorkspaceGrid = (): ReactElement => {
   const { activePreset } = useLayoutPreset();
 
+  if (activePreset === "single") {
+    return (
+      <div className="flex flex-col gap-6">
+        <VideoPane />
+        <CodePane />
+        <AiPane />
+      </div>
+    );
+  }
+
+  if (activePreset === "split") {
+    return (
+      <div className="flex gap-6">
+        <div className="min-w-0 flex-[3]">
+          <VideoPane />
+        </div>
+        <div className="flex min-w-0 flex-[2] flex-col gap-6">
+          <CodePane />
+          <AiPane />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <LayoutGrid preset={activePreset}>
-      <section className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-8 text-sm text-slate-500">
-        Video pane placeholder
-      </section>
-      {activePreset !== "single" ? (
-        <section className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-8 text-sm text-slate-500">
-          Code pane placeholder
-        </section>
-      ) : null}
-      {activePreset === "triple" ? (
-        <section className="rounded-2xl border border-dashed border-slate-300 bg-white/70 p-8 text-sm text-slate-500">
-          AI pane placeholder
-        </section>
-      ) : null}
+      <VideoPane />
+      <CodePane />
+      <AiPane />
     </LayoutGrid>
   );
 };
