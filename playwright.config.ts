@@ -3,6 +3,13 @@ import { defineConfig } from "@playwright/test";
 const isCi = Boolean(process.env.CI);
 const baseURL = process.env.BASE_URL ?? "http://localhost:3000";
 const useWebServer = isCi || process.env.E2E_USE_WEBSERVER === "true";
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const extraHTTPHeaders = bypassSecret
+  ? {
+      "x-vercel-protection-bypass": bypassSecret,
+      "x-vercel-set-bypass-cookie": "true",
+    }
+  : undefined;
 
 const webServerEnv: Record<string, string> = {
   NEXT_PUBLIC_DISABLE_CONVEX: "false",
@@ -37,6 +44,7 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "on-first-retry",
+    ...(extraHTTPHeaders ? { extraHTTPHeaders } : {}),
   },
   webServer: useWebServer
     ? {
