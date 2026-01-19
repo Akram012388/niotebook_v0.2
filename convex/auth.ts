@@ -78,13 +78,14 @@ const resolveDevBypass = async (
 ): Promise<AuthenticatedUser | null> => {
   const devBypass = process.env.NIOTEBOOK_DEV_AUTH_BYPASS;
   const allowPreviewBypass = process.env.NIOTEBOOK_E2E_PREVIEW === "true";
+  const allowDevBypassInDev =
+    process.env.NIOTEBOOK_ALLOW_DEV_BYPASS_IN_DEV === "true";
+  const allowBypass = allowPreviewBypass || allowDevBypassInDev;
 
-  if (
-    process.env.NODE_ENV === "production" &&
-    devBypass === "true" &&
-    !allowPreviewBypass
-  ) {
-    throw new Error("NIOTEBOOK_DEV_AUTH_BYPASS is not allowed in production.");
+  if (devBypass === "true" && !allowBypass) {
+    throw new Error(
+      "NIOTEBOOK_DEV_AUTH_BYPASS requires preview or local dev override.",
+    );
   }
 
   if (devBypass !== "true") {
@@ -99,7 +100,7 @@ const resolveDevBypass = async (
     .first();
 
   if (!user) {
-    if (process.env.NODE_ENV === "production") {
+    if (!allowBypass) {
       throw new Error("Dev bypass user missing in production.");
     }
 
@@ -117,13 +118,14 @@ const ensureDevBypassUser = async (
 ): Promise<AuthenticatedUser | null> => {
   const devBypass = process.env.NIOTEBOOK_DEV_AUTH_BYPASS;
   const allowPreviewBypass = process.env.NIOTEBOOK_E2E_PREVIEW === "true";
+  const allowDevBypassInDev =
+    process.env.NIOTEBOOK_ALLOW_DEV_BYPASS_IN_DEV === "true";
+  const allowBypass = allowPreviewBypass || allowDevBypassInDev;
 
-  if (
-    process.env.NODE_ENV === "production" &&
-    devBypass === "true" &&
-    !allowPreviewBypass
-  ) {
-    throw new Error("NIOTEBOOK_DEV_AUTH_BYPASS is not allowed in production.");
+  if (devBypass === "true" && !allowBypass) {
+    throw new Error(
+      "NIOTEBOOK_DEV_AUTH_BYPASS requires preview or local dev override.",
+    );
   }
 
   if (devBypass !== "true") {
