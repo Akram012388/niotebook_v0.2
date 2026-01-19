@@ -19,10 +19,14 @@ if (!process.env.CONVEX_DEPLOY_KEY) {
   throw new Error("CONVEX_DEPLOY_KEY is required for E2E preview seed.");
 }
 
-const runConvex = (command: string, args: string[]): string => {
+const runConvex = (
+  command: string,
+  args: string[],
+  extraFlags: string[] = [],
+): string => {
   const base = ["npx", "convex", command];
   const previewArgs = ["--preview-name", previewName];
-  const commandArgs = [...base, ...previewArgs, ...args];
+  const commandArgs = [...base, ...previewArgs, ...extraFlags, ...args];
   return execFileSync(commandArgs[0], commandArgs.slice(1), {
     stdio: "pipe",
     encoding: "utf8",
@@ -31,8 +35,12 @@ const runConvex = (command: string, args: string[]): string => {
 };
 
 const main = (): void => {
-  runConvex("env", ["set", "NIOTEBOOK_DEV_AUTH_BYPASS", "true"]);
-  runConvex("env", ["set", "NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS", "true"]);
+  runConvex("env", ["set", "NIOTEBOOK_DEV_AUTH_BYPASS", "true"], ["--yes"]);
+  runConvex(
+    "env",
+    ["set", "NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS", "true"],
+    ["--yes"],
+  );
 
   const rawLesson = runConvex("run", [
     "content:seedLesson",
