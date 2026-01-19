@@ -20,6 +20,8 @@ const useVideoFrame = ({
   frame: FrameSummary | null;
   updateFrame: (videoTimeSec: number) => Promise<void>;
 } => {
+  const isConvexEnabled = process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
+
   const getFrameRef = useMemo(
     () =>
       makeFunctionReference<"query">(
@@ -50,8 +52,6 @@ const useVideoFrame = ({
       >,
     [],
   );
-
-  const isConvexEnabled = process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
 
   const remoteFrame = useQuery(
     getFrameRef,

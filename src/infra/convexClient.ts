@@ -27,7 +27,7 @@ if (!convexUrl && process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true") {
 
 const convexClient = convexUrl
   ? new ConvexReactClient(convexUrl, { expectAuth: false })
-  : null;
+  : new ConvexReactClient("http://localhost:3210", { expectAuth: false });
 
 if (convexClient) {
   enableDevAuthBypass(convexClient as ConvexClientWithAdminAuth);
