@@ -19,12 +19,27 @@ if (!process.env.CONVEX_DEPLOY_KEY) {
   throw new Error("CONVEX_DEPLOY_KEY is required for E2E preview seed.");
 }
 
+const getDeploymentArgs = (): string[] => {
+  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+
+  if (convexUrl) {
+    try {
+      const host = new URL(convexUrl).hostname;
+      const deploymentName = host.replace(".convex.cloud", "");
+      if (deploymentName) {
+        return ["--deployment-name", deploymentName];
+      }
+    } catch {
+      // Fall back to preview name.
+    }
+  }
+
+  return ["--preview-name", previewName];
+};
+
 const runConvex = (command: string, args: string[]): string => {
   const base = ["npx", "convex", command];
-  const deploymentName = process.env.CONVEX_DEPLOYMENT;
-  const deploymentArgs = deploymentName
-    ? ["--deployment-name", deploymentName]
-    : ["--preview-name", previewName];
+  const deploymentArgs = getDeploymentArgs();
   const commandArgs = [...base, ...deploymentArgs, ...args];
   const result = spawnSync(commandArgs[0], commandArgs.slice(1), {
     stdio: "pipe",
