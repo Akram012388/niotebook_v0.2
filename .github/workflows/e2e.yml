@@ -23,6 +23,7 @@ jobs:
       CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
       NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
       CONVEX_PREVIEW_NAME: e2e
+      NIOTEBOOK_E2E_SEED_PATH: .e2e-seed.json
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,5 +35,5 @@ jobs:
       - run: bunx playwright install --with-deps
       - run: bun run e2e:convex:push
       - run: bun run e2e:seed
-      - run: bun -e "import { appendFileSync } from 'node:fs'; const lessonId = (await Bun.$`node ./scripts/e2eEnv.ts`.text()).trim(); if (!lessonId) { throw new Error('Missing lessonId'); } appendFileSync(process.env.GITHUB_ENV, `NEXT_PUBLIC_DEFAULT_LESSON_ID=${lessonId}\n`);"
+      - run: bun ./scripts/e2eEnv.ts --github
       - run: bun run test:e2e

@@ -41,7 +41,7 @@ export default defineConfig({
   webServer: useWebServer
     ? {
         command:
-          "bun run e2e:convex:push && node ./scripts/e2eSeed.ts && NEXT_PUBLIC_DEFAULT_LESSON_ID=$(node ./scripts/e2eEnv.ts) bun run dev",
+          "bun run e2e:convex:push && bun ./scripts/e2eSeed.ts && NEXT_PUBLIC_DEFAULT_LESSON_ID=$(bun ./scripts/e2eEnv.ts) bun run dev",
         port: 3000,
         reuseExistingServer: false,
         env: webServerEnv,
