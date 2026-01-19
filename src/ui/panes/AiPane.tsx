@@ -5,6 +5,7 @@ import { ChatComposer } from "../chat/ChatComposer";
 import { ChatMessage } from "../chat/ChatMessage";
 import { ChatScroll } from "../chat/ChatScroll";
 import { useChatThread } from "../chat/useChatThread";
+import { useTranscriptWindow } from "../transcript/useTranscriptWindow";
 import type { ChatMessage as ChatMessageType } from "../chat/chatTypes";
 
 type AiPaneProps = {
@@ -21,6 +22,7 @@ const AiPane = ({
   onThreadChange,
 }: AiPaneProps): ReactElement => {
   const { messages, sendMessage, threadId } = useChatThread(lessonId);
+  const transcriptWindow = useTranscriptWindow(lessonId, videoTimeSec);
 
   const displayMessages = useMemo<ChatMessageType[]>(() => {
     if (messages.length === 0) {
@@ -79,7 +81,12 @@ const AiPane = ({
             />
           ))}
         </ChatScroll>
-        <ChatComposer onSend={handleSend} />
+        <ChatComposer
+          onSend={handleSend}
+          transcriptContext={transcriptWindow.segments.map(
+            (segment) => segment.textNormalized,
+          )}
+        />
       </div>
     </section>
   );
