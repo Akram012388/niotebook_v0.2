@@ -1,14 +1,19 @@
 import { expect, test } from "@playwright/test";
 
+const lessonId = process.env.NEXT_PUBLIC_DEFAULT_LESSON_ID;
+const lessonPath = lessonId
+  ? `/?lessonId=${encodeURIComponent(lessonId)}`
+  : "/";
+
 test("home page loads", async ({ page }): Promise<void> => {
-  await page.goto("/");
+  await page.goto(lessonPath);
   await expect(page.getByText("Code workspace")).toBeVisible();
   await expect(page.getByText("Lesson video")).toBeVisible();
   await expect(page.getByText("Assistant")).toBeVisible();
 });
 
 test("chat, resume, and snapshot persist", async ({ page }): Promise<void> => {
-  await page.goto("/");
+  await page.goto(lessonPath);
 
   await page.getByPlaceholder("Ask about the lesson...").fill("hello e2e");
   await page.getByRole("button", { name: "Send message" }).click();

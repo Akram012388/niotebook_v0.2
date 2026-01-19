@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState, type ReactElement } from "react";
+import { useSearchParams } from "next/navigation";
 import { AiPane } from "../panes/AiPane";
 import { CodePane } from "../panes/CodePane";
 import { VideoPane } from "../panes/VideoPane";
@@ -9,6 +10,7 @@ import { useLayoutPreset } from "./LayoutPresetContext";
 
 const WorkspaceGrid = (): ReactElement => {
   const { activePreset } = useLayoutPreset();
+  const searchParams = useSearchParams();
   const [seekTimeSec, setSeekTimeSec] = useState<number | null>(null);
   const [videoTimeSec, setVideoTimeSec] = useState<number>(0);
   const [threadId, setThreadId] = useState<string | null>(null);
@@ -33,7 +35,10 @@ const WorkspaceGrid = (): ReactElement => {
     setCodeHash(snapshot.codeHash);
   }, []);
 
-  const lessonId = process.env.NEXT_PUBLIC_DEFAULT_LESSON_ID ?? "lesson-1";
+  const lessonId =
+    searchParams.get("lessonId") ??
+    process.env.NEXT_PUBLIC_DEFAULT_LESSON_ID ??
+    "lesson-1";
 
   if (activePreset === "single") {
     return (
