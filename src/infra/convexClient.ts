@@ -14,8 +14,13 @@ type ConvexClientWithAdminAuth = ConvexReactClient & {
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 const isProd = process.env.NODE_ENV === "production";
+const allowPreviewBypass = process.env.NIOTEBOOK_E2E_PREVIEW === "true";
 
-if (isProd && process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true") {
+if (
+  isProd &&
+  process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true" &&
+  !allowPreviewBypass
+) {
   throw new Error(
     "NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS is not allowed in production.",
   );

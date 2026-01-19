@@ -99,6 +99,10 @@ const resolveDevBypass = async (
     .first();
 
   if (!user) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Dev bypass user missing in production.");
+    }
+
     return null;
   }
 
