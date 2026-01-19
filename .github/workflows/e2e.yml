@@ -34,5 +34,5 @@ jobs:
       - run: bunx playwright install --with-deps
       - run: bun run e2e:convex:push
       - run: bun run e2e:seed
-      - run: node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync('.e2e-seed.json','utf8'));if(!data.lessonId){throw new Error('Missing lessonId');}fs.appendFileSync(process.env.GITHUB_ENV,`NEXT_PUBLIC_DEFAULT_LESSON_ID=${data.lessonId}\n`);"
+      - run: bun -e "import { readFileSync, appendFileSync } from 'node:fs'; const data = JSON.parse(readFileSync('.e2e-seed.json','utf8')); if (!data.lessonId) { throw new Error('Missing lessonId'); } appendFileSync(process.env.GITHUB_ENV, `NEXT_PUBLIC_DEFAULT_LESSON_ID=${data.lessonId}\n`);"
       - run: bun run test:e2e
