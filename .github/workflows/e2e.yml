@@ -4,21 +4,35 @@ on:
   repository_dispatch:
     types:
       - vercel.deployment.success
+  workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: "Vercel preview URL"
+        required: true
+      ref:
+        description: "Git ref to test"
+        required: false
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
     env:
-      E2E_USE_WEBSERVER: "true"
+      BASE_URL: ${{ github.event.client_payload.deployment_url || github.event.inputs.deployment_url }}
+      CHECKOUT_REF: ${{ github.event.client_payload.ref || github.event.inputs.ref || 'main' }}
       CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
       CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
       NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
       CONVEX_PREVIEW_NAME: e2e
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.1.19"
       - run: bun install --frozen-lockfile
       - run: bunx playwright install --with-deps
+      - run: bun run e2e:convex:push
+      - run: bun run e2e:seed
+      - run: node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync('.e2e-seed.json','utf8'));if(!data.lessonId){throw new Error('Missing lessonId');}fs.appendFileSync(process.env.GITHUB_ENV,`NEXT_PUBLIC_DEFAULT_LESSON_ID=${data.lessonId}\n`);"
       - run: bun run test:e2e
