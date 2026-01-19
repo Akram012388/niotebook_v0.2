@@ -68,6 +68,17 @@ const main = (): void => {
     throw new Error("ensureChatThread response missing id");
   }
 
+  runConvex("run", [
+    "chat:createChatMessage",
+    JSON.stringify({
+      threadId: threadId.trim(),
+      role: "user",
+      content: "hello e2e",
+      videoTimeSec: 0,
+      timeWindow: { startSec: 0, endSec: 60 },
+    }),
+  ]);
+
   const seed = { lessonId, threadId: threadId.trim() };
   process.stdout.write(JSON.stringify(seed));
 

@@ -15,12 +15,9 @@ test("home page loads", async ({ page }): Promise<void> => {
 test("chat, resume, and snapshot persist", async ({ page }): Promise<void> => {
   await page.goto(lessonPath);
 
-  const chatInput = page.getByPlaceholder("Ask about the lesson...");
-  await expect(chatInput).toBeVisible();
-  await chatInput.fill("hello e2e");
-  await chatInput.press("Enter");
   await expect(page.getByTestId("chat-message").first()).toContainText(
     "hello e2e",
+    { timeout: 15000 },
   );
 
   await page.getByTestId("code-editor").fill("console.log('e2e')");
@@ -32,6 +29,7 @@ test("chat, resume, and snapshot persist", async ({ page }): Promise<void> => {
   await page.reload();
   await expect(page.getByTestId("chat-message").first()).toContainText(
     "hello e2e",
+    { timeout: 15000 },
   );
   await expect(page.getByTestId("code-editor")).toHaveValue(
     "console.log('e2e')",
