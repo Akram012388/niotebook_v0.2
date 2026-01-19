@@ -38,6 +38,7 @@ const runConvex = (command: string, args: string[]): string => {
 };
 
 const main = (): void => {
+  runConvex("env", ["set", "NIOTEBOOK_E2E_PREVIEW", "true"]);
   runConvex("env", ["set", "NIOTEBOOK_DEV_AUTH_BYPASS", "true"]);
   runConvex("env", ["set", "NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS", "true"]);
 

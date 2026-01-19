@@ -117,7 +117,8 @@ const seedLesson = mutation({
     reuseExisting: v.optional(v.boolean()),
   },
   handler: async (ctx, args): Promise<LessonSummary> => {
-    if (process.env.NODE_ENV === "production") {
+    const allowPreviewSeed = process.env.NIOTEBOOK_E2E_PREVIEW === "true";
+    if (process.env.NODE_ENV === "production" && !allowPreviewSeed) {
       throw new Error("seedLesson is not available in production.");
     }
 

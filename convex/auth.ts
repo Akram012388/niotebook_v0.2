@@ -77,8 +77,13 @@ const resolveDevBypass = async (
   ctx: AuthContext,
 ): Promise<AuthenticatedUser | null> => {
   const devBypass = process.env.NIOTEBOOK_DEV_AUTH_BYPASS;
+  const allowPreviewBypass = process.env.NIOTEBOOK_E2E_PREVIEW === "true";
 
-  if (process.env.NODE_ENV === "production" && devBypass === "true") {
+  if (
+    process.env.NODE_ENV === "production" &&
+    devBypass === "true" &&
+    !allowPreviewBypass
+  ) {
     throw new Error("NIOTEBOOK_DEV_AUTH_BYPASS is not allowed in production.");
   }
 
@@ -107,8 +112,13 @@ const ensureDevBypassUser = async (
   ctx: MutationAuthContext,
 ): Promise<AuthenticatedUser | null> => {
   const devBypass = process.env.NIOTEBOOK_DEV_AUTH_BYPASS;
+  const allowPreviewBypass = process.env.NIOTEBOOK_E2E_PREVIEW === "true";
 
-  if (process.env.NODE_ENV === "production" && devBypass === "true") {
+  if (
+    process.env.NODE_ENV === "production" &&
+    devBypass === "true" &&
+    !allowPreviewBypass
+  ) {
     throw new Error("NIOTEBOOK_DEV_AUTH_BYPASS is not allowed in production.");
   }
 
