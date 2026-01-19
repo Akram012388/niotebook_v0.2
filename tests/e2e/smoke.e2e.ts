@@ -15,8 +15,10 @@ test("home page loads", async ({ page }): Promise<void> => {
 test("chat, resume, and snapshot persist", async ({ page }): Promise<void> => {
   await page.goto(lessonPath);
 
-  await page.getByPlaceholder("Ask about the lesson...").fill("hello e2e");
-  await page.getByRole("button", { name: "Send message" }).click();
+  const chatInput = page.getByPlaceholder("Ask about the lesson...");
+  await expect(chatInput).toBeVisible();
+  await chatInput.fill("hello e2e");
+  await chatInput.press("Enter");
   await expect(page.getByTestId("chat-message").first()).toContainText(
     "hello e2e",
   );
