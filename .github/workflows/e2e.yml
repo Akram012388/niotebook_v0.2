@@ -25,6 +25,10 @@ jobs:
       CONVEX_PREVIEW_NAME: e2e
       NIOTEBOOK_E2E_SEED_PATH: .e2e-seed.json
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      NIOTEBOOK_SKIP_ENV_SEED: "true"
+      NIOTEBOOK_E2E_PREVIEW: "true"
+      NIOTEBOOK_DEV_AUTH_BYPASS: "true"
+      NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS: "true"
     steps:
       - uses: actions/checkout@v4
         with:
