@@ -66,6 +66,14 @@ const TopNav = (): ReactElement => {
     [lessons],
   );
 
+  const activeCourse = useMemo(() => {
+    return courseOptions.find((course) => course.id === courseId) ?? null;
+  }, [courseId, courseOptions]);
+
+  const activeLesson = useMemo(() => {
+    return lessonOptions.find((item) => item.id === lessonId) ?? null;
+  }, [lessonId, lessonOptions]);
+
   useEffect((): void => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
@@ -132,6 +140,14 @@ const TopNav = (): ReactElement => {
           <span className="text-sm font-semibold tracking-tight text-foreground">
             Niotebook
           </span>
+          {activeCourse || activeLesson ? (
+            <div className="flex flex-col text-[11px] leading-4 text-text-muted">
+              <span>{activeCourse?.title ?? "Course"}</span>
+              <span className="text-text-subtle">
+                {activeLesson?.title ?? "Select a lesson"}
+              </span>
+            </div>
+          ) : null}
           <div className="flex items-center gap-2">
             <select
               value={courseId ?? ""}
