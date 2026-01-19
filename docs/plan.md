@@ -152,15 +152,14 @@ Tasks:
 
 ## P11 — Core Loop (Player, Editor, Resume)
 
-Phase: 2
+Phase: 2 (complete)
 Dependencies: P7, P8, P9
 Tasks:
 
-- Implement YouTube player embed with smooth seek and time sampling (2–5s + seek/pause).
-- Add CodeMirror editor with language switching and per-language snapshots.
-- Wire runtime run/stop/clear output with warm-up affordance.
-- Persist frames and code snapshots to IndexedDB + Convex (source of truth).
-- Resume lesson state across devices: video time, code snapshot, and chat thread.
+- Implement lesson routing with course/lesson selection.
+- Wire transcript window context into chat requests (no UI).
+- Persist frame + code snapshot to Convex with debounced updates.
+- Resume lesson state across devices: video time + code snapshot.
   Deliverables:
 - Core loop wiring across player/editor/runtime/resume.
-- Resume sync path (local cache + Convex).
+- Resume sync path (Convex source of truth).
