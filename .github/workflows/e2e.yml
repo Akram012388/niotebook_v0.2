@@ -6,7 +6,7 @@ on:
       - vercel.deployment.success
   workflow_dispatch:
     inputs:
-      deployment_url:
+      base_url:
         description: "Vercel preview URL"
         required: true
       ref:
@@ -17,8 +17,8 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     env:
-      BASE_URL: ${{ github.event.client_payload.deployment_url || github.event.inputs.deployment_url }}
-      CHECKOUT_REF: ${{ github.event.client_payload.ref || github.event.inputs.ref || 'main' }}
+      BASE_URL: ${{ github.event.inputs.base_url || github.event.client_payload.deployment_url }}
+      CHECKOUT_REF: ${{ github.event.inputs.ref || github.event.client_payload.ref || 'main' }}
       CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
       CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
       NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
