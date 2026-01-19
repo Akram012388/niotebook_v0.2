@@ -15,36 +15,26 @@ if (process.env.NODE_ENV === "production") {
   throw new Error("E2E seeding is not allowed in production.");
 }
 
-if (!process.env.CONVEX_DEPLOY_KEY) {
+const deployKey = process.env.CONVEX_DEPLOY_KEY;
+
+if (!deployKey) {
   throw new Error("CONVEX_DEPLOY_KEY is required for E2E preview seed.");
 }
 
-const getDeploymentArgs = (): string[] => {
-  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-
-  if (convexUrl) {
-    try {
-      const host = new URL(convexUrl).hostname;
-      const deploymentName = host.replace(".convex.cloud", "");
-      if (deploymentName) {
-        return ["--deployment-name", deploymentName];
-      }
-    } catch {
-      // Fall back to preview name.
-    }
-  }
-
-  return ["--preview-name", previewName];
-};
-
 const runConvex = (command: string, args: string[]): string => {
   const base = ["npx", "convex", command];
-  const deploymentArgs = getDeploymentArgs();
-  const commandArgs = [...base, ...deploymentArgs, ...args];
+  const previewArgs = ["--preview-name", previewName];
+  const commandArgs = [...base, ...previewArgs, ...args];
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    CONVEX_DEPLOY_KEY: deployKey,
+  };
+  delete env.CONVEX_DEPLOYMENT;
+
   const result = spawnSync(commandArgs[0], commandArgs.slice(1), {
     stdio: "pipe",
     encoding: "utf8",
-    env: process.env,
+    env,
   });
 
   if (result.status !== 0) {
@@ -56,12 +46,9 @@ const runConvex = (command: string, args: string[]): string => {
 };
 
 const main = (): void => {
-  const shouldSetEnv = process.env.NIOTEBOOK_SKIP_ENV_SEED !== "true";
-  if (shouldSetEnv) {
-    runConvex("env", ["set", "NIOTEBOOK_E2E_PREVIEW", "true"]);
-    runConvex("env", ["set", "NIOTEBOOK_DEV_AUTH_BYPASS", "true"]);
-    runConvex("env", ["set", "NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS", "true"]);
-  }
+  runConvex("env", ["set", "NIOTEBOOK_E2E_PREVIEW", "true"]);
+  runConvex("env", ["set", "NIOTEBOOK_DEV_AUTH_BYPASS", "true"]);
+  runConvex("env", ["set", "NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS", "true"]);
 
   const rawLesson = runConvex("run", [
     "content:seedLesson",
