@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
 import type { FrameSummary } from "../../domain/resume";
-import { cacheFrame, getCachedFrame } from "../../infra/localCache";
 
 type UseVideoFrameInput = {
   lessonId: string;
@@ -59,20 +58,14 @@ const useVideoFrame = ({
   );
   const upsertFrame = useMutation(upsertFrameRef);
 
-  const cachedFrame = useMemo(() => getCachedFrame(lessonId), [lessonId]);
+  const [localFrame, setLocalFrame] = useState<FrameSummary | null>(null);
 
-  useEffect((): void => {
-    if (remoteFrame) {
-      cacheFrame(lessonId, remoteFrame);
-    }
-  }, [lessonId, remoteFrame]);
-
-  const frame = remoteFrame ?? cachedFrame;
+  const frame = remoteFrame ?? localFrame;
 
   const updateFrame = useCallback(
     async (videoTimeSec: number): Promise<void> => {
       if (!isConvexEnabled) {
-        cacheFrame(lessonId, {
+        setLocalFrame({
           id: "local-frame" as FrameSummary["id"],
           userId: "local-user" as FrameSummary["userId"],
           lessonId: lessonId as FrameSummary["lessonId"],
@@ -91,7 +84,7 @@ const useVideoFrame = ({
         codeHash,
       });
 
-      cacheFrame(lessonId, updated);
+      setLocalFrame(updated);
     },
     [codeHash, isConvexEnabled, lessonId, threadId, upsertFrame],
   );

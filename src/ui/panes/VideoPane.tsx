@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, type ReactElement } from "react";
+import { useDebouncedValue } from "../../infra/useDebouncedValue";
 import { VideoPlayer } from "../video/VideoPlayer";
 import { useVideoFrame } from "../video/useVideoFrame";
 
@@ -47,18 +48,27 @@ const VideoPane = ({
     return frame?.videoTimeSec ?? null;
   }, [frame?.videoTimeSec, lastSeek]);
 
+  const debouncedTimeSec = useDebouncedValue(displayTime ?? 0, 800);
+
   useEffect((): void => {
     if (frame?.videoTimeSec !== undefined) {
       onTimeChange?.(frame.videoTimeSec);
     }
   }, [frame?.videoTimeSec, onTimeChange]);
 
+  useEffect(() => {
+    if (debouncedTimeSec === null) {
+      return;
+    }
+
+    void updateFrame(debouncedTimeSec);
+  }, [debouncedTimeSec, updateFrame]);
+
   const handleTimeChange = useCallback(
     (timeSec: number): void => {
-      void updateFrame(timeSec);
       onTimeChange?.(timeSec);
     },
-    [onTimeChange, updateFrame],
+    [onTimeChange],
   );
 
   return (

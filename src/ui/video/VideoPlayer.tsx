@@ -80,6 +80,7 @@ const VideoPlayer = ({
 
   const handleSeek = useCallback(
     (delta: number): void => {
+      const wasPlaying = playState === "playing";
       setCurrentTimeSec((prev) => {
         const next = Math.max(0, prev + delta);
         onSeek?.(next);
@@ -87,8 +88,13 @@ const VideoPlayer = ({
         setLastSampleSec(next);
         return next;
       });
+      setTimeout(() => {
+        if (wasPlaying) {
+          setPlayState("playing");
+        }
+      }, 0);
     },
-    [onSeek, onTimeSample],
+    [onSeek, onTimeSample, playState],
   );
 
   return (

@@ -12,10 +12,7 @@ import { useMutation, useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 import { hashString } from "../../infra/hash";
-import {
-  cacheCodeSnapshot,
-  getCachedCodeSnapshot,
-} from "../../infra/localCache";
+import { useDebouncedValue } from "../../infra/useDebouncedValue";
 import type { RuntimeLanguage } from "../../infra/runtime/types";
 import { LanguageTabs } from "./LanguageTabs";
 
@@ -77,9 +74,12 @@ const CodeEditor = ({
 
   const upsertSnapshot = useMutation(upsertSnapshotRef);
 
-  const cachedSnapshot = useMemo(() => {
-    return getCachedCodeSnapshot(lessonId, language);
-  }, [language, lessonId]);
+  const [localSnapshot, setLocalSnapshot] =
+    useState<CodeSnapshotSummary | null>(null);
+
+  const cachedSnapshot = snapshot ?? localSnapshot;
+
+  const debouncedCode = useDebouncedValue(code, 800);
 
   const fallbackCode = useMemo((): string => {
     return DEFAULT_CODE_BY_LANGUAGE[language];
@@ -108,7 +108,6 @@ const CodeEditor = ({
 
     hydrateTimeoutRef.current = window.setTimeout(() => {
       if (snapshotToUse) {
-        cacheCodeSnapshot(lessonId, language, snapshotToUse);
         hydrateSnapshot(snapshotToUse);
         return;
       }
@@ -160,7 +159,7 @@ const CodeEditor = ({
         updatedAt: Date.now(),
       };
 
-      cacheCodeSnapshot(lessonId, language, summary);
+      setLocalSnapshot(summary);
       onSnapshot?.(summary);
       return;
     }
@@ -172,9 +171,43 @@ const CodeEditor = ({
       codeHash,
     });
 
-    cacheCodeSnapshot(lessonId, language, summary);
+    setLocalSnapshot(summary);
     onSnapshot?.(summary);
   }, [code, isConvexEnabled, language, lessonId, onSnapshot, upsertSnapshot]);
+
+  useEffect(() => {
+    if (debouncedCode.trim().length === 0) {
+      return;
+    }
+
+    const persistSnapshot = async (): Promise<void> => {
+      const codeHash = await hashString(debouncedCode);
+
+      if (!isConvexEnabled) {
+        setLocalSnapshot({
+          id: "local-snapshot" as CodeSnapshotSummary["id"],
+          userId: "local-user" as CodeSnapshotSummary["userId"],
+          lessonId: lessonId as CodeSnapshotSummary["lessonId"],
+          language,
+          code: debouncedCode,
+          codeHash,
+          updatedAt: Date.now(),
+        });
+        return;
+      }
+
+      const summary = await upsertSnapshot({
+        lessonId,
+        language,
+        code: debouncedCode,
+        codeHash,
+      });
+
+      setLocalSnapshot(summary);
+    };
+
+    void persistSnapshot();
+  }, [debouncedCode, isConvexEnabled, language, lessonId, upsertSnapshot]);
 
   return (
     <div className="flex flex-1 flex-col gap-4">
