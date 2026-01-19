@@ -18,6 +18,11 @@ type AuthContext = {
   db: QueryCtx["db"];
 };
 
+type MutationAuthContext = {
+  auth: MutationCtx["auth"];
+  db: MutationCtx["db"];
+};
+
 const resolveIdentity = async (
   ctx: AuthContext,
 ): Promise<AuthenticatedUser | null> => {
@@ -68,30 +73,105 @@ const requireAdmin = async (ctx: AuthContext): Promise<AuthenticatedUser> => {
   return user;
 };
 
+const resolveDevBypass = async (
+  ctx: AuthContext,
+): Promise<AuthenticatedUser | null> => {
+  const devBypass = process.env.NIOTEBOOK_DEV_AUTH_BYPASS;
+
+  if (process.env.NODE_ENV === "production" && devBypass === "true") {
+    throw new Error("NIOTEBOOK_DEV_AUTH_BYPASS is not allowed in production.");
+  }
+
+  if (devBypass !== "true") {
+    return null;
+  }
+
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_tokenIdentifier", (query) =>
+      query.eq("tokenIdentifier", "dev-bypass"),
+    )
+    .first();
+
+  if (!user) {
+    return null;
+  }
+
+  return {
+    id: toDomainId(user._id as GenericId<"users">),
+    role: user.role,
+  };
+};
+
+const ensureDevBypassUser = async (
+  ctx: MutationAuthContext,
+): Promise<AuthenticatedUser | null> => {
+  const devBypass = process.env.NIOTEBOOK_DEV_AUTH_BYPASS;
+
+  if (process.env.NODE_ENV === "production" && devBypass === "true") {
+    throw new Error("NIOTEBOOK_DEV_AUTH_BYPASS is not allowed in production.");
+  }
+
+  if (devBypass !== "true") {
+    return null;
+  }
+
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_tokenIdentifier", (query) =>
+      query.eq("tokenIdentifier", "dev-bypass"),
+    )
+    .first();
+
+  if (user) {
+    return {
+      id: toDomainId(user._id as GenericId<"users">),
+      role: user.role,
+    };
+  }
+
+  const userId = await ctx.db.insert("users", {
+    tokenIdentifier: "dev-bypass",
+    email: "dev@niotebook.local",
+    role: "admin",
+    inviteBatchId: "dev-bypass",
+  });
+
+  return {
+    id: toDomainId(userId as GenericId<"users">),
+    role: "admin",
+  };
+};
+
 const requireMutationUser = async (
   ctx: MutationCtx,
 ): Promise<AuthenticatedUser> => {
-  return requireUser(ctx);
+  const devUser = await ensureDevBypassUser(ctx);
+  return devUser ?? requireUser(ctx);
 };
 
 const requireMutationAdmin = async (
   ctx: MutationCtx,
 ): Promise<AuthenticatedUser> => {
-  return requireAdmin(ctx);
+  const devUser = await ensureDevBypassUser(ctx);
+  return devUser ?? requireAdmin(ctx);
 };
 
 const requireQueryUser = async (ctx: QueryCtx): Promise<AuthenticatedUser> => {
-  return requireUser(ctx);
+  const devUser = await resolveDevBypass(ctx);
+  return devUser ?? requireUser(ctx);
 };
 
 const requireQueryWorkspaceUser = async (
   ctx: QueryCtx,
 ): Promise<AuthenticatedUser> => {
-  return requireUser(ctx);
+  const devUser = await resolveDevBypass(ctx);
+  return devUser ?? requireUser(ctx);
 };
 
 const requireQueryAdmin = async (ctx: QueryCtx): Promise<AuthenticatedUser> => {
-  return requireAdmin(ctx);
+  const devUser = await resolveDevBypass(ctx);
+  return devUser ?? requireAdmin(ctx);
 };
 
 export type { AuthenticatedUser };

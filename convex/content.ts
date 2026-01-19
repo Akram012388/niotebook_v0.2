@@ -1,4 +1,4 @@
-import { query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { GenericId } from "convex/values";
 import {
@@ -8,7 +8,7 @@ import {
   type LessonSummary,
   type TranscriptStatus,
 } from "../src/domain/content";
-import { requireQueryWorkspaceUser } from "./auth";
+import { requireMutationAdmin, requireQueryWorkspaceUser } from "./auth";
 import { toDomainId } from "./idUtils";
 
 type CourseRecord = {
@@ -109,4 +109,57 @@ const getLesson = query({
   },
 });
 
-export { getCourses, getLesson, getLessonsByCourse };
+const seedLesson = mutation({
+  args: {
+    courseTitle: v.optional(v.string()),
+    lessonTitle: v.optional(v.string()),
+    videoId: v.optional(v.string()),
+    reuseExisting: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args): Promise<LessonSummary> => {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("seedLesson is not available in production.");
+    }
+
+    if (process.env.NIOTEBOOK_DEV_AUTH_BYPASS !== "true") {
+      throw new Error("seedLesson requires NIOTEBOOK_DEV_AUTH_BYPASS.");
+    }
+
+    await requireMutationAdmin(ctx);
+
+    const reuseExisting = args.reuseExisting ?? true;
+    const existingLesson = reuseExisting
+      ? ((await ctx.db.query("lessons").first()) as LessonRecord | null)
+      : null;
+    const existingCourse = reuseExisting
+      ? ((await ctx.db.query("courses").first()) as CourseRecord | null)
+      : null;
+
+    const courseId =
+      existingLesson?.courseId ??
+      existingCourse?._id ??
+      (await ctx.db.insert("courses", {
+        sourcePlaylistId: "local-dev",
+        title: args.courseTitle ?? "Local course",
+        description: "Seeded for local development.",
+        license: "MIT",
+        sourceUrl: "https://example.com",
+      }));
+
+    const lessonId =
+      existingLesson?._id ??
+      (await ctx.db.insert("lessons", {
+        courseId,
+        videoId: args.videoId ?? "cs50x-week1",
+        title: args.lessonTitle ?? "Lesson 1",
+        durationSec: 3600,
+        order: 1,
+        transcriptStatus: "missing",
+      }));
+
+    const lesson = (await ctx.db.get(lessonId)) as LessonRecord;
+    return toLessonSummary(lesson);
+  },
+});
+
+export { getCourses, getLesson, getLessonsByCourse, seedLesson };

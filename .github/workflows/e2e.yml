@@ -9,7 +9,11 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     env:
-      BASE_URL: ${{ github.event.client_payload.deployment_url }}
+      E2E_USE_WEBSERVER: "true"
+      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+      CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
+      NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
+      CONVEX_PREVIEW_NAME: e2e
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2

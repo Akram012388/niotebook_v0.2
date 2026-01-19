@@ -22,7 +22,9 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
             : "border-border bg-surface text-foreground"
         }`}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        <p className="whitespace-pre-wrap" data-testid="chat-message">
+          {message.content}
+        </p>
         <button
           type="button"
           onClick={handleSeek}
