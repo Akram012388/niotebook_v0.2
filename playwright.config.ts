@@ -41,9 +41,15 @@ export default defineConfig({
   testDir: "tests/e2e",
   testMatch: "**/*.e2e.ts",
   retries: isCi ? 2 : 0,
+  reporter: [
+    ["html", { outputFolder: "playwright-report", open: "never" }],
+    ["list"],
+  ],
   use: {
     baseURL,
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
     ...(extraHTTPHeaders ? { extraHTTPHeaders } : {}),
   },
   webServer: useWebServer
