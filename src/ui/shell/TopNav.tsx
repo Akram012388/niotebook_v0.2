@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type ReactElement } from "react";
+import { storageAdapter } from "../../infra/storageAdapter";
 import { LayoutPresetToggle } from "../layout/LayoutPresetToggle";
 
 const STORAGE_KEY = "niotebook.theme";
@@ -9,11 +10,7 @@ type ThemeMode = "light" | "dark";
 
 const TopNav = (): ReactElement => {
   const [theme, setTheme] = useState<ThemeMode>(() => {
-    if (typeof window === "undefined") {
-      return "light";
-    }
-
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const stored = storageAdapter.getItem(STORAGE_KEY);
     return stored === "dark" ? "dark" : "light";
   });
 
@@ -24,7 +21,7 @@ const TopNav = (): ReactElement => {
   const handleToggleTheme = useCallback((): void => {
     setTheme((prev) => {
       const nextTheme: ThemeMode = prev === "light" ? "dark" : "light";
-      window.localStorage.setItem(STORAGE_KEY, nextTheme);
+      storageAdapter.setItem(STORAGE_KEY, nextTheme);
       return nextTheme;
     });
   }, []);

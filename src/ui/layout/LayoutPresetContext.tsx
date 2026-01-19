@@ -9,6 +9,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
+import { storageAdapter } from "../../infra/storageAdapter";
 import { LAYOUT_PRESETS, type LayoutPreset } from "./layoutTypes";
 
 type LayoutPresetState = {
@@ -27,11 +28,7 @@ const LayoutPresetProvider = ({
   children: ReactNode;
 }): ReactElement => {
   const [activePreset, setActivePreset] = useState<LayoutPreset>(() => {
-    if (typeof window === "undefined") {
-      return "split";
-    }
-
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const stored = storageAdapter.getItem(STORAGE_KEY);
 
     if (stored === "single" || stored === "split" || stored === "triple") {
       return stored;
@@ -42,7 +39,7 @@ const LayoutPresetProvider = ({
 
   const setPreset = useCallback((preset: LayoutPreset): void => {
     setActivePreset(preset);
-    window.localStorage.setItem(STORAGE_KEY, preset);
+    storageAdapter.setItem(STORAGE_KEY, preset);
   }, []);
 
   const value = useMemo(

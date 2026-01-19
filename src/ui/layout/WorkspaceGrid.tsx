@@ -10,17 +10,48 @@ import { useLayoutPreset } from "./LayoutPresetContext";
 const WorkspaceGrid = (): ReactElement => {
   const { activePreset } = useLayoutPreset();
   const [seekTimeSec, setSeekTimeSec] = useState<number | null>(null);
+  const [videoTimeSec, setVideoTimeSec] = useState<number>(0);
+  const [threadId, setThreadId] = useState<string | null>(null);
+  const [codeHash, setCodeHash] = useState<string | null>(null);
 
   const handleSeek = useCallback((timestampSec: number): void => {
     setSeekTimeSec(timestampSec);
   }, []);
 
+  const handleVideoTime = useCallback((timestampSec: number): void => {
+    setVideoTimeSec(timestampSec);
+  }, []);
+
+  const handleThreadChange = useCallback(
+    (nextThreadId: string | null): void => {
+      setThreadId(nextThreadId);
+    },
+    [],
+  );
+
+  const handleSnapshot = useCallback((snapshot: { codeHash: string }): void => {
+    setCodeHash(snapshot.codeHash);
+  }, []);
+
+  const lessonId = process.env.NEXT_PUBLIC_DEFAULT_LESSON_ID ?? "lesson-1";
+
   if (activePreset === "single") {
     return (
       <div className="flex flex-col gap-6">
-        <VideoPane seekTimeSec={seekTimeSec} />
-        <CodePane />
-        <AiPane onSeek={handleSeek} />
+        <VideoPane
+          lessonId={lessonId}
+          seekTimeSec={seekTimeSec}
+          onTimeChange={handleVideoTime}
+          threadId={threadId ?? undefined}
+          codeHash={codeHash ?? undefined}
+        />
+        <CodePane lessonId={lessonId} onSnapshot={handleSnapshot} />
+        <AiPane
+          lessonId={lessonId}
+          onSeek={handleSeek}
+          videoTimeSec={videoTimeSec}
+          onThreadChange={handleThreadChange}
+        />
       </div>
     );
   }
@@ -29,11 +60,23 @@ const WorkspaceGrid = (): ReactElement => {
     return (
       <div className="flex gap-6">
         <div className="min-w-0 flex-[3]">
-          <VideoPane seekTimeSec={seekTimeSec} />
+          <VideoPane
+            lessonId={lessonId}
+            seekTimeSec={seekTimeSec}
+            onTimeChange={handleVideoTime}
+            threadId={threadId ?? undefined}
+            codeHash={codeHash ?? undefined}
+          />
         </div>
         <div className="flex min-w-0 flex-[2] flex-col gap-6">
-          <CodePane />
-          <AiPane onSeek={handleSeek} />
+          <CodePane lessonId={lessonId} onSnapshot={handleSnapshot} />
+
+          <AiPane
+            lessonId={lessonId}
+            onSeek={handleSeek}
+            videoTimeSec={videoTimeSec}
+            onThreadChange={handleThreadChange}
+          />
         </div>
       </div>
     );
@@ -41,9 +84,20 @@ const WorkspaceGrid = (): ReactElement => {
 
   return (
     <LayoutGrid preset={activePreset}>
-      <VideoPane seekTimeSec={seekTimeSec} />
-      <CodePane />
-      <AiPane onSeek={handleSeek} />
+      <VideoPane
+        lessonId={lessonId}
+        seekTimeSec={seekTimeSec}
+        onTimeChange={handleVideoTime}
+        threadId={threadId ?? undefined}
+        codeHash={codeHash ?? undefined}
+      />
+      <CodePane lessonId={lessonId} onSnapshot={handleSnapshot} />
+      <AiPane
+        lessonId={lessonId}
+        onSeek={handleSeek}
+        videoTimeSec={videoTimeSec}
+        onThreadChange={handleThreadChange}
+      />
     </LayoutGrid>
   );
 };
