@@ -126,7 +126,9 @@ const seedLesson = mutation({
       throw new Error("seedLesson requires NIOTEBOOK_DEV_AUTH_BYPASS.");
     }
 
-    await requireMutationAdmin(ctx);
+    if (!allowPreviewSeed) {
+      await requireMutationAdmin(ctx);
+    }
 
     const reuseExisting = args.reuseExisting ?? true;
     const existingLesson = reuseExisting
