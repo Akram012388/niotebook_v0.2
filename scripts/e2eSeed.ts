@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 
 const parseJson = (value: string): unknown => {
@@ -27,11 +27,18 @@ const runConvex = (
   const base = ["npx", "convex", command];
   const previewArgs = ["--preview-name", previewName];
   const commandArgs = [...base, ...previewArgs, ...extraFlags, ...args];
-  return execFileSync(commandArgs[0], commandArgs.slice(1), {
+  const result = spawnSync(commandArgs[0], commandArgs.slice(1), {
     stdio: "pipe",
     encoding: "utf8",
     env: process.env,
   });
+
+  if (result.status !== 0) {
+    const stderr = result.stderr?.toString() ?? "";
+    throw new Error(stderr || "Convex command failed.");
+  }
+
+  return result.stdout?.toString() ?? "";
 };
 
 const main = (): void => {
