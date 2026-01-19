@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 
 const parseJson = (value: string): unknown => {
@@ -22,8 +22,8 @@ if (!process.env.CONVEX_DEPLOY_KEY) {
 const runConvex = (command: string, args: string[]): string => {
   const base = ["npx", "convex", command];
   const previewArgs = ["--preview-name", previewName];
-  const commandArgs = [...base, ...previewArgs, ...args].join(" ");
-  return execSync(commandArgs, {
+  const commandArgs = [...base, ...previewArgs, ...args];
+  return execFileSync(commandArgs[0], commandArgs.slice(1), {
     stdio: "pipe",
     encoding: "utf8",
     env: process.env,
