@@ -35,10 +35,15 @@ const WorkspaceGrid = (): ReactElement => {
     setCodeHash(snapshot.codeHash);
   }, []);
 
-  const lessonId =
-    searchParams.get("lessonId") ??
-    process.env.NEXT_PUBLIC_DEFAULT_LESSON_ID ??
-    "lesson-1";
+  const lessonId = searchParams.get("lessonId");
+
+  if (!lessonId) {
+    return (
+      <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-surface-muted text-sm text-text-muted">
+        Select a lesson to start.
+      </div>
+    );
+  }
 
   if (activePreset === "single") {
     return (

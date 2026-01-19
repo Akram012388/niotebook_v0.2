@@ -15,8 +15,9 @@ const eslintConfig = defineConfig([
     "coverage/**",
     "dist/**",
     "node_modules/**",
-    "convex/_generated/**"
-  ])
+    "convex/_generated/**",
+    ".tmp/**",
+  ]),
 ]);
 
 export default eslintConfig;
