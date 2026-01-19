@@ -21,8 +21,11 @@ if (!process.env.CONVEX_DEPLOY_KEY) {
 
 const runConvex = (command: string, args: string[]): string => {
   const base = ["npx", "convex", command];
-  const previewArgs = ["--preview-name", previewName];
-  const commandArgs = [...base, ...previewArgs, ...args];
+  const deploymentName = process.env.CONVEX_DEPLOYMENT;
+  const deploymentArgs = deploymentName
+    ? ["--deployment-name", deploymentName]
+    : ["--preview-name", previewName];
+  const commandArgs = [...base, ...deploymentArgs, ...args];
   const result = spawnSync(commandArgs[0], commandArgs.slice(1), {
     stdio: "pipe",
     encoding: "utf8",
