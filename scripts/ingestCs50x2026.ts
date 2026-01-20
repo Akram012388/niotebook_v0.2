@@ -206,6 +206,18 @@ const extractLabeledUrl = (
   return extractUrl(html, pattern);
 };
 
+const pickVideoUrl = (candidates: Array<string | undefined>): string | null => {
+  for (const candidate of candidates) {
+    if (!candidate) {
+      continue;
+    }
+    if (parseYouTubeId(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+};
+
 const parseLectureResources = (
   html: string,
 ): {
@@ -228,7 +240,25 @@ const parseLectureResources = (
     throw new Error("Lecture video URL not found.");
   }
 
-  const videoId = parseYouTubeId(videoUrl);
+  let videoId = parseYouTubeId(videoUrl);
+
+  if (!videoId) {
+    const fallbackUrl = pickVideoUrl([
+      labeledYouTubeUrl,
+      labeledPlayerUrl,
+      extractUrl(lectureHtml, /href="(https:\/\/video\.cs50\.io\/[^\"]+)"/),
+      extractUrl(lectureHtml, /href="(https:\/\/youtu\.be\/[^\"]+)"/),
+      extractUrl(
+        lectureHtml,
+        /href="(https:\/\/www\.youtube\.com\/watch\?v=[^\"]+)"/,
+      ),
+    ]);
+
+    if (fallbackUrl) {
+      videoId = parseYouTubeId(fallbackUrl);
+    }
+  }
+
   if (!videoId) {
     throw new Error("Unable to extract YouTube ID.");
   }
