@@ -37,7 +37,6 @@ jobs:
       - name: E2E diagnostics
         run: |
           echo "Trigger: ${{ github.event_name }}"
-          echo "Client payload keys: ${{ join(keys(github.event.client_payload), ', ') }}"
           echo "Resolved BASE_URL: ${{ env.BASE_URL }}"
       - name: Validate BASE_URL
         run: |
