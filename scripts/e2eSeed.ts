@@ -55,7 +55,7 @@ const main = (): void => {
     JSON.stringify({
       courseTitle: "E2E course",
       lessonTitle: "E2E lesson",
-      videoId: "e2e-video",
+      videoId: "jNQXAC9IVRw",
       reuseExisting: false,
     }),
   ]);

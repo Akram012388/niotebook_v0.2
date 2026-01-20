@@ -149,11 +149,15 @@ const seedLesson = mutation({
         sourceUrl: "https://example.com",
       }));
 
+    if (!existingLesson && !args.videoId) {
+      throw new Error("seedLesson requires a videoId when no lessons exist.");
+    }
+
     const lessonId =
       existingLesson?._id ??
       (await ctx.db.insert("lessons", {
         courseId,
-        videoId: args.videoId ?? "cs50x-week1",
+        videoId: args.videoId ?? "",
         title: args.lessonTitle ?? "Lesson 1",
         durationSec: 3600,
         order: 1,
