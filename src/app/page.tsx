@@ -1,11 +1,19 @@
-import type { ReactElement } from "react";
-import { WorkspaceGrid } from "@/ui/layout/WorkspaceGrid";
+import { Suspense, type ReactElement } from "react";
 import { AppShell } from "@/ui/shell/AppShell";
+import { WorkspaceShell } from "@/ui/layout/WorkspaceShell";
 
 export default function Home(): ReactElement {
   return (
     <AppShell>
-      <WorkspaceGrid />
+      <Suspense
+        fallback={
+          <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-surface-muted text-sm text-text-muted">
+            Loading workspace...
+          </div>
+        }
+      >
+        <WorkspaceShell />
+      </Suspense>
     </AppShell>
   );
 }

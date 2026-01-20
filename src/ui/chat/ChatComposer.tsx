@@ -10,11 +10,15 @@ import {
 
 type ChatComposerProps = {
   onSend?: (message: string) => void;
+  transcriptContext?: string[];
 };
 
 const MAX_HEIGHT_PX = 140;
 
-const ChatComposer = ({ onSend }: ChatComposerProps): ReactElement => {
+const ChatComposer = ({
+  onSend,
+  transcriptContext,
+}: ChatComposerProps): ReactElement => {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -37,9 +41,14 @@ const ChatComposer = ({ onSend }: ChatComposerProps): ReactElement => {
       return;
     }
 
-    onSend?.(trimmed);
+    const transcriptPayload = transcriptContext?.slice(0, 6).join(" ");
+    const message = transcriptPayload
+      ? `${trimmed}\n\n[Transcript]\n${transcriptPayload}`
+      : trimmed;
+
+    onSend?.(message);
     setValue("");
-  }, [onSend, value]);
+  }, [onSend, transcriptContext, value]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>): void => {

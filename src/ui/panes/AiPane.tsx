@@ -1,44 +1,61 @@
 "use client";
 
-import { useCallback, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useMemo, type ReactElement } from "react";
 import { ChatComposer } from "../chat/ChatComposer";
 import { ChatMessage } from "../chat/ChatMessage";
 import { ChatScroll } from "../chat/ChatScroll";
-import { MOCK_MESSAGES } from "../chat/mockMessages";
+import { useChatThread } from "../chat/useChatThread";
+import { useTranscriptWindow } from "../transcript/useTranscriptWindow";
 import type { ChatMessage as ChatMessageType } from "../chat/chatTypes";
 
 type AiPaneProps = {
+  lessonId: string;
   onSeek?: (timestampSec: number) => void;
+  videoTimeSec?: number;
+  onThreadChange?: (threadId: string | null) => void;
 };
 
-const AiPane = ({ onSeek }: AiPaneProps): ReactElement => {
-  const [messages, setMessages] = useState<ChatMessageType[]>(MOCK_MESSAGES);
+const AiPane = ({
+  lessonId,
+  onSeek,
+  videoTimeSec = 0,
+  onThreadChange,
+}: AiPaneProps): ReactElement => {
+  const { messages, sendMessage, threadId } = useChatThread(lessonId);
+  const transcriptWindow = useTranscriptWindow(lessonId, videoTimeSec);
+
+  const displayMessages = useMemo<ChatMessageType[]>(() => {
+    if (messages.length === 0) {
+      return [];
+    }
+
+    return messages.map((message) => ({
+      id: message.id as unknown as string,
+      role: message.role,
+      content: message.content,
+      badge: `Lesson • ${Math.floor(message.videoTimeSec / 60)}:${Math.floor(
+        message.videoTimeSec % 60,
+      )
+        .toString()
+        .padStart(2, "0")}`,
+      timestampSec: message.videoTimeSec,
+    }));
+  }, [messages]);
+
+  useEffect((): void => {
+    onThreadChange?.(threadId);
+  }, [onThreadChange, threadId]);
 
   const handleSend = useCallback(
     (content: string): void => {
-      const nextMessage: ChatMessageType = {
-        id: `${messages.length + 1}`,
-        role: "user",
-        content,
-        badge: "Lesson • 14:02",
-        timestampSec: 842,
-      };
-
-      setMessages((prev) => [...prev, nextMessage]);
+      void sendMessage(content, videoTimeSec);
     },
-    [messages.length],
+    [sendMessage, videoTimeSec],
   );
 
   const handleSeek = useCallback(
     (timestampSec: number): void => {
       onSeek?.(timestampSec);
-      setMessages((prev) =>
-        prev.map((message) =>
-          message.timestampSec === timestampSec
-            ? { ...message, badge: `${message.badge} ✓` }
-            : message,
-        ),
-      );
     },
     [onSeek],
   );
@@ -56,7 +73,7 @@ const AiPane = ({ onSeek }: AiPaneProps): ReactElement => {
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4">
         <ChatScroll>
-          {messages.map((message) => (
+          {displayMessages.map((message) => (
             <ChatMessage
               key={message.id}
               message={message}
@@ -64,7 +81,12 @@ const AiPane = ({ onSeek }: AiPaneProps): ReactElement => {
             />
           ))}
         </ChatScroll>
-        <ChatComposer onSend={handleSend} />
+        <ChatComposer
+          onSend={handleSend}
+          transcriptContext={transcriptWindow.segments.map(
+            (segment) => segment.textNormalized,
+          )}
+        />
       </div>
     </section>
   );

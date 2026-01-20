@@ -1,10 +1,32 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+import { writeFileSync } from "node:fs";
 
-test("home page loads", async ({ page }): Promise<void> => {
-  await page.goto("/");
-  await expect(
-    page.getByRole("heading", {
-      name: "To get started, edit the page.tsx file."
-    })
-  ).toBeVisible();
+const lessonId = process.env.NEXT_PUBLIC_DEFAULT_LESSON_ID;
+const lessonPath = lessonId
+  ? `/?lessonId=${encodeURIComponent(lessonId)}`
+  : "/";
+
+const captureDiagnostics = async (page: Page): Promise<void> => {
+  const snapshot = {
+    baseUrl: process.env.BASE_URL ?? null,
+    url: page.url(),
+  };
+
+  writeFileSync("test-results/diagnostics.json", JSON.stringify(snapshot), {
+    encoding: "utf8",
+  });
+  writeFileSync("test-results/page.html", await page.content(), {
+    encoding: "utf8",
+  });
+};
+test("workspace shell renders", async ({ page }): Promise<void> => {
+  await page.goto(lessonPath);
+
+  try {
+    await expect(page.locator("main")).toBeVisible();
+    await expect(page.getByText("Code workspace")).toBeVisible();
+  } catch (error) {
+    await captureDiagnostics(page);
+    throw error;
+  }
 });

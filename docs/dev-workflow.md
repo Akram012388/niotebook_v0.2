@@ -1,13 +1,15 @@
 ## Phase 0 Status (Complete)
 
 **What’s done**
+
+- Phase 2 complete: lesson routing, transcript context, resume snapshots
 - Convex schema and core APIs (courses, lessons, transcripts, chat, resume)
 - Security foundations (invite TTL, rate limits, error taxonomy)
-- Transcript window contract and telemetry primitives
 - CI baseline (lint, typecheck, unit tests, E2E wiring)
 
 **What’s next**
-- UI scaffolding (layout shell, video + code + chat panes)
+
+- Phase 3: YouTube embed + authoritative video time flow
 - Transcript ingestion job (CS50x 2026)
 - AI route integration (Gemini primary, Groq fallback)
 
@@ -49,6 +51,7 @@
 ## Environment Variables
 
 See `.env.example` for required variables:
+
 - `NEXT_PUBLIC_APP_URL`
 - `CONVEX_DEPLOYMENT`
 - `NEXT_PUBLIC_CONVEX_URL`
