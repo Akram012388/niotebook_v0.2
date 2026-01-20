@@ -4,17 +4,25 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
 } from "react";
 import {
-  shouldSampleVideoTime,
+  clampVideoTime,
+  shouldPersistVideoTime,
   type VideoPlaybackState,
 } from "../../domain/video";
+import {
+  loadYouTubeApi,
+  type YouTubePlayerInstance,
+  type YouTubePlayerStateEvent,
+} from "../../infra/youtubeApi";
 
 type VideoPlayerProps = {
   videoId: string;
   initialTimeSec?: number;
+  seekToSec?: number | null;
   onTimeSample?: (timeSec: number) => void;
   onSeek?: (timeSec: number) => void;
   onPlayState?: (state: VideoPlaybackState) => void;
@@ -25,13 +33,19 @@ const SAMPLE_INTERVAL_SEC = 3;
 const VideoPlayer = ({
   videoId,
   initialTimeSec = 0,
+  seekToSec,
   onTimeSample,
   onSeek,
   onPlayState,
 }: VideoPlayerProps): ReactElement => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const playerRef = useRef<YouTubePlayerInstance | null>(null);
   const [currentTimeSec, setCurrentTimeSec] = useState(initialTimeSec);
   const [lastSampleSec, setLastSampleSec] = useState<number | null>(null);
   const [playState, setPlayState] = useState<VideoPlaybackState>("paused");
+  const [statusMessage, setStatusMessage] = useState<string>(
+    "Initializing player...",
+  );
 
   const formattedTime = useMemo((): string => {
     const minutes = Math.floor(currentTimeSec / 60);
@@ -39,8 +53,31 @@ const VideoPlayer = ({
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }, [currentTimeSec]);
 
+  const updateCurrentTime = useCallback(
+    (nextTime: number): void => {
+      const nextSec = clampVideoTime(nextTime);
+      setCurrentTimeSec(nextSec);
+      if (
+        shouldPersistVideoTime({
+          currentSec: nextSec,
+          lastSampleSec,
+          intervalSec: SAMPLE_INTERVAL_SEC,
+        })
+      ) {
+        setLastSampleSec(nextSec);
+        onTimeSample?.(nextSec);
+      }
+    },
+    [lastSampleSec, onTimeSample],
+  );
+
   useEffect((): void => {
-    setCurrentTimeSec(initialTimeSec);
+    if (!playerRef.current) {
+      return;
+    }
+
+    const nextTime = clampVideoTime(initialTimeSec);
+    playerRef.current.seekTo(nextTime, true);
   }, [initialTimeSec]);
 
   useEffect((): void => {
@@ -48,63 +85,148 @@ const VideoPlayer = ({
   }, [onPlayState, playState]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const setupPlayer = async (): Promise<void> => {
+      if (!containerRef.current) {
+        return;
+      }
+
+      setStatusMessage("Loading YouTube player...");
+
+      try {
+        const api = await loadYouTubeApi();
+
+        if (cancelled || !containerRef.current) {
+          return;
+        }
+
+        const instance = new api.Player(containerRef.current, {
+          videoId,
+          playerVars: {
+            autoplay: 0,
+            rel: 0,
+            modestbranding: 1,
+            playsinline: 1,
+          },
+          events: {
+            onReady: (event) => {
+              playerRef.current = event.target;
+              setStatusMessage("Ready");
+              if (initialTimeSec > 0) {
+                event.target.seekTo(initialTimeSec, true);
+              }
+              updateCurrentTime(event.target.getCurrentTime());
+              onSeek?.(event.target.getCurrentTime());
+            },
+            onStateChange: (event: YouTubePlayerStateEvent) => {
+              const state = api.PlayerState;
+              if (event.data === state.PLAYING) {
+                setPlayState("playing");
+              }
+              if (event.data === state.PAUSED) {
+                setPlayState("paused");
+                const nextTime = event.target.getCurrentTime();
+                updateCurrentTime(nextTime);
+                onSeek?.(nextTime);
+              }
+              if (event.data === state.ENDED) {
+                setPlayState("paused");
+                const nextTime = event.target.getCurrentTime();
+                updateCurrentTime(nextTime);
+                onSeek?.(nextTime);
+              }
+            },
+          },
+        });
+
+        playerRef.current = instance;
+      } catch (error) {
+        if (!cancelled) {
+          const message =
+            error instanceof Error ? error.message : "Player failed to load";
+          setStatusMessage(message);
+        }
+      }
+    };
+
+    void setupPlayer();
+
+    return () => {
+      cancelled = true;
+      playerRef.current?.destroy();
+      playerRef.current = null;
+    };
+  }, [initialTimeSec, onSeek, updateCurrentTime, videoId]);
+
+  useEffect(() => {
+    if (seekToSec === null || seekToSec === undefined) {
+      return;
+    }
+
+    if (!playerRef.current) {
+      return;
+    }
+
+    const nextTime = clampVideoTime(seekToSec);
+    playerRef.current.seekTo(nextTime, true);
+    onSeek?.(nextTime);
+  }, [onSeek, seekToSec, videoId]);
+
+  useEffect(() => {
     if (playState !== "playing") {
       return;
     }
 
     const interval = window.setInterval(() => {
-      setCurrentTimeSec((prev) => {
-        const next = prev + 1;
+      const player = playerRef.current;
+      if (!player) {
+        return;
+      }
 
-        if (shouldSampleVideoTime(lastSampleSec, next, SAMPLE_INTERVAL_SEC)) {
-          setLastSampleSec(next);
-          onTimeSample?.(next);
-        }
-
-        return next;
-      });
+      updateCurrentTime(clampVideoTime(player.getCurrentTime()));
     }, 1000);
 
     return () => window.clearInterval(interval);
-  }, [lastSampleSec, onTimeSample, playState]);
+  }, [playState, updateCurrentTime]);
 
   const handlePlay = useCallback((): void => {
-    setPlayState("playing");
-    onTimeSample?.(currentTimeSec);
-  }, [currentTimeSec, onTimeSample]);
+    playerRef.current?.playVideo();
+    const nextTime = playerRef.current?.getCurrentTime() ?? currentTimeSec;
+    updateCurrentTime(clampVideoTime(nextTime));
+  }, [currentTimeSec, updateCurrentTime]);
 
   const handlePause = useCallback((): void => {
-    setPlayState("paused");
-    onTimeSample?.(currentTimeSec);
-  }, [currentTimeSec, onTimeSample]);
+    playerRef.current?.pauseVideo();
+    const nextTime = playerRef.current?.getCurrentTime() ?? currentTimeSec;
+    updateCurrentTime(clampVideoTime(nextTime));
+  }, [currentTimeSec, updateCurrentTime]);
 
-  const handleSeek = useCallback(
+  const handleSeekDelta = useCallback(
     (delta: number): void => {
-      const wasPlaying = playState === "playing";
-      setCurrentTimeSec((prev) => {
-        const next = Math.max(0, prev + delta);
-        onSeek?.(next);
-        onTimeSample?.(next);
-        setLastSampleSec(next);
-        return next;
-      });
-      setTimeout(() => {
-        if (wasPlaying) {
-          setPlayState("playing");
-        }
-      }, 0);
+      const player = playerRef.current;
+      if (!player) {
+        return;
+      }
+
+      const next = clampVideoTime(player.getCurrentTime() + delta);
+      player.seekTo(next, true);
+      updateCurrentTime(next);
+      onSeek?.(next);
     },
-    [onSeek, onTimeSample, playState],
+    [onSeek, updateCurrentTime],
   );
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-xs text-text-muted">
-        <div className="flex flex-col items-center gap-2">
-          <span>Video placeholder ({videoId})</span>
-          <span className="text-[11px] text-text-subtle">
-            {playState === "playing" ? "Playing" : "Paused"} · {formattedTime}
-          </span>
+      <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-black">
+        <div ref={containerRef} className="h-full w-full" />
+        <div className="pointer-events-none absolute inset-x-3 top-3 flex items-center justify-between text-[11px] text-white/80">
+          <span>{playState === "playing" ? "Playing" : "Paused"}</span>
+          <span>{formattedTime}</span>
+        </div>
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 text-[11px] text-white/60">
+          {statusMessage}
         </div>
       </div>
       <div className="flex items-center justify-between text-xs text-text-muted">
@@ -127,14 +249,14 @@ const VideoPlayer = ({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => handleSeek(-10)}
+            onClick={() => handleSeekDelta(-10)}
             className="rounded-full border border-border px-3 py-1"
           >
             -10s
           </button>
           <button
             type="button"
-            onClick={() => handleSeek(10)}
+            onClick={() => handleSeekDelta(10)}
             className="rounded-full border border-border px-3 py-1"
           >
             +10s

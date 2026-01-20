@@ -27,6 +27,7 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
       stderr: "",
       exitCode: 0,
       runtimeMs: Math.round(performance.now() - start),
+      timedOut: false,
     };
   };
 

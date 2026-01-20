@@ -61,4 +61,10 @@ const stopRuntime = async (language: RuntimeLanguage): Promise<void> => {
   executor.stop();
 };
 
-export { loadExecutor, runRuntime, stopRuntime };
+const clearRuntime = (language: RuntimeLanguage): void => {
+  if (executorMap[language]) {
+    executorMap[language] = undefined;
+  }
+};
+
+export { clearRuntime, loadExecutor, runRuntime, stopRuntime };

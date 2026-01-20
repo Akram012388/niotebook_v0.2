@@ -18,6 +18,9 @@ const WorkspaceGrid = (): ReactElement => {
 
   const handleSeek = useCallback((timestampSec: number): void => {
     setSeekTimeSec(timestampSec);
+    window.setTimeout(() => {
+      setSeekTimeSec(null);
+    }, 0);
   }, []);
 
   const handleVideoTime = useCallback((timestampSec: number): void => {

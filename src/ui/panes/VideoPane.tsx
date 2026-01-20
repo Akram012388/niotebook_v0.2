@@ -1,7 +1,17 @@
-import { useCallback, useEffect, useMemo, type ReactElement } from "react";
-import { useDebouncedValue } from "../../infra/useDebouncedValue";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactElement,
+} from "react";
+import { useQuery } from "convex/react";
+import type { VideoPlaybackState } from "../../domain/video";
 import { VideoPlayer } from "../video/VideoPlayer";
 import { useVideoFrame } from "../video/useVideoFrame";
+import { getLessonRef } from "../content/convexContent";
+import { useDebouncedValue } from "../../infra/useDebouncedValue";
 
 type VideoPaneProps = {
   lessonId: string;
@@ -32,6 +42,7 @@ const VideoPane = ({
   threadId,
   onTimeChange,
 }: VideoPaneProps): ReactElement => {
+  const lesson = useQuery(getLessonRef, { lessonId });
   const { frame, updateFrame } = useVideoFrame({
     lessonId,
     codeHash,
@@ -48,7 +59,10 @@ const VideoPane = ({
     return frame?.videoTimeSec ?? null;
   }, [frame?.videoTimeSec, lastSeek]);
 
-  const debouncedTimeSec = useDebouncedValue(displayTime ?? 0, 800);
+  const debouncedTimeSec = useDebouncedValue(displayTime ?? 0, 600);
+  const lastSeekRef = useRef<number | null>(null);
+  const lastPlaybackRef = useRef<number | null>(null);
+  const [playState, setPlayState] = useState<VideoPlaybackState>("paused");
 
   useEffect((): void => {
     if (frame?.videoTimeSec !== undefined) {
@@ -56,20 +70,37 @@ const VideoPane = ({
     }
   }, [frame?.videoTimeSec, onTimeChange]);
 
+  useEffect((): void => {
+    if (lastSeek === null || lastSeekRef.current === lastSeek) {
+      return;
+    }
+
+    lastSeekRef.current = lastSeek;
+  }, [lastSeek]);
+
   useEffect(() => {
     if (debouncedTimeSec === null) {
       return;
     }
 
+    if (playState !== "playing" && lastPlaybackRef.current === null) {
+      return;
+    }
+
     void updateFrame(debouncedTimeSec);
-  }, [debouncedTimeSec, updateFrame]);
+  }, [debouncedTimeSec, playState, updateFrame]);
 
   const handleTimeChange = useCallback(
     (timeSec: number): void => {
+      lastPlaybackRef.current = timeSec;
       onTimeChange?.(timeSec);
     },
     [onTimeChange],
   );
+
+  const handlePlayState = useCallback((state: VideoPlaybackState): void => {
+    setPlayState(state);
+  }, []);
 
   return (
     <section className="flex h-full flex-col rounded-2xl border border-border bg-surface">
@@ -83,12 +114,20 @@ const VideoPane = ({
         </span>
       </header>
       <div className="p-4">
-        <VideoPlayer
-          videoId="cs50x-week1"
-          initialTimeSec={initialTimeSec}
-          onTimeSample={handleTimeChange}
-          onSeek={handleTimeChange}
-        />
+        {lesson ? (
+          <VideoPlayer
+            videoId={lesson.videoId}
+            initialTimeSec={initialTimeSec}
+            seekToSec={seekTimeSec ?? undefined}
+            onTimeSample={handleTimeChange}
+            onSeek={handleTimeChange}
+            onPlayState={handlePlayState}
+          />
+        ) : (
+          <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-xs text-text-muted">
+            Loading video...
+          </div>
+        )}
         <div className="mt-3 text-[11px] text-text-subtle">
           {displayTime !== null
             ? `Seeking to ${formatTimestamp(displayTime)}`

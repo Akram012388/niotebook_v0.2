@@ -4,10 +4,10 @@
 
 - Phase 0 — Spec lock: finalize P1, P2, P8, P9 definitions.
 - Phase 1 — Foundations: schema, auth/invites, YouTube sync + transcript ingest.
-- Phase 2 — Core loop: player, editor, runtimes, resume.
-- Phase 3 — AI + chat: Nio prompt, context builder, streaming.
-- Phase 4 — Analytics + admin: events, dashboard, share/feedback tracking.
-- Phase 5 — QA + release: E2E coverage, CI/CD alignment.
+- Phase 2 — Core loop: lesson routing, editor/runtime scaffolding, resume persistence.
+- Phase 3 — Video authority: YouTube player wiring, authoritative videoTimeSec flow, runtime correctness.
+- Phase 4 — AI + chat: Nio prompt, context builder, streaming.
+- Phase 5 — Analytics + admin + QA: events, dashboard, share/feedback tracking, E2E coverage, CI/CD alignment.
 
 ## P1 — Success Metrics & Funnels
 
@@ -163,3 +163,17 @@ Tasks:
   Deliverables:
 - Core loop wiring across player/editor/runtime/resume.
 - Resume sync path (Convex source of truth).
+
+## P12 — Video Authority + Runtime Correctness
+
+Phase: 3
+Dependencies: P11, P7, P9
+Tasks:
+
+- Wire YouTube player to use real playback time + seek events as the source of truth.
+- Normalize videoTimeSec sampling (2–5s + on seek/pause) and persist via frames.
+- Ensure chat/transcript context consumes authoritative video time.
+- Improve runtime executor correctness (init/run/stop + timeout handling).
+  Deliverables:
+- Authoritative video time flow with resume + chat sync.
+- Runtime execution behavior aligned to specs.
