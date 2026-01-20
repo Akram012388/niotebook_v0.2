@@ -52,7 +52,7 @@ const VideoPane = ({
     threadId,
   });
 
-  const initialTimeSec = frame?.videoTimeSec ?? 0;
+  const initialTimeSec = frame?.videoTimeSec ?? null;
   const lastSeek = seekRequest?.timeSec ?? null;
   const displayTime = useMemo((): number | null => {
     if (lastSeek !== null) {

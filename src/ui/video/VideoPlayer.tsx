@@ -21,7 +21,7 @@ import {
 
 type VideoPlayerProps = {
   videoId: string;
-  initialTimeSec?: number;
+  initialTimeSec?: number | null;
   seekToSec?: number | null;
   onTimeSample?: (timeSec: number) => void;
   onSeek?: (timeSec: number) => void;
@@ -32,7 +32,7 @@ const SAMPLE_INTERVAL_SEC = 3;
 
 const VideoPlayer = ({
   videoId,
-  initialTimeSec = 0,
+  initialTimeSec = null,
   seekToSec,
   onTimeSample,
   onSeek,
@@ -40,8 +40,10 @@ const VideoPlayer = ({
 }: VideoPlayerProps): ReactElement => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<YouTubePlayerInstance | null>(null);
-  const [currentTimeSec, setCurrentTimeSec] = useState(initialTimeSec);
+  const resolvedInitialTimeSec = initialTimeSec ?? 0;
+  const [currentTimeSec, setCurrentTimeSec] = useState(resolvedInitialTimeSec);
   const lastSampleRef = useRef<number | null>(null);
+  const didApplyInitialSeekRef = useRef(false);
   const [playState, setPlayState] = useState<VideoPlaybackState>("paused");
   const [statusMessage, setStatusMessage] = useState<string>(
     "Initializing player...",
@@ -71,16 +73,37 @@ const VideoPlayer = ({
     [onTimeSample],
   );
 
+  const updateCurrentTimeRef = useRef(updateCurrentTime);
+  const onSeekRef = useRef(onSeek);
+  const initialTimeRef = useRef(resolvedInitialTimeSec);
+
+  useEffect(() => {
+    updateCurrentTimeRef.current = updateCurrentTime;
+  }, [updateCurrentTime]);
+
+  useEffect(() => {
+    onSeekRef.current = onSeek;
+  }, [onSeek]);
+
+  useEffect(() => {
+    initialTimeRef.current = resolvedInitialTimeSec;
+  }, [resolvedInitialTimeSec]);
+
   useEffect((): void => {
     if (!playerRef.current) {
       return;
     }
 
-    const nextTime = clampVideoTime(initialTimeSec);
+    if (didApplyInitialSeekRef.current) {
+      return;
+    }
+
+    const nextTime = clampVideoTime(initialTimeRef.current);
     playerRef.current.seekTo(nextTime, true);
     lastSampleRef.current = null;
-    onSeek?.(nextTime);
-  }, [initialTimeSec, onSeek]);
+    onSeekRef.current?.(nextTime);
+    didApplyInitialSeekRef.current = true;
+  }, []);
 
   useEffect((): void => {
     onPlayState?.(playState);
@@ -88,6 +111,8 @@ const VideoPlayer = ({
 
   useEffect(() => {
     let cancelled = false;
+
+    didApplyInitialSeekRef.current = false;
 
     const setupPlayer = async (): Promise<void> => {
       if (!containerRef.current) {
@@ -115,12 +140,16 @@ const VideoPlayer = ({
             onReady: (event) => {
               playerRef.current = event.target;
               setStatusMessage("Ready");
-              if (initialTimeSec > 0) {
-                event.target.seekTo(initialTimeSec, true);
+              if (
+                !didApplyInitialSeekRef.current &&
+                initialTimeRef.current > 0
+              ) {
+                event.target.seekTo(initialTimeRef.current, true);
               }
+              didApplyInitialSeekRef.current = true;
               lastSampleRef.current = null;
-              updateCurrentTime(event.target.getCurrentTime());
-              onSeek?.(event.target.getCurrentTime());
+              updateCurrentTimeRef.current(event.target.getCurrentTime());
+              onSeekRef.current?.(event.target.getCurrentTime());
             },
             onStateChange: (event: YouTubePlayerStateEvent) => {
               const state = api.PlayerState;
@@ -130,14 +159,14 @@ const VideoPlayer = ({
               if (event.data === state.PAUSED) {
                 setPlayState("paused");
                 const nextTime = event.target.getCurrentTime();
-                updateCurrentTime(nextTime);
-                onSeek?.(nextTime);
+                updateCurrentTimeRef.current(nextTime);
+                onSeekRef.current?.(nextTime);
               }
               if (event.data === state.ENDED) {
                 setPlayState("paused");
                 const nextTime = event.target.getCurrentTime();
-                updateCurrentTime(nextTime);
-                onSeek?.(nextTime);
+                updateCurrentTimeRef.current(nextTime);
+                onSeekRef.current?.(nextTime);
               }
             },
           },
@@ -160,7 +189,7 @@ const VideoPlayer = ({
       playerRef.current?.destroy();
       playerRef.current = null;
     };
-  }, [initialTimeSec, onSeek, updateCurrentTime, videoId]);
+  }, [videoId]);
 
   useEffect(() => {
     if (seekToSec === null || seekToSec === undefined) {
@@ -174,8 +203,8 @@ const VideoPlayer = ({
     const nextTime = clampVideoTime(seekToSec);
     playerRef.current.seekTo(nextTime, true);
     lastSampleRef.current = null;
-    onSeek?.(nextTime);
-  }, [onSeek, seekToSec]);
+    onSeekRef.current?.(nextTime);
+  }, [seekToSec]);
 
   useEffect(() => {
     if (playState !== "playing") {
