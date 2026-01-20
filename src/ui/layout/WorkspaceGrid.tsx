@@ -11,16 +11,19 @@ import { useLayoutPreset } from "./LayoutPresetContext";
 const WorkspaceGrid = (): ReactElement => {
   const { activePreset } = useLayoutPreset();
   const searchParams = useSearchParams();
-  const [seekTimeSec, setSeekTimeSec] = useState<number | null>(null);
+  const [seekRequest, setSeekRequest] = useState<{
+    timeSec: number;
+    token: number;
+  } | null>(null);
   const [videoTimeSec, setVideoTimeSec] = useState<number>(0);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [codeHash, setCodeHash] = useState<string | null>(null);
 
   const handleSeek = useCallback((timestampSec: number): void => {
-    setSeekTimeSec(timestampSec);
-    window.setTimeout(() => {
-      setSeekTimeSec(null);
-    }, 0);
+    setSeekRequest((prev) => ({
+      timeSec: timestampSec,
+      token: (prev?.token ?? 0) + 1,
+    }));
   }, []);
 
   const handleVideoTime = useCallback((timestampSec: number): void => {
@@ -53,7 +56,7 @@ const WorkspaceGrid = (): ReactElement => {
       <div className="flex flex-col gap-6">
         <VideoPane
           lessonId={lessonId}
-          seekTimeSec={seekTimeSec}
+          seekRequest={seekRequest}
           onTimeChange={handleVideoTime}
           threadId={threadId ?? undefined}
           codeHash={codeHash ?? undefined}
@@ -75,7 +78,7 @@ const WorkspaceGrid = (): ReactElement => {
         <div className="min-w-0 flex-[3]">
           <VideoPane
             lessonId={lessonId}
-            seekTimeSec={seekTimeSec}
+            seekRequest={seekRequest}
             onTimeChange={handleVideoTime}
             threadId={threadId ?? undefined}
             codeHash={codeHash ?? undefined}
@@ -99,7 +102,7 @@ const WorkspaceGrid = (): ReactElement => {
     <LayoutGrid preset={activePreset}>
       <VideoPane
         lessonId={lessonId}
-        seekTimeSec={seekTimeSec}
+        seekRequest={seekRequest}
         onTimeChange={handleVideoTime}
         threadId={threadId ?? undefined}
         codeHash={codeHash ?? undefined}

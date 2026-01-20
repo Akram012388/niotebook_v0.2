@@ -41,7 +41,7 @@ const VideoPlayer = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<YouTubePlayerInstance | null>(null);
   const [currentTimeSec, setCurrentTimeSec] = useState(initialTimeSec);
-  const [lastSampleSec, setLastSampleSec] = useState<number | null>(null);
+  const lastSampleRef = useRef<number | null>(null);
   const [playState, setPlayState] = useState<VideoPlaybackState>("paused");
   const [statusMessage, setStatusMessage] = useState<string>(
     "Initializing player...",
@@ -60,15 +60,15 @@ const VideoPlayer = ({
       if (
         shouldPersistVideoTime({
           currentSec: nextSec,
-          lastSampleSec,
+          lastSampleSec: lastSampleRef.current,
           intervalSec: SAMPLE_INTERVAL_SEC,
         })
       ) {
-        setLastSampleSec(nextSec);
+        lastSampleRef.current = nextSec;
         onTimeSample?.(nextSec);
       }
     },
-    [lastSampleSec, onTimeSample],
+    [onTimeSample],
   );
 
   useEffect((): void => {
@@ -78,7 +78,9 @@ const VideoPlayer = ({
 
     const nextTime = clampVideoTime(initialTimeSec);
     playerRef.current.seekTo(nextTime, true);
-  }, [initialTimeSec]);
+    lastSampleRef.current = null;
+    onSeek?.(nextTime);
+  }, [initialTimeSec, onSeek]);
 
   useEffect((): void => {
     onPlayState?.(playState);
@@ -116,6 +118,7 @@ const VideoPlayer = ({
               if (initialTimeSec > 0) {
                 event.target.seekTo(initialTimeSec, true);
               }
+              lastSampleRef.current = null;
               updateCurrentTime(event.target.getCurrentTime());
               onSeek?.(event.target.getCurrentTime());
             },
@@ -170,8 +173,9 @@ const VideoPlayer = ({
 
     const nextTime = clampVideoTime(seekToSec);
     playerRef.current.seekTo(nextTime, true);
+    lastSampleRef.current = null;
     onSeek?.(nextTime);
-  }, [onSeek, seekToSec, videoId]);
+  }, [onSeek, seekToSec]);
 
   useEffect(() => {
     if (playState !== "playing") {

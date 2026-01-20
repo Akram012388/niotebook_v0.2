@@ -7,15 +7,18 @@ import {
   type ReactElement,
 } from "react";
 import { useQuery } from "convex/react";
-import type { VideoPlaybackState } from "../../domain/video";
 import { VideoPlayer } from "../video/VideoPlayer";
 import { useVideoFrame } from "../video/useVideoFrame";
 import { getLessonRef } from "../content/convexContent";
-import { useDebouncedValue } from "../../infra/useDebouncedValue";
+
+type VideoSeekRequest = {
+  timeSec: number;
+  token: number;
+};
 
 type VideoPaneProps = {
   lessonId: string;
-  seekTimeSec?: number | null;
+  seekRequest?: VideoSeekRequest | null;
   codeHash?: string;
   threadId?: string;
   onTimeChange?: (timeSec: number) => void;
@@ -37,7 +40,7 @@ const formatTimestamp = (timestampSec: number): string => {
 
 const VideoPane = ({
   lessonId,
-  seekTimeSec,
+  seekRequest,
   codeHash,
   threadId,
   onTimeChange,
@@ -50,7 +53,7 @@ const VideoPane = ({
   });
 
   const initialTimeSec = frame?.videoTimeSec ?? 0;
-  const lastSeek = typeof seekTimeSec === "number" ? seekTimeSec : null;
+  const lastSeek = seekRequest?.timeSec ?? null;
   const displayTime = useMemo((): number | null => {
     if (lastSeek !== null) {
       return lastSeek;
@@ -59,10 +62,11 @@ const VideoPane = ({
     return frame?.videoTimeSec ?? null;
   }, [frame?.videoTimeSec, lastSeek]);
 
-  const debouncedTimeSec = useDebouncedValue(displayTime ?? 0, 600);
   const lastSeekRef = useRef<number | null>(null);
-  const lastPlaybackRef = useRef<number | null>(null);
-  const [playState, setPlayState] = useState<VideoPlaybackState>("paused");
+  const lastPersistedRef = useRef<number | null>(null);
+  const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
+    null,
+  );
 
   useEffect((): void => {
     if (frame?.videoTimeSec !== undefined) {
@@ -79,28 +83,25 @@ const VideoPane = ({
   }, [lastSeek]);
 
   useEffect(() => {
-    if (debouncedTimeSec === null) {
+    if (lastSampleTimeSec === null) {
       return;
     }
 
-    if (playState !== "playing" && lastPlaybackRef.current === null) {
+    if (lastPersistedRef.current === lastSampleTimeSec) {
       return;
     }
 
-    void updateFrame(debouncedTimeSec);
-  }, [debouncedTimeSec, playState, updateFrame]);
+    lastPersistedRef.current = lastSampleTimeSec;
+    void updateFrame(lastSampleTimeSec);
+  }, [lastSampleTimeSec, updateFrame]);
 
   const handleTimeChange = useCallback(
     (timeSec: number): void => {
-      lastPlaybackRef.current = timeSec;
       onTimeChange?.(timeSec);
+      setLastSampleTimeSec(timeSec);
     },
     [onTimeChange],
   );
-
-  const handlePlayState = useCallback((state: VideoPlaybackState): void => {
-    setPlayState(state);
-  }, []);
 
   return (
     <section className="flex h-full flex-col rounded-2xl border border-border bg-surface">
@@ -118,10 +119,9 @@ const VideoPane = ({
           <VideoPlayer
             videoId={lesson.videoId}
             initialTimeSec={initialTimeSec}
-            seekToSec={seekTimeSec ?? undefined}
+            seekToSec={seekRequest?.timeSec}
             onTimeSample={handleTimeChange}
             onSeek={handleTimeChange}
-            onPlayState={handlePlayState}
           />
         ) : (
           <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-xs text-text-muted">
