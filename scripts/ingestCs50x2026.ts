@@ -468,7 +468,7 @@ const runIngest = async (): Promise<void> => {
         clearSegmentsMutation,
         {
           lessonId: meta.lessonId,
-          cursor,
+          cursor: cursor ?? undefined,
           limit: 500,
         } as never,
       )) as { nextCursor: string | null; cleared: number };
