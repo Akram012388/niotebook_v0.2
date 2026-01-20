@@ -13,6 +13,11 @@
 - Transcript ingestion job (CS50x 2026)
 - AI route integration (Gemini primary, Groq fallback)
 
+## UI/UX Contract
+
+The binding UI/UX contract lives in `docs/ui-ux-contract.md`. Builders must
+follow it for layout, navigation, and interaction behavior.
+
 # Dev/Test/Prod Workflow (KISS)
 
 ## Local Setup

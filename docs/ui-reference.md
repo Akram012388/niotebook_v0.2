@@ -8,6 +8,9 @@ It is a **visual + interaction contract** to keep implementation consistent with
 - docs/plan.md (Phase‑1 UI scaffolding milestone)
 - docs/guidelines.md (KISS, FP boundaries, minimal chrome)
 
+For binding UI behavior and layout decisions, see `docs/ui-ux-contract.md`.
+If there is a conflict, the UI/UX contract wins.
+
 This doc is intentionally **Mobbin-first** to avoid “design-by-imagination” drift.
 
 ---
@@ -194,4 +197,3 @@ A Phase‑1 UI scaffold is acceptable when:
 ## 5) Notes (future)
 - If Mobbin links become paywalled or unstable, replace with new Mobbin screen links (do not paste images into repo).
 - If we later need Figma, it should be used as a *secondary* artifact. Mobbin remains the baseline for web UI patterns in v0.2.
-
