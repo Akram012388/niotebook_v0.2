@@ -55,10 +55,11 @@ const main = (): void => {
     JSON.stringify({
       courseTitle: "E2E course",
       lessonTitle: "E2E lesson",
-      videoId: "jNQXAC9IVRw",
-      reuseExisting: false,
+      videoId: process.env.NIOTEBOOK_E2E_VIDEO_ID,
+      reuseExisting: true,
     }),
   ]);
+
   const parsed = parseJson(rawLesson);
 
   if (!isRecord(parsed) || typeof parsed.id !== "string") {
