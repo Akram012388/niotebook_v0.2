@@ -5,7 +5,7 @@ import {
   useCallback,
   useContext,
   useMemo,
-  useState,
+  useSyncExternalStore,
   type ReactElement,
   type ReactNode,
 } from "react";
@@ -27,7 +27,7 @@ const LayoutPresetProvider = ({
 }: {
   children: ReactNode;
 }): ReactElement => {
-  const [activePreset, setActivePreset] = useState<LayoutPreset>(() => {
+  const getSnapshot = useCallback((): LayoutPreset => {
     const stored = storageAdapter.getItem(STORAGE_KEY);
 
     if (stored === "single" || stored === "split" || stored === "triple") {
@@ -35,10 +35,15 @@ const LayoutPresetProvider = ({
     }
 
     return "split";
-  });
+  }, []);
+
+  const activePreset = useSyncExternalStore<LayoutPreset>(
+    () => () => undefined,
+    getSnapshot,
+    (): LayoutPreset => "split",
+  );
 
   const setPreset = useCallback((preset: LayoutPreset): void => {
-    setActivePreset(preset);
     storageAdapter.setItem(STORAGE_KEY, preset);
   }, []);
 
