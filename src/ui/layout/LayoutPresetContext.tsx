@@ -37,14 +37,42 @@ const LayoutPresetProvider = ({
     return "split";
   }, []);
 
+  const subscribe = useCallback((onStoreChange: () => void): (() => void) => {
+    if (typeof window === "undefined") {
+      return () => undefined;
+    }
+
+    const handleStorage = (event: StorageEvent): void => {
+      if (event.key === STORAGE_KEY) {
+        onStoreChange();
+      }
+    };
+
+    const handleCustom = (): void => {
+      onStoreChange();
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("niotebook:layout", handleCustom);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("niotebook:layout", handleCustom);
+    };
+  }, []);
+
   const activePreset = useSyncExternalStore<LayoutPreset>(
-    () => () => undefined,
+    subscribe,
     getSnapshot,
     (): LayoutPreset => "split",
   );
 
   const setPreset = useCallback((preset: LayoutPreset): void => {
     storageAdapter.setItem(STORAGE_KEY, preset);
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("niotebook:layout"));
+    }
   }, []);
 
   const value = useMemo(
