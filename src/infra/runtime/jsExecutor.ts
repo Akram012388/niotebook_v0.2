@@ -19,6 +19,7 @@ const initJsExecutor = async (): Promise<RuntimeExecutor> => {
     const timeoutMs = input.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     let stdout = "";
     let stderr = "";
+    let timedOut = false;
 
     const originalLog = console.log;
     const originalError = console.error;
@@ -34,6 +35,7 @@ const initJsExecutor = async (): Promise<RuntimeExecutor> => {
     try {
       const result = await new Promise<void>((resolve, reject) => {
         const timer = window.setTimeout(() => {
+          timedOut = true;
           reject(new Error("Runtime timed out."));
         }, timeoutMs);
 
@@ -62,8 +64,9 @@ const initJsExecutor = async (): Promise<RuntimeExecutor> => {
     return {
       stdout,
       stderr,
-      exitCode: aborted ? 1 : stderr ? 1 : 0,
+      exitCode: aborted || timedOut || stderr ? 1 : 0,
       runtimeMs,
+      timedOut,
     };
   };
 

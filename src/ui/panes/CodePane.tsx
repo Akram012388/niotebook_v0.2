@@ -14,6 +14,7 @@ import type { EventLogResult } from "../../domain/events";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 import { toRuntimeSnapshot, type RuntimeSnapshot } from "../../domain/runtime";
 import {
+  clearRuntime,
   loadExecutor,
   runRuntime,
   stopRuntime,
@@ -159,13 +160,16 @@ const CodePane = ({ lessonId, onSnapshot }: CodePaneProps): ReactElement => {
     setOutput(snapshot);
     setRuntimeState({
       language,
-      status: "ready",
-      message: `${language.toUpperCase()} runtime ready`,
+      status: result.timedOut ? "error" : "ready",
+      message: result.timedOut
+        ? "Runtime timed out"
+        : `${language.toUpperCase()} runtime ready`,
     });
   }, [language, latestSnapshot]);
 
   const handleStop = useCallback((): void => {
     stopRuntime(language).catch(() => undefined);
+    clearRuntime(language);
     setRuntimeState({
       language,
       status: "ready",

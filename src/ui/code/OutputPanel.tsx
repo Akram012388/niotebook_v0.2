@@ -14,11 +14,21 @@ const OutputPanel = ({ output }: OutputPanelProps): ReactElement => {
     );
   }
 
+  const hasStdout = output.stdout.trim().length > 0;
+  const hasStderr = output.stderr.trim().length > 0;
+
   return (
     <div className="rounded-xl border border-border bg-surface-strong p-4 font-mono text-xs text-surface-strong-foreground">
       <p className="text-text-subtle">$ output</p>
-      {output.stdout ? <p>{output.stdout}</p> : null}
-      {output.stderr ? <p className="text-red-300">{output.stderr}</p> : null}
+      {hasStdout ? (
+        <pre className="whitespace-pre-wrap">{output.stdout}</pre>
+      ) : null}
+      {hasStderr ? (
+        <pre className="whitespace-pre-wrap text-red-300">{output.stderr}</pre>
+      ) : null}
+      {!hasStdout && !hasStderr ? (
+        <p className="text-text-subtle">No output produced.</p>
+      ) : null}
     </div>
   );
 };

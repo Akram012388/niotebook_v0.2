@@ -1,11 +1,24 @@
-import { useCallback, useEffect, useMemo, type ReactElement } from "react";
-import { useDebouncedValue } from "../../infra/useDebouncedValue";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactElement,
+} from "react";
+import { useQuery } from "convex/react";
 import { VideoPlayer } from "../video/VideoPlayer";
 import { useVideoFrame } from "../video/useVideoFrame";
+import { getLessonRef } from "../content/convexContent";
+
+type VideoSeekRequest = {
+  timeSec: number;
+  token: number;
+};
 
 type VideoPaneProps = {
   lessonId: string;
-  seekTimeSec?: number | null;
+  seekRequest?: VideoSeekRequest | null;
   codeHash?: string;
   threadId?: string;
   onTimeChange?: (timeSec: number) => void;
@@ -27,11 +40,12 @@ const formatTimestamp = (timestampSec: number): string => {
 
 const VideoPane = ({
   lessonId,
-  seekTimeSec,
+  seekRequest,
   codeHash,
   threadId,
   onTimeChange,
 }: VideoPaneProps): ReactElement => {
+  const lesson = useQuery(getLessonRef, { lessonId });
   const { frame, updateFrame } = useVideoFrame({
     lessonId,
     codeHash,
@@ -39,7 +53,7 @@ const VideoPane = ({
   });
 
   const initialTimeSec = frame?.videoTimeSec ?? 0;
-  const lastSeek = typeof seekTimeSec === "number" ? seekTimeSec : null;
+  const lastSeek = seekRequest?.timeSec ?? null;
   const displayTime = useMemo((): number | null => {
     if (lastSeek !== null) {
       return lastSeek;
@@ -48,7 +62,11 @@ const VideoPane = ({
     return frame?.videoTimeSec ?? null;
   }, [frame?.videoTimeSec, lastSeek]);
 
-  const debouncedTimeSec = useDebouncedValue(displayTime ?? 0, 800);
+  const lastSeekRef = useRef<number | null>(null);
+  const lastPersistedRef = useRef<number | null>(null);
+  const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
+    null,
+  );
 
   useEffect((): void => {
     if (frame?.videoTimeSec !== undefined) {
@@ -56,17 +74,31 @@ const VideoPane = ({
     }
   }, [frame?.videoTimeSec, onTimeChange]);
 
-  useEffect(() => {
-    if (debouncedTimeSec === null) {
+  useEffect((): void => {
+    if (lastSeek === null || lastSeekRef.current === lastSeek) {
       return;
     }
 
-    void updateFrame(debouncedTimeSec);
-  }, [debouncedTimeSec, updateFrame]);
+    lastSeekRef.current = lastSeek;
+  }, [lastSeek]);
+
+  useEffect(() => {
+    if (lastSampleTimeSec === null) {
+      return;
+    }
+
+    if (lastPersistedRef.current === lastSampleTimeSec) {
+      return;
+    }
+
+    lastPersistedRef.current = lastSampleTimeSec;
+    void updateFrame(lastSampleTimeSec);
+  }, [lastSampleTimeSec, updateFrame]);
 
   const handleTimeChange = useCallback(
     (timeSec: number): void => {
       onTimeChange?.(timeSec);
+      setLastSampleTimeSec(timeSec);
     },
     [onTimeChange],
   );
@@ -83,12 +115,19 @@ const VideoPane = ({
         </span>
       </header>
       <div className="p-4">
-        <VideoPlayer
-          videoId="cs50x-week1"
-          initialTimeSec={initialTimeSec}
-          onTimeSample={handleTimeChange}
-          onSeek={handleTimeChange}
-        />
+        {lesson ? (
+          <VideoPlayer
+            videoId={lesson.videoId}
+            initialTimeSec={initialTimeSec}
+            seekToSec={seekRequest?.timeSec}
+            onTimeSample={handleTimeChange}
+            onSeek={handleTimeChange}
+          />
+        ) : (
+          <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-xs text-text-muted">
+            Loading video...
+          </div>
+        )}
         <div className="mt-3 text-[11px] text-text-subtle">
           {displayTime !== null
             ? `Seeking to ${formatTimestamp(displayTime)}`

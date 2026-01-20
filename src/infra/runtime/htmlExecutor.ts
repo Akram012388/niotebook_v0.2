@@ -42,6 +42,7 @@ const initHtmlExecutor = async (): Promise<RuntimeExecutor> => {
       stderr: "",
       exitCode: 0,
       runtimeMs,
+      timedOut: false,
     };
   };
 

@@ -11,6 +11,7 @@ type RuntimeRunResult = {
   stderr: string;
   exitCode: number;
   runtimeMs: number;
+  timedOut?: boolean;
 };
 
 type RuntimeExecutor = {
