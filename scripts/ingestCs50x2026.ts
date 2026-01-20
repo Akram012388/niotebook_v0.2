@@ -1,7 +1,14 @@
 import { ConvexHttpClient } from "convex/browser";
 import type { FunctionReference } from "convex/server";
+
 const ingestMutation =
   "ingest:ingestCs50x2026" as unknown as FunctionReference<"mutation">;
+const clearSegmentsMutation =
+  "ingest:clearTranscriptSegmentsBatch" as unknown as FunctionReference<"mutation">;
+const ingestSegmentsMutation =
+  "ingest:ingestTranscriptSegmentsBatch" as unknown as FunctionReference<"mutation">;
+const finalizeMutation =
+  "ingest:finalizeTranscriptIngest" as unknown as FunctionReference<"mutation">;
 
 const COURSE_SOURCE_PLAYLIST_ID = "cs50x-2026";
 const COURSE_TITLE = "CS50x 2026";
@@ -49,6 +56,12 @@ type TranscriptSegment = {
   endSec: number;
   textRaw: string;
   textNormalized: string;
+};
+
+type LessonIngestMeta = {
+  lessonId: string;
+  order: number;
+  shouldReplaceSegments: boolean;
 };
 
 const getEnvValue = (key: string): string => {
@@ -376,6 +389,14 @@ const buildLessonMetadata = (lesson: LessonMetadata): LessonMetadata => {
   return lesson;
 };
 
+const chunkArray = <T>(items: T[], size: number): T[][] => {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+};
+
 const runIngest = async (): Promise<void> => {
   const convexUrl = getEnvValue("CONVEX_URL");
   const allowProdIngest = process.env.NIOTEBOOK_ALLOW_PROD_INGEST === "true";
@@ -422,11 +443,55 @@ const runIngest = async (): Promise<void> => {
       segmentCount: lesson.segmentCount,
       ingestVersion: INGEST_VERSION,
       transcriptStatus: lesson.transcriptStatus,
-      transcriptSegments: lesson.transcriptSegments,
     })),
   };
 
-  await client.mutation(ingestMutation, payload as never);
+  const ingestMeta = (await client.mutation(
+    ingestMutation,
+    payload as never,
+  )) as LessonIngestMeta[];
+
+  const lessonByOrder = new Map<number, LessonIngestMeta>();
+  for (const meta of ingestMeta) {
+    lessonByOrder.set(meta.order, meta);
+  }
+
+  for (const lesson of lessons) {
+    const meta = lessonByOrder.get(lesson.order);
+    if (!meta || !meta.shouldReplaceSegments) {
+      continue;
+    }
+
+    let cursor: string | null = null;
+    do {
+      const response = (await client.mutation(
+        clearSegmentsMutation,
+        {
+          lessonId: meta.lessonId,
+          cursor,
+          limit: 500,
+        } as never,
+      )) as { nextCursor: string | null; cleared: number };
+      cursor = response.nextCursor;
+    } while (cursor);
+
+    const chunks = chunkArray(lesson.transcriptSegments ?? [], 500);
+    for (const chunk of chunks) {
+      await client.mutation(ingestSegmentsMutation, {
+        lessonId: meta.lessonId,
+        segments: chunk,
+      } as never);
+    }
+
+    await client.mutation(finalizeMutation, {
+      lessonId: meta.lessonId,
+      ingestVersion: INGEST_VERSION,
+      transcriptStatus: lesson.transcriptStatus,
+      transcriptDurationSec: lesson.transcriptDurationSec,
+      segmentCount: lesson.segmentCount,
+      durationSec: lesson.durationSec,
+    } as never);
+  }
 };
 
 runIngest().catch((error) => {

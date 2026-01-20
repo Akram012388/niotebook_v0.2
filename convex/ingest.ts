@@ -48,6 +48,12 @@ type TranscriptSegmentRecord = {
   textNormalized: string;
 };
 
+type LessonIngestMeta = {
+  lessonId: GenericId<"lessons">;
+  order: number;
+  shouldReplaceSegments: boolean;
+};
+
 type MutationDefinition = Parameters<typeof mutation>[0];
 
 type MutationConfig = Extract<
@@ -99,22 +105,11 @@ const ingestCs50x2026 = mutation({
         segmentCount: v.optional(v.number()),
         ingestVersion: v.number(),
         transcriptStatus: transcriptStatusValidator,
-        transcriptSegments: v.optional(
-          v.array(
-            v.object({
-              idx: v.number(),
-              startSec: v.number(),
-              endSec: v.number(),
-              textRaw: v.string(),
-              textNormalized: v.string(),
-            }),
-          ),
-        ),
       }),
     ),
   },
-  handler: async (ctx, args): Promise<void> => {
-    const admin = await ensureIngestAllowed(ctx);
+  handler: async (ctx, args): Promise<LessonIngestMeta[]> => {
+    await ensureIngestAllowed(ctx);
 
     const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
     const existingCourse = courses.find(
@@ -149,6 +144,8 @@ const ingestCs50x2026 = mutation({
       lessonByOrder.set(lesson.order, lesson);
     }
 
+    const ingestMeta: LessonIngestMeta[] = [];
+
     for (const lesson of args.lessons) {
       const existingLesson = lessonByOrder.get(lesson.order) ?? null;
 
@@ -166,9 +163,6 @@ const ingestCs50x2026 = mutation({
         transcriptStatus: lesson.transcriptStatus,
       } satisfies Omit<LessonRecord, "_id">;
 
-      const shouldEmitSuccess =
-        lesson.transcriptStatus === "ok" || lesson.transcriptStatus === "warn";
-
       const lessonId = existingLesson
         ? existingLesson._id
         : await ctx.db.insert("lessons", lessonPayload);
@@ -181,84 +175,161 @@ const ingestCs50x2026 = mutation({
         !existingLesson ||
         existingLesson.ingestVersion !== lesson.ingestVersion;
 
-      if (shouldReplaceSegments) {
-        const existingSegments = (await ctx.db
-          .query("transcriptSegments")
-          .withIndex("by_lessonId_idx", (query) =>
-            query.eq("lessonId", lessonId),
-          )
-          .collect()) as TranscriptSegmentRecord[];
+      ingestMeta.push({
+        lessonId,
+        order: lesson.order,
+        shouldReplaceSegments,
+      });
+    }
 
-        for (const segment of existingSegments) {
-          await ctx.db.delete(segment._id);
-        }
+    return ingestMeta;
+  },
+});
 
-        for (const segment of lesson.transcriptSegments ?? []) {
-          await ctx.db.insert("transcriptSegments", {
-            lessonId,
-            idx: segment.idx,
-            startSec: segment.startSec,
-            endSec: segment.endSec,
-            textRaw: segment.textRaw,
-            textNormalized: segment.textNormalized,
-          });
-        }
-      }
+const clearTranscriptSegmentsBatch = mutation({
+  args: {
+    lessonId: v.id("lessons"),
+    cursor: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{ nextCursor: string | null; cleared: number }> => {
+    await ensureIngestAllowed(ctx);
 
-      if (admin && shouldReplaceSegments) {
-        const lessonDomainId = toDomainId(lessonId as GenericId<"lessons">);
+    const page = await ctx.db
+      .query("transcriptSegments")
+      .withIndex("by_lessonId_idx", (query) =>
+        query.eq("lessonId", args.lessonId),
+      )
+      .paginate({
+        cursor: args.cursor ?? null,
+        numItems: args.limit ?? 500,
+      });
 
-        await logEventInternal(ctx, {
-          eventType: "transcript_ingest_started",
-          lessonId,
-          metadata: {
-            lessonId: lessonDomainId,
-          },
-          userId: toGenericId(admin.id),
-        });
+    for (const segment of page.page as TranscriptSegmentRecord[]) {
+      await ctx.db.delete(segment._id);
+    }
 
-        if (shouldEmitSuccess) {
-          await logEventInternal(ctx, {
-            eventType: "transcript_ingest_succeeded",
-            lessonId,
-            metadata: {
-              lessonId: lessonDomainId,
-              segmentCount: lesson.segmentCount ?? 0,
-              transcriptDurationSec: lesson.transcriptDurationSec ?? 0,
-            },
-            userId: toGenericId(admin.id),
-          });
-        } else {
-          await logEventInternal(ctx, {
-            eventType: "transcript_ingest_failed",
-            lessonId,
-            metadata: {
-              lessonId: lessonDomainId,
-              reason:
-                lesson.transcriptStatus === "missing" ? "missing" : "error",
-            },
-            userId: toGenericId(admin.id),
-          });
-        }
+    return {
+      nextCursor: page.continueCursor,
+      cleared: page.page.length,
+    };
+  },
+});
 
-        if (
-          lesson.transcriptStatus === "warn" &&
-          typeof lesson.transcriptDurationSec === "number"
-        ) {
-          await logEventInternal(ctx, {
-            eventType: "transcript_duration_warn",
-            lessonId,
-            metadata: {
-              lessonId: lessonDomainId,
-              lessonDurationSec: lesson.durationSec,
-              transcriptDurationSec: lesson.transcriptDurationSec,
-            },
-            userId: toGenericId(admin.id),
-          });
-        }
-      }
+const ingestTranscriptSegmentsBatch = mutation({
+  args: {
+    lessonId: v.id("lessons"),
+    segments: v.array(
+      v.object({
+        idx: v.number(),
+        startSec: v.number(),
+        endSec: v.number(),
+        textRaw: v.string(),
+        textNormalized: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, args): Promise<void> => {
+    await ensureIngestAllowed(ctx);
+
+    for (const segment of args.segments) {
+      await ctx.db.insert("transcriptSegments", {
+        lessonId: args.lessonId,
+        idx: segment.idx,
+        startSec: segment.startSec,
+        endSec: segment.endSec,
+        textRaw: segment.textRaw,
+        textNormalized: segment.textNormalized,
+      });
     }
   },
 });
 
-export { ingestCs50x2026 };
+const finalizeTranscriptIngest = mutation({
+  args: {
+    lessonId: v.id("lessons"),
+    ingestVersion: v.number(),
+    transcriptStatus: transcriptStatusValidator,
+    transcriptDurationSec: v.optional(v.number()),
+    segmentCount: v.optional(v.number()),
+    durationSec: v.number(),
+  },
+  handler: async (ctx, args): Promise<void> => {
+    const admin = await ensureIngestAllowed(ctx);
+
+    const shouldEmitSuccess =
+      args.transcriptStatus === "ok" || args.transcriptStatus === "warn";
+
+    await ctx.db.patch(args.lessonId, {
+      ingestVersion: args.ingestVersion,
+      transcriptStatus: args.transcriptStatus,
+      transcriptDurationSec: args.transcriptDurationSec,
+      segmentCount: args.segmentCount,
+      durationSec: args.durationSec,
+    });
+
+    if (!admin) {
+      return;
+    }
+
+    const lessonDomainId = toDomainId(args.lessonId as GenericId<"lessons">);
+
+    await logEventInternal(ctx, {
+      eventType: "transcript_ingest_started",
+      lessonId: args.lessonId,
+      metadata: {
+        lessonId: lessonDomainId,
+      },
+      userId: toGenericId(admin.id),
+    });
+
+    if (shouldEmitSuccess) {
+      await logEventInternal(ctx, {
+        eventType: "transcript_ingest_succeeded",
+        lessonId: args.lessonId,
+        metadata: {
+          lessonId: lessonDomainId,
+          segmentCount: args.segmentCount ?? 0,
+          transcriptDurationSec: args.transcriptDurationSec ?? 0,
+        },
+        userId: toGenericId(admin.id),
+      });
+    } else {
+      await logEventInternal(ctx, {
+        eventType: "transcript_ingest_failed",
+        lessonId: args.lessonId,
+        metadata: {
+          lessonId: lessonDomainId,
+          reason: args.transcriptStatus === "missing" ? "missing" : "error",
+        },
+        userId: toGenericId(admin.id),
+      });
+    }
+
+    if (
+      args.transcriptStatus === "warn" &&
+      typeof args.transcriptDurationSec === "number"
+    ) {
+      await logEventInternal(ctx, {
+        eventType: "transcript_duration_warn",
+        lessonId: args.lessonId,
+        metadata: {
+          lessonId: lessonDomainId,
+          lessonDurationSec: args.durationSec,
+          transcriptDurationSec: args.transcriptDurationSec,
+        },
+        userId: toGenericId(admin.id),
+      });
+    }
+  },
+});
+
+export {
+  clearTranscriptSegmentsBatch,
+  finalizeTranscriptIngest,
+  ingestCs50x2026,
+  ingestTranscriptSegmentsBatch,
+};
