@@ -195,6 +195,17 @@ const extractCoursePlaylistUrl = (html: string): string | undefined => {
   return match ? match[0] : undefined;
 };
 
+const extractLabeledUrl = (
+  html: string,
+  label: string,
+): string | undefined => {
+  const pattern = new RegExp(
+    `<a[^>]+href="(https?:\\/\\/[^\"]+)"[^>]*>\\s*${label}\\s*<\\/a>`,
+    "i",
+  );
+  return extractUrl(html, pattern);
+};
+
 const parseLectureResources = (
   html: string,
 ): {
@@ -203,7 +214,9 @@ const parseLectureResources = (
   transcriptUrl?: string;
 } => {
   const lectureHtml = extractLectureSection(html);
-  const videoUrl =
+  const labeledYouTubeUrl = extractLabeledUrl(lectureHtml, "YouTube");
+  const labeledPlayerUrl = extractLabeledUrl(lectureHtml, "CS50 Video Player");
+  const videoUrl = labeledYouTubeUrl || labeledPlayerUrl ||
     extractUrl(lectureHtml, /href="(https:\/\/video\.cs50\.io\/[^"]+)"/) ||
     extractUrl(lectureHtml, /href="(https:\/\/youtu\.be\/[^"]+)"/) ||
     extractUrl(
