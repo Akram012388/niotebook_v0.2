@@ -9,6 +9,9 @@ on:
 jobs:
   checks:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
+      CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
