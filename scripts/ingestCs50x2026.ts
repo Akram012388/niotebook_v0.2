@@ -301,7 +301,7 @@ const parseWeekLesson = async (
       transcriptStatus,
       durationSec,
     };
-  } catch (error) {
+  } catch {
     return {
       order,
       slug,
@@ -387,7 +387,6 @@ const runIngest = async (): Promise<void> => {
 };
 
 runIngest().catch((error) => {
-  // eslint-disable-next-line no-console
-  console.error(error);
+  process.stdout.write(`${String(error)}\n`);
   process.exit(1);
 });
