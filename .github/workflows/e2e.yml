@@ -17,7 +17,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     env:
-      BASE_URL: ${{ github.event.inputs.base_url || github.event.client_payload.deployment_url }}
+      BASE_URL: ${{ github.event.inputs.base_url || github.event.client_payload.deployment_url || github.event.client_payload.url || github.event.client_payload.deploymentUrl || github.event.client_payload.target_url }}
       CHECKOUT_REF: ${{ github.event.inputs.ref || github.event.client_payload.ref || 'main' }}
       CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
       CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
@@ -34,6 +34,17 @@ jobs:
           bun-version: "1.1.19"
       - run: bun install --frozen-lockfile
       - run: bunx playwright install --with-deps
+      - name: E2E diagnostics
+        run: |
+          echo "Trigger: ${{ github.event_name }}"
+          echo "Client payload keys: ${{ join(keys(github.event.client_payload), ', ') }}"
+          echo "Resolved BASE_URL: ${{ env.BASE_URL }}"
+      - name: Validate BASE_URL
+        run: |
+          if [ -z "${BASE_URL}" ]; then
+            echo "BASE_URL is empty. Provide base_url or ensure repository_dispatch payload includes a deployment URL."
+            exit 1
+          fi
       - run: bun run e2e:convex:push
       - run: bun run e2e:seed
       - run: bun ./scripts/e2eEnv.ts --github
