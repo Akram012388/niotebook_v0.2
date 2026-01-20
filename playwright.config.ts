@@ -1,7 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
 const isCi = Boolean(process.env.CI);
-const baseURL = process.env.BASE_URL ?? "http://localhost:3000";
+const baseURL = process.env.BASE_URL?.trim() || "http://localhost:3000";
 const useWebServer = isCi || process.env.E2E_USE_WEBSERVER === "true";
 const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 const extraHTTPHeaders = bypassSecret
