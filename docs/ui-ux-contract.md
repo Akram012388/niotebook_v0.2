@@ -78,7 +78,7 @@ Scope: UI structure + interaction behavior (not visual polish)
 
 ### Pane headers
 
-- Show headers only when needed (status/actions/error), not always.
+- Keep pane headers visible for context and actions.
 
 ## Visual Language (locked)
 
@@ -90,7 +90,7 @@ Scope: UI structure + interaction behavior (not visual polish)
 - Focus ring: always visible on focus.
 - Error states: inline banner inside pane (non-blocking).
 - Spacing scale: 8/12/16.
-- Typography feel: JetBrains IDE vibe (JetBrains Mono styling).
+- Typography: keep current sans/mono pairing; no font change required.
 
 Color policy:
 

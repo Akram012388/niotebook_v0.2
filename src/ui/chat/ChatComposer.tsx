@@ -61,7 +61,7 @@ const ChatComposer = ({
   );
 
   return (
-    <div className="flex items-end gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm">
+    <div className="flex items-end gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
       <textarea
         ref={textareaRef}
         rows={1}
@@ -74,7 +74,7 @@ const ChatComposer = ({
       <button
         type="button"
         onClick={handleSend}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground"
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground transition hover:opacity-90"
         aria-label="Send message"
       >
         ➜

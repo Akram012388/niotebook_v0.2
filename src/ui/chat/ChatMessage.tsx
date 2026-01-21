@@ -21,7 +21,7 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
     >
       <div className={`flex items-center gap-2 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
         <div
-          className={`max-w-[80%] rounded-2xl border px-3 py-2 text-sm leading-6 ${
+          className={`max-w-[80%] rounded-xl border px-3 py-2 text-sm leading-6 ${
             isUser
               ? "border-border bg-surface-muted text-foreground dark:bg-surface-strong"
               : "border-border bg-surface text-foreground"

@@ -241,7 +241,7 @@ const TopNav = (): ReactElement => {
                   <button
                     type="button"
                     onClick={() => updateLesson(lessonOptions[0]?.id ?? null)}
-                    className="rounded-xl border border-border px-3 py-2 text-xs font-medium text-text-muted"
+                    className="rounded-xl border border-border px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
                   >
                     Start
                   </button>

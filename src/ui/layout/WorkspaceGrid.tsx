@@ -275,7 +275,7 @@ const WorkspaceGrid = (): ReactElement => {
 
   if (!lessonId) {
     return (
-      <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-border bg-surface-muted text-sm text-text-muted">
+      <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-sm text-text-muted">
         Select a lesson to start.
       </div>
     );
@@ -300,7 +300,7 @@ const WorkspaceGrid = (): ReactElement => {
                   <button
                     type="button"
                     onClick={() => setSinglePane("video")}
-                    className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                    className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
                     aria-label="Show video"
                   >
                     V
@@ -308,7 +308,7 @@ const WorkspaceGrid = (): ReactElement => {
                   <button
                     type="button"
                     onClick={() => setSinglePane("code")}
-                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                    className="rounded-full px-2 py-1 text-[11px] text-text-muted transition hover:bg-surface hover:text-foreground"
                     aria-label="Show code"
                   >
                     C
@@ -328,7 +328,7 @@ const WorkspaceGrid = (): ReactElement => {
                   <button
                     type="button"
                     onClick={() => setSinglePane("video")}
-                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                    className="rounded-full px-2 py-1 text-[11px] text-text-muted transition hover:bg-surface hover:text-foreground"
                     aria-label="Show video"
                   >
                     V
@@ -336,7 +336,7 @@ const WorkspaceGrid = (): ReactElement => {
                   <button
                     type="button"
                     onClick={() => setSinglePane("code")}
-                    className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                    className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
                     aria-label="Show code"
                   >
                     C
@@ -368,7 +368,7 @@ const WorkspaceGrid = (): ReactElement => {
                     <button
                       type="button"
                       onClick={() => setLeftPane("video")}
-                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
                       aria-label="Show video"
                     >
                       V
@@ -376,7 +376,7 @@ const WorkspaceGrid = (): ReactElement => {
                     <button
                       type="button"
                       onClick={() => setLeftPane("code")}
-                      className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                      className="rounded-full px-2 py-1 text-[11px] text-text-muted transition hover:bg-surface hover:text-foreground"
                       aria-label="Show code"
                     >
                       C
@@ -394,7 +394,7 @@ const WorkspaceGrid = (): ReactElement => {
                     <button
                       type="button"
                       onClick={() => setLeftPane("video")}
-                      className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                      className="rounded-full px-2 py-1 text-[11px] text-text-muted transition hover:bg-surface hover:text-foreground"
                       aria-label="Show video"
                     >
                       V
@@ -402,7 +402,7 @@ const WorkspaceGrid = (): ReactElement => {
                     <button
                       type="button"
                       onClick={() => setLeftPane("code")}
-                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
                       aria-label="Show code"
                     >
                       C
@@ -426,7 +426,7 @@ const WorkspaceGrid = (): ReactElement => {
                     <button
                       type="button"
                       onClick={() => setRightPane("chat")}
-                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
                       aria-label="Show assistant"
                     >
                       A
@@ -434,10 +434,10 @@ const WorkspaceGrid = (): ReactElement => {
                     <button
                       type="button"
                       onClick={() => setRightPane("code")}
-                      className={`rounded-full px-2 py-1 text-[11px] ${
+                      className={`rounded-full px-2 py-1 text-[11px] transition ${
                         leftPane === "code"
                           ? "text-text-subtle"
-                          : "text-text-muted"
+                          : "text-text-muted hover:bg-surface hover:text-foreground"
                       }`}
                       disabled={leftPane === "code"}
                       aria-label="Show code"
@@ -457,7 +457,7 @@ const WorkspaceGrid = (): ReactElement => {
                     <button
                       type="button"
                       onClick={() => setRightPane("chat")}
-                      className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                      className="rounded-full px-2 py-1 text-[11px] text-text-muted transition hover:bg-surface hover:text-foreground"
                       aria-label="Show assistant"
                     >
                       A
@@ -465,7 +465,7 @@ const WorkspaceGrid = (): ReactElement => {
                     <button
                       type="button"
                       onClick={() => setRightPane("code")}
-                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
                       disabled={leftPane === "code"}
                       aria-label="Show code"
                     >

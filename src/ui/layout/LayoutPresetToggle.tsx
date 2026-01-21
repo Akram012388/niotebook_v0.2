@@ -12,10 +12,10 @@ const LayoutPresetToggle = (): ReactElement => {
         <button
           key={preset.id}
           type="button"
-          className={`rounded-full px-2.5 py-1 ${
+          className={`rounded-full px-2.5 py-1 transition ${
             activePreset === preset.id
               ? "bg-surface text-foreground shadow-sm"
-              : "text-text-muted"
+              : "text-text-muted hover:bg-surface hover:text-foreground"
           }`}
           onClick={() => setPreset(preset.id)}
           aria-label={`Switch to ${preset.label}-column layout`}

@@ -200,21 +200,21 @@ const CodePane = ({
           <button
             type="button"
             onClick={handleRun}
-            className="rounded-full border border-border px-3 py-1 text-text-muted"
+            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
           >
             Run
           </button>
           <button
             type="button"
             onClick={handleStop}
-            className="rounded-full border border-border px-3 py-1 text-text-muted"
+            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
           >
             Stop
           </button>
           <button
             type="button"
             onClick={handleClear}
-            className="rounded-full border border-border px-3 py-1 text-text-muted"
+            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
           >
             Clear
           </button>
