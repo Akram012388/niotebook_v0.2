@@ -20,6 +20,41 @@ type LayoutPresetState = {
 
 const STORAGE_KEY = "niotebook.layout";
 
+const presetListeners = new Set<() => void>();
+let presetSnapshot: LayoutPreset = "split";
+
+const readPreset = (): LayoutPreset => {
+  const stored = storageAdapter.getItem(STORAGE_KEY);
+
+  if (stored === "single" || stored === "split" || stored === "triple") {
+    return stored;
+  }
+
+  return "split";
+};
+
+const notifyPreset = (): void => {
+  for (const listener of presetListeners) {
+    listener();
+  }
+};
+
+const hydratePreset = (): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.setTimeout(() => {
+    const stored = readPreset();
+    if (stored !== presetSnapshot) {
+      presetSnapshot = stored;
+      notifyPreset();
+    }
+  }, 0);
+};
+
+hydratePreset();
+
 const LayoutPresetContext = createContext<LayoutPresetState | null>(null);
 
 const LayoutPresetProvider = ({
@@ -27,52 +62,43 @@ const LayoutPresetProvider = ({
 }: {
   children: ReactNode;
 }): ReactElement => {
-  const getSnapshot = useCallback((): LayoutPreset => {
-    const stored = storageAdapter.getItem(STORAGE_KEY);
-
-    if (stored === "single" || stored === "split" || stored === "triple") {
-      return stored;
-    }
-
-    return "split";
-  }, []);
-
   const subscribe = useCallback((onStoreChange: () => void): (() => void) => {
     if (typeof window === "undefined") {
       return () => undefined;
     }
 
+    presetListeners.add(onStoreChange);
+
     const handleStorage = (event: StorageEvent): void => {
-      if (event.key === STORAGE_KEY) {
-        onStoreChange();
+      if (event.key !== STORAGE_KEY) {
+        return;
+      }
+
+      const stored = readPreset();
+      if (stored !== presetSnapshot) {
+        presetSnapshot = stored;
+        notifyPreset();
       }
     };
 
-    const handleCustom = (): void => {
-      onStoreChange();
-    };
-
     window.addEventListener("storage", handleStorage);
-    window.addEventListener("niotebook:layout", handleCustom);
 
     return () => {
+      presetListeners.delete(onStoreChange);
       window.removeEventListener("storage", handleStorage);
-      window.removeEventListener("niotebook:layout", handleCustom);
     };
   }, []);
 
   const activePreset = useSyncExternalStore<LayoutPreset>(
     subscribe,
-    getSnapshot,
+    (): LayoutPreset => presetSnapshot,
     (): LayoutPreset => "split",
   );
 
   const setPreset = useCallback((preset: LayoutPreset): void => {
+    presetSnapshot = preset;
     storageAdapter.setItem(STORAGE_KEY, preset);
-
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new Event("niotebook:layout"));
-    }
+    notifyPreset();
   }, []);
 
   const value = useMemo(
