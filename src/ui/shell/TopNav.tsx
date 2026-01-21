@@ -77,14 +77,6 @@ const TopNav = (): ReactElement => {
     [lessons],
   );
 
-  const activeCourse = useMemo(() => {
-    return courseOptions.find((course) => course.id === courseId) ?? null;
-  }, [courseId, courseOptions]);
-
-  const activeLesson = useMemo(() => {
-    return lessonOptions.find((item) => item.id === lessonId) ?? null;
-  }, [lessonId, lessonOptions]);
-
   useEffect((): void => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
