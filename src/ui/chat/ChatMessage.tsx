@@ -25,19 +25,19 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
         <p className="whitespace-pre-wrap" data-testid="chat-message">
           {message.content}
         </p>
-        <button
-          type="button"
-          onClick={handleSeek}
-          className={`mt-3 inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 ${
-            isUser
-              ? "border-accent-border bg-surface text-accent-muted hover:text-accent-foreground dark:bg-surface-strong/70 dark:text-foreground"
-              : "border-border bg-surface-muted text-text-muted hover:text-foreground dark:bg-surface-strong/70 dark:text-foreground"
-          }`}
-          aria-label={`Seek to ${message.badge}`}
-        >
-          {message.badge}
-        </button>
       </div>
+      <button
+        type="button"
+        onClick={handleSeek}
+        className={`mt-2 text-[11px] font-medium opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 ${
+          isUser
+            ? "text-text-subtle hover:text-foreground dark:text-text-muted dark:hover:text-foreground"
+            : "text-text-muted hover:text-foreground dark:text-text-subtle dark:hover:text-foreground"
+        } ${isUser ? "text-right" : "text-left"}`}
+        aria-label={`Seek to ${message.badge}`}
+      >
+        {message.badge}
+      </button>
     </div>
   );
 };
