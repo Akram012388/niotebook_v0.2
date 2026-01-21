@@ -64,6 +64,8 @@ const VideoPane = ({
 
   const lastSeekRef = useRef<number | null>(null);
   const lastPersistedRef = useRef<number | null>(null);
+  const videoAreaRef = useRef<HTMLDivElement | null>(null);
+  const [maxVideoWidth, setMaxVideoWidth] = useState<number | null>(null);
   const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
     null,
   );
@@ -73,6 +75,39 @@ const VideoPane = ({
       onTimeChange?.(frame.videoTimeSec);
     }
   }, [frame?.videoTimeSec, onTimeChange]);
+
+  useEffect(() => {
+    const element = videoAreaRef.current;
+    if (!element || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const updateSize = (width: number, height: number): void => {
+      if (width <= 0 || height <= 0) {
+        return;
+      }
+      const candidate = Math.min(width, height * (16 / 9));
+      setMaxVideoWidth(Math.round(candidate));
+    };
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) {
+        return;
+      }
+      const rect = entry.contentRect;
+      updateSize(rect.width, rect.height);
+    });
+
+    observer.observe(element);
+
+    const rect = element.getBoundingClientRect();
+    updateSize(rect.width, rect.height);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
 
   useEffect((): void => {
@@ -116,9 +151,15 @@ const VideoPane = ({
         </span>
       </header>
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-        <div className="flex min-h-0 flex-1 items-start justify-center">
+        <div
+          ref={videoAreaRef}
+          className="flex min-h-0 flex-1 items-start justify-center"
+        >
           {lesson ? (
-            <div className="w-full">
+            <div
+              className="w-full max-w-full aspect-video"
+              style={{ width: maxVideoWidth ? `${maxVideoWidth}px` : "100%" }}
+            >
               <VideoPlayer
                 videoId={lesson.videoId}
                 initialTimeSec={initialTimeSec}
