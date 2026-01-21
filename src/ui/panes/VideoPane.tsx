@@ -118,7 +118,7 @@ const VideoPane = ({
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
         <div className="flex min-h-0 flex-1 items-start justify-center">
           {lesson ? (
-            <div className="w-full max-h-full aspect-video">
+            <div className="w-full">
               <VideoPlayer
                 videoId={lesson.videoId}
                 initialTimeSec={initialTimeSec}

@@ -253,8 +253,8 @@ const VideoPlayer = ({
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-black">
+    <div className="flex w-full flex-col gap-4">
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-black">
         <div ref={containerRef} className="h-full w-full" />
         <div className="pointer-events-none absolute inset-x-3 top-3 flex items-center justify-between text-[11px] text-white/80">
           <span>{playState === "playing" ? "Playing" : "Paused"}</span>
