@@ -123,6 +123,12 @@ const WorkspaceGrid = (): ReactElement => {
     storageAdapter.setItem("niotebook.pane.right", next);
     notifyPane();
   }, []);
+
+  const setSinglePane = useCallback((next: "video" | "code" | "chat"): void => {
+    singlePaneSnapshot = next;
+    storageAdapter.setItem("niotebook.pane.single", next);
+    notifyPane();
+  }, []);
   const [seekRequest, setSeekRequest] = useState<{
     timeSec: number;
     token: number;
@@ -155,11 +161,6 @@ const WorkspaceGrid = (): ReactElement => {
 
   const lessonId = searchParams.get("lessonId");
 
-  const rightPaneLabel = useMemo(
-    () => (rightPane === "chat" ? "Assistant" : "Code"),
-    [rightPane],
-  );
-
   if (!lessonId) {
     return (
       <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-border bg-surface-muted text-sm text-text-muted">
@@ -179,12 +180,71 @@ const WorkspaceGrid = (): ReactElement => {
               onTimeChange={handleVideoTime}
               threadId={threadId ?? undefined}
               codeHash={codeHash ?? undefined}
+              headerExtras={
+                <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
+                  <button
+                    type="button"
+                    onClick={() => setSinglePane("video")}
+                    className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                    aria-label="Show video"
+                  >
+                    V
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSinglePane("code")}
+                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                    aria-label="Show code"
+                  >
+                    C
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSinglePane("chat")}
+                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                    aria-label="Show assistant"
+                  >
+                    A
+                  </button>
+                </div>
+              }
             />
           </div>
         ) : null}
         {singlePane === "code" ? (
           <div className="flex min-w-0 flex-1">
-            <CodePane lessonId={lessonId} onSnapshot={handleSnapshot} />
+            <CodePane
+              lessonId={lessonId}
+              onSnapshot={handleSnapshot}
+              headerExtras={
+                <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
+                  <button
+                    type="button"
+                    onClick={() => setSinglePane("video")}
+                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                    aria-label="Show video"
+                  >
+                    V
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSinglePane("code")}
+                    className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                    aria-label="Show code"
+                  >
+                    C
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSinglePane("chat")}
+                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                    aria-label="Show assistant"
+                  >
+                    A
+                  </button>
+                </div>
+              }
+            />
           </div>
         ) : null}
         {singlePane === "chat" ? (
@@ -194,6 +254,34 @@ const WorkspaceGrid = (): ReactElement => {
               onSeek={handleSeek}
               videoTimeSec={videoTimeSec}
               onThreadChange={handleThreadChange}
+              headerExtras={
+                <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
+                  <button
+                    type="button"
+                    onClick={() => setSinglePane("video")}
+                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                    aria-label="Show video"
+                  >
+                    V
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSinglePane("code")}
+                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                    aria-label="Show code"
+                  >
+                    C
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSinglePane("chat")}
+                    className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                    aria-label="Show assistant"
+                  >
+                    A
+                  </button>
+                </div>
+              }
             />
           </div>
         ) : null}
@@ -216,33 +304,6 @@ const WorkspaceGrid = (): ReactElement => {
           </div>
         </div>
         <div className="flex min-w-0 flex-[2] flex-col gap-6 min-h-0">
-          <div className="flex items-center justify-between rounded-2xl border border-border bg-surface px-4 py-3 text-xs text-text-muted">
-            <span className="font-medium text-foreground">{rightPaneLabel}</span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setRightPane("chat")}
-                className={`rounded-full border px-2.5 py-1 ${
-                  rightPane === "chat"
-                    ? "border-border bg-surface text-foreground"
-                    : "border-border text-text-muted"
-                }`}
-              >
-                Chat
-              </button>
-              <button
-                type="button"
-                onClick={() => setRightPane("code")}
-                className={`rounded-full border px-2.5 py-1 ${
-                  rightPane === "code"
-                    ? "border-border bg-surface text-foreground"
-                    : "border-border text-text-muted"
-                }`}
-              >
-                Code
-              </button>
-            </div>
-          </div>
           <div className="flex-1 min-h-0">
             {rightPane === "chat" ? (
               <AiPane
@@ -250,10 +311,53 @@ const WorkspaceGrid = (): ReactElement => {
                 onSeek={handleSeek}
                 videoTimeSec={videoTimeSec}
                 onThreadChange={handleThreadChange}
+                headerExtras={
+                  <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
+                    <button
+                      type="button"
+                      onClick={() => setRightPane("chat")}
+                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                      aria-label="Show assistant"
+                    >
+                      A
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRightPane("code")}
+                      className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                      aria-label="Show code"
+                    >
+                      C
+                    </button>
+                  </div>
+                }
               />
             ) : null}
             {rightPane === "code" ? (
-              <CodePane lessonId={lessonId} onSnapshot={handleSnapshot} />
+              <CodePane
+                lessonId={lessonId}
+                onSnapshot={handleSnapshot}
+                headerExtras={
+                  <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
+                    <button
+                      type="button"
+                      onClick={() => setRightPane("chat")}
+                      className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                      aria-label="Show assistant"
+                    >
+                      A
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRightPane("code")}
+                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                      aria-label="Show code"
+                    >
+                      C
+                    </button>
+                  </div>
+                }
+              />
             ) : null}
           </div>
         </div>

@@ -13,6 +13,7 @@ type AiPaneProps = {
   onSeek?: (timestampSec: number) => void;
   videoTimeSec?: number;
   onThreadChange?: (threadId: string | null) => void;
+  headerExtras?: ReactElement;
 };
 
 const AiPane = ({
@@ -20,6 +21,7 @@ const AiPane = ({
   onSeek,
   videoTimeSec = 0,
   onThreadChange,
+  headerExtras,
 }: AiPaneProps): ReactElement => {
   const { messages, sendMessage, threadId } = useChatThread(lessonId);
   const transcriptWindow = useTranscriptWindow(lessonId, videoTimeSec);
@@ -67,9 +69,12 @@ const AiPane = ({
           <p className="text-sm font-semibold text-foreground">Assistant</p>
           <p className="text-xs text-text-muted">Stay synced to this lesson</p>
         </div>
-        <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
-          Live
-        </span>
+        <div className="flex items-center gap-2">
+          {headerExtras}
+          <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
+            Live
+          </span>
+        </div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
         <ChatScroll>

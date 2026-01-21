@@ -25,9 +25,14 @@ import { RUNTIME_TIMEOUT_MS } from "../../infra/runtime/runtimeConstants";
 type CodePaneProps = {
   lessonId: string;
   onSnapshot?: (snapshot: CodeSnapshotSummary) => void;
+  headerExtras?: ReactElement;
 };
 
-const CodePane = ({ lessonId, onSnapshot }: CodePaneProps): ReactElement => {
+const CodePane = ({
+  lessonId,
+  onSnapshot,
+  headerExtras,
+}: CodePaneProps): ReactElement => {
   const [language, setLanguage] = useState<RuntimeLanguage>("js");
   const [runtimeState, setRuntimeState] = useState<RuntimeState>({
     language: "js",
@@ -191,6 +196,7 @@ const CodePane = ({ lessonId, onSnapshot }: CodePaneProps): ReactElement => {
           <p className="text-xs text-text-muted">Editor + output scaffold</p>
         </div>
         <div className="flex items-center gap-2 text-xs">
+          {headerExtras}
           <button
             type="button"
             onClick={handleRun}

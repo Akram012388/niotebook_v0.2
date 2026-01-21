@@ -22,6 +22,7 @@ type VideoPaneProps = {
   codeHash?: string;
   threadId?: string;
   onTimeChange?: (timeSec: number) => void;
+  headerExtras?: ReactElement;
 };
 
 const formatTimestamp = (timestampSec: number): string => {
@@ -44,6 +45,7 @@ const VideoPane = ({
   codeHash,
   threadId,
   onTimeChange,
+  headerExtras,
 }: VideoPaneProps): ReactElement => {
   const lesson = useQuery(getLessonRef, { lessonId });
   const { frame, updateFrame } = useVideoFrame({
@@ -146,9 +148,12 @@ const VideoPane = ({
           <p className="text-sm font-semibold text-foreground">Lesson video</p>
           <p className="text-xs text-text-muted">Player scaffold</p>
         </div>
-        <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
-          1080p
-        </span>
+        <div className="flex items-center gap-2">
+          {headerExtras}
+          <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
+            1080p
+          </span>
+        </div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
         <div
