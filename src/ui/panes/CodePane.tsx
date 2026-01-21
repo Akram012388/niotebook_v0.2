@@ -187,7 +187,7 @@ const CodePane = ({
   }, []);
 
   return (
-    <section className="flex h-full min-h-0 w-full flex-col rounded-2xl border border-border bg-surface">
+    <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-border bg-surface">
       <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
         <div>
           <p className="text-sm font-semibold text-foreground">
@@ -228,7 +228,7 @@ const CodePane = ({
             onSnapshot={handleSnapshot}
           />
         </div>
-        <div className="flex min-h-0 flex-[1] flex-col rounded-xl border border-border bg-black text-slate-100 dark:bg-slate-50 dark:text-slate-900">
+        <div className="flex min-h-0 flex-[1] flex-col rounded-lg border border-border bg-black text-slate-100 dark:bg-slate-50 dark:text-slate-900">
           <div className="px-3 pt-3">
             <RuntimeStatus
               state={runtimeState}
@@ -237,6 +237,11 @@ const CodePane = ({
           </div>
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 pb-3 pt-2">
             <OutputPanel output={runtimeOutput} variant="inline" />
+            {runtimeState.status === "error" ? (
+              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+                {runtimeState.message ?? "Runtime error"}
+              </div>
+            ) : null}
             <div id="niotebook-runtime-frame" className="min-h-[120px]" />
           </div>
         </div>

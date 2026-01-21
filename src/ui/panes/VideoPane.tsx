@@ -9,7 +9,7 @@ import {
 import { useQuery } from "convex/react";
 import { VideoPlayer } from "../video/VideoPlayer";
 import { useVideoFrame } from "../video/useVideoFrame";
-import { getLessonRef } from "../content/convexContent";
+import { getCoursesRef, getLessonRef } from "../content/convexContent";
 
 type VideoSeekRequest = {
   timeSec: number;
@@ -23,6 +23,7 @@ type VideoPaneProps = {
   threadId?: string;
   onTimeChange?: (timeSec: number) => void;
   headerExtras?: ReactElement;
+  showInfoStrip?: boolean;
 };
 
 const formatTimestamp = (timestampSec: number): string => {
@@ -46,13 +47,59 @@ const VideoPane = ({
   threadId,
   onTimeChange,
   headerExtras,
+  showInfoStrip = false,
 }: VideoPaneProps): ReactElement => {
   const lesson = useQuery(getLessonRef, { lessonId });
+  const courses = useQuery(getCoursesRef, showInfoStrip ? {} : "skip");
   const { frame, updateFrame } = useVideoFrame({
     lessonId,
     codeHash,
     threadId,
   });
+
+  const course = useMemo(() => {
+    if (!lesson || !courses) {
+      return null;
+    }
+
+    return courses.find((item) => item.id === lesson.courseId) ?? null;
+  }, [courses, lesson]);
+
+  const sourceLabel = (() => {
+    if (!course?.sourceUrl) {
+      return null;
+    }
+
+    try {
+      const url = new URL(course.sourceUrl);
+      const trimmedPath = url.pathname.replace(/\/$/, "");
+      return `${url.hostname}${trimmedPath}`;
+    } catch {
+      return course.sourceUrl;
+    }
+  })();
+
+  const infoItems = (() => {
+    const items: Array<{ label: string; value: string; href?: string }> = [];
+
+    if (lesson?.title) {
+      items.push({ label: "Lesson", value: lesson.title });
+    }
+
+    if (sourceLabel) {
+      items.push({
+        label: "Source",
+        value: sourceLabel,
+        href: course?.sourceUrl,
+      });
+    }
+
+    if (course?.license) {
+      items.push({ label: "License", value: course.license });
+    }
+
+    return items;
+  })();
 
   const initialTimeSec = frame?.videoTimeSec ?? null;
   const lastSeek = seekRequest?.timeSec ?? null;
@@ -142,7 +189,7 @@ const VideoPane = ({
   );
 
   return (
-    <section className="flex h-full min-h-0 w-full flex-col rounded-2xl border border-border bg-surface">
+    <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-border bg-surface">
       <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
         <div>
           <p className="text-sm font-semibold text-foreground">Lesson video</p>
@@ -180,6 +227,31 @@ const VideoPane = ({
             </div>
           )}
         </div>
+        {showInfoStrip && infoItems.length > 0 ? (
+          <div className="rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] text-text-muted">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {infoItems.map((item) => (
+                <div key={item.label} className="flex items-center gap-1">
+                  <span className="uppercase tracking-[0.08em] text-[10px] text-text-subtle">
+                    {item.label}
+                  </span>
+                  {item.href ? (
+                    <a
+                      href={item.href}
+                      className="text-foreground underline-offset-2 hover:underline"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {item.value}
+                    </a>
+                  ) : (
+                    <span className="text-foreground">{item.value}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
         <div className="text-[11px] text-text-subtle">
           {displayTime !== null
             ? `Seeking to ${formatTimestamp(displayTime)}`

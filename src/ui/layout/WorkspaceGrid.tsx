@@ -294,6 +294,7 @@ const WorkspaceGrid = (): ReactElement => {
               onTimeChange={handleVideoTime}
               threadId={threadId ?? undefined}
               codeHash={codeHash ?? undefined}
+              showInfoStrip
               headerExtras={
                 <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
                   <button
@@ -361,6 +362,7 @@ const WorkspaceGrid = (): ReactElement => {
                 onTimeChange={handleVideoTime}
                 threadId={threadId ?? undefined}
                 codeHash={codeHash ?? undefined}
+                showInfoStrip
                 headerExtras={
                   <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
                     <button
@@ -487,6 +489,7 @@ const WorkspaceGrid = (): ReactElement => {
         onTimeChange={handleVideoTime}
         threadId={threadId ?? undefined}
         codeHash={codeHash ?? undefined}
+        showInfoStrip
       />
       <CodePane lessonId={lessonId} onSnapshot={handleSnapshot} />
       <AiPane
