@@ -61,7 +61,7 @@ const ChatComposer = ({
   );
 
   return (
-    <div className="flex items-end gap-3 rounded-2xl border border-border bg-transparent px-4 py-3 shadow-sm">
+    <div className="flex items-end gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm">
       <textarea
         ref={textareaRef}
         rows={1}
@@ -69,7 +69,7 @@ const ChatComposer = ({
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Ask about the lesson..."
-        className="min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto rounded-xl bg-surface-muted p-3 text-sm text-foreground outline-none placeholder:text-text-subtle"
+        className="min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto bg-transparent text-sm text-foreground outline-none placeholder:text-text-subtle"
       />
       <button
         type="button"
