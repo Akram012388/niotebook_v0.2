@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useEffect,
   useSyncExternalStore,
   useState,
   type ReactElement,
@@ -15,7 +16,8 @@ import { useLayoutPreset } from "./LayoutPresetContext";
 import { storageAdapter } from "../../infra/storageAdapter";
 
 const paneListeners = new Set<() => void>();
-let singlePaneSnapshot: "video" | "code" | "chat" = "video";
+let singlePaneSnapshot: "video" | "code" = "video";
+let leftPaneSnapshot: "video" | "code" = "video";
 let rightPaneSnapshot: "chat" | "code" = "chat";
 
 const notifyPane = (): void => {
@@ -24,9 +26,17 @@ const notifyPane = (): void => {
   }
 };
 
-const readSinglePane = (): "video" | "code" | "chat" => {
+const readSinglePane = (): "video" | "code" => {
   const stored = storageAdapter.getItem("niotebook.pane.single");
-  if (stored === "video" || stored === "code" || stored === "chat") {
+  if (stored === "video" || stored === "code") {
+    return stored;
+  }
+  return "video";
+};
+
+const readLeftPane = (): "video" | "code" => {
+  const stored = storageAdapter.getItem("niotebook.pane.left");
+  if (stored === "video" || stored === "code") {
     return stored;
   }
   return "video";
@@ -46,18 +56,24 @@ const hydratePaneStore = (): void => {
   }
 
   window.setTimeout(() => {
-    const storedSingle = readSinglePane();
-    const storedRight = readRightPane();
-    const nextSingle = storedSingle ?? "video";
-    const nextRight = storedRight ?? "chat";
+  const storedSingle = readSinglePane();
+  const storedLeft = readLeftPane();
+  const storedRight = readRightPane();
 
-    if (nextSingle !== singlePaneSnapshot) {
-      singlePaneSnapshot = nextSingle;
-    }
+  if (storedSingle !== singlePaneSnapshot) {
+    singlePaneSnapshot = storedSingle;
+  }
 
-    if (nextRight !== rightPaneSnapshot) {
-      rightPaneSnapshot = nextRight;
-    }
+  if (storedLeft !== leftPaneSnapshot) {
+    leftPaneSnapshot = storedLeft;
+  }
+
+  if (leftPaneSnapshot === "code") {
+    rightPaneSnapshot = "chat";
+    storageAdapter.setItem("niotebook.pane.right", "chat");
+  } else if (storedRight !== rightPaneSnapshot) {
+    rightPaneSnapshot = storedRight;
+  }
 
     notifyPane();
   }, 0);
@@ -66,7 +82,7 @@ const hydratePaneStore = (): void => {
 hydratePaneStore();
 
 const WorkspaceGrid = (): ReactElement => {
-  const { activePreset } = useLayoutPreset();
+  const { activePreset, setPreset } = useLayoutPreset();
   const searchParams = useSearchParams();
   const subscribe = useCallback((onStoreChange: () => void): (() => void) => {
     if (typeof window === "undefined") {
@@ -78,19 +94,28 @@ const WorkspaceGrid = (): ReactElement => {
     const handleStorage = (event: StorageEvent): void => {
       if (
         event.key !== "niotebook.pane.single" &&
+        event.key !== "niotebook.pane.left" &&
         event.key !== "niotebook.pane.right"
       ) {
         return;
       }
 
       const nextSingle = readSinglePane();
+      const nextLeft = readLeftPane();
       const nextRight = readRightPane();
 
       if (nextSingle !== singlePaneSnapshot) {
         singlePaneSnapshot = nextSingle;
       }
 
-      if (nextRight !== rightPaneSnapshot) {
+      if (nextLeft !== leftPaneSnapshot) {
+        leftPaneSnapshot = nextLeft;
+      }
+
+      if (leftPaneSnapshot === "code") {
+        rightPaneSnapshot = "chat";
+        storageAdapter.setItem("niotebook.pane.right", "chat");
+      } else if (nextRight !== rightPaneSnapshot) {
         rightPaneSnapshot = nextRight;
       }
 
@@ -107,8 +132,14 @@ const WorkspaceGrid = (): ReactElement => {
 
   const singlePane = useSyncExternalStore(
     subscribe,
-    (): "video" | "code" | "chat" => singlePaneSnapshot,
-    (): "video" | "code" | "chat" => "video",
+    (): "video" | "code" => singlePaneSnapshot,
+    (): "video" | "code" => "video",
+  );
+
+  const leftPane = useSyncExternalStore(
+    subscribe,
+    (): "video" | "code" => leftPaneSnapshot,
+    (): "video" | "code" => "video",
   );
 
   const rightPane = useSyncExternalStore(
@@ -123,9 +154,19 @@ const WorkspaceGrid = (): ReactElement => {
     notifyPane();
   }, []);
 
-  const setSinglePane = useCallback((next: "video" | "code" | "chat"): void => {
+  const setSinglePane = useCallback((next: "video" | "code"): void => {
     singlePaneSnapshot = next;
     storageAdapter.setItem("niotebook.pane.single", next);
+    notifyPane();
+  }, []);
+
+  const setLeftPane = useCallback((next: "video" | "code"): void => {
+    leftPaneSnapshot = next;
+    storageAdapter.setItem("niotebook.pane.left", next);
+    if (next === "code") {
+      rightPaneSnapshot = "chat";
+      storageAdapter.setItem("niotebook.pane.right", "chat");
+    }
     notifyPane();
   }, []);
   const [seekRequest, setSeekRequest] = useState<{
@@ -157,6 +198,72 @@ const WorkspaceGrid = (): ReactElement => {
   const handleSnapshot = useCallback((snapshot: { codeHash: string }): void => {
     setCodeHash(snapshot.codeHash);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const handleKey = (event: KeyboardEvent): void => {
+      const target = event.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName.toLowerCase();
+        if (tag === "input" || tag === "textarea" || target.isContentEditable) {
+          return;
+        }
+      }
+
+      const key = event.key.toLowerCase();
+
+      if (key === "1") {
+        setPreset("single");
+        return;
+      }
+
+      if (key === "2") {
+        setPreset("split");
+        return;
+      }
+
+      if (key === "3") {
+        setPreset("triple");
+        return;
+      }
+
+      if (key === "v") {
+        if (activePreset === "single") {
+          setSinglePane("video");
+        } else if (activePreset === "split") {
+          setLeftPane("video");
+        }
+        return;
+      }
+
+      if (key === "c") {
+        if (activePreset === "single") {
+          setSinglePane("code");
+        } else if (activePreset === "split") {
+          if (leftPane === "video") {
+            setRightPane("code");
+          } else {
+            setLeftPane("code");
+          }
+        }
+        return;
+      }
+
+      if (key === "a") {
+        if (activePreset === "split") {
+          setRightPane("chat");
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+    };
+  }, [activePreset, leftPane, setLeftPane, setPreset, setRightPane, setSinglePane]);
 
   const lessonId = searchParams.get("lessonId");
 
@@ -197,14 +304,6 @@ const WorkspaceGrid = (): ReactElement => {
                   >
                     C
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setSinglePane("chat")}
-                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
-                    aria-label="Show assistant"
-                  >
-                    A
-                  </button>
                 </div>
               }
             />
@@ -233,52 +332,6 @@ const WorkspaceGrid = (): ReactElement => {
                   >
                     C
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setSinglePane("chat")}
-                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
-                    aria-label="Show assistant"
-                  >
-                    A
-                  </button>
-                </div>
-              }
-            />
-          </div>
-        ) : null}
-        {singlePane === "chat" ? (
-          <div className="flex min-w-0 flex-1">
-            <AiPane
-              lessonId={lessonId}
-              onSeek={handleSeek}
-              videoTimeSec={videoTimeSec}
-              onThreadChange={handleThreadChange}
-              headerExtras={
-                <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
-                  <button
-                    type="button"
-                    onClick={() => setSinglePane("video")}
-                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
-                    aria-label="Show video"
-                  >
-                    V
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSinglePane("code")}
-                    className="rounded-full px-2 py-1 text-[11px] text-text-muted"
-                    aria-label="Show code"
-                  >
-                    C
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSinglePane("chat")}
-                    className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
-                    aria-label="Show assistant"
-                  >
-                    A
-                  </button>
                 </div>
               }
             />
@@ -293,13 +346,61 @@ const WorkspaceGrid = (): ReactElement => {
       <div className="flex h-full min-h-0 gap-6">
         <div className="flex min-w-0 flex-[3] flex-col min-h-0">
           <div className="flex-1 min-h-0">
-            <VideoPane
-              lessonId={lessonId}
-              seekRequest={seekRequest}
-              onTimeChange={handleVideoTime}
-              threadId={threadId ?? undefined}
-              codeHash={codeHash ?? undefined}
-            />
+            {leftPane === "video" ? (
+              <VideoPane
+                lessonId={lessonId}
+                seekRequest={seekRequest}
+                onTimeChange={handleVideoTime}
+                threadId={threadId ?? undefined}
+                codeHash={codeHash ?? undefined}
+                headerExtras={
+                  <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
+                    <button
+                      type="button"
+                      onClick={() => setLeftPane("video")}
+                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                      aria-label="Show video"
+                    >
+                      V
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLeftPane("code")}
+                      className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                      aria-label="Show code"
+                    >
+                      C
+                    </button>
+                  </div>
+                }
+              />
+            ) : null}
+            {leftPane === "code" ? (
+              <CodePane
+                lessonId={lessonId}
+                onSnapshot={handleSnapshot}
+                headerExtras={
+                  <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
+                    <button
+                      type="button"
+                      onClick={() => setLeftPane("video")}
+                      className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                      aria-label="Show video"
+                    >
+                      V
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLeftPane("code")}
+                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                      aria-label="Show code"
+                    >
+                      C
+                    </button>
+                  </div>
+                }
+              />
+            ) : null}
           </div>
         </div>
         <div className="flex min-w-0 flex-[2] flex-col gap-6 min-h-0">
@@ -323,7 +424,12 @@ const WorkspaceGrid = (): ReactElement => {
                     <button
                       type="button"
                       onClick={() => setRightPane("code")}
-                      className="rounded-full px-2 py-1 text-[11px] text-text-muted"
+                      className={`rounded-full px-2 py-1 text-[11px] ${
+                        leftPane === "code"
+                          ? "text-text-subtle"
+                          : "text-text-muted"
+                      }`}
+                      disabled={leftPane === "code"}
                       aria-label="Show code"
                     >
                       C
@@ -350,6 +456,7 @@ const WorkspaceGrid = (): ReactElement => {
                       type="button"
                       onClick={() => setRightPane("code")}
                       className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground"
+                      disabled={leftPane === "code"}
                       aria-label="Show code"
                     >
                       C
