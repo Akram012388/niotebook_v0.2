@@ -228,10 +228,15 @@ const CodePane = ({
             onSnapshot={handleSnapshot}
           />
         </div>
-        <div className="flex min-h-0 flex-[1] flex-col gap-3 rounded-xl border border-border bg-surface-muted p-3">
-          <RuntimeStatus state={runtimeState} />
-          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
-            <OutputPanel output={runtimeOutput} />
+        <div className="flex min-h-0 flex-[1] flex-col rounded-xl border border-border bg-black text-slate-100 dark:bg-slate-50 dark:text-slate-900">
+          <div className="px-3 pt-3">
+            <RuntimeStatus
+              state={runtimeState}
+              className="text-slate-300 dark:text-slate-600"
+            />
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 pb-3 pt-2">
+            <OutputPanel output={runtimeOutput} variant="inline" />
             <div id="niotebook-runtime-frame" className="min-h-[120px]" />
           </div>
         </div>

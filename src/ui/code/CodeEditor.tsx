@@ -224,7 +224,7 @@ const CodeEditor = ({
       <textarea
         value={code}
         onChange={handleCodeChange}
-        className="min-h-0 flex-1 rounded-xl border border-dashed border-border bg-surface-muted p-4 font-mono text-xs text-foreground"
+        className="min-h-0 flex-1 rounded-xl border border-border bg-black p-4 font-mono text-xs text-slate-100 caret-slate-100 dark:bg-slate-50 dark:text-slate-900 dark:caret-slate-900"
         data-testid="code-editor"
       />
     </div>

@@ -3,9 +3,10 @@ import type { RuntimeState } from "../../infra/runtime/types";
 
 type RuntimeStatusProps = {
   state: RuntimeState;
+  className?: string;
 };
 
-const RuntimeStatus = ({ state }: RuntimeStatusProps): ReactElement => {
+const RuntimeStatus = ({ state, className }: RuntimeStatusProps): ReactElement => {
   const statusColor =
     state.status === "running"
       ? "bg-blue-500"
@@ -18,7 +19,11 @@ const RuntimeStatus = ({ state }: RuntimeStatusProps): ReactElement => {
             : "bg-border";
 
   return (
-    <div className="flex items-center gap-2 text-xs text-text-muted">
+    <div
+      className={`flex items-center gap-2 text-xs ${
+        className ?? "text-text-muted"
+      }`}
+    >
       <span className={`h-2 w-2 rounded-full ${statusColor}`} />
       <span>
         {state.message ??
