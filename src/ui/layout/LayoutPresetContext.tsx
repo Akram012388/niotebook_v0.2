@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useSyncExternalStore,
   type ReactElement,
@@ -40,20 +41,12 @@ const notifyPreset = (): void => {
 };
 
 const hydratePreset = (): void => {
-  if (typeof window === "undefined") {
-    return;
+  const stored = readPreset();
+  if (stored !== presetSnapshot) {
+    presetSnapshot = stored;
+    notifyPreset();
   }
-
-  window.setTimeout(() => {
-    const stored = readPreset();
-    if (stored !== presetSnapshot) {
-      presetSnapshot = stored;
-      notifyPreset();
-    }
-  }, 0);
 };
-
-hydratePreset();
 
 const LayoutPresetContext = createContext<LayoutPresetState | null>(null);
 
@@ -94,6 +87,14 @@ const LayoutPresetProvider = ({
     (): LayoutPreset => presetSnapshot,
     (): LayoutPreset => "split",
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    hydratePreset();
+  }, []);
 
   const setPreset = useCallback((preset: LayoutPreset): void => {
     presetSnapshot = preset;

@@ -51,11 +51,6 @@ const readRightPane = (): "chat" | "code" => {
 };
 
 const hydratePaneStore = (): void => {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  window.setTimeout(() => {
   const storedSingle = readSinglePane();
   const storedLeft = readLeftPane();
   const storedRight = readRightPane();
@@ -75,11 +70,8 @@ const hydratePaneStore = (): void => {
     rightPaneSnapshot = storedRight;
   }
 
-    notifyPane();
-  }, 0);
+  notifyPane();
 };
-
-hydratePaneStore();
 
 const WorkspaceGrid = (): ReactElement => {
   const { activePreset, setPreset } = useLayoutPreset();
@@ -176,6 +168,14 @@ const WorkspaceGrid = (): ReactElement => {
   const [videoTimeSec, setVideoTimeSec] = useState<number>(0);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [codeHash, setCodeHash] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    hydratePaneStore();
+  }, []);
 
   const handleSeek = useCallback((timestampSec: number): void => {
     setSeekRequest((prev) => ({
