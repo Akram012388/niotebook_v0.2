@@ -9,10 +9,13 @@ import {
 } from "react";
 import {
   ChatCenteredText,
+  Gear,
   Moon,
+  SidebarSimple,
   ShareNetwork,
   Sun,
   UserCircle,
+  X,
 } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -38,6 +41,7 @@ const TopNav = (): ReactElement => {
     return stored === "dark" ? "dark" : "light";
   });
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const courses = useQuery(getCoursesRef);
 
@@ -140,6 +144,31 @@ const TopNav = (): ReactElement => {
     // Placeholder for feedback modal trigger.
   }, []);
 
+  const handleOpenDrawer = useCallback((): void => {
+    setIsDrawerOpen(true);
+  }, []);
+
+  const handleCloseDrawer = useCallback((): void => {
+    setIsDrawerOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isDrawerOpen) {
+      return;
+    }
+
+    const handleKey = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") {
+        setIsDrawerOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+    };
+  }, [isDrawerOpen]);
+
   return (
     <header className="border-b border-border bg-surface">
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-6 py-4">
@@ -147,92 +176,141 @@ const TopNav = (): ReactElement => {
           <span className="text-sm font-semibold tracking-tight text-foreground">
             niotebook
           </span>
-          {activeCourse || activeLesson ? (
-            <div className="flex flex-col text-[11px] leading-4 text-text-muted">
-              <span>{activeCourse?.title ?? "Course"}</span>
-              <span className="text-text-subtle">
-                {activeLesson?.title ?? "Select a lesson"}
-              </span>
-            </div>
-          ) : null}
-          <div className="flex items-center gap-2">
-            <select
-              value={courseId ?? ""}
-              onChange={handleCourseChange}
-              onBlur={handleCourseBlur}
-              className="rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-medium text-text-muted"
-            >
-              {courseOptions.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.title}
-                </option>
-              ))}
-            </select>
-            <select
-              value={lessonId ?? ""}
-              onChange={handleLessonChange}
-              className="rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-medium text-text-muted"
-            >
-              {lessonOptions.map((lesson) => (
-                <option key={lesson.id} value={lesson.id}>
-                  {lesson.title}
-                </option>
-              ))}
-            </select>
-            {lessonId ? null : (
-              <button
-                type="button"
-                onClick={() => updateLesson(lessonOptions[0]?.id ?? null)}
-                className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-muted"
-              >
-                Start
-              </button>
-            )}
-          </div>
         </div>
         <div className="flex items-center gap-3">
           <LayoutPresetToggle />
           <button
             type="button"
-            onClick={handleShare}
+            onClick={handleOpenDrawer}
             className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
-            aria-label="Share"
-            title="Share"
+            aria-label="Open control center"
+            title="Control center"
           >
-            <ShareNetwork size={16} weight="regular" />
-          </button>
-          <button
-            type="button"
-            onClick={handleFeedback}
-            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
-            aria-label="Feedback"
-            title="Feedback"
-          >
-            <ChatCenteredText size={16} weight="regular" />
-          </button>
-          <button
-            type="button"
-            onClick={handleToggleTheme}
-            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
-            aria-label="Toggle theme"
-            title="Toggle theme"
-          >
-            {theme === "light" ? (
-              <Sun size={16} weight="regular" />
-            ) : (
-              <Moon size={16} weight="regular" />
-            )}
-          </button>
-          <button
-            type="button"
-            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
-            aria-label="User"
-            title="User"
-          >
-            <UserCircle size={16} weight="regular" />
+            <SidebarSimple size={16} weight="regular" />
           </button>
         </div>
       </div>
+      {isDrawerOpen ? (
+        <div className="fixed inset-0 z-50">
+          <button
+            type="button"
+            onClick={handleCloseDrawer}
+            className="absolute inset-0 bg-black/30"
+            aria-label="Close control center"
+          />
+          <aside className="absolute right-0 top-0 h-full w-[360px] border-l border-border bg-surface shadow-lg">
+            <div className="flex items-center justify-between border-b border-border px-4 py-4">
+              <div className="text-sm font-semibold text-foreground">
+                Control center
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseDrawer}
+                className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
+                aria-label="Close control center"
+              >
+                <X size={16} weight="regular" />
+              </button>
+            </div>
+            <div className="flex h-full flex-col gap-6 overflow-y-auto px-4 py-5 text-sm">
+              <section className="flex flex-col gap-2">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                  Course
+                </div>
+                <select
+                  value={courseId ?? ""}
+                  onChange={handleCourseChange}
+                  onBlur={handleCourseBlur}
+                  className="rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
+                >
+                  {courseOptions.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.title}
+                    </option>
+                  ))}
+                </select>
+              </section>
+              <section className="flex flex-col gap-2">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                  Lesson
+                </div>
+                <select
+                  value={lessonId ?? ""}
+                  onChange={handleLessonChange}
+                  className="rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
+                >
+                  {lessonOptions.map((lesson) => (
+                    <option key={lesson.id} value={lesson.id}>
+                      {lesson.title}
+                    </option>
+                  ))}
+                </select>
+                {lessonId ? null : (
+                  <button
+                    type="button"
+                    onClick={() => updateLesson(lessonOptions[0]?.id ?? null)}
+                    className="rounded-xl border border-border px-3 py-2 text-xs font-medium text-text-muted"
+                  >
+                    Start
+                  </button>
+                )}
+              </section>
+              <section className="flex flex-col gap-2">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                  Theme
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleTheme}
+                  className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
+                >
+                  <span>{theme === "light" ? "Light" : "Dark"}</span>
+                  {theme === "light" ? (
+                    <Sun size={14} weight="regular" />
+                  ) : (
+                    <Moon size={14} weight="regular" />
+                  )}
+                </button>
+              </section>
+              <section className="flex flex-col gap-2">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                  Actions
+                </div>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
+                >
+                  <span>Share</span>
+                  <ShareNetwork size={14} weight="regular" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFeedback}
+                  className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
+                >
+                  <span>Feedback</span>
+                  <ChatCenteredText size={14} weight="regular" />
+                </button>
+                <button
+                  type="button"
+                  className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
+                >
+                  <span>User</span>
+                  <UserCircle size={14} weight="regular" />
+                </button>
+                <button
+                  type="button"
+                  className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
+                >
+                  <span>Settings</span>
+                  <Gear size={14} weight="regular" />
+                </button>
+              </section>
+            </div>
+          </aside>
+        </div>
+      ) : null}
     </header>
   );
 };
