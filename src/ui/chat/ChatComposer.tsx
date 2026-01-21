@@ -61,7 +61,7 @@ const ChatComposer = ({
   );
 
   return (
-    <div className="flex items-end gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm">
+    <div className="flex items-end gap-3 rounded-2xl border border-border bg-surface-muted px-4 py-3 shadow-sm">
       <textarea
         ref={textareaRef}
         rows={1}

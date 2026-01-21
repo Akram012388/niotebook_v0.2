@@ -31,7 +31,7 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
           className={`mt-3 inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 ${
             isUser
               ? "border-accent-border text-accent-muted hover:text-accent-foreground"
-              : "border-border text-text-muted hover:text-foreground"
+              : "border-border text-text-muted hover:text-foreground dark:text-text-subtle dark:hover:text-foreground"
           }`}
           aria-label={`Seek to ${message.badge}`}
         >
