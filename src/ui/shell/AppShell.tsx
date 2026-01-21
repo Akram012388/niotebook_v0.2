@@ -9,7 +9,7 @@ type AppShellProps = {
 const AppShell = ({ children }: AppShellProps): ReactElement => {
   return (
     <LayoutPresetProvider>
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="flex h-screen flex-col bg-background text-foreground">
         <Suspense
           fallback={
             <div className="border-b border-border bg-surface">
@@ -23,7 +23,7 @@ const AppShell = ({ children }: AppShellProps): ReactElement => {
         >
           <TopNav />
         </Suspense>
-        <main className="mx-auto w-full max-w-[1600px] px-6 py-8">
+        <main className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-6 py-8 overflow-hidden">
           {children}
         </main>
       </div>

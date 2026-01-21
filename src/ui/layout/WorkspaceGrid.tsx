@@ -45,7 +45,7 @@ const WorkspaceGrid = (): ReactElement => {
 
   if (!lessonId) {
     return (
-      <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-surface-muted text-sm text-text-muted">
+      <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-border bg-surface-muted text-sm text-text-muted">
         Select a lesson to start.
       </div>
     );
@@ -53,7 +53,7 @@ const WorkspaceGrid = (): ReactElement => {
 
   if (activePreset === "single") {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex h-full flex-col gap-6 overflow-y-auto pr-1">
         <VideoPane
           lessonId={lessonId}
           seekRequest={seekRequest}
@@ -74,25 +74,30 @@ const WorkspaceGrid = (): ReactElement => {
 
   if (activePreset === "split") {
     return (
-      <div className="flex gap-6">
-        <div className="min-w-0 flex-[3]">
-          <VideoPane
-            lessonId={lessonId}
-            seekRequest={seekRequest}
-            onTimeChange={handleVideoTime}
-            threadId={threadId ?? undefined}
-            codeHash={codeHash ?? undefined}
-          />
+      <div className="flex h-full min-h-0 gap-6">
+        <div className="flex min-w-0 flex-[3] flex-col min-h-0">
+          <div className="flex-1 min-h-0">
+            <VideoPane
+              lessonId={lessonId}
+              seekRequest={seekRequest}
+              onTimeChange={handleVideoTime}
+              threadId={threadId ?? undefined}
+              codeHash={codeHash ?? undefined}
+            />
+          </div>
         </div>
-        <div className="flex min-w-0 flex-[2] flex-col gap-6">
-          <CodePane lessonId={lessonId} onSnapshot={handleSnapshot} />
-
-          <AiPane
-            lessonId={lessonId}
-            onSeek={handleSeek}
-            videoTimeSec={videoTimeSec}
-            onThreadChange={handleThreadChange}
-          />
+        <div className="flex min-w-0 flex-[2] flex-col gap-6 min-h-0">
+          <div className="flex-1 min-h-0">
+            <CodePane lessonId={lessonId} onSnapshot={handleSnapshot} />
+          </div>
+          <div className="flex-1 min-h-0">
+            <AiPane
+              lessonId={lessonId}
+              onSeek={handleSeek}
+              videoTimeSec={videoTimeSec}
+              onThreadChange={handleThreadChange}
+            />
+          </div>
         </div>
       </div>
     );

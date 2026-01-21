@@ -61,7 +61,7 @@ const AiPane = ({
   );
 
   return (
-    <section className="flex h-full flex-col rounded-2xl border border-border bg-surface">
+    <section className="flex h-full min-h-0 flex-col rounded-2xl border border-border bg-surface">
       <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
         <div>
           <p className="text-sm font-semibold text-foreground">Assistant</p>
@@ -71,7 +71,7 @@ const AiPane = ({
           Live
         </span>
       </header>
-      <div className="flex flex-1 flex-col gap-4 p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
         <ChatScroll>
           {displayMessages.map((message) => (
             <ChatMessage
