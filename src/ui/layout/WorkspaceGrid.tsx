@@ -168,6 +168,11 @@ const WorkspaceGrid = (): ReactElement => {
   const [videoTimeSec, setVideoTimeSec] = useState<number>(0);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [codeHash, setCodeHash] = useState<string | null>(null);
+  const isMounted = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -176,6 +181,7 @@ const WorkspaceGrid = (): ReactElement => {
 
     hydratePaneStore();
   }, []);
+
 
   const handleSeek = useCallback((timestampSec: number): void => {
     setSeekRequest((prev) => ({
@@ -275,7 +281,9 @@ const WorkspaceGrid = (): ReactElement => {
     );
   }
 
-  if (activePreset === "single") {
+  const effectivePreset = isMounted ? activePreset : "split";
+
+  if (effectivePreset === "single") {
     return (
       <div className="flex h-full min-h-0 gap-4">
         {singlePane === "video" ? (
@@ -341,7 +349,7 @@ const WorkspaceGrid = (): ReactElement => {
     );
   }
 
-  if (activePreset === "split") {
+  if (effectivePreset === "split") {
     return (
       <div className="flex h-full min-h-0 gap-4">
         <div className="flex min-w-0 flex-[3] flex-col min-h-0">
@@ -472,7 +480,7 @@ const WorkspaceGrid = (): ReactElement => {
   }
 
   return (
-    <LayoutGrid preset={activePreset}>
+    <LayoutGrid preset={effectivePreset}>
       <VideoPane
         lessonId={lessonId}
         seekRequest={seekRequest}
