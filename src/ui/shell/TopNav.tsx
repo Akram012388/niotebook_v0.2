@@ -7,6 +7,13 @@ import {
   useState,
   type ReactElement,
 } from "react";
+import {
+  ChatCenteredText,
+  Moon,
+  ShareNetwork,
+  Sun,
+  UserCircle,
+} from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { storageAdapter } from "../../infra/storageAdapter";
@@ -188,32 +195,41 @@ const TopNav = (): ReactElement => {
           <button
             type="button"
             onClick={handleShare}
-            className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-muted"
+            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
             aria-label="Share"
+            title="Share"
           >
-            Share
+            <ShareNetwork size={16} weight="regular" />
           </button>
           <button
             type="button"
             onClick={handleFeedback}
-            className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-muted"
+            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
             aria-label="Feedback"
+            title="Feedback"
           >
-            Feedback
+            <ChatCenteredText size={16} weight="regular" />
           </button>
           <button
             type="button"
             onClick={handleToggleTheme}
-            className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-muted"
+            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
             aria-label="Toggle theme"
+            title="Toggle theme"
           >
-            {theme === "light" ? "Light" : "Dark"}
+            {theme === "light" ? (
+              <Sun size={16} weight="regular" />
+            ) : (
+              <Moon size={16} weight="regular" />
+            )}
           </button>
           <button
             type="button"
-            className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-muted"
+            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
+            aria-label="User"
+            title="User"
           >
-            User
+            <UserCircle size={16} weight="regular" />
           </button>
         </div>
       </div>
