@@ -138,7 +138,7 @@ const TopNav = (): ReactElement => {
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-6 py-4">
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold tracking-tight text-foreground">
-            Niotebook
+            niotebook
           </span>
           {activeCourse || activeLesson ? (
             <div className="flex flex-col text-[11px] leading-4 text-text-muted">
