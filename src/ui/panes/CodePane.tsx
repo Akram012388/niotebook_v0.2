@@ -220,17 +220,21 @@ const CodePane = ({
           </button>
         </div>
       </header>
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
-        <CodeEditor
-          lessonId={lessonId}
-          onLanguageChange={handleLanguageChange}
-          onSnapshot={handleSnapshot}
-        />
-        <div className="flex items-center justify-between">
-          <RuntimeStatus state={runtimeState} />
+      <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
+        <div className="flex min-h-0 flex-[4] flex-col">
+          <CodeEditor
+            lessonId={lessonId}
+            onLanguageChange={handleLanguageChange}
+            onSnapshot={handleSnapshot}
+          />
         </div>
-        <OutputPanel output={runtimeOutput} />
-        <div id="niotebook-runtime-frame" className="min-h-[180px]" />
+        <div className="flex min-h-0 flex-[1] flex-col gap-3 rounded-xl border border-border bg-surface-muted p-3">
+          <RuntimeStatus state={runtimeState} />
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+            <OutputPanel output={runtimeOutput} />
+            <div id="niotebook-runtime-frame" className="min-h-[120px]" />
+          </div>
+        </div>
       </div>
     </section>
   );
