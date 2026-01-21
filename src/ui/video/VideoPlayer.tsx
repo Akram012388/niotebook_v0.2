@@ -26,6 +26,7 @@ type VideoPlayerProps = {
   onTimeSample?: (timeSec: number) => void;
   onSeek?: (timeSec: number) => void;
   onPlayState?: (state: VideoPlaybackState) => void;
+  showControls?: boolean;
 };
 
 const SAMPLE_INTERVAL_SEC = 3;
@@ -37,6 +38,7 @@ const VideoPlayer = ({
   onTimeSample,
   onSeek,
   onPlayState,
+  showControls = true,
 }: VideoPlayerProps): ReactElement => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<YouTubePlayerInstance | null>(null);
@@ -262,40 +264,42 @@ const VideoPlayer = ({
           {statusMessage}
         </div>
       </div>
-      <div className="flex items-center justify-between text-xs text-text-muted">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handlePlay}
-            className="rounded-full border border-border px-3 py-1"
-          >
-            Play
-          </button>
-          <button
-            type="button"
-            onClick={handlePause}
-            className="rounded-full border border-border px-3 py-1"
-          >
-            Pause
-          </button>
+      {showControls ? (
+        <div className="flex items-center justify-between text-xs text-text-muted">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePlay}
+              className="rounded-full border border-border px-3 py-1"
+            >
+              Play
+            </button>
+            <button
+              type="button"
+              onClick={handlePause}
+              className="rounded-full border border-border px-3 py-1"
+            >
+              Pause
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleSeekDelta(-10)}
+              className="rounded-full border border-border px-3 py-1"
+            >
+              -10s
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSeekDelta(10)}
+              className="rounded-full border border-border px-3 py-1"
+            >
+              +10s
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => handleSeekDelta(-10)}
-            className="rounded-full border border-border px-3 py-1"
-          >
-            -10s
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSeekDelta(10)}
-            className="rounded-full border border-border px-3 py-1"
-          >
-            +10s
-          </button>
-        </div>
-      </div>
+      ) : null}
     </div>
   );
 };

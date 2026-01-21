@@ -64,6 +64,8 @@ const VideoPane = ({
 
   const lastSeekRef = useRef<number | null>(null);
   const lastPersistedRef = useRef<number | null>(null);
+  const videoAreaRef = useRef<HTMLDivElement | null>(null);
+  const [maxVideoWidth, setMaxVideoWidth] = useState<number | null>(null);
   const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
     null,
   );
@@ -73,6 +75,28 @@ const VideoPane = ({
       onTimeChange?.(frame.videoTimeSec);
     }
   }, [frame?.videoTimeSec, onTimeChange]);
+
+  useEffect(() => {
+    const element = videoAreaRef.current;
+    if (!element || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const updateSize = (): void => {
+      const height = element.clientHeight;
+      if (height > 0) {
+        setMaxVideoWidth(Math.round(height * (16 / 9)));
+      }
+    };
+
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect((): void => {
     if (lastSeek === null || lastSeekRef.current === lastSeek) {
@@ -114,21 +138,32 @@ const VideoPane = ({
           1080p
         </span>
       </header>
-      <div className="flex-1 min-h-0 overflow-y-auto p-4">
-        {lesson ? (
-          <VideoPlayer
-            videoId={lesson.videoId}
-            initialTimeSec={initialTimeSec}
-            seekToSec={seekRequest?.timeSec}
-            onTimeSample={handleTimeChange}
-            onSeek={handleTimeChange}
-          />
-        ) : (
-          <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-xs text-text-muted">
-            Loading video...
-          </div>
-        )}
-        <div className="mt-3 text-[11px] text-text-subtle">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
+        <div
+          ref={videoAreaRef}
+          className="flex min-h-0 flex-1 items-start justify-center"
+        >
+          {lesson ? (
+            <div
+              className="w-full"
+              style={maxVideoWidth ? { maxWidth: `${maxVideoWidth}px` } : undefined}
+            >
+              <VideoPlayer
+                videoId={lesson.videoId}
+                initialTimeSec={initialTimeSec}
+                seekToSec={seekRequest?.timeSec}
+                onTimeSample={handleTimeChange}
+                onSeek={handleTimeChange}
+                showControls={false}
+              />
+            </div>
+          ) : (
+            <div className="flex w-full max-w-[720px] aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-xs text-text-muted">
+              Loading video...
+            </div>
+          )}
+        </div>
+        <div className="text-[11px] text-text-subtle">
           {displayTime !== null
             ? `Seeking to ${formatTimestamp(displayTime)}`
             : "Awaiting seek"}
