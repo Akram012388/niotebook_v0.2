@@ -128,24 +128,30 @@ const WorkspaceGrid = (): ReactElement => {
     return (
       <div className="flex h-full min-h-0">
         {singlePane === "video" ? (
-          <VideoPane
-            lessonId={lessonId}
-            seekRequest={seekRequest}
-            onTimeChange={handleVideoTime}
-            threadId={threadId ?? undefined}
-            codeHash={codeHash ?? undefined}
-          />
+          <div className="flex min-w-0 flex-1">
+            <VideoPane
+              lessonId={lessonId}
+              seekRequest={seekRequest}
+              onTimeChange={handleVideoTime}
+              threadId={threadId ?? undefined}
+              codeHash={codeHash ?? undefined}
+            />
+          </div>
         ) : null}
         {singlePane === "code" ? (
-          <CodePane lessonId={lessonId} onSnapshot={handleSnapshot} />
+          <div className="flex min-w-0 flex-1">
+            <CodePane lessonId={lessonId} onSnapshot={handleSnapshot} />
+          </div>
         ) : null}
         {singlePane === "chat" ? (
-          <AiPane
-            lessonId={lessonId}
-            onSeek={handleSeek}
-            videoTimeSec={videoTimeSec}
-            onThreadChange={handleThreadChange}
-          />
+          <div className="flex min-w-0 flex-1">
+            <AiPane
+              lessonId={lessonId}
+              onSeek={handleSeek}
+              videoTimeSec={videoTimeSec}
+              onThreadChange={handleThreadChange}
+            />
+          </div>
         ) : null}
       </div>
     );
