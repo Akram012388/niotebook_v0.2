@@ -2,8 +2,8 @@
 
 import {
   useCallback,
-  useEffect,
   useMemo,
+  useSyncExternalStore,
   useState,
   type ReactElement,
 } from "react";
@@ -13,30 +13,72 @@ import { CodePane } from "../panes/CodePane";
 import { VideoPane } from "../panes/VideoPane";
 import { LayoutGrid } from "./LayoutGrid";
 import { useLayoutPreset } from "./LayoutPresetContext";
+import { storageAdapter } from "../../infra/storageAdapter";
 
 const WorkspaceGrid = (): ReactElement => {
   const { activePreset } = useLayoutPreset();
   const searchParams = useSearchParams();
-  const [singlePane, setSinglePane] = useState<"video" | "code" | "chat">(() => {
+  const subscribe = useCallback((onStoreChange: () => void): (() => void) => {
     if (typeof window === "undefined") {
+      return () => undefined;
+    }
+
+    const handleStorage = (event: StorageEvent): void => {
+      if (event.key === "niotebook.pane.single" || event.key === "niotebook.pane.right") {
+        onStoreChange();
+      }
+    };
+
+    const handleCustom = (event: Event): void => {
+      const custom = event as CustomEvent<{ key?: string }>;
+      if (!custom.detail?.key || custom.detail.key.startsWith("niotebook.pane")) {
+        onStoreChange();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("niotebook:pane", handleCustom);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("niotebook:pane", handleCustom);
+    };
+  }, []);
+
+  const singlePane = useSyncExternalStore(
+    subscribe,
+    (): "video" | "code" | "chat" => {
+      const stored = storageAdapter.getItem("niotebook.pane.single");
+      if (stored === "video" || stored === "code" || stored === "chat") {
+        return stored;
+      }
       return "video";
-    }
-    const storedSingle = window.localStorage.getItem("niotebook.pane.single");
-    if (storedSingle === "video" || storedSingle === "code" || storedSingle === "chat") {
-      return storedSingle;
-    }
-    return "video";
-  });
-  const [rightPane, setRightPane] = useState<"chat" | "code">(() => {
-    if (typeof window === "undefined") {
+    },
+    (): "video" | "code" | "chat" => "video",
+  );
+
+  const rightPane = useSyncExternalStore(
+    subscribe,
+    (): "chat" | "code" => {
+      const stored = storageAdapter.getItem("niotebook.pane.right");
+      if (stored === "chat" || stored === "code") {
+        return stored;
+      }
       return "chat";
+    },
+    (): "chat" | "code" => "chat",
+  );
+
+  const setRightPane = useCallback((next: "chat" | "code"): void => {
+    storageAdapter.setItem("niotebook.pane.right", next);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("niotebook:pane", {
+          detail: { key: "niotebook.pane.right" },
+        }),
+      );
     }
-    const storedRight = window.localStorage.getItem("niotebook.pane.right");
-    if (storedRight === "chat" || storedRight === "code") {
-      return storedRight;
-    }
-    return "chat";
-  });
+  }, []);
   const [seekRequest, setSeekRequest] = useState<{
     timeSec: number;
     token: number;
@@ -68,18 +110,6 @@ const WorkspaceGrid = (): ReactElement => {
   }, []);
 
   const lessonId = searchParams.get("lessonId");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("niotebook.pane.single", singlePane);
-    }
-  }, [singlePane]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("niotebook.pane.right", rightPane);
-    }
-  }, [rightPane]);
 
   const rightPaneLabel = useMemo(
     () => (rightPane === "chat" ? "Assistant" : "Code"),

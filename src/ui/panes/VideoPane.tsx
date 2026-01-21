@@ -64,8 +64,6 @@ const VideoPane = ({
 
   const lastSeekRef = useRef<number | null>(null);
   const lastPersistedRef = useRef<number | null>(null);
-  const videoAreaRef = useRef<HTMLDivElement | null>(null);
-  const [maxVideoWidth, setMaxVideoWidth] = useState<number | null>(null);
   const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
     null,
   );
@@ -76,27 +74,6 @@ const VideoPane = ({
     }
   }, [frame?.videoTimeSec, onTimeChange]);
 
-  useEffect(() => {
-    const element = videoAreaRef.current;
-    if (!element || typeof ResizeObserver === "undefined") {
-      return;
-    }
-
-    const updateSize = (): void => {
-      const height = element.clientHeight;
-      if (height > 0) {
-        setMaxVideoWidth(Math.round(height * (16 / 9)));
-      }
-    };
-
-    updateSize();
-    const observer = new ResizeObserver(updateSize);
-    observer.observe(element);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
 
   useEffect((): void => {
     if (lastSeek === null || lastSeekRef.current === lastSeek) {
@@ -139,15 +116,9 @@ const VideoPane = ({
         </span>
       </header>
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-        <div
-          ref={videoAreaRef}
-          className="flex min-h-0 flex-1 items-start justify-center"
-        >
+        <div className="flex min-h-0 flex-1 items-start justify-center">
           {lesson ? (
-            <div
-              className="w-full"
-              style={maxVideoWidth ? { maxWidth: `${maxVideoWidth}px` } : undefined}
-            >
+            <div className="w-full max-h-full aspect-video">
               <VideoPlayer
                 videoId={lesson.videoId}
                 initialTimeSec={initialTimeSec}
