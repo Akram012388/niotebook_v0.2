@@ -2,7 +2,6 @@
 
 import {
   useCallback,
-  useMemo,
   useSyncExternalStore,
   useState,
   type ReactElement,
