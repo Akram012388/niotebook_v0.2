@@ -179,13 +179,105 @@ const getWeekSlugs = (html: string): string[] => {
   return FALLBACK_WEEK_SLUGS;
 };
 
-const parseTitle = (html: string): string => {
-  const titleMatch = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
+const extractWeekTitlesFromIndex = (html: string): Map<string, string> => {
+  const titles = new Map<string, string>();
+  const weekPattern = /<a[^>]+href="(\d+)\/">\s*Week\s*\1\s*<\/a>\s*([^<]+)/gi;
+  for (const match of html.matchAll(weekPattern)) {
+    const slug = match[1];
+    const topic = cleanText(match[2] ?? "");
+    if (slug && topic) {
+      titles.set(slug, topic);
+    }
+  }
+
+  const aiMatch = html.match(/<a[^>]+href="ai\/"[^>]*>([^<]+)<\/a>/i);
+  if (aiMatch) {
+    const topic = cleanText(aiMatch[1] ?? "");
+    if (topic) {
+      titles.set("ai", topic);
+    }
+  }
+
+  return titles;
+};
+
+const parseOgTitle = (html: string): string | null => {
+  const match = html.match(/<meta property="og:title" content="([^"]+)"/i);
+  if (!match) {
+    return null;
+  }
+  return cleanText(match[1] ?? "");
+};
+
+const parseMainTitle = (html: string): string | null => {
+  const mainMatch = html.match(/<main[\s\S]*?<\/main>/i);
+  if (!mainMatch) {
+    return null;
+  }
+  const titleMatch = mainMatch[0].match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
   if (!titleMatch) {
-    return "";
+    return null;
   }
   const titleText = titleMatch[1] ?? "";
   return cleanText(titleText.replace(/<[^>]+>/g, ""));
+};
+
+const parseTitleTag = (html: string): string | null => {
+  const match = html.match(/<title>([\s\S]*?)<\/title>/i);
+  if (!match) {
+    return null;
+  }
+  return cleanText(match[1] ?? "");
+};
+
+const normalizeLessonTitle = (value: string): string => {
+  let normalized = value.replace(/\s*[-|–—]\s*CS50x\s*\d{4}$/i, "").trim();
+  normalized = normalized.replace(/^Week\s+\d+\s*[:\-–—]?\s*/i, "").trim();
+  normalized = normalized.replace(/^Lecture\s+\d+\s*[:\-–—]?\s*/i, "").trim();
+  return normalized;
+};
+
+const extractWeekTopicFromNav = (html: string, slug: string): string | null => {
+  if (!/^\d+$/.test(slug)) {
+    return null;
+  }
+
+  const pattern = new RegExp(
+    `<a[^>]*>\s*Week\s*${slug}\s*<\/a>\s*([^<]+)`,
+    "gi",
+  );
+  const matches = [...html.matchAll(pattern)];
+  for (const match of matches) {
+    const topic = cleanText(match[1] ?? "");
+    if (topic) {
+      return topic;
+    }
+  }
+  return null;
+};
+
+const parseLessonTitle = (html: string, slug: string): string => {
+  const candidates = [
+    parseOgTitle(html),
+    parseMainTitle(html),
+    parseTitleTag(html),
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) {
+      continue;
+    }
+    if (/this is cs50/i.test(candidate)) {
+      continue;
+    }
+    const normalized = normalizeLessonTitle(candidate);
+    if (normalized && !/this is cs50/i.test(normalized)) {
+      return normalized;
+    }
+  }
+
+  const navTopic = extractWeekTopicFromNav(html, slug);
+  return navTopic ? normalizeLessonTitle(navTopic) : "";
 };
 
 const extractLectureSection = (html: string): string => {
@@ -208,10 +300,7 @@ const extractCoursePlaylistUrl = (html: string): string | undefined => {
   return match ? match[0] : undefined;
 };
 
-const extractLabeledUrl = (
-  html: string,
-  label: string,
-): string | undefined => {
+const extractLabeledUrl = (html: string, label: string): string | undefined => {
   const pattern = new RegExp(
     `<a[^>]+href="(https?:\\/\\/[^\"]+)"[^>]*>\\s*${label}\\s*<\\/a>`,
     "i",
@@ -241,7 +330,9 @@ const parseLectureResources = (
   const lectureHtml = extractLectureSection(html);
   const labeledYouTubeUrl = extractLabeledUrl(lectureHtml, "YouTube");
   const labeledPlayerUrl = extractLabeledUrl(lectureHtml, "CS50 Video Player");
-  const videoUrl = labeledYouTubeUrl || labeledPlayerUrl ||
+  const videoUrl =
+    labeledYouTubeUrl ||
+    labeledPlayerUrl ||
     extractUrl(lectureHtml, /href="(https:\/\/video\.cs50\.io\/[^"]+)"/) ||
     extractUrl(lectureHtml, /href="(https:\/\/youtu\.be\/[^"]+)"/) ||
     extractUrl(
@@ -313,10 +404,14 @@ const fetchText = async (url: string): Promise<string> => {
 const parseWeekLesson = async (
   slug: string,
   order: number,
+  fallbackTitle?: string,
 ): Promise<LessonMetadata> => {
   const url = `https://cs50.harvard.edu/x/weeks/${slug}/`;
   const html = await fetchHtml(url);
-  const title = parseTitle(html) || `Week ${slug}`;
+  const title =
+    parseLessonTitle(html, slug) ||
+    (fallbackTitle ? normalizeLessonTitle(fallbackTitle) : "") ||
+    `Week ${slug}`;
   const { videoId, subtitlesUrl, transcriptUrl } = parseLectureResources(html);
 
   if (!subtitlesUrl) {
@@ -411,13 +506,14 @@ const runIngest = async (): Promise<void> => {
 
   const weeksHtml = await fetchHtml(COURSE_SOURCE_URL);
   const slugs = getWeekSlugs(weeksHtml);
+  const navTitles = extractWeekTitlesFromIndex(weeksHtml);
   const youtubePlaylistUrl = extractCoursePlaylistUrl(weeksHtml);
   const lessons: LessonMetadata[] = [];
 
   for (let index = 0; index < slugs.length; index += 1) {
     const slug = slugs[index] ?? "";
     const order = index + 1;
-    const lesson = await parseWeekLesson(slug, order);
+    const lesson = await parseWeekLesson(slug, order, navTitles.get(slug));
     lessons.push(buildLessonMetadata(lesson));
   }
 
@@ -464,14 +560,11 @@ const runIngest = async (): Promise<void> => {
 
     let cursor: string | null = null;
     do {
-      const response = (await client.mutation(
-        clearSegmentsMutation,
-        {
-          lessonId: meta.lessonId,
-          cursor: cursor ?? undefined,
-          limit: 500,
-        } as never,
-      )) as { nextCursor: string | null; cleared: number };
+      const response = (await client.mutation(clearSegmentsMutation, {
+        lessonId: meta.lessonId,
+        cursor: cursor ?? undefined,
+        limit: 500,
+      } as never)) as { nextCursor: string | null; cleared: number };
       cursor = response.nextCursor;
     } while (cursor);
 

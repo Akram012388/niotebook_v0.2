@@ -83,7 +83,7 @@ const VideoPane = ({
     const items: Array<{ label: string; value: string; href?: string }> = [];
 
     if (lesson?.title) {
-      items.push({ label: "Lesson", value: lesson.title });
+      items.push({ label: "Lecture", value: lesson.title });
     }
 
     if (sourceLabel) {
@@ -157,7 +157,6 @@ const VideoPane = ({
       observer.disconnect();
     };
   }, []);
-
 
   useEffect((): void => {
     if (lastSeek === null || lastSeekRef.current === lastSeek) {

@@ -319,7 +319,7 @@ const TopNav = (): ReactElement => {
               </section>
               <section className="flex flex-col gap-2">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                  Lesson
+                  Lecture
                 </div>
                 <select
                   value={lessonId ?? ""}
