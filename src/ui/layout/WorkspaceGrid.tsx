@@ -182,7 +182,6 @@ const WorkspaceGrid = (): ReactElement => {
     hydratePaneStore();
   }, []);
 
-
   const handleSeek = useCallback((timestampSec: number): void => {
     setSeekRequest((prev) => ({
       timeSec: timestampSec,
@@ -214,7 +213,12 @@ const WorkspaceGrid = (): ReactElement => {
       const target = event.target as HTMLElement | null;
       if (target) {
         const tag = target.tagName.toLowerCase();
-        if (tag === "input" || tag === "textarea" || target.isContentEditable) {
+        if (
+          tag === "input" ||
+          tag === "textarea" ||
+          tag === "select" ||
+          target.isContentEditable
+        ) {
           return;
         }
       }
@@ -269,7 +273,14 @@ const WorkspaceGrid = (): ReactElement => {
     return () => {
       window.removeEventListener("keydown", handleKey);
     };
-  }, [activePreset, leftPane, setLeftPane, setPreset, setRightPane, setSinglePane]);
+  }, [
+    activePreset,
+    leftPane,
+    setLeftPane,
+    setPreset,
+    setRightPane,
+    setSinglePane,
+  ]);
 
   const lessonId = searchParams.get("lessonId");
 
