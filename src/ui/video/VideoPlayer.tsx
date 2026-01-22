@@ -23,6 +23,7 @@ type VideoPlayerProps = {
   videoId: string;
   initialTimeSec?: number | null;
   seekToSec?: number | null;
+  seekToken?: number;
   onTimeSample?: (timeSec: number) => void;
   onSeek?: (timeSec: number) => void;
   onPlayState?: (state: VideoPlaybackState) => void;
@@ -35,6 +36,7 @@ const VideoPlayer = ({
   videoId,
   initialTimeSec = null,
   seekToSec,
+  seekToken,
   onTimeSample,
   onSeek,
   onPlayState,
@@ -206,7 +208,7 @@ const VideoPlayer = ({
     playerRef.current.seekTo(nextTime, true);
     lastSampleRef.current = null;
     onSeekRef.current?.(nextTime);
-  }, [seekToSec]);
+  }, [seekToSec, seekToken]);
 
   useEffect(() => {
     if (playState !== "playing") {

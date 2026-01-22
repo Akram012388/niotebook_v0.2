@@ -215,6 +215,7 @@ const VideoPane = ({
                 videoId={lesson.videoId}
                 initialTimeSec={initialTimeSec}
                 seekToSec={seekRequest?.timeSec}
+                seekToken={seekRequest?.token}
                 onTimeSample={handleTimeChange}
                 onSeek={handleTimeChange}
                 showControls={false}
