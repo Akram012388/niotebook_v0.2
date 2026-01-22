@@ -94,7 +94,7 @@ Scope: UI structure + interaction behavior (not visual polish)
 - Hover/active: subtle highlight + cursor pointer for clickables.
 - Focus ring: always visible on focus.
 - Error states: inline banner inside pane (non-blocking).
-- Spacing scale: 8/12/16.
+- Spacing scale: 8/12/16. Control center may use tighter spacing to fit content density.
 - Typography: keep current sans/mono pairing; no font change required.
 
 Color policy:
