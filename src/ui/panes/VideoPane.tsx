@@ -51,7 +51,7 @@ const VideoPane = ({
 }: VideoPaneProps): ReactElement => {
   const lesson = useQuery(getLessonRef, { lessonId });
   const courses = useQuery(getCoursesRef, showInfoStrip ? {} : "skip");
-  const { frame, updateFrame } = useVideoFrame({
+  const { frame, remoteFrame, updateFrame } = useVideoFrame({
     lessonId,
     codeHash,
     threadId,
@@ -101,7 +101,7 @@ const VideoPane = ({
     return items;
   })();
 
-  const initialTimeSec = frame?.videoTimeSec ?? null;
+  const initialTimeSec = remoteFrame?.videoTimeSec ?? null;
   const lastSeek = seekRequest?.timeSec ?? null;
   const displayTime = useMemo((): number | null => {
     if (lastSeek !== null) {

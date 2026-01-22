@@ -17,6 +17,7 @@ const useVideoFrame = ({
   codeHash,
 }: UseVideoFrameInput): {
   frame: FrameSummary | null;
+  remoteFrame: FrameSummary | null;
   updateFrame: (videoTimeSec: number) => Promise<void>;
 } => {
   const isConvexEnabled = process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
@@ -52,10 +53,8 @@ const useVideoFrame = ({
     [],
   );
 
-  const remoteFrame = useQuery(
-    getFrameRef,
-    isConvexEnabled ? { lessonId } : "skip",
-  );
+  const remoteFrame =
+    useQuery(getFrameRef, isConvexEnabled ? { lessonId } : "skip") ?? null;
   const upsertFrame = useMutation(upsertFrameRef);
 
   const [localFrame, setLocalFrame] = useState<FrameSummary | null>(null);
@@ -91,6 +90,7 @@ const useVideoFrame = ({
 
   return {
     frame,
+    remoteFrame,
     updateFrame,
   };
 };
