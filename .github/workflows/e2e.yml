@@ -52,7 +52,7 @@ jobs:
       - name: Deploy Convex preview
         run: |
           set -euo pipefail
-          output=$(bun run e2e:convex:push)
+          output=$(bun run e2e:convex:push 2>&1)
           echo "$output"
           export CONVEX_DEPLOY_OUTPUT="$output"
           convex_url=$(python - <<'PY'
