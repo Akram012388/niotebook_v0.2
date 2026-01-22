@@ -27,6 +27,9 @@ jobs:
       E2E_USE_WEBSERVER: "false"
       NIOTEBOOK_E2E_SEED_PATH: .e2e-seed.json
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_E2E_ALIAS: ${{ secrets.VERCEL_E2E_ALIAS }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -65,38 +68,38 @@ jobs:
           fi
           echo "E2E_CONVEX_URL=$convex_url" >> $GITHUB_ENV
       - name: Update Vercel preview env
-        if: ${{ env.E2E_CONVEX_URL && secrets.VERCEL_API_TOKEN && secrets.VERCEL_PROJECT_ID }}
+        if: ${{ env.E2E_CONVEX_URL && env.VERCEL_API_TOKEN && env.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
           payload=$(cat <<JSON
           {"key":"NEXT_PUBLIC_CONVEX_URL","value":"${E2E_CONVEX_URL}","type":"encrypted","target":["preview"]}
           JSON
           )
-          curl -sS -X POST "https://api.vercel.com/v10/projects/${{ secrets.VERCEL_PROJECT_ID }}/env?upsert=true" \
-            -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}" \
+          curl -sS -X POST "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/env?upsert=true" \
+            -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
             -H "Content-Type: application/json" \
             -d "$payload"
           payload=$(cat <<JSON
           {"key":"CONVEX_DEPLOYMENT","value":"${CONVEX_PREVIEW_NAME}","type":"encrypted","target":["preview"]}
           JSON
           )
-          curl -sS -X POST "https://api.vercel.com/v10/projects/${{ secrets.VERCEL_PROJECT_ID }}/env?upsert=true" \
-            -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}" \
+          curl -sS -X POST "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/env?upsert=true" \
+            -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
             -H "Content-Type: application/json" \
             -d "$payload"
       - name: Redeploy Vercel preview
-        if: ${{ env.BASE_URL && secrets.VERCEL_API_TOKEN && secrets.VERCEL_PROJECT_ID }}
+        if: ${{ env.BASE_URL && env.VERCEL_API_TOKEN && env.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
-          response=$(curl -sS -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}" \
-            "https://api.vercel.com/v13/deployments?projectId=${{ secrets.VERCEL_PROJECT_ID }}&limit=20")
+          response=$(curl -sS -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+            "https://api.vercel.com/v13/deployments?projectId=${VERCEL_PROJECT_ID}&limit=20")
           deployment_id=$(python -c 'import json,os,sys; data=json.loads(sys.stdin.read()); base=os.environ.get("BASE_URL_CLEAN", ""); print(next((d.get("id", "") for d in data.get("deployments", []) if d.get("url") == base), ""))' <<< "$response")
           if [ -z "$deployment_id" ]; then
             echo "Deployment ID not found for ${BASE_URL_CLEAN}"
             exit 1
           fi
           redeploy=$(curl -sS -X POST "https://api.vercel.com/v13/deployments/${deployment_id}/redeploy" \
-            -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}")
+            -H "Authorization: Bearer ${VERCEL_API_TOKEN}")
           new_url=$(python -c 'import json,sys; data=json.loads(sys.stdin.read() or "{}"); print(data.get("url", ""))' <<< "$redeploy")
           new_id=$(python -c 'import json,sys; data=json.loads(sys.stdin.read() or "{}"); print(data.get("id", ""))' <<< "$redeploy")
           if [ -z "$new_url" ] || [ -z "$new_id" ]; then
@@ -107,7 +110,7 @@ jobs:
           if [ -n "${VERCEL_E2E_ALIAS:-}" ]; then
             alias_payload=$(printf '{"alias":"%s"}' "$VERCEL_E2E_ALIAS")
             curl -sS -X POST "https://api.vercel.com/v13/deployments/${new_id}/aliases" \
-              -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}" \
+              -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
               -H "Content-Type: application/json" \
               -d "$alias_payload"
             echo "BASE_URL=https://${VERCEL_E2E_ALIAS}" >> $GITHUB_ENV
