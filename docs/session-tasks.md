@@ -10,15 +10,15 @@
 
 ## Phase 3 completion blockers (current)
 
-- Fix video resume race: apply persisted `videoTimeSec` even when it arrives after player ready. `src/ui/video/VideoPlayer.tsx`, `src/ui/panes/VideoPane.tsx`
-- Make ingest crash-safe/idempotent: avoid skipping transcript reinserts after partial failures. `convex/ingest.ts`, `scripts/ingestCs50x2026.ts`
+- ~~Fix video resume race: apply persisted `videoTimeSec` even when it arrives after player ready.~~ (completed)
+- ~~Make ingest crash-safe/idempotent: avoid skipping transcript reinserts after partial failures.~~ (completed)
 
 ## Phase 3 tech-debt (must fix before signoff)
 
-- Re-seek same timestamp should retrigger: include seek token/nonce to force player seek. `src/ui/layout/WorkspaceGrid.tsx`, `src/ui/video/VideoPlayer.tsx`
-- Drawer focus trap edge-case: prevent overlay from becoming focus target or trap Tab at overlay. `src/ui/shell/TopNav.tsx`
-- Prod ingest safety: require admin even when `NIOTEBOOK_ALLOW_PROD_INGEST=true` or add explicit guard token. `convex/ingest.ts`
-- Remove duplicate `getFrame` vs `getLatestFrame` or document why both exist. `convex/resume.ts`
+- ~~Re-seek same timestamp should retrigger: include seek token/nonce to force player seek.~~ (completed)
+- ~~Drawer focus trap edge-case: prevent overlay from becoming focus target or trap Tab at overlay.~~ (completed)
+- ~~Prod ingest safety: require admin even when `NIOTEBOOK_ALLOW_PROD_INGEST=true` or add explicit guard token.~~ (completed)
+- ~~Remove duplicate `getFrame` vs `getLatestFrame` or document why both exist.~~ (completed)
 
 ## Non-blocking issues (polish gaps vs strict contract)
 
