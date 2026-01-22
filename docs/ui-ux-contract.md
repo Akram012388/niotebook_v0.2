@@ -39,7 +39,7 @@ Scope: UI structure + interaction behavior (not visual polish)
 
 - Top-left: `niotebook` (all lowercase), no extra text.
 - Top-right (always visible):
-  - Layout toggle (1/2/3) as icon buttons with tooltips/aria-labels.
+  - Layout toggle (1/2/3) as icon buttons with aria-labels.
   - Drawer icon (Icon A): panel/sidebar style, ChatGPT-like behavior.
 - Avoid text-button clutter in TopNav. Start may remain text if needed.
 
