@@ -88,18 +88,35 @@ jobs:
         if: ${{ env.BASE_URL && secrets.VERCEL_API_TOKEN && secrets.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
-          base_url="${BASE_URL#https://}"
           response=$(curl -sS -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}" \
             "https://api.vercel.com/v13/deployments?projectId=${{ secrets.VERCEL_PROJECT_ID }}&limit=20")
           deployment_id=$(python -c 'import json,os,sys; data=json.loads(sys.stdin.read()); base=os.environ.get("BASE_URL_CLEAN", ""); print(next((d.get("id", "") for d in data.get("deployments", []) if d.get("url") == base), ""))' <<< "$response")
           if [ -z "$deployment_id" ]; then
-            echo "Deployment ID not found for $base_url"
+            echo "Deployment ID not found for ${BASE_URL_CLEAN}"
             exit 1
           fi
-          curl -sS -X POST "https://api.vercel.com/v13/deployments/${deployment_id}/redeploy" \
-            -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}"
+          redeploy=$(curl -sS -X POST "https://api.vercel.com/v13/deployments/${deployment_id}/redeploy" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}")
+          new_url=$(python -c 'import json,sys; data=json.loads(sys.stdin.read() or "{}"); print(data.get("url", ""))' <<< "$redeploy")
+          new_id=$(python -c 'import json,sys; data=json.loads(sys.stdin.read() or "{}"); print(data.get("id", ""))' <<< "$redeploy")
+          if [ -z "$new_url" ] || [ -z "$new_id" ]; then
+            echo "Redeploy response missing url or id"
+            echo "$redeploy"
+            exit 1
+          fi
+          if [ -n "${VERCEL_E2E_ALIAS:-}" ]; then
+            alias_payload=$(printf '{"alias":"%s"}' "$VERCEL_E2E_ALIAS")
+            curl -sS -X POST "https://api.vercel.com/v13/deployments/${new_id}/aliases" \
+              -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d "$alias_payload"
+            echo "BASE_URL=https://${VERCEL_E2E_ALIAS}" >> $GITHUB_ENV
+          else
+            echo "BASE_URL=https://${new_url}" >> $GITHUB_ENV
+          fi
         env:
           BASE_URL_CLEAN: ${{ env.BASE_URL }}
+          VERCEL_E2E_ALIAS: ${{ secrets.VERCEL_E2E_ALIAS }}
       - run: bun run e2e:seed
       - run: bun ./scripts/e2eEnv.ts --github
       - run: echo "BASE_URL=${BASE_URL}?lessonId=${NEXT_PUBLIC_DEFAULT_LESSON_ID}" >> $GITHUB_ENV
