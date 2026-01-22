@@ -64,6 +64,10 @@ body {
   outline-offset: 2px;
 }
 
+.chat-input:focus-visible {
+  outline: none;
+}
+
 button,
 a {
   cursor: pointer;

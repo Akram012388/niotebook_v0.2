@@ -69,7 +69,7 @@ const ChatComposer = ({
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Ask about the lesson..."
-        className="min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto bg-transparent text-sm text-foreground outline-none placeholder:text-text-subtle"
+        className="chat-input min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto border-0 bg-transparent text-sm text-foreground outline-none placeholder:text-text-subtle focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0"
       />
       <button
         type="button"
