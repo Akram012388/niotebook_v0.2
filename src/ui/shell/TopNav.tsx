@@ -147,6 +147,14 @@ const TopNav = (): ReactElement => {
     updateLesson(lessonOptions[0]?.id ?? null);
   }, [lessonOptions, updateLesson]);
 
+  const handleSelectLesson = useCallback(
+    (nextLessonId: string | null): void => {
+      updateLesson(nextLessonId);
+      setIsDrawerOpen(false);
+    },
+    [updateLesson],
+  );
+
   const handleOpenDrawer = useCallback((): void => {
     lastActiveRef.current = document.activeElement as HTMLElement | null;
     setIsDrawerMounted(true);
@@ -282,6 +290,7 @@ const TopNav = (): ReactElement => {
         onToggleTheme={handleToggleTheme}
         onShare={handleShare}
         onFeedback={handleFeedback}
+        onSelectLesson={handleSelectLesson}
       />
     </header>
   );

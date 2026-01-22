@@ -11,7 +11,7 @@ import {
   UserCircle,
   X,
 } from "@phosphor-icons/react";
-import { useState, type ReactElement, type RefObject } from "react";
+import { useMemo, useState, type ReactElement, type RefObject } from "react";
 import type { CourseSummary, LessonSummary } from "../../domain/content";
 
 type ControlCenterDrawerProps = {
@@ -32,6 +32,7 @@ type ControlCenterDrawerProps = {
   onToggleTheme: () => void;
   onShare: () => void;
   onFeedback: () => void;
+  onSelectLesson: (lessonId: string | null) => void;
 };
 
 const ControlCenterDrawer = ({
@@ -52,6 +53,7 @@ const ControlCenterDrawer = ({
   onToggleTheme,
   onShare,
   onFeedback,
+  onSelectLesson,
 }: ControlCenterDrawerProps): ReactElement | null => {
   const [activeTab, setActiveTab] = useState<"lectures" | "courses">(
     "lectures",
@@ -59,6 +61,7 @@ const ControlCenterDrawer = ({
   const [panelView, setPanelView] = useState<"content" | "user" | "settings">(
     "content",
   );
+  const [lectureQuery, setLectureQuery] = useState("");
 
   const handleTabChange = (next: "lectures" | "courses"): void => {
     setActiveTab(next);
@@ -68,6 +71,20 @@ const ControlCenterDrawer = ({
   const handlePanelToggle = (next: "user" | "settings"): void => {
     setPanelView((prev) => (prev === next ? "content" : next));
   };
+
+  const filteredLectures = useMemo(() => {
+    const normalized = lectureQuery.trim().toLowerCase();
+    if (!normalized) {
+      return lessonOptions;
+    }
+    return lessonOptions.filter((lesson) => {
+      const orderText = `lecture ${lesson.order}`;
+      return (
+        lesson.title.toLowerCase().includes(normalized) ||
+        orderText.includes(normalized)
+      );
+    });
+  }, [lectureQuery, lessonOptions]);
 
   if (!isMounted) {
     return null;
@@ -138,48 +155,55 @@ const ControlCenterDrawer = ({
                   <div className="flex flex-col gap-4">
                     <div className="flex flex-col gap-2">
                       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                        Course
+                        Search
                       </div>
-                      <select
-                        value={courseId ?? ""}
-                        onChange={onCourseChange}
-                        onBlur={onCourseBlur}
-                        className="rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
-                      >
-                        {courseOptions.map((course) => (
-                          <option key={course.id} value={course.id}>
-                            {course.title}
-                          </option>
-                        ))}
-                      </select>
+                      <input
+                        value={lectureQuery}
+                        onChange={(event) =>
+                          setLectureQuery(event.target.value)
+                        }
+                        placeholder="Search lectures"
+                        className="rounded-xl border border-border bg-surface px-3 py-2 text-xs text-foreground placeholder:text-text-subtle"
+                      />
                     </div>
                     <div className="flex flex-col gap-2">
                       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                        Lecture
+                        Lectures
                       </div>
-                      <select
-                        value={lessonId ?? ""}
-                        onChange={onLessonChange}
-                        className="rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
-                      >
-                        {lessonOptions.map((lesson) => (
-                          <option key={lesson.id} value={lesson.id}>
-                            {lesson.title}
-                          </option>
-                        ))}
-                      </select>
-                      {showStartButton ? (
-                        <button
-                          type="button"
-                          onClick={onStart}
-                          className="rounded-xl border border-border px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
-                        >
-                          Start
-                        </button>
-                      ) : null}
-                    </div>
-                    <div className="rounded-xl border border-dashed border-border bg-surface-muted px-3 py-4 text-xs text-text-muted">
-                      Lecture list and search will appear here next.
+                      <div className="flex flex-col gap-2">
+                        {filteredLectures.map((lesson) => {
+                          const isActive = lesson.id === lessonId;
+                          return (
+                            <button
+                              key={lesson.id}
+                              type="button"
+                              onClick={() => onSelectLesson(lesson.id)}
+                              className={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs transition ${
+                                isActive
+                                  ? "border-border bg-surface text-foreground shadow-sm"
+                                  : "border-border text-text-muted hover:bg-surface-muted hover:text-foreground"
+                              }`}
+                            >
+                              <div className="flex flex-col">
+                                <span className="text-[10px] uppercase tracking-[0.08em] text-text-subtle">
+                                  Lecture {lesson.order}
+                                </span>
+                                <span className="text-sm text-foreground">
+                                  {lesson.title}
+                                </span>
+                              </div>
+                              <span className="text-xs text-text-subtle">
+                                →
+                              </span>
+                            </button>
+                          );
+                        })}
+                        {filteredLectures.length === 0 ? (
+                          <div className="rounded-xl border border-dashed border-border bg-surface-muted px-3 py-4 text-xs text-text-muted">
+                            No lectures match that search.
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 ) : (
