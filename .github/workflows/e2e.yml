@@ -46,7 +46,44 @@ jobs:
             echo "BASE_URL is empty. Provide base_url or ensure repository_dispatch payload includes a deployment URL."
             exit 1
           fi
-      - run: bun run e2e:convex:push
+      - name: Deploy Convex preview
+        run: |
+          set -euo pipefail
+          output=$(bun run e2e:convex:push)
+          echo "$output"
+          export CONVEX_DEPLOY_OUTPUT="$output"
+          convex_url=$(python - <<'PY'
+          import os, re
+          output = os.environ.get("CONVEX_DEPLOY_OUTPUT", "")
+          match = re.search(r"https://[a-z0-9-]+\.convex\.cloud", output)
+          print(match.group(0) if match else "")
+          PY
+          )
+          if [ -z "$convex_url" ]; then
+            echo "Convex preview URL not found in deploy output"
+            exit 1
+          fi
+          echo "E2E_CONVEX_URL=$convex_url" >> $GITHUB_ENV
+      - name: Update Vercel preview env
+        if: ${{ env.E2E_CONVEX_URL && secrets.VERCEL_API_TOKEN && secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          payload=$(cat <<JSON
+          {"key":"NEXT_PUBLIC_CONVEX_URL","value":"${E2E_CONVEX_URL}","type":"encrypted","target":["preview"]}
+          JSON
+          )
+          curl -sS -X POST "https://api.vercel.com/v10/projects/${{ secrets.VERCEL_PROJECT_ID }}/env?upsert=true" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
+          payload=$(cat <<JSON
+          {"key":"CONVEX_DEPLOYMENT","value":"${CONVEX_PREVIEW_NAME}","type":"encrypted","target":["preview"]}
+          JSON
+          )
+          curl -sS -X POST "https://api.vercel.com/v10/projects/${{ secrets.VERCEL_PROJECT_ID }}/env?upsert=true" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
       - run: bun run e2e:seed
       - run: bun ./scripts/e2eEnv.ts --github
       - run: echo "BASE_URL=${BASE_URL}?lessonId=${NEXT_PUBLIC_DEFAULT_LESSON_ID}" >> $GITHUB_ENV
