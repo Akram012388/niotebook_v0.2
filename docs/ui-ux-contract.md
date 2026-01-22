@@ -93,7 +93,7 @@ Scope: UI structure + interaction behavior (not visual polish)
 - Radius: sharp.
 - Hover/active: subtle highlight + cursor pointer for clickables.
 - Focus ring: visible on focus except chat input (intentionally no outline).
-- Error states: inline banner inside pane (pending; finalize at end of phase).
+- Error states: inline banner inside pane (deferred; finalize at end of phase).
 - Spacing scale: 8/12/16. Control center may use tighter spacing to fit content density.
 - Typography: keep current sans/mono pairing; no font change required.
 

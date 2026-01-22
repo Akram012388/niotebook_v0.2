@@ -124,7 +124,8 @@ Layouts are user-selectable per session and persisted.
   - ChatGPT-like input behavior (growing textarea, enter-to-send, shift+enter newline)
   - send button as circular icon button
   - autoscroll indicator/button appears when user scrolls up
-  - streaming text render; no layout shifts
+- streaming text render; no layout shifts
+  - video/chat error banners are deferred to end-of-phase stabilization
 
 - Share and feedback actions live in control center settings (inline cards; app-level links only).
 - “Context affinity” in chat thread:

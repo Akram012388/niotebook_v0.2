@@ -29,6 +29,7 @@ UX Principles
 - Premium feel: instant or subtly-progressed actions; no jank or blocking modals.
 - Chat is continuous per lesson with lesson/timestamp badges and smooth seek on click.
 - Chat interaction matches modern ChatGPT-class UX (growing input, enter-to-send with shift+enter newline, autoscroll affordance, no layout shift during streaming).
+- Error banners for video/chat are deferred to end-of-phase stabilization.
 - Overall UI/UX mirrors ChatGPT web app feel: YouTube + simple code lab embedded inside a clean chat-centric interface.
 
 Engineering Principles
