@@ -257,7 +257,7 @@ const ControlCenterDrawer = ({
                   <button
                     type="button"
                     onClick={onToggleTheme}
-                    className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
+                    className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
                   >
                     <span>{theme === "light" ? "Light" : "Dark"}</span>
                     {theme === "light" ? (
@@ -272,7 +272,7 @@ const ControlCenterDrawer = ({
                   <button
                     type="button"
                     onClick={onShare}
-                    className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
+                    className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
                   >
                     <span>Share</span>
                     <ShareNetwork size={14} weight="regular" />
@@ -280,16 +280,19 @@ const ControlCenterDrawer = ({
                   <button
                     type="button"
                     onClick={onFeedback}
-                    className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
+                    className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
                   >
                     <span>Feedback</span>
                     <ChatCenteredText size={14} weight="regular" />
                   </button>
+                  <div className="rounded-xl border border-dashed border-border bg-surface-muted px-3 py-3 text-xs text-text-muted">
+                    More settings coming soon.
+                  </div>
                 </div>
               ) : (
                 <div className="flex h-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-surface-muted px-4 py-6 text-xs text-text-muted">
                   <UserCircle size={18} weight="regular" />
-                  <div>User panel coming soon.</div>
+                  <div>User profile coming soon.</div>
                 </div>
               )}
             </div>

@@ -100,14 +100,6 @@ const TopNav = (): ReactElement => {
     [router, searchParams],
   );
 
-  const handleCourseChange = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>): void => {
-      const nextCourseId = event.target.value || null;
-      setSelectedCourseId(nextCourseId);
-    },
-    [],
-  );
-
   useEffect((): void => {
     if (!selectedCourseId || lessonOptions.length === 0) {
       return;
@@ -122,19 +114,6 @@ const TopNav = (): ReactElement => {
     }
   }, [lessonId, lessonOptions, selectedCourseId, updateLesson]);
 
-  const handleCourseBlur = useCallback((): void => {
-    if (!selectedCourseId && courseId) {
-      setSelectedCourseId(courseId);
-    }
-  }, [courseId, selectedCourseId]);
-
-  const handleLessonChange = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>): void => {
-      updateLesson(event.target.value);
-    },
-    [updateLesson],
-  );
-
   const handleShare = useCallback((): void => {
     // Placeholder for share modal trigger.
   }, []);
@@ -142,10 +121,6 @@ const TopNav = (): ReactElement => {
   const handleFeedback = useCallback((): void => {
     // Placeholder for feedback modal trigger.
   }, []);
-
-  const handleStart = useCallback((): void => {
-    updateLesson(lessonOptions[0]?.id ?? null);
-  }, [lessonOptions, updateLesson]);
 
   const handleSelectLesson = useCallback(
     (nextLessonId: string | null): void => {
