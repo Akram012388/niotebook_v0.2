@@ -83,27 +83,17 @@ const ensureIngestAllowed = async (
   }
 };
 
-const countTranscriptSegments = async (
+const getTranscriptMaxIdx = async (
   ctx: MutationCtx,
   lessonId: GenericId<"lessons">,
-): Promise<number> => {
-  let cursor: string | null = null;
-  let total = 0;
+): Promise<number | null> => {
+  const lastSegment = (await ctx.db
+    .query("transcriptSegments")
+    .withIndex("by_lessonId_idx", (query) => query.eq("lessonId", lessonId))
+    .order("desc")
+    .first()) as TranscriptSegmentRecord | null;
 
-  do {
-    const page = await ctx.db
-      .query("transcriptSegments")
-      .withIndex("by_lessonId_idx", (query) => query.eq("lessonId", lessonId))
-      .paginate({
-        cursor: cursor ?? null,
-        numItems: 500,
-      });
-
-    total += page.page.length;
-    cursor = page.continueCursor;
-  } while (cursor);
-
-  return total;
+  return lastSegment ? lastSegment.idx : null;
 };
 
 const ingestCs50x2026 = mutation({
@@ -201,11 +191,10 @@ const ingestCs50x2026 = mutation({
 
       if (!shouldReplaceSegments && existingLesson) {
         const expectedCount = lesson.segmentCount ?? 0;
-        const actualCount = await countTranscriptSegments(
-          ctx,
-          existingLesson._id,
-        );
-        if (actualCount !== expectedCount) {
+        const maxIdx = await getTranscriptMaxIdx(ctx, existingLesson._id);
+        if (expectedCount === 0) {
+          shouldReplaceSegments = maxIdx !== null;
+        } else if (maxIdx === null || maxIdx + 1 !== expectedCount) {
           shouldReplaceSegments = true;
         }
       }
