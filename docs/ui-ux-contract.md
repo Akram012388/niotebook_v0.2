@@ -24,9 +24,8 @@ Scope: UI structure + interaction behavior (not visual polish)
   - 2-col: 60/40 (default after Start)
   - 3-col: 40/30/30
 - 1-col behavior:
-  - Remembers last focused pane (Video/Code/Chat).
+  - Remembers last focused pane (Video/Code).
   - User can switch panes via:
-    - TopNav segmented control
     - Tabs inside the pane
     - Keyboard shortcuts
 
@@ -100,7 +99,7 @@ Color policy:
 ## Keyboard Shortcuts (minimum set)
 
 - `1` / `2` / `3`: switch layout preset (1-col/2-col/3-col).
-- `V` / `C` / `A`: focus/switch Video / Code / Assistant (in 1-col mode).
+- `V` / `C`: focus/switch Video / Code (in 1-col mode).
 - `Esc`: closes right drawer.
 
 ## Video + Data Correctness Contract (P12 dependency)
