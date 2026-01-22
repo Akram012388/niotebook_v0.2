@@ -136,6 +136,7 @@ const ControlCenterDrawer = ({
       <button
         type="button"
         onClick={onClose}
+        tabIndex={-1}
         className={`absolute inset-0 bg-black/30 transition-opacity duration-[120ms] ${
           isOpen ? "opacity-100" : "opacity-0"
         }`}
