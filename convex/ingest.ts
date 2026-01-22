@@ -65,22 +65,24 @@ type MutationCtx = Parameters<MutationConfig["handler"]>[0];
 
 const ensureIngestAllowed = async (
   ctx: MutationCtx,
+  ingestToken?: string,
 ): Promise<AuthenticatedUser | null> => {
   const allowProdIngest = process.env.NIOTEBOOK_ALLOW_PROD_INGEST === "true";
+  const expectedToken = process.env.NIOTEBOOK_INGEST_TOKEN;
 
-  if (process.env.NODE_ENV === "production" && !allowProdIngest) {
-    throw new Error("Production ingest requires NIOTEBOOK_ALLOW_PROD_INGEST.");
-  }
-
-  try {
-    return await requireMutationAdmin(ctx);
-  } catch (error) {
-    if (process.env.NODE_ENV === "production" && allowProdIngest) {
-      return null;
+  if (process.env.NODE_ENV === "production") {
+    if (!allowProdIngest) {
+      throw new Error(
+        "Production ingest requires NIOTEBOOK_ALLOW_PROD_INGEST.",
+      );
     }
 
-    throw error;
+    if (expectedToken && ingestToken === expectedToken) {
+      return null;
+    }
   }
+
+  return requireMutationAdmin(ctx);
 };
 
 const getTranscriptMaxIdx = async (
@@ -106,6 +108,7 @@ const ingestCs50x2026 = mutation({
       sourceUrl: v.string(),
       youtubePlaylistUrl: v.optional(v.string()),
     }),
+    ingestToken: v.optional(v.string()),
     lessons: v.array(
       v.object({
         order: v.number(),
@@ -122,7 +125,7 @@ const ingestCs50x2026 = mutation({
     ),
   },
   handler: async (ctx, args): Promise<LessonIngestMeta[]> => {
-    await ensureIngestAllowed(ctx);
+    await ensureIngestAllowed(ctx, args.ingestToken);
 
     const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
     const existingCourse = courses.find(
@@ -215,12 +218,13 @@ const clearTranscriptSegmentsBatch = mutation({
     lessonId: v.id("lessons"),
     cursor: v.optional(v.string()),
     limit: v.optional(v.number()),
+    ingestToken: v.optional(v.string()),
   },
   handler: async (
     ctx,
     args,
   ): Promise<{ nextCursor: string | null; cleared: number }> => {
-    await ensureIngestAllowed(ctx);
+    await ensureIngestAllowed(ctx, args.ingestToken);
 
     const page = await ctx.db
       .query("transcriptSegments")
@@ -246,6 +250,7 @@ const clearTranscriptSegmentsBatch = mutation({
 const ingestTranscriptSegmentsBatch = mutation({
   args: {
     lessonId: v.id("lessons"),
+    ingestToken: v.optional(v.string()),
     segments: v.array(
       v.object({
         idx: v.number(),
@@ -257,7 +262,7 @@ const ingestTranscriptSegmentsBatch = mutation({
     ),
   },
   handler: async (ctx, args): Promise<void> => {
-    await ensureIngestAllowed(ctx);
+    await ensureIngestAllowed(ctx, args.ingestToken);
 
     for (const segment of args.segments) {
       await ctx.db.insert("transcriptSegments", {
@@ -280,9 +285,10 @@ const finalizeTranscriptIngest = mutation({
     transcriptDurationSec: v.optional(v.number()),
     segmentCount: v.optional(v.number()),
     durationSec: v.number(),
+    ingestToken: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<void> => {
-    const admin = await ensureIngestAllowed(ctx);
+    const admin = await ensureIngestAllowed(ctx, args.ingestToken);
 
     const shouldEmitSuccess =
       args.transcriptStatus === "ok" || args.transcriptStatus === "warn";

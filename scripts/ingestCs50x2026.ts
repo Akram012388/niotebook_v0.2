@@ -495,6 +495,7 @@ const chunkArray = <T>(items: T[], size: number): T[][] => {
 const runIngest = async (): Promise<void> => {
   const convexUrl = getEnvValue("CONVEX_URL");
   const allowProdIngest = process.env.NIOTEBOOK_ALLOW_PROD_INGEST === "true";
+  const ingestToken = process.env.NIOTEBOOK_INGEST_TOKEN;
 
   if (process.env.NODE_ENV === "production" && !allowProdIngest) {
     throw new Error("Production ingest requires NIOTEBOOK_ALLOW_PROD_INGEST.");
@@ -542,10 +543,10 @@ const runIngest = async (): Promise<void> => {
     })),
   };
 
-  const ingestMeta = (await client.mutation(
-    ingestMutation,
-    payload as never,
-  )) as LessonIngestMeta[];
+  const ingestMeta = (await client.mutation(ingestMutation, {
+    ...payload,
+    ingestToken: ingestToken ?? undefined,
+  } as never)) as LessonIngestMeta[];
 
   const lessonByOrder = new Map<number, LessonIngestMeta>();
   for (const meta of ingestMeta) {
@@ -564,6 +565,7 @@ const runIngest = async (): Promise<void> => {
         lessonId: meta.lessonId,
         cursor: cursor ?? undefined,
         limit: 500,
+        ingestToken: ingestToken ?? undefined,
       } as never)) as { nextCursor: string | null; cleared: number };
       cursor = response.nextCursor;
     } while (cursor);
@@ -573,6 +575,7 @@ const runIngest = async (): Promise<void> => {
       await client.mutation(ingestSegmentsMutation, {
         lessonId: meta.lessonId,
         segments: chunk,
+        ingestToken: ingestToken ?? undefined,
       } as never);
     }
 
@@ -583,6 +586,7 @@ const runIngest = async (): Promise<void> => {
       transcriptDurationSec: lesson.transcriptDurationSec,
       segmentCount: lesson.segmentCount,
       durationSec: lesson.durationSec,
+      ingestToken: ingestToken ?? undefined,
     } as never);
   }
 };
