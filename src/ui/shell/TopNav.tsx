@@ -55,12 +55,12 @@ const TopNav = (): ReactElement => {
   const lesson = useQuery(getLessonRef, lessonId ? { lessonId } : "skip");
 
   const courseId = useMemo((): string | null => {
-    if (lesson?.courseId) {
-      return lesson.courseId as unknown as string;
-    }
-
     if (selectedCourseId) {
       return selectedCourseId;
+    }
+
+    if (lesson?.courseId) {
+      return lesson.courseId as unknown as string;
     }
 
     return courses?.[0]?.id ?? null;
@@ -110,13 +110,23 @@ const TopNav = (): ReactElement => {
     (event: React.ChangeEvent<HTMLSelectElement>): void => {
       const nextCourseId = event.target.value || null;
       setSelectedCourseId(nextCourseId);
-      const nextLesson = lessonOptions.find(
-        (item) => item.courseId === nextCourseId,
-      );
-      updateLesson(nextLesson?.id ?? null);
     },
-    [lessonOptions, updateLesson],
+    [],
   );
+
+  useEffect((): void => {
+    if (!selectedCourseId || lessonOptions.length === 0) {
+      return;
+    }
+
+    const isCurrentLessonInCourse = lessonOptions.some(
+      (item) => item.id === lessonId,
+    );
+
+    if (!isCurrentLessonInCourse) {
+      updateLesson(lessonOptions[0]?.id ?? null);
+    }
+  }, [lessonId, lessonOptions, selectedCourseId, updateLesson]);
 
   const handleCourseBlur = useCallback((): void => {
     if (!selectedCourseId && courseId) {
