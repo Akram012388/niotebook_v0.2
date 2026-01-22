@@ -8,16 +8,7 @@ import {
   useState,
   type ReactElement,
 } from "react";
-import {
-  ChatCenteredText,
-  Gear,
-  Moon,
-  SidebarSimple,
-  ShareNetwork,
-  Sun,
-  UserCircle,
-  X,
-} from "@phosphor-icons/react";
+import { SidebarSimple } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { storageAdapter } from "../../infra/storageAdapter";
@@ -28,6 +19,7 @@ import {
   getLessonsByCourseRef,
 } from "../content/convexContent";
 import { LayoutPresetToggle } from "../layout/LayoutPresetToggle";
+import { ControlCenterDrawer } from "./ControlCenterDrawer";
 
 const STORAGE_KEY = "niotebook.theme";
 const LESSON_STORAGE_KEY = "niotebook.lesson";
@@ -151,6 +143,10 @@ const TopNav = (): ReactElement => {
     // Placeholder for feedback modal trigger.
   }, []);
 
+  const handleStart = useCallback((): void => {
+    updateLesson(lessonOptions[0]?.id ?? null);
+  }, [lessonOptions, updateLesson]);
+
   const handleOpenDrawer = useCallback((): void => {
     lastActiveRef.current = document.activeElement as HTMLElement | null;
     setIsDrawerMounted(true);
@@ -268,136 +264,25 @@ const TopNav = (): ReactElement => {
           </button>
         </div>
       </div>
-      {isDrawerMounted ? (
-        <div className="fixed inset-0 z-50">
-          <button
-            type="button"
-            onClick={handleCloseDrawer}
-            className={`absolute inset-0 bg-black/30 transition-opacity duration-[120ms] ${
-              isDrawerOpen ? "opacity-100" : "opacity-0"
-            }`}
-            aria-label="Close control center"
-          />
-          <aside
-            ref={drawerRef}
-            role="dialog"
-            aria-modal="true"
-            className={`absolute right-0 top-0 h-full w-[360px] border-l border-border bg-surface shadow-lg transition-transform duration-[180ms] ease-out ${
-              isDrawerOpen ? "translate-x-0" : "translate-x-full"
-            }`}
-          >
-            <div className="flex items-center justify-between border-b border-border px-4 py-4">
-              <div className="text-sm font-semibold text-foreground">
-                Control center
-              </div>
-              <button
-                type="button"
-                onClick={handleCloseDrawer}
-                className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
-                aria-label="Close control center"
-              >
-                <X size={16} weight="regular" />
-              </button>
-            </div>
-            <div className="flex h-full flex-col gap-6 overflow-y-auto px-4 py-5 text-sm">
-              <section className="flex flex-col gap-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                  Course
-                </div>
-                <select
-                  value={courseId ?? ""}
-                  onChange={handleCourseChange}
-                  onBlur={handleCourseBlur}
-                  className="rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
-                >
-                  {courseOptions.map((course) => (
-                    <option key={course.id} value={course.id}>
-                      {course.title}
-                    </option>
-                  ))}
-                </select>
-              </section>
-              <section className="flex flex-col gap-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                  Lecture
-                </div>
-                <select
-                  value={lessonId ?? ""}
-                  onChange={handleLessonChange}
-                  className="rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
-                >
-                  {lessonOptions.map((lesson) => (
-                    <option key={lesson.id} value={lesson.id}>
-                      {lesson.title}
-                    </option>
-                  ))}
-                </select>
-                {lessonId ? null : (
-                  <button
-                    type="button"
-                    onClick={() => updateLesson(lessonOptions[0]?.id ?? null)}
-                    className="rounded-xl border border-border px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
-                  >
-                    Start
-                  </button>
-                )}
-              </section>
-              <section className="flex flex-col gap-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                  Theme
-                </div>
-                <button
-                  type="button"
-                  onClick={handleToggleTheme}
-                  className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
-                >
-                  <span>{theme === "light" ? "Light" : "Dark"}</span>
-                  {theme === "light" ? (
-                    <Sun size={14} weight="regular" />
-                  ) : (
-                    <Moon size={14} weight="regular" />
-                  )}
-                </button>
-              </section>
-              <section className="flex flex-col gap-2">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                  Actions
-                </div>
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
-                >
-                  <span>Share</span>
-                  <ShareNetwork size={14} weight="regular" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleFeedback}
-                  className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
-                >
-                  <span>Feedback</span>
-                  <ChatCenteredText size={14} weight="regular" />
-                </button>
-                <button
-                  type="button"
-                  className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
-                >
-                  <span>User</span>
-                  <UserCircle size={14} weight="regular" />
-                </button>
-                <button
-                  type="button"
-                  className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted"
-                >
-                  <span>Settings</span>
-                  <Gear size={14} weight="regular" />
-                </button>
-              </section>
-            </div>
-          </aside>
-        </div>
-      ) : null}
+      <ControlCenterDrawer
+        isOpen={isDrawerOpen}
+        isMounted={isDrawerMounted}
+        drawerRef={drawerRef}
+        onClose={handleCloseDrawer}
+        courseId={courseId}
+        courseOptions={courseOptions}
+        onCourseChange={handleCourseChange}
+        onCourseBlur={handleCourseBlur}
+        lessonId={lessonId}
+        lessonOptions={lessonOptions}
+        onLessonChange={handleLessonChange}
+        showStartButton={!lessonId}
+        onStart={handleStart}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
+        onShare={handleShare}
+        onFeedback={handleFeedback}
+      />
     </header>
   );
 };
