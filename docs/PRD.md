@@ -1,34 +1,42 @@
 # PRD Status: DRAFT
+
 Niotebook v0.2 PRD (Minimal)
 
 Note: Implementation details live in `docs/ADR-001-prd-scope.md` to keep this PRD product‑level.
 
 Problem
+
 - Solo learners need a unified place to watch CS50-derived lessons, code inline, and get strict, narrow-focused, context-aware AI help without latency or jank.
 
 Target User
+
 - Single self-paced learner invited via code + magic link; no classrooms or shared sessions.
 
 Non-Goals
+
 - No classroom/teacher features beyond the single admin cockpit for invite/role management; no shared sessions, transcript UI, offline AI/video, AI file I/O, attachments, or tool execution.
 
 Core Loop
+
 - Onboard with invite code → magic link → pick course/lesson.
 - Initial content includes CS50x (2026), CS50P, CS50W, and CS50 AI (2023) delivered as YouTube-embedded lessons; playlist = course, video = lesson, chapters = timestamps.
 - Watch embedded YouTube, code in notepad-style editor, and chat with Nio (Prof. David Malan–modeled persona, not named in UI).
 - Continuous sync ties video time, code snapshot, and chat thread; resume on any device at last frame.
 
 UX Principles
-- KISS, brutal minimalism; light-first UI with theme toggle always visible.
+
+- KISS, brutal minimalism; light-first UI with theme toggle in control center settings.
 - Premium feel: instant or subtly-progressed actions; no jank or blocking modals.
 - Chat is continuous per lesson with lesson/timestamp badges and smooth seek on click.
 - Chat interaction matches modern ChatGPT-class UX (growing input, enter-to-send with shift+enter newline, autoscroll affordance, no layout shift during streaming).
 - Overall UI/UX mirrors ChatGPT web app feel: YouTube + simple code lab embedded inside a clean chat-centric interface.
 
 Engineering Principles
+
 - Functional core with imperative shell: domain logic is pure/deterministic; I/O and integrations are isolated.
 
 Functional Requirements
+
 - Auth: invite code + email magic link; admin-only cockpit for invite management; roles: admin (invite and role management), user (learning workspace), guest (landing + login only).
 - Admin cockpit UX: ultra-polished, analytics-first dashboard (ChatGPT-level interface quality); analytics use UTC and cohort = inviteBatchId.
 - Layout: fixed presets (1-col 100, 2-col 60/40, 3-col 40/30/30); persisted per session.
@@ -41,14 +49,17 @@ Functional Requirements
 - Transcripts are AI-only (no transcript UI).
 
 Out of Scope (v0.2)
+
 - Valkey introduction, rate-limit/cache queues; offline playback; transcript UI; multi-user collaboration.
 
 Risks
+
 - C pack performance might exceed latency budget; mitigation: warm-up status, mark as alpha if slow.
 - Pyodide/TCC download size could hurt first load; mitigate with background prefetch and caching.
 - Strict AI constraints may frustrate users; mitigate with clear TA tone and on-topic guidance.
 
 Acceptance Criteria
+
 - Language switch after warm-up feels instant; C “hello world” compile+run <500ms on modern laptop; Python/JS warm-up hidden by background prefetch; switching Python→C after warm-up <100ms perceived delay or shows non-blocking warm-up notice.
 - Chat shows `Lesson • mm:ss` badge per message; clicking seeks smoothly; streaming text renders without layout shifts; autoscroll affordance present when scrolled up.
 - Resume on another device restores last video bucket, code snapshot per language, and same chat thread.

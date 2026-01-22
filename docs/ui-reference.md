@@ -1,8 +1,10 @@
 # UI Reference Contract (Mobbin-first)
+
 Status: DRAFT (upgrade to FROZEN when Phase‑1 UI scope is locked)
 
 This document defines the **UI/UX reference baseline** for Niotebook v0.2.
 It is a **visual + interaction contract** to keep implementation consistent with:
+
 - docs/PRD.md
 - docs/specs.md
 - docs/plan.md (Phase‑1 UI scaffolding milestone)
@@ -16,13 +18,16 @@ This doc is intentionally **Mobbin-first** to avoid “design-by-imagination” 
 ---
 
 ## 0) Non-negotiables (Niotebook constraints)
+
 These override any reference UI if there’s a conflict.
 
-1) Light-first UI
+1. Light-first UI
+
 - Default theme: **light**
 - Theme toggle: **always visible** in the primary nav
 
-2) KISS surfaces
+2. KISS surfaces
+
 - No resizable panes.
 - Only **3 fixed layout presets**:
   - **1-col**: 100%
@@ -30,19 +35,22 @@ These override any reference UI if there’s a conflict.
   - **3-col**: 40/30/30
 - Premium feel without bloat: minimal elements, no heavy side panels unless necessary.
 
-3) Core triad (Lesson workspace)
+3. Core triad (Lesson workspace)
+
 - Video pane: player only (no transcript UI in client)
 - Code pane: notepad-style editor + terminal output + run/stop
 - AI pane: ChatGPT-grade polish and behavior (minimalist, fast, no clutter)
 
-4) The “Sync primitive” must be visible through behavior, not UI clutter
-- Chat is continuously synced to lesson/time; messages show subtle `Lesson • mm:ss` badge.
+4. The “Sync primitive” must be visible through behavior, not UI clutter
+
+- Chat is continuously synced to lecture/time; messages show a subtle timestamp badge on hover.
 - Clicking a badge seeks video smoothly.
 - Code sync only when code exists (and/or on run / snapshot trigger).
 
 ---
 
 ## 1) Mobbin usage rules
+
 Mobbin is the **reference library**, not an asset pipeline.
 
 - Do **not** commit Mobbin screenshots to the repo (copyright + churn).
@@ -50,27 +58,31 @@ Mobbin is the **reference library**, not an asset pipeline.
 - When implementing any UI element, attach at least **one Mobbin reference link**.
 
 Entry point (Web / Latest):
+
 - https://mobbin.com/discover/apps/web/latest
 
 ---
 
 ## 2) Canonical reference set (Phase‑1 relevant)
+
 This is the minimum reference pack required to implement the Phase‑1 UI shell.
 
 ### 2.1 Global shell + navigation (minimalist)
+
 - OpenAI Web Landing Page (clean top nav + primary input affordance)
   https://mobbin.com/explore/screens/a32a980b-d48a-4f76-8031-3bd156410bfd
 
 **Niotebook mapping**
+
 - Top nav contains (left→right):
-  - NioNotebook mark (text logo, minimal)
-  - Course / lesson selector (compact)
+  - niotebook mark (text logo, minimal)
   - Layout preset toggle (1/2/3)
-  - Theme toggle (always visible)
-  - User menu (minimal)
+  - Control center icon (drawer)
 
 ### 2.2 Chat pane (must feel like ChatGPT)
+
 Primary references:
+
 - OpenAI Web ChatGPT Interface (sidebar + composer baseline)
   https://mobbin.com/explore/screens/5971e430-041c-4358-bd94-f7e3034616cd
 - OpenAI Web ChatGPT Chat Interface
@@ -81,6 +93,7 @@ Primary references:
   https://mobbin.com/explore/screens/fa78b1cf-fa33-4bb1-b8a8-989cfaf41e28
 
 **Niotebook chat UX contract (explicit)**
+
 - Composer:
   - Single multiline textarea that grows up to a max height, then scrolls.
   - `Enter` sends; `Shift+Enter` inserts newline.
@@ -97,16 +110,21 @@ Primary references:
   - Keep the UI professional and learning-focused.
 
 ### 2.3 Theme selection UX (simple, non-invasive)
+
 Reference:
+
 - OpenAI Web Settings Modal (theme selection pattern via modal + switches)
   https://mobbin.com/explore/screens/107d9e2f-f550-4e73-b573-d5a84b03ef92
 
 **Niotebook mapping**
-- Theme toggle is always visible in nav.
-- A settings modal may exist, but theme must be one-click accessible (toggle).
+
+- Theme toggle lives inside the control center (Settings tab).
+- Theme must be one-click accessible within the control center.
 
 ### 2.4 Code pane (editor + terminal output; minimal)
+
 References:
+
 - GitHub Web Code editor (editor + terminal window relationship)
   https://mobbin.com/explore/screens/513802e0-b43d-4803-a1ad-a056a6ac2264
 - OpenAI Web CSS HTML Split (split editor concept for HTML/CSS mode)
@@ -117,6 +135,7 @@ References:
   https://mobbin.com/explore/screens/765bb960-4da4-4519-8c2f-802a7096901b
 
 **Niotebook code pane UX contract**
+
 - Language selector: compact dropdown (C / Python / JS / TS / HTML / CSS).
 - Controls:
   - Run
@@ -129,7 +148,9 @@ References:
   - Must not feel like a “log dump”; keep spacing readable.
 
 ### 2.5 Video pane (player-first; no transcript UI)
+
 References:
+
 - OpenAI Web Video Player Screen (minimal player chrome)
   https://mobbin.com/explore/screens/cd01fea1-79fd-4c5c-b435-85d70e234141
 - YouTube Music Web Video Player Screen (player + secondary drawer pattern)
@@ -138,40 +159,49 @@ References:
   https://mobbin.com/explore/screens/7f90b4fe-628c-4248-8ed6-a34eb4df3031
 
 **Niotebook mapping**
+
 - Video pane contains:
   - Embedded YouTube player (or wrapper) with minimal surrounding UI.
   - No transcript visible.
   - Seek events must be smooth when driven by chat badge clicks.
 
-### 2.6 Course/Lesson selection (keep it simple)
+### 2.6 Course/Lecture selection (keep it simple)
+
 References:
+
 - OpenAI Web GPT Store Search (search + recent items behavior)
   https://mobbin.com/explore/screens/dc0fa04f-2827-4db0-98b5-5972d9670ff9
 - YouTube Web Watch Later Playlist (dense list hierarchy pattern)
   https://mobbin.com/explore/screens/6be3d5fd-1760-47d3-b893-83a7eb48ee0b
 
 **Niotebook mapping**
-- Course picker is minimal:
-  - list of supported courses (CS50x 2026, CS50P, CS50W, CS50 AI 2023)
-  - within a course, show lessons as a simple list
+
+- Course selection lives in the control center drawer:
+  - Tabs: Lectures + Courses
+  - Lectures view includes search + list (Lecture N + title)
+  - Courses view shows course rows (title + description + meta)
 - Avoid “LMS dashboard” complexity.
 
 ---
 
 ## 3) Implementation rules for Codex/agents (to prevent UI drift)
+
 When implementing Phase‑1 UI scaffolding:
 
-1) Every UI PR must include:
+1. Every UI PR must include:
+
 - Which layout preset(s) it touches (1/2/3-col)
 - Which pane(s) it changes (video/code/ai)
 - Which Mobbin reference link(s) it follows (at least 1)
 - A “no extra UI” statement: what was explicitly deferred
 
-2) No “invented design systems”
+2. No “invented design systems”
+
 - Use Tailwind + existing component primitives only.
 - If a component must be added, keep it local, minimal, and directly justified.
 
-3) Animation/motion
+3. Animation/motion
+
 - Keep transitions subtle.
 - Respect reduced motion preferences.
 - No flashy effects.
@@ -179,6 +209,7 @@ When implementing Phase‑1 UI scaffolding:
 ---
 
 ## 4) Phase‑1 UI acceptance checklist (practical)
+
 A Phase‑1 UI scaffold is acceptable when:
 
 - Layout presets render correctly and persist.
@@ -195,5 +226,6 @@ A Phase‑1 UI scaffold is acceptable when:
 ---
 
 ## 5) Notes (future)
+
 - If Mobbin links become paywalled or unstable, replace with new Mobbin screen links (do not paste images into repo).
-- If we later need Figma, it should be used as a *secondary* artifact. Mobbin remains the baseline for web UI patterns in v0.2.
+- If we later need Figma, it should be used as a _secondary_ artifact. Mobbin remains the baseline for web UI patterns in v0.2.
