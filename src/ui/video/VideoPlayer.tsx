@@ -183,7 +183,7 @@ const VideoPlayer = ({
       playerRef.current?.destroy();
       playerRef.current = null;
     };
-  }, [videoId]);
+  }, [applyInitialSeek, videoId]);
 
   useEffect(() => {
     if (initialTimeSec === null || initialTimeSec === undefined) {
