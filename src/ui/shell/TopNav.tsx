@@ -43,8 +43,10 @@ const TopNav = (): ReactElement => {
   });
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDrawerMounted, setIsDrawerMounted] = useState(false);
   const drawerRef = useRef<HTMLDivElement | null>(null);
   const lastActiveRef = useRef<HTMLElement | null>(null);
+  const drawerWasOpenRef = useRef(false);
 
   const courses = useQuery(getCoursesRef);
 
@@ -151,7 +153,10 @@ const TopNav = (): ReactElement => {
 
   const handleOpenDrawer = useCallback((): void => {
     lastActiveRef.current = document.activeElement as HTMLElement | null;
-    setIsDrawerOpen(true);
+    setIsDrawerMounted(true);
+    window.requestAnimationFrame(() => {
+      setIsDrawerOpen(true);
+    });
   }, []);
 
   const handleCloseDrawer = useCallback((): void => {
@@ -159,13 +164,30 @@ const TopNav = (): ReactElement => {
   }, []);
 
   useEffect(() => {
+    if (!isDrawerMounted || isDrawerOpen) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setIsDrawerMounted(false);
+    }, 200);
+
+    return () => window.clearTimeout(timeout);
+  }, [isDrawerMounted, isDrawerOpen]);
+
+  useEffect(() => {
     if (!isDrawerOpen) {
-      if (lastActiveRef.current) {
-        lastActiveRef.current.focus();
-        lastActiveRef.current = null;
+      if (drawerWasOpenRef.current) {
+        if (lastActiveRef.current) {
+          lastActiveRef.current.focus();
+          lastActiveRef.current = null;
+        }
+        drawerWasOpenRef.current = false;
       }
       return;
     }
+
+    drawerWasOpenRef.current = true;
 
     const focusDrawer = (): void => {
       const drawer = drawerRef.current;
@@ -246,19 +268,23 @@ const TopNav = (): ReactElement => {
           </button>
         </div>
       </div>
-      {isDrawerOpen ? (
+      {isDrawerMounted ? (
         <div className="fixed inset-0 z-50">
           <button
             type="button"
             onClick={handleCloseDrawer}
-            className="absolute inset-0 bg-black/30"
+            className={`absolute inset-0 bg-black/30 transition-opacity duration-[120ms] ${
+              isDrawerOpen ? "opacity-100" : "opacity-0"
+            }`}
             aria-label="Close control center"
           />
           <aside
             ref={drawerRef}
             role="dialog"
             aria-modal="true"
-            className="absolute right-0 top-0 h-full w-[360px] border-l border-border bg-surface shadow-lg"
+            className={`absolute right-0 top-0 h-full w-[360px] border-l border-border bg-surface shadow-lg transition-transform duration-[180ms] ease-out ${
+              isDrawerOpen ? "translate-x-0" : "translate-x-full"
+            }`}
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-4">
               <div className="text-sm font-semibold text-foreground">
