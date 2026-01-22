@@ -9,7 +9,7 @@ Scope: UI structure + interaction behavior (not visual polish)
 - Minimal, hacker/IDE feel with tight density and sharp geometry.
 - Interface feels alive via iconography, hover/active/focus states, and subtle motion.
 - Default workflow: Start -> 2-col (Video | Chat).
-- Course/lesson selection is decluttered into a right-side drawer.
+- Course/lecture selection is decluttered into a right-side drawer.
 
 ## Non-goals (for now)
 
@@ -67,18 +67,18 @@ Scope: UI structure + interaction behavior (not visual polish)
 - Bottom toggles: User + Settings (toggle replaces content; tap again returns to content).
 - Settings view:
   - Theme toggle.
-  - Share + Feedback actions.
+  - Share + Feedback actions (inline cards).
 - User view: placeholder panel.
 
 ### Selection behavior
 
-- Selecting a course auto-selects the first lesson in that course.
+- Selecting a course auto-selects the first lecture in that course.
 
 ## Pane Composition (desktop)
 
 ### 2-col default (60/40)
 
-- Left: Video + compact info strip (license/source/lesson title).
+- Left: Video + compact info strip (license/source/lecture title).
 - Right: Chat.
 
 ### Pane headers

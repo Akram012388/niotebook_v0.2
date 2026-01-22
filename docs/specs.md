@@ -67,7 +67,7 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 
 - attribution
 - license label
-- source link (in an info modal)
+- source link (compact info strip in the video pane)
 - transcript ingestion (official CS50 SRT via /x/weeks/ parsing; SRT only; stored in Convex as segment-per-row; AI context only; no transcript UI; no local transcript storage)
 - ingestion cadence: deploy-only (manual re-ingest later if needed)
 
@@ -113,7 +113,7 @@ Layouts are user-selectable per session and persisted.
 ### 5.2 Visual design (opencode-inspired)
 
 - Light-first palette; dark mode optional.
-- Monospace-forward typography for “abstract terminal” feel.
+- Sans-first typography with monospace accents in code/terminal contexts.
 - Minimal chrome, strong spacing discipline, subtle separators.
 - ChatGPT web app feel: YouTube + simple code lab embedded in a clean chat‑centric interface.
 
@@ -128,8 +128,7 @@ Layouts are user-selectable per session and persisted.
 
 - Share and feedback actions live in control center settings (inline cards; app-level links only).
 - “Context affinity” in chat thread:
-  - each message shows a subtle badge: `Lesson • 12:34`
-  - on hover/focus: highlight the associated lesson in UI and show exact timestamp
+  - each message shows a subtle badge on hover: `Lesson • 12:34`
   - clicking badge seeks video to that time (non-jarring, smooth)
 
 ### 5.4 Checkpoints
@@ -213,7 +212,7 @@ Mechanism:
   - use `requestIdleCallback` + progressive fetching
   - cache artifacts via the browser cache/service worker
 
-- UX: a tiny non-blocking “Preparing runtimes…” status in the navbar (no modal, no spinner taking over the UI).
+- UX: a tiny non-blocking “Preparing runtime…” status in the code pane (no modal, no spinner taking over the UI).
 
 ### 6.4 Language support plan (v0.2)
 

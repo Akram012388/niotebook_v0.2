@@ -24,7 +24,7 @@ These override any reference UI if there’s a conflict.
 1. Light-first UI
 
 - Default theme: **light**
-- Theme toggle: **always visible** in the primary nav
+- Theme toggle: **always accessible** in the control center
 
 2. KISS surfaces
 
@@ -43,7 +43,7 @@ These override any reference UI if there’s a conflict.
 
 4. The “Sync primitive” must be visible through behavior, not UI clutter
 
-- Chat is continuously synced to lecture/time; messages show a subtle timestamp badge on hover.
+- Chat is continuously synced to lesson/time; messages show a subtle `Lesson • mm:ss` badge on hover.
 - Clicking a badge seeks video smoothly.
 - Code sync only when code exists (and/or on run / snapshot trigger).
 
@@ -78,6 +78,7 @@ This is the minimum reference pack required to implement the Phase‑1 UI shell.
   - niotebook mark (text logo, minimal)
   - Layout preset toggle (1/2/3)
   - Control center icon (drawer)
+  - User/settings controls live inside the control center
 
 ### 2.2 Chat pane (must feel like ChatGPT)
 
@@ -102,7 +103,7 @@ Primary references:
   - When user scrolls up, show a **“scroll to bottom”** affordance.
   - Streaming messages do not cause layout jumps; autoscroll only if user is at bottom.
 - Message metadata:
-  - Each user/assistant message includes a subtle badge:
+  - Each user/assistant message includes a subtle badge on hover:
     - `Lesson • mm:ss` (or `Lesson • hh:mm:ss` for long)
   - Clicking badge seeks the video smoothly.
 - Strict TA tone:
