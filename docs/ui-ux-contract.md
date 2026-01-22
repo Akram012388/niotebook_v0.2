@@ -56,13 +56,19 @@ Scope: UI structure + interaction behavior (not visual polish)
 
 ### Drawer contents (everything except layout toggle)
 
-- Course selector
-- Lesson selector
-- Account/profile
-- Theme toggle
-- Share
-- Feedback
-- Settings bucket (future)
+- Top tabs: Lectures (default) + Courses.
+- Lectures view:
+  - Search input.
+  - Lecture list rows (Lecture N + title).
+  - Selecting a lecture auto-closes the drawer.
+- Courses view:
+  - Course list rows (title + description + meta).
+  - Selecting a course switches to Lectures and auto-selects its first lecture.
+- Bottom toggles: User + Settings (toggle replaces content; tap again returns to content).
+- Settings view:
+  - Theme toggle.
+  - Share + Feedback actions.
+- User view: placeholder panel.
 
 ### Selection behavior
 
@@ -121,7 +127,7 @@ Must pass in local dev + Vercel preview + Vercel prod:
 
 - Layout toggle changes columns immediately and persists.
 - Default Start loads 2-col (Video+Info | Chat).
-- Right drawer opens/closes with overlay and focus trap; course/lesson selection works.
+- Right drawer opens/closes with overlay and focus trap; lecture selection works.
 - Video loads and plays a real CS50 lecture (no "video unavailable").
 - No player reinitialization/jank due to persistence updates.
 - Hover/focus states present and consistent.
