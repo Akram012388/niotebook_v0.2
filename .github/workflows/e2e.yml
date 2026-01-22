@@ -84,6 +84,22 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "$payload"
+      - name: Redeploy Vercel preview
+        if: ${{ env.BASE_URL && secrets.VERCEL_API_TOKEN && secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          base_url="${BASE_URL#https://}"
+          response=$(curl -sS -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}" \
+            "https://api.vercel.com/v13/deployments?projectId=${{ secrets.VERCEL_PROJECT_ID }}&limit=20")
+          deployment_id=$(python -c 'import json,os,sys; data=json.loads(sys.stdin.read()); base=os.environ.get("BASE_URL_CLEAN", ""); print(next((d.get("id", "") for d in data.get("deployments", []) if d.get("url") == base), ""))' <<< "$response")
+          if [ -z "$deployment_id" ]; then
+            echo "Deployment ID not found for $base_url"
+            exit 1
+          fi
+          curl -sS -X POST "https://api.vercel.com/v13/deployments/${deployment_id}/redeploy" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_API_TOKEN }}"
+        env:
+          BASE_URL_CLEAN: ${{ env.BASE_URL }}
       - run: bun run e2e:seed
       - run: bun ./scripts/e2eEnv.ts --github
       - run: echo "BASE_URL=${BASE_URL}?lessonId=${NEXT_PUBLIC_DEFAULT_LESSON_ID}" >> $GITHUB_ENV
