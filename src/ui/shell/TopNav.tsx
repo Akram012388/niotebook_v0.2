@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
 } from "react";
@@ -42,6 +43,8 @@ const TopNav = (): ReactElement => {
   });
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
+  const lastActiveRef = useRef<HTMLElement | null>(null);
 
   const courses = useQuery(getCoursesRef);
 
@@ -137,6 +140,7 @@ const TopNav = (): ReactElement => {
   }, []);
 
   const handleOpenDrawer = useCallback((): void => {
+    lastActiveRef.current = document.activeElement as HTMLElement | null;
     setIsDrawerOpen(true);
   }, []);
 
@@ -146,16 +150,66 @@ const TopNav = (): ReactElement => {
 
   useEffect(() => {
     if (!isDrawerOpen) {
+      if (lastActiveRef.current) {
+        lastActiveRef.current.focus();
+        lastActiveRef.current = null;
+      }
       return;
     }
+
+    const focusDrawer = (): void => {
+      const drawer = drawerRef.current;
+      if (!drawer) {
+        return;
+      }
+      const focusable = drawer.querySelectorAll<HTMLElement>(
+        "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+      );
+      const first = focusable[0];
+      first?.focus();
+    };
 
     const handleKey = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
         setIsDrawerOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const drawer = drawerRef.current;
+      if (!drawer) {
+        return;
+      }
+
+      const focusable = Array.from(
+        drawer.querySelectorAll<HTMLElement>(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+        ),
+      ).filter((element) => !element.hasAttribute("disabled"));
+
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
       }
     };
 
     window.addEventListener("keydown", handleKey);
+    window.setTimeout(focusDrawer, 0);
     return () => {
       window.removeEventListener("keydown", handleKey);
     };
@@ -190,7 +244,12 @@ const TopNav = (): ReactElement => {
             className="absolute inset-0 bg-black/30"
             aria-label="Close control center"
           />
-          <aside className="absolute right-0 top-0 h-full w-[360px] border-l border-border bg-surface shadow-lg">
+          <aside
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            className="absolute right-0 top-0 h-full w-[360px] border-l border-border bg-surface shadow-lg"
+          >
             <div className="flex items-center justify-between border-b border-border px-4 py-4">
               <div className="text-sm font-semibold text-foreground">
                 Control center
