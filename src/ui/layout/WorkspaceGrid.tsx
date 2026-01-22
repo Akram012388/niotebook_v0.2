@@ -3,11 +3,13 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useSyncExternalStore,
   useState,
   type ReactElement,
 } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowRight } from "@phosphor-icons/react";
 import { AiPane } from "../panes/AiPane";
 import { CodePane } from "../panes/CodePane";
 import { VideoPane } from "../panes/VideoPane";
@@ -75,6 +77,7 @@ const hydratePaneStore = (): void => {
 
 const WorkspaceGrid = (): ReactElement => {
   const { activePreset, setPreset } = useLayoutPreset();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const subscribe = useCallback((onStoreChange: () => void): (() => void) => {
     if (typeof window === "undefined") {
@@ -283,11 +286,42 @@ const WorkspaceGrid = (): ReactElement => {
   ]);
 
   const lessonId = searchParams.get("lessonId");
+  const defaultLessonId = useMemo((): string | null => {
+    return process.env.NEXT_PUBLIC_DEFAULT_LESSON_ID ?? null;
+  }, []);
+  const storedLessonId = isMounted
+    ? storageAdapter.getItem("niotebook.lesson")
+    : null;
+  const startLessonId = storedLessonId ?? defaultLessonId;
+
+  const handleStartLearning = useCallback((): void => {
+    if (!startLessonId) {
+      return;
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("lessonId", startLessonId);
+    router.replace(`/?${params.toString()}`);
+  }, [router, searchParams, startLessonId]);
 
   if (!lessonId) {
     return (
       <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-sm text-text-muted">
-        Select a lesson to start.
+        <div className="flex flex-col items-center gap-3">
+          <div>Select a lesson to start.</div>
+          <button
+            type="button"
+            onClick={handleStartLearning}
+            disabled={!startLessonId}
+            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition ${
+              startLessonId
+                ? "border-border bg-surface text-foreground hover:bg-surface-muted"
+                : "border-border bg-surface-muted text-text-subtle"
+            }`}
+          >
+            Start learning
+            <ArrowRight size={14} weight="bold" />
+          </button>
+        </div>
       </div>
     );
   }
