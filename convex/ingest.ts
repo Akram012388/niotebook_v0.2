@@ -83,6 +83,29 @@ const ensureIngestAllowed = async (
   }
 };
 
+const countTranscriptSegments = async (
+  ctx: MutationCtx,
+  lessonId: GenericId<"lessons">,
+): Promise<number> => {
+  let cursor: string | null = null;
+  let total = 0;
+
+  do {
+    const page = await ctx.db
+      .query("transcriptSegments")
+      .withIndex("by_lessonId_idx", (query) => query.eq("lessonId", lessonId))
+      .paginate({
+        cursor: cursor ?? null,
+        numItems: 500,
+      });
+
+    total += page.page.length;
+    cursor = page.continueCursor;
+  } while (cursor);
+
+  return total;
+};
+
 const ingestCs50x2026 = mutation({
   args: {
     course: v.object({
@@ -157,10 +180,11 @@ const ingestCs50x2026 = mutation({
         order: lesson.order,
         subtitlesUrl: lesson.subtitlesUrl,
         transcriptUrl: lesson.transcriptUrl,
-        transcriptDurationSec: lesson.transcriptDurationSec,
-        segmentCount: lesson.segmentCount,
-        ingestVersion: lesson.ingestVersion,
-        transcriptStatus: lesson.transcriptStatus,
+        transcriptStatus:
+          existingLesson?.transcriptStatus ?? lesson.transcriptStatus,
+        transcriptDurationSec: existingLesson?.transcriptDurationSec,
+        segmentCount: existingLesson?.segmentCount,
+        ingestVersion: existingLesson?.ingestVersion,
       } satisfies Omit<LessonRecord, "_id">;
 
       const lessonId = existingLesson
@@ -171,9 +195,20 @@ const ingestCs50x2026 = mutation({
         await ctx.db.patch(existingLesson._id, lessonPayload);
       }
 
-      const shouldReplaceSegments =
+      let shouldReplaceSegments =
         !existingLesson ||
         existingLesson.ingestVersion !== lesson.ingestVersion;
+
+      if (!shouldReplaceSegments && existingLesson) {
+        const expectedCount = lesson.segmentCount ?? 0;
+        const actualCount = await countTranscriptSegments(
+          ctx,
+          existingLesson._id,
+        );
+        if (actualCount !== expectedCount) {
+          shouldReplaceSegments = true;
+        }
+      }
 
       ingestMeta.push({
         lessonId,
