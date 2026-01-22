@@ -21,18 +21,14 @@ type ControlCenterDrawerProps = {
   onClose: () => void;
   courseId: string | null;
   courseOptions: CourseSummary[];
-  onCourseChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  onCourseBlur: () => void;
   lessonId: string | null;
   lessonOptions: LessonSummary[];
-  onLessonChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  showStartButton: boolean;
-  onStart: () => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
   onShare: () => void;
   onFeedback: () => void;
   onSelectLesson: (lessonId: string | null) => void;
+  onSelectCourse: (courseId: string | null) => void;
 };
 
 const ControlCenterDrawer = ({
@@ -42,18 +38,14 @@ const ControlCenterDrawer = ({
   onClose,
   courseId,
   courseOptions,
-  onCourseChange,
-  onCourseBlur,
   lessonId,
   lessonOptions,
-  onLessonChange,
-  showStartButton,
-  onStart,
   theme,
   onToggleTheme,
   onShare,
   onFeedback,
   onSelectLesson,
+  onSelectCourse,
 }: ControlCenterDrawerProps): ReactElement | null => {
   const [activeTab, setActiveTab] = useState<"lectures" | "courses">(
     "lectures",
@@ -85,6 +77,12 @@ const ControlCenterDrawer = ({
       );
     });
   }, [lectureQuery, lessonOptions]);
+
+  const sortedCourses = useMemo(() => {
+    return [...courseOptions].sort((left, right) =>
+      left.title.localeCompare(right.title),
+    );
+  }, [courseOptions]);
 
   if (!isMounted) {
     return null;
@@ -207,8 +205,48 @@ const ControlCenterDrawer = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-dashed border-border bg-surface-muted px-3 py-4 text-xs text-text-muted">
-                    Course list will appear here next.
+                  <div className="flex flex-col gap-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                      Courses
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {sortedCourses.map((course) => {
+                        const isActive = course.id === courseId;
+                        return (
+                          <button
+                            key={course.id}
+                            type="button"
+                            onClick={() => {
+                              onSelectCourse(course.id);
+                              setActiveTab("lectures");
+                              setPanelView("content");
+                            }}
+                            className={`flex flex-col gap-1 rounded-xl border px-3 py-2 text-left text-xs transition ${
+                              isActive
+                                ? "border-border bg-surface text-foreground shadow-sm"
+                                : "border-border text-text-muted hover:bg-surface-muted hover:text-foreground"
+                            }`}
+                          >
+                            <span className="text-sm text-foreground">
+                              {course.title}
+                            </span>
+                            {course.description ? (
+                              <span className="text-xs text-text-subtle">
+                                {course.description}
+                              </span>
+                            ) : null}
+                            <span className="text-[10px] uppercase tracking-[0.08em] text-text-subtle">
+                              {course.license} · {course.sourceUrl}
+                            </span>
+                          </button>
+                        );
+                      })}
+                      {sortedCourses.length === 0 ? (
+                        <div className="rounded-xl border border-dashed border-border bg-surface-muted px-3 py-4 text-xs text-text-muted">
+                          No courses available yet.
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 )
               ) : panelView === "settings" ? (
