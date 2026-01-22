@@ -63,6 +63,9 @@ const ControlCenterDrawer = ({
   const [activeSettingsCard, setActiveSettingsCard] = useState<
     "share" | "feedback" | null
   >(null);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackCategories, setFeedbackCategories] = useState<string[]>([]);
+  const [feedbackNotes, setFeedbackNotes] = useState("");
 
   const handleTabChange = (next: "lectures" | "courses"): void => {
     setActiveTab(next);
@@ -92,6 +95,17 @@ const ControlCenterDrawer = ({
       return nextState;
     });
   };
+
+  const handleResetFeedback = (): void => {
+    setFeedbackRating(0);
+    setFeedbackCategories([]);
+    setFeedbackNotes("");
+  };
+
+  const isFeedbackDirty =
+    feedbackRating > 0 ||
+    feedbackCategories.length > 0 ||
+    feedbackNotes.trim().length > 0;
 
   const filteredLectures = useMemo(() => {
     const normalized = lectureQuery.trim().toLowerCase();
@@ -419,10 +433,20 @@ const ControlCenterDrawer = ({
                             <button
                               key={`rating-${index}`}
                               type="button"
-                              className="text-text-subtle transition hover:text-foreground"
+                              onClick={() => setFeedbackRating(index + 1)}
+                              className={`transition ${
+                                index < feedbackRating
+                                  ? "text-foreground"
+                                  : "text-text-subtle hover:text-foreground"
+                              }`}
                               aria-label={`Rate ${index + 1} stars`}
                             >
-                              <Star size={16} weight="regular" />
+                              <Star
+                                size={16}
+                                weight={
+                                  index < feedbackRating ? "fill" : "regular"
+                                }
+                              />
                             </button>
                           ))}
                         </div>
@@ -442,7 +466,18 @@ const ControlCenterDrawer = ({
                             <button
                               key={label}
                               type="button"
-                              className="rounded-full border border-border bg-surface px-3 py-1 text-xs text-text-muted transition hover:bg-surface-muted hover:text-foreground"
+                              onClick={() =>
+                                setFeedbackCategories((prev) =>
+                                  prev.includes(label)
+                                    ? prev.filter((item) => item !== label)
+                                    : [...prev, label],
+                                )
+                              }
+                              className={`rounded-full border px-3 py-1 text-xs transition ${
+                                feedbackCategories.includes(label)
+                                  ? "border-foreground bg-surface text-foreground shadow-sm"
+                                  : "border-border bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
+                              }`}
                             >
                               {label}
                             </button>
@@ -454,6 +489,10 @@ const ControlCenterDrawer = ({
                           Tell us more (optional)
                         </div>
                         <textarea
+                          value={feedbackNotes}
+                          onChange={(event) =>
+                            setFeedbackNotes(event.target.value)
+                          }
                           placeholder="Share your thoughts, suggestions, or issues..."
                           className="min-h-[110px] resize-none rounded-xl border border-border bg-surface px-3 py-2 text-xs text-foreground placeholder:text-text-subtle"
                         />
@@ -461,13 +500,19 @@ const ControlCenterDrawer = ({
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
+                          onClick={handleResetFeedback}
                           className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
                         >
                           Reset
                         </button>
                         <button
                           type="button"
-                          className="rounded-full bg-foreground px-4 py-1 text-xs font-semibold text-background"
+                          disabled={!isFeedbackDirty}
+                          className={`rounded-full px-4 py-1 text-xs font-semibold transition ${
+                            isFeedbackDirty
+                              ? "bg-foreground text-background"
+                              : "bg-surface-muted text-text-subtle"
+                          }`}
                         >
                           Submit
                         </button>
