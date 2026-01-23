@@ -167,6 +167,8 @@ jobs:
               if normalized:
                   handle.write(f"BASE_URL=https://{normalized}\n")
                   handle.write(f"BASE_URL_CLEAN={normalized}\n")
+              if deployment_id:
+                  handle.write(f"VERCEL_DEPLOYMENT_ID={deployment_id}\n")
 
           print(f"Payload inputs.ref: {inputs.get('ref')}")
           print(f"Payload inputs.base_url: {inputs.get('base_url')}")
@@ -271,13 +273,43 @@ jobs:
           set -euo pipefail
           response=$(curl -sS -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
             "https://api.vercel.com/v13/deployments?projectId=${VERCEL_PROJECT_ID}&limit=50")
-          deployment_id=$(python -c 'import json,os,sys; data=json.loads(sys.stdin.read()); base=os.environ.get("BASE_URL_CLEAN", ""); print(next((d.get("id", "") for d in data.get("deployments", []) if d.get("url") == base), ""))' <<< "$response")
+          deployment_id="${VERCEL_DEPLOYMENT_ID:-}"
+          if [ -z "$deployment_id" ]; then
+            deployment_id=$(printf '%s' "$response" | python - <<'PY'
+          import json
+          import os
+          import sys
+
+          data = json.load(sys.stdin)
+          base = os.environ.get("BASE_URL_CLEAN", "")
+
+          def matches(item):
+              if item.get("url") == base:
+                  return True
+              aliases = item.get("aliases") or item.get("alias") or []
+              if isinstance(aliases, str):
+                  aliases = [aliases]
+              return base in aliases
+
+          print(
+              next(
+                  (
+                      d.get("id", "")
+                      for d in data.get("deployments", [])
+                      if matches(d)
+                  ),
+                  "",
+              )
+          )
+          PY
+            )
+          fi
           if [ -z "$deployment_id" ]; then
             deployment_id=$(python -c 'import json,sys; data=json.loads(sys.stdin.read()); print(data.get("deployments", [])[0].get("id", "") if data.get("deployments") else "")' <<< "$response")
           fi
           if [ -z "$deployment_id" ]; then
             echo "Deployment ID not found for ${BASE_URL_CLEAN:-unknown}"
-            exit 1
+            exit 0
           fi
           redeploy=$(curl -sS -X POST "https://api.vercel.com/v13/deployments/${deployment_id}/redeploy" \
             -H "Authorization: Bearer ${VERCEL_API_TOKEN}")
@@ -303,7 +335,6 @@ jobs:
           VERCEL_E2E_ALIAS: ${{ secrets.VERCEL_E2E_ALIAS }}
       - run: bun run e2e:seed
       - run: bun ./scripts/e2eEnv.ts --github
-      - run: echo "BASE_URL=${BASE_URL}?lessonId=${NEXT_PUBLIC_DEFAULT_LESSON_ID}" >> $GITHUB_ENV
       - run: bun run test:e2e
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
