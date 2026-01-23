@@ -9,7 +9,6 @@ import {
   type ReactElement,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight } from "@phosphor-icons/react";
 import { AiPane } from "../panes/AiPane";
 import { CodePane } from "../panes/CodePane";
 import { VideoPane } from "../panes/VideoPane";
@@ -294,34 +293,22 @@ const WorkspaceGrid = (): ReactElement => {
     : null;
   const startLessonId = storedLessonId ?? defaultLessonId;
 
-  const handleStartLearning = useCallback((): void => {
-    if (!startLessonId) {
+  useEffect(() => {
+    if (lessonId || !startLessonId) {
       return;
     }
+
     const params = new URLSearchParams(searchParams.toString());
     params.set("lessonId", startLessonId);
     router.replace(`/?${params.toString()}`);
-  }, [router, searchParams, startLessonId]);
+  }, [lessonId, router, searchParams, startLessonId]);
 
-  if (!lessonId) {
+  const activeLessonId = lessonId ?? startLessonId;
+
+  if (!activeLessonId) {
     return (
       <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-sm text-text-muted">
-        <div className="flex flex-col items-center gap-3">
-          <div>Select a lesson to start.</div>
-          <button
-            type="button"
-            onClick={handleStartLearning}
-            disabled={!startLessonId}
-            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition ${
-              startLessonId
-                ? "border-border bg-surface text-foreground hover:bg-surface-muted"
-                : "border-border bg-surface-muted text-text-subtle"
-            }`}
-          >
-            Start learning
-            <ArrowRight size={14} weight="bold" />
-          </button>
-        </div>
+        <div>Loading workspace...</div>
       </div>
     );
   }
@@ -334,7 +321,7 @@ const WorkspaceGrid = (): ReactElement => {
         {singlePane === "video" ? (
           <div className="flex min-w-0 flex-1">
             <VideoPane
-              lessonId={lessonId}
+              lessonId={activeLessonId}
               seekRequest={seekRequest}
               onTimeChange={handleVideoTime}
               threadId={threadId ?? undefined}
@@ -366,7 +353,7 @@ const WorkspaceGrid = (): ReactElement => {
         {singlePane === "code" ? (
           <div className="flex min-w-0 flex-1">
             <CodePane
-              lessonId={lessonId}
+              lessonId={activeLessonId}
               onSnapshot={handleSnapshot}
               headerExtras={
                 <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
@@ -402,7 +389,7 @@ const WorkspaceGrid = (): ReactElement => {
           <div className="flex-1 min-h-0">
             {leftPane === "video" ? (
               <VideoPane
-                lessonId={lessonId}
+                lessonId={activeLessonId}
                 seekRequest={seekRequest}
                 onTimeChange={handleVideoTime}
                 threadId={threadId ?? undefined}
@@ -432,7 +419,7 @@ const WorkspaceGrid = (): ReactElement => {
             ) : null}
             {leftPane === "code" ? (
               <CodePane
-                lessonId={lessonId}
+                lessonId={activeLessonId}
                 onSnapshot={handleSnapshot}
                 headerExtras={
                   <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
@@ -462,7 +449,7 @@ const WorkspaceGrid = (): ReactElement => {
           <div className="flex-1 min-h-0">
             {rightPane === "chat" ? (
               <AiPane
-                lessonId={lessonId}
+                lessonId={activeLessonId}
                 onSeek={handleSeek}
                 videoTimeSec={videoTimeSec}
                 onThreadChange={handleThreadChange}
@@ -495,7 +482,7 @@ const WorkspaceGrid = (): ReactElement => {
             ) : null}
             {rightPane === "code" ? (
               <CodePane
-                lessonId={lessonId}
+                lessonId={activeLessonId}
                 onSnapshot={handleSnapshot}
                 headerExtras={
                   <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
@@ -529,16 +516,16 @@ const WorkspaceGrid = (): ReactElement => {
   return (
     <LayoutGrid preset={effectivePreset}>
       <VideoPane
-        lessonId={lessonId}
+        lessonId={activeLessonId}
         seekRequest={seekRequest}
         onTimeChange={handleVideoTime}
         threadId={threadId ?? undefined}
         codeHash={codeHash ?? undefined}
         showInfoStrip
       />
-      <CodePane lessonId={lessonId} onSnapshot={handleSnapshot} />
+      <CodePane lessonId={activeLessonId} onSnapshot={handleSnapshot} />
       <AiPane
-        lessonId={lessonId}
+        lessonId={activeLessonId}
         onSeek={handleSeek}
         videoTimeSec={videoTimeSec}
         onThreadChange={handleThreadChange}

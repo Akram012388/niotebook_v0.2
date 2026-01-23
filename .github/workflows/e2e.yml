@@ -276,7 +276,7 @@ jobs:
             deployment_id=$(python -c 'import json,sys; data=json.loads(sys.stdin.read()); print(data.get("deployments", [])[0].get("id", "") if data.get("deployments") else "")' <<< "$response")
           fi
           if [ -z "$deployment_id" ]; then
-            echo "Deployment ID not found for ${base_url_clean}"
+            echo "Deployment ID not found for ${BASE_URL_CLEAN:-unknown}"
             exit 1
           fi
           redeploy=$(curl -sS -X POST "https://api.vercel.com/v13/deployments/${deployment_id}/redeploy" \
