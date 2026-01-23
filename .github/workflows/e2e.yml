@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BASE_URL: ${{ github.event.inputs.base_url || github.event.client_payload.deployment_url || github.event.client_payload.url || github.event.client_payload.deploymentUrl || github.event.client_payload.target_url }}
-      CHECKOUT_REF: ${{ github.event.inputs.ref || github.event.client_payload.deployment.meta.githubCommitSha || github.event.client_payload.deployment.meta.githubCommitRef || github.event.client_payload.ref || 'main' }}
+      CHECKOUT_REF: main
       CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
       CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
       NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
@@ -31,6 +31,46 @@ jobs:
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       VERCEL_E2E_ALIAS: ${{ secrets.VERCEL_E2E_ALIAS }}
     steps:
+      - name: Resolve checkout ref
+        run: |
+          python - <<'PY'
+          import json
+          import os
+
+          event_path = os.environ.get("GITHUB_EVENT_PATH")
+          with open(event_path, "r", encoding="utf-8") as handle:
+              event = json.load(handle)
+
+          def pick(*values):
+              for value in values:
+                  if value:
+                      return value
+              return None
+
+          deployment = event.get("client_payload", {}).get("deployment", {}) or {}
+          meta = deployment.get("meta", {}) or {}
+          git_source = deployment.get("gitSource", {}) or {}
+
+          ref = pick(
+              event.get("inputs", {}).get("ref"),
+              meta.get("githubCommitSha"),
+              meta.get("githubCommitRef"),
+              meta.get("gitSha"),
+              meta.get("gitRef"),
+              deployment.get("sha"),
+              git_source.get("sha"),
+              git_source.get("ref"),
+              event.get("client_payload", {}).get("ref"),
+          )
+
+          if not ref:
+              ref = os.environ.get("GITHUB_SHA") or "main"
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
+              handle.write(f"CHECKOUT_REF={ref}\n")
+
+          print(f"Resolved checkout ref: {ref}")
+          PY
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.CHECKOUT_REF }}
