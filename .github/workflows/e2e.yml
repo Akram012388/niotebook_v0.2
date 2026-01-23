@@ -52,15 +52,24 @@ jobs:
           git_source = deployment.get("gitSource", {}) or {}
 
           ref = pick(
-              event.get("inputs", {}).get("ref"),
-              meta.get("githubCommitSha"),
-              meta.get("githubCommitRef"),
-              meta.get("gitSha"),
-              meta.get("gitRef"),
-              deployment.get("sha"),
-              git_source.get("sha"),
-              git_source.get("ref"),
-              event.get("client_payload", {}).get("ref"),
+            event.get("inputs", {}).get("ref"),
+            meta.get("githubCommitSha"),
+            meta.get("githubCommitRef"),
+            meta.get("gitSha"),
+            meta.get("gitRef"),
+            deployment.get("sha"),
+            git_source.get("sha"),
+            git_source.get("ref"),
+            event.get("client_payload", {}).get("ref"),
+          )
+
+          base_url = pick(
+              event.get("inputs", {}).get("base_url"),
+              deployment.get("url"),
+              event.get("client_payload", {}).get("deployment_url"),
+              event.get("client_payload", {}).get("deploymentUrl"),
+              event.get("client_payload", {}).get("target_url"),
+              event.get("client_payload", {}).get("url"),
           )
 
           if not ref:
@@ -68,8 +77,12 @@ jobs:
 
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
               handle.write(f"CHECKOUT_REF={ref}\n")
+              if base_url:
+                  handle.write(f"BASE_URL=https://{base_url.strip().removeprefix('https://')}\n")
 
           print(f"Resolved checkout ref: {ref}")
+          if base_url:
+              print(f"Resolved base URL: {base_url}")
           PY
       - uses: actions/checkout@v4
         with:
