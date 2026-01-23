@@ -41,18 +41,20 @@ jobs:
           with open(event_path, "r", encoding="utf-8") as handle:
               event = json.load(handle)
 
+          inputs = event.get("inputs", {}) or {}
+          client_payload = event.get("client_payload", {}) or {}
+          deployment = client_payload.get("deployment", {}) or {}
           def pick(*values):
               for value in values:
                   if value:
                       return value
               return None
 
-          deployment = event.get("client_payload", {}).get("deployment", {}) or {}
           meta = deployment.get("meta", {}) or {}
           git_source = deployment.get("gitSource", {}) or {}
 
           ref = pick(
-            event.get("inputs", {}).get("ref"),
+            inputs.get("ref"),
             meta.get("githubCommitSha"),
             meta.get("githubCommitRef"),
             meta.get("gitSha"),
@@ -60,34 +62,53 @@ jobs:
             deployment.get("sha"),
             git_source.get("sha"),
             git_source.get("ref"),
-            event.get("client_payload", {}).get("ref"),
+            client_payload.get("ref"),
           )
 
           base_url = pick(
-              event.get("inputs", {}).get("base_url"),
+              inputs.get("base_url"),
               deployment.get("url"),
-              event.get("client_payload", {}).get("deployment_url"),
-              event.get("client_payload", {}).get("deploymentUrl"),
-              event.get("client_payload", {}).get("target_url"),
-              event.get("client_payload", {}).get("url"),
+              client_payload.get("deployment_url"),
+              client_payload.get("deploymentUrl"),
+              client_payload.get("target_url"),
+              client_payload.get("url"),
           )
 
           if not ref:
               ref = os.environ.get("GITHUB_SHA") or "main"
 
+          normalized = None
+          if base_url:
+              normalized = base_url.strip()
+              if normalized.startswith("http"):
+                  normalized = normalized.split("//", 1)[1]
+              normalized = normalized.strip("/")
+
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
               handle.write(f"CHECKOUT_REF={ref}\n")
-              if base_url:
-                  normalized = base_url.strip()
-                  if normalized.startswith("http"):
-                      normalized = normalized.split("//", 1)[1]
-                  normalized = normalized.strip("/")
+              if normalized:
                   handle.write(f"BASE_URL=https://{normalized}\n")
                   handle.write(f"BASE_URL_CLEAN={normalized}\n")
 
+          print(f"Payload inputs.ref: {inputs.get('ref')}")
+          print(f"Payload inputs.base_url: {inputs.get('base_url')}")
+          print(f"Payload client_payload.ref: {client_payload.get('ref')}")
+          print(f"Payload client_payload.deployment_url: {client_payload.get('deployment_url')}")
+          print(f"Payload client_payload.deploymentUrl: {client_payload.get('deploymentUrl')}")
+          print(f"Payload client_payload.target_url: {client_payload.get('target_url')}")
+          print(f"Payload client_payload.url: {client_payload.get('url')}")
+          print(f"Payload deployment.url: {deployment.get('url')}")
+          print(f"Payload meta.githubCommitSha: {meta.get('githubCommitSha')}")
+          print(f"Payload meta.githubCommitRef: {meta.get('githubCommitRef')}")
+          print(f"Payload meta.gitSha: {meta.get('gitSha')}")
+          print(f"Payload meta.gitRef: {meta.get('gitRef')}")
+          print(f"Payload gitSource.sha: {git_source.get('sha')}")
+          print(f"Payload gitSource.ref: {git_source.get('ref')}")
           print(f"Resolved checkout ref: {ref}")
           if base_url:
               print(f"Resolved base URL: {base_url}")
+          if normalized:
+              print(f"Resolved base URL clean: {normalized}")
           PY
       - uses: actions/checkout@v4
         with:
@@ -100,7 +121,9 @@ jobs:
       - name: E2E diagnostics
         run: |
           echo "Trigger: ${{ github.event_name }}"
+          echo "Resolved CHECKOUT_REF: ${{ env.CHECKOUT_REF }}"
           echo "Resolved BASE_URL: ${{ env.BASE_URL }}"
+          echo "Resolved BASE_URL_CLEAN: ${{ env.BASE_URL_CLEAN }}"
       - name: Validate BASE_URL
         run: |
           if [ -z "${BASE_URL}" ]; then
