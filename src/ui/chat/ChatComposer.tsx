@@ -1,5 +1,6 @@
 "use client";
 
+import { PaperPlaneRight } from "@phosphor-icons/react";
 import {
   useCallback,
   useEffect,
@@ -60,8 +61,10 @@ const ChatComposer = ({
     [handleSend],
   );
 
+  const isReady = value.trim().length > 0;
+
   return (
-    <div className="flex items-end gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm">
+    <div className="flex items-end gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
       <textarea
         ref={textareaRef}
         rows={1}
@@ -69,15 +72,20 @@ const ChatComposer = ({
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Ask about the lesson..."
-        className="min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto bg-transparent text-sm text-foreground outline-none placeholder:text-text-subtle"
+        className="chat-input min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto border-0 bg-transparent text-sm text-foreground outline-none placeholder:text-text-subtle focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0"
       />
       <button
         type="button"
         onClick={handleSend}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground"
+        disabled={!isReady}
+        className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold transition ${
+          isReady
+            ? "border-foreground bg-foreground text-background hover:opacity-90"
+            : "border-border bg-surface-muted text-text-subtle"
+        }`}
         aria-label="Send message"
       >
-        ➜
+        <PaperPlaneRight size={14} weight="fill" />
       </button>
     </div>
   );

@@ -3,15 +3,21 @@
 **What’s done**
 
 - Phase 2 complete: lesson routing, transcript context, resume snapshots
+- Phase 3 complete: YouTube embed + authoritative video time flow
+- Transcript ingestion pipeline (CS50x 2026) and control center redesign
 - Convex schema and core APIs (courses, lessons, transcripts, chat, resume)
 - Security foundations (invite TTL, rate limits, error taxonomy)
 - CI baseline (lint, typecheck, unit tests, E2E wiring)
 
 **What’s next**
 
-- Phase 3: YouTube embed + authoritative video time flow
-- Transcript ingestion job (CS50x 2026)
 - AI route integration (Gemini primary, Groq fallback)
+- Error-state banner pass (video/chat) after phase stabilization
+
+## UI/UX Contract
+
+The binding UI/UX contract lives in `docs/ui-ux-contract.md`. Builders must
+follow it for layout, navigation, and interaction behavior.
 
 # Dev/Test/Prod Workflow (KISS)
 

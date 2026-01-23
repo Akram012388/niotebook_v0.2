@@ -25,9 +25,14 @@ import { RUNTIME_TIMEOUT_MS } from "../../infra/runtime/runtimeConstants";
 type CodePaneProps = {
   lessonId: string;
   onSnapshot?: (snapshot: CodeSnapshotSummary) => void;
+  headerExtras?: ReactElement;
 };
 
-const CodePane = ({ lessonId, onSnapshot }: CodePaneProps): ReactElement => {
+const CodePane = ({
+  lessonId,
+  onSnapshot,
+  headerExtras,
+}: CodePaneProps): ReactElement => {
   const [language, setLanguage] = useState<RuntimeLanguage>("js");
   const [runtimeState, setRuntimeState] = useState<RuntimeState>({
     language: "js",
@@ -182,7 +187,7 @@ const CodePane = ({ lessonId, onSnapshot }: CodePaneProps): ReactElement => {
   }, []);
 
   return (
-    <section className="flex h-full flex-col rounded-2xl border border-border bg-surface">
+    <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-border bg-surface">
       <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
         <div>
           <p className="text-sm font-semibold text-foreground">
@@ -191,40 +196,55 @@ const CodePane = ({ lessonId, onSnapshot }: CodePaneProps): ReactElement => {
           <p className="text-xs text-text-muted">Editor + output scaffold</p>
         </div>
         <div className="flex items-center gap-2 text-xs">
+          {headerExtras}
           <button
             type="button"
             onClick={handleRun}
-            className="rounded-full border border-border px-3 py-1 text-text-muted"
+            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
           >
             Run
           </button>
           <button
             type="button"
             onClick={handleStop}
-            className="rounded-full border border-border px-3 py-1 text-text-muted"
+            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
           >
             Stop
           </button>
           <button
             type="button"
             onClick={handleClear}
-            className="rounded-full border border-border px-3 py-1 text-text-muted"
+            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
           >
             Clear
           </button>
         </div>
       </header>
-      <div className="flex flex-1 flex-col gap-4 p-4">
-        <CodeEditor
-          lessonId={lessonId}
-          onLanguageChange={handleLanguageChange}
-          onSnapshot={handleSnapshot}
-        />
-        <div className="flex items-center justify-between">
-          <RuntimeStatus state={runtimeState} />
+      <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
+        <div className="flex min-h-0 flex-[4] flex-col">
+          <CodeEditor
+            lessonId={lessonId}
+            onLanguageChange={handleLanguageChange}
+            onSnapshot={handleSnapshot}
+          />
         </div>
-        <OutputPanel output={runtimeOutput} />
-        <div id="niotebook-runtime-frame" className="min-h-[180px]" />
+        <div className="flex min-h-0 flex-[1] flex-col rounded-lg border border-border bg-black text-slate-100 dark:bg-slate-50 dark:text-slate-900">
+          <div className="px-3 pt-3">
+            <RuntimeStatus
+              state={runtimeState}
+              className="text-slate-300 dark:text-slate-600"
+            />
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 pb-3 pt-2">
+            <OutputPanel output={runtimeOutput} variant="inline" />
+            {runtimeState.status === "error" ? (
+              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+                {runtimeState.message ?? "Runtime error"}
+              </div>
+            ) : null}
+            <div id="niotebook-runtime-frame" className="min-h-[120px]" />
+          </div>
+        </div>
       </div>
     </section>
   );

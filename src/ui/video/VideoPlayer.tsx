@@ -21,27 +21,33 @@ import {
 
 type VideoPlayerProps = {
   videoId: string;
-  initialTimeSec?: number;
+  initialTimeSec?: number | null;
   seekToSec?: number | null;
+  seekToken?: number;
   onTimeSample?: (timeSec: number) => void;
   onSeek?: (timeSec: number) => void;
   onPlayState?: (state: VideoPlaybackState) => void;
+  showControls?: boolean;
 };
 
 const SAMPLE_INTERVAL_SEC = 3;
 
 const VideoPlayer = ({
   videoId,
-  initialTimeSec = 0,
+  initialTimeSec = null,
   seekToSec,
+  seekToken,
   onTimeSample,
   onSeek,
   onPlayState,
+  showControls = true,
 }: VideoPlayerProps): ReactElement => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<YouTubePlayerInstance | null>(null);
-  const [currentTimeSec, setCurrentTimeSec] = useState(initialTimeSec);
+  const resolvedInitialTimeSec = initialTimeSec ?? 0;
+  const [currentTimeSec, setCurrentTimeSec] = useState(resolvedInitialTimeSec);
   const lastSampleRef = useRef<number | null>(null);
+  const didApplyInitialSeekRef = useRef(false);
   const [playState, setPlayState] = useState<VideoPlaybackState>("paused");
   const [statusMessage, setStatusMessage] = useState<string>(
     "Initializing player...",
@@ -71,16 +77,41 @@ const VideoPlayer = ({
     [onTimeSample],
   );
 
-  useEffect((): void => {
+  const updateCurrentTimeRef = useRef(updateCurrentTime);
+  const onSeekRef = useRef(onSeek);
+  const initialTimeRef = useRef<number | null>(initialTimeSec ?? null);
+
+  useEffect(() => {
+    updateCurrentTimeRef.current = updateCurrentTime;
+  }, [updateCurrentTime]);
+
+  useEffect(() => {
+    onSeekRef.current = onSeek;
+  }, [onSeek]);
+
+  useEffect(() => {
+    initialTimeRef.current =
+      initialTimeSec === null || initialTimeSec === undefined
+        ? null
+        : initialTimeSec;
+  }, [initialTimeSec]);
+
+  const applyInitialSeek = useCallback((nextTime: number): void => {
     if (!playerRef.current) {
       return;
     }
 
-    const nextTime = clampVideoTime(initialTimeSec);
-    playerRef.current.seekTo(nextTime, true);
+    if (didApplyInitialSeekRef.current) {
+      return;
+    }
+
+    const nextSec = clampVideoTime(nextTime);
+    playerRef.current.seekTo(nextSec, true);
     lastSampleRef.current = null;
-    onSeek?.(nextTime);
-  }, [initialTimeSec, onSeek]);
+    updateCurrentTimeRef.current(nextSec);
+    onSeekRef.current?.(nextSec);
+    didApplyInitialSeekRef.current = true;
+  }, []);
 
   useEffect((): void => {
     onPlayState?.(playState);
@@ -88,6 +119,8 @@ const VideoPlayer = ({
 
   useEffect(() => {
     let cancelled = false;
+
+    didApplyInitialSeekRef.current = false;
 
     const setupPlayer = async (): Promise<void> => {
       if (!containerRef.current) {
@@ -115,12 +148,9 @@ const VideoPlayer = ({
             onReady: (event) => {
               playerRef.current = event.target;
               setStatusMessage("Ready");
-              if (initialTimeSec > 0) {
-                event.target.seekTo(initialTimeSec, true);
+              if (typeof initialTimeRef.current === "number") {
+                applyInitialSeek(initialTimeRef.current);
               }
-              lastSampleRef.current = null;
-              updateCurrentTime(event.target.getCurrentTime());
-              onSeek?.(event.target.getCurrentTime());
             },
             onStateChange: (event: YouTubePlayerStateEvent) => {
               const state = api.PlayerState;
@@ -130,14 +160,14 @@ const VideoPlayer = ({
               if (event.data === state.PAUSED) {
                 setPlayState("paused");
                 const nextTime = event.target.getCurrentTime();
-                updateCurrentTime(nextTime);
-                onSeek?.(nextTime);
+                updateCurrentTimeRef.current(nextTime);
+                onSeekRef.current?.(nextTime);
               }
               if (event.data === state.ENDED) {
                 setPlayState("paused");
                 const nextTime = event.target.getCurrentTime();
-                updateCurrentTime(nextTime);
-                onSeek?.(nextTime);
+                updateCurrentTimeRef.current(nextTime);
+                onSeekRef.current?.(nextTime);
               }
             },
           },
@@ -160,7 +190,13 @@ const VideoPlayer = ({
       playerRef.current?.destroy();
       playerRef.current = null;
     };
-  }, [initialTimeSec, onSeek, updateCurrentTime, videoId]);
+  }, [applyInitialSeek, videoId]);
+
+  useEffect(() => {
+    if (typeof initialTimeSec === "number") {
+      applyInitialSeek(initialTimeSec);
+    }
+  }, [applyInitialSeek, initialTimeSec]);
 
   useEffect(() => {
     if (seekToSec === null || seekToSec === undefined) {
@@ -174,8 +210,8 @@ const VideoPlayer = ({
     const nextTime = clampVideoTime(seekToSec);
     playerRef.current.seekTo(nextTime, true);
     lastSampleRef.current = null;
-    onSeek?.(nextTime);
-  }, [onSeek, seekToSec]);
+    onSeekRef.current?.(nextTime);
+  }, [seekToSec, seekToken]);
 
   useEffect(() => {
     if (playState !== "playing") {
@@ -222,8 +258,8 @@ const VideoPlayer = ({
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-black">
+    <div className="flex w-full flex-col gap-4">
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-black">
         <div ref={containerRef} className="h-full w-full" />
         <div className="pointer-events-none absolute inset-x-3 top-3 flex items-center justify-between text-[11px] text-white/80">
           <span>{playState === "playing" ? "Playing" : "Paused"}</span>
@@ -233,40 +269,42 @@ const VideoPlayer = ({
           {statusMessage}
         </div>
       </div>
-      <div className="flex items-center justify-between text-xs text-text-muted">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handlePlay}
-            className="rounded-full border border-border px-3 py-1"
-          >
-            Play
-          </button>
-          <button
-            type="button"
-            onClick={handlePause}
-            className="rounded-full border border-border px-3 py-1"
-          >
-            Pause
-          </button>
+      {showControls ? (
+        <div className="flex items-center justify-between text-xs text-text-muted">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePlay}
+              className="rounded-full border border-border px-3 py-1"
+            >
+              Play
+            </button>
+            <button
+              type="button"
+              onClick={handlePause}
+              className="rounded-full border border-border px-3 py-1"
+            >
+              Pause
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleSeekDelta(-10)}
+              className="rounded-full border border-border px-3 py-1"
+            >
+              -10s
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSeekDelta(10)}
+              className="rounded-full border border-border px-3 py-1"
+            >
+              +10s
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => handleSeekDelta(-10)}
-            className="rounded-full border border-border px-3 py-1"
-          >
-            -10s
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSeekDelta(10)}
-            className="rounded-full border border-border px-3 py-1"
-          >
-            +10s
-          </button>
-        </div>
-      </div>
+      ) : null}
     </div>
   );
 };

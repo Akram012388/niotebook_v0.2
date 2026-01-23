@@ -18,14 +18,181 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BASE_URL: ${{ github.event.inputs.base_url || github.event.client_payload.deployment_url || github.event.client_payload.url || github.event.client_payload.deploymentUrl || github.event.client_payload.target_url }}
-      CHECKOUT_REF: ${{ github.event.inputs.ref || github.event.client_payload.ref || 'main' }}
+      CHECKOUT_REF: main
       CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
       CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
       NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
+      NIOTEBOOK_E2E_VIDEO_ID: ${{ secrets.NIOTEBOOK_E2E_VIDEO_ID }}
       CONVEX_PREVIEW_NAME: e2e
+      E2E_USE_WEBSERVER: "false"
       NIOTEBOOK_E2E_SEED_PATH: .e2e-seed.json
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_E2E_ALIAS: ${{ secrets.VERCEL_E2E_ALIAS }}
     steps:
+      - name: Resolve checkout ref
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          event_path = os.environ.get("GITHUB_EVENT_PATH")
+          with open(event_path, "r", encoding="utf-8") as handle:
+              event = json.load(handle)
+
+          inputs = event.get("inputs", {}) or {}
+          client_payload = event.get("client_payload", {}) or {}
+          deployment = client_payload.get("deployment", {}) or {}
+
+          def pick(*values):
+              for value in values:
+                  if value:
+                      return value
+              return None
+
+          meta = deployment.get("meta", {}) or {}
+          git_source = deployment.get("gitSource", {}) or {}
+
+          def resolve_ref(source):
+              if not isinstance(source, dict):
+                  return None
+              meta = source.get("meta", {}) or {}
+              git_source = source.get("gitSource", {}) or {}
+              return pick(
+                meta.get("githubCommitSha"),
+                meta.get("githubCommitRef"),
+                meta.get("gitSha"),
+                meta.get("gitRef"),
+                source.get("sha"),
+                git_source.get("sha"),
+                git_source.get("ref"),
+              )
+
+          ref = pick(
+            inputs.get("ref"),
+            meta.get("githubCommitSha"),
+            meta.get("githubCommitRef"),
+            meta.get("gitSha"),
+            meta.get("gitRef"),
+            deployment.get("sha"),
+            git_source.get("sha"),
+            git_source.get("ref"),
+            client_payload.get("ref"),
+          )
+
+          base_url = pick(
+              inputs.get("base_url"),
+              deployment.get("url"),
+              client_payload.get("deployment_url"),
+              client_payload.get("deploymentUrl"),
+              client_payload.get("target_url"),
+              client_payload.get("url"),
+          )
+
+          def normalize_url(value):
+              if not value:
+                  return None
+              normalized = value.strip()
+              if normalized.startswith("http"):
+                  normalized = normalized.split("//", 1)[1]
+              normalized = normalized.strip("/")
+              return normalized or None
+
+          normalized = normalize_url(base_url)
+          deployment_id = pick(
+              deployment.get("id"),
+              client_payload.get("deploymentId"),
+              client_payload.get("deployment_id"),
+          )
+          token = os.environ.get("VERCEL_API_TOKEN")
+          project_id = os.environ.get("VERCEL_PROJECT_ID")
+          api_source = None
+
+          def fetch_json(url):
+              if not token:
+                  return None
+              req = urllib.request.Request(
+                  url,
+                  headers={"Authorization": f"Bearer {token}"},
+              )
+              with urllib.request.urlopen(req) as response:
+                  return json.load(response)
+
+          if deployment_id and token:
+              detail = fetch_json(
+                  f"https://api.vercel.com/v13/deployments/{deployment_id}"
+              )
+              if detail:
+                  api_source = "deployment"
+                  ref = ref or resolve_ref(detail)
+                  if not base_url and detail.get("url"):
+                      base_url = detail.get("url")
+                      normalized = normalize_url(base_url)
+
+          if (not ref or not normalized) and token and project_id:
+              list_data = fetch_json(
+                  f"https://api.vercel.com/v13/deployments?projectId={project_id}&limit=50"
+              )
+              deployments = list_data.get("deployments", []) if list_data else []
+              matched = None
+              if deployment_id:
+                  matched = next(
+                      (item for item in deployments if item.get("id") == deployment_id),
+                      None,
+                  )
+              if not matched and normalized:
+                  matched = next(
+                      (item for item in deployments if item.get("url") == normalized),
+                      None,
+                  )
+              if matched:
+                  api_source = api_source or "deployments"
+                  ref = ref or resolve_ref(matched)
+                  if not base_url and matched.get("url"):
+                      base_url = matched.get("url")
+                      normalized = normalize_url(base_url)
+
+          if not ref and os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
+              ref = os.environ.get("GITHUB_SHA")
+
+          if not ref:
+              raise SystemExit(
+                  "Unable to resolve git ref from payload or Vercel API."
+              )
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
+              handle.write(f"CHECKOUT_REF={ref}\n")
+              if normalized:
+                  handle.write(f"BASE_URL=https://{normalized}\n")
+                  handle.write(f"BASE_URL_CLEAN={normalized}\n")
+              if deployment_id:
+                  handle.write(f"VERCEL_DEPLOYMENT_ID={deployment_id}\n")
+
+          print(f"Payload inputs.ref: {inputs.get('ref')}")
+          print(f"Payload inputs.base_url: {inputs.get('base_url')}")
+          print(f"Payload client_payload.ref: {client_payload.get('ref')}")
+          print(f"Payload client_payload.deployment_url: {client_payload.get('deployment_url')}")
+          print(f"Payload client_payload.deploymentUrl: {client_payload.get('deploymentUrl')}")
+          print(f"Payload client_payload.target_url: {client_payload.get('target_url')}")
+          print(f"Payload client_payload.url: {client_payload.get('url')}")
+          print(f"Payload deployment.url: {deployment.get('url')}")
+          print(f"Payload deployment.id: {deployment_id}")
+          print(f"Payload meta.githubCommitSha: {meta.get('githubCommitSha')}")
+          print(f"Payload meta.githubCommitRef: {meta.get('githubCommitRef')}")
+          print(f"Payload meta.gitSha: {meta.get('gitSha')}")
+          print(f"Payload meta.gitRef: {meta.get('gitRef')}")
+          print(f"Payload gitSource.sha: {git_source.get('sha')}")
+          print(f"Payload gitSource.ref: {git_source.get('ref')}")
+          print(f"Resolved checkout ref: {ref}")
+          if base_url:
+              print(f"Resolved base URL: {base_url}")
+          if normalized:
+              print(f"Resolved base URL clean: {normalized}")
+          if api_source:
+              print(f"Resolved via Vercel API: {api_source}")
+          PY
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.CHECKOUT_REF }}
@@ -37,19 +204,149 @@ jobs:
       - name: E2E diagnostics
         run: |
           echo "Trigger: ${{ github.event_name }}"
+          echo "Resolved CHECKOUT_REF: ${{ env.CHECKOUT_REF }}"
           echo "Resolved BASE_URL: ${{ env.BASE_URL }}"
+          echo "Resolved BASE_URL_CLEAN: ${{ env.BASE_URL_CLEAN }}"
       - name: Validate BASE_URL
         run: |
           if [ -z "${BASE_URL}" ]; then
             echo "BASE_URL is empty. Provide base_url or ensure repository_dispatch payload includes a deployment URL."
             exit 1
           fi
-      - run: bun run e2e:convex:push
+      - name: Deploy Convex preview
+        run: |
+          set -euo pipefail
+          output=$(bun run e2e:convex:push 2>&1)
+          echo "$output"
+          export CONVEX_DEPLOY_OUTPUT="$output"
+          convex_url=$(python - <<'PY'
+          import os, re
+          output = os.environ.get("CONVEX_DEPLOY_OUTPUT", "")
+          match = re.search(r"https://[a-z0-9-]+\.convex\.cloud", output)
+          print(match.group(0) if match else "")
+          PY
+          )
+          if [ -z "$convex_url" ]; then
+            echo "Convex preview URL not found in deploy output"
+            exit 1
+          fi
+          echo "E2E_CONVEX_URL=$convex_url" >> $GITHUB_ENV
+      - name: Update Vercel preview env
+        if: ${{ env.E2E_CONVEX_URL && env.VERCEL_API_TOKEN && env.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          payload=$(cat <<JSON
+          {"key":"NEXT_PUBLIC_CONVEX_URL","value":"${E2E_CONVEX_URL}","type":"encrypted","target":["preview"]}
+          JSON
+          )
+          curl -sS -X POST "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/env?upsert=true" \
+            -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
+          payload=$(cat <<JSON
+          {"key":"CONVEX_DEPLOYMENT","value":"${CONVEX_PREVIEW_NAME}","type":"encrypted","target":["preview"]}
+          JSON
+          )
+          curl -sS -X POST "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/env?upsert=true" \
+            -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
+          payload=$(cat <<JSON
+          {"key":"NIOTEBOOK_E2E_PREVIEW","value":"true","type":"encrypted","target":["preview"]}
+          JSON
+          )
+          curl -sS -X POST "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/env?upsert=true" \
+            -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
+          payload=$(cat <<JSON
+          {"key":"NIOTEBOOK_DEV_AUTH_BYPASS","value":"true","type":"encrypted","target":["preview"]}
+          JSON
+          )
+          curl -sS -X POST "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/env?upsert=true" \
+            -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
+      - name: Redeploy Vercel preview
+        if: ${{ env.BASE_URL && env.VERCEL_API_TOKEN && env.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          response=$(curl -sS -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+            "https://api.vercel.com/v13/deployments?projectId=${VERCEL_PROJECT_ID}&limit=50")
+          if [ -z "$response" ]; then
+            echo "Vercel deployments response was empty; skipping redeploy."
+            exit 0
+          fi
+          deployment_id="${VERCEL_DEPLOYMENT_ID:-}"
+          if [ -z "$deployment_id" ]; then
+            deployment_id=$(printf '%s' "$response" | python - <<'PY'
+          import json
+          import os
+          import sys
+
+          try:
+              data = json.load(sys.stdin)
+          except json.JSONDecodeError:
+              print("")
+              raise SystemExit(0)
+
+          base = os.environ.get("BASE_URL_CLEAN", "")
+
+          def matches(item):
+              if item.get("url") == base:
+                  return True
+              aliases = item.get("aliases") or item.get("alias") or []
+              if isinstance(aliases, str):
+                  aliases = [aliases]
+              return base in aliases
+
+          print(
+              next(
+                  (
+                      d.get("id", "")
+                      for d in data.get("deployments", [])
+                      if matches(d)
+                  ),
+                  "",
+              )
+          )
+          PY
+            )
+          fi
+          if [ -z "$deployment_id" ]; then
+            deployment_id=$(python -c 'import json,sys; data=json.loads(sys.stdin.read()); print(data.get("deployments", [])[0].get("id", "") if data.get("deployments") else "")' <<< "$response")
+          fi
+          if [ -z "$deployment_id" ]; then
+            echo "Deployment ID not found for ${BASE_URL_CLEAN:-unknown}"
+            exit 0
+          fi
+          redeploy=$(curl -sS -X POST "https://api.vercel.com/v13/deployments/${deployment_id}/redeploy" \
+            -H "Authorization: Bearer ${VERCEL_API_TOKEN}")
+          new_url=$(python -c 'import json,sys; data=json.loads(sys.stdin.read() or "{}"); print(data.get("url", ""))' <<< "$redeploy")
+          new_id=$(python -c 'import json,sys; data=json.loads(sys.stdin.read() or "{}"); print(data.get("id", ""))' <<< "$redeploy")
+          if [ -z "$new_url" ] || [ -z "$new_id" ]; then
+            echo "Redeploy response missing url or id"
+            echo "$redeploy"
+            exit 1
+          fi
+          if [ -n "${VERCEL_E2E_ALIAS:-}" ]; then
+            alias_payload=$(printf '{"alias":"%s"}' "$VERCEL_E2E_ALIAS")
+            curl -sS -X POST "https://api.vercel.com/v13/deployments/${new_id}/aliases" \
+              -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "$alias_payload"
+            echo "BASE_URL=https://${VERCEL_E2E_ALIAS}" >> $GITHUB_ENV
+          else
+            echo "BASE_URL=https://${new_url}" >> $GITHUB_ENV
+          fi
+        env:
+          BASE_URL_CLEAN: ${{ env.BASE_URL_CLEAN }}
+          VERCEL_E2E_ALIAS: ${{ secrets.VERCEL_E2E_ALIAS }}
       - run: bun run e2e:seed
       - run: bun ./scripts/e2eEnv.ts --github
       - run: bun run test:e2e
-      - if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
         with:
           name: playwright-results
           path: |

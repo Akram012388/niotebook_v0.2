@@ -19,6 +19,7 @@
     "test:e2e:local": "playwright install --with-deps && playwright test",
     "e2e:convex:push": "convex deploy --preview-create e2e",
     "e2e:seed": "bun ./scripts/e2eSeed.ts",
+    "ingest:cs50x": "bun ./scripts/ingestCs50x2026.ts",
     "check:any": "rg --hidden --no-ignore-vcs '\\bany\\b' src convex tests --glob '!convex/_generated/**' && echo 'error: any is forbidden in src/convex/tests' && exit 1 || exit 0",
     "check:unknown": "rg --hidden --no-ignore-vcs '\\bunknown\\b' src/domain && echo 'error: unknown is forbidden in src/domain' && exit 1 || exit 0",
     "format": "prettier --write .",
@@ -26,6 +27,7 @@
     "prepare": "lefthook install"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@sentry/nextjs": "^10.34.0",
     "convex": "^1.31.4",
     "next": "16.1.2",

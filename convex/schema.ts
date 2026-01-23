@@ -8,6 +8,7 @@ const schema = defineSchema({
     description: v.optional(v.string()),
     license: v.string(),
     sourceUrl: v.string(),
+    youtubePlaylistUrl: v.optional(v.string()),
   }),
   lessons: defineTable({
     courseId: v.id("courses"),

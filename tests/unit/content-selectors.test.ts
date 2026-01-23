@@ -16,6 +16,7 @@ describe("content selectors", (): void => {
         description: "Second",
         license: "CC",
         sourceUrl: "https://example.com/b",
+        youtubePlaylistUrl: "https://example.com/b/playlist",
       },
       {
         id: "course-a" as CourseSummary["id"],
@@ -23,6 +24,7 @@ describe("content selectors", (): void => {
         title: "A Course",
         license: "CC",
         sourceUrl: "https://example.com/a",
+        youtubePlaylistUrl: "https://example.com/a/playlist",
       },
     ];
 

@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useSyncExternalStore,
   type ReactElement,
@@ -20,6 +21,33 @@ type LayoutPresetState = {
 
 const STORAGE_KEY = "niotebook.layout";
 
+const presetListeners = new Set<() => void>();
+let presetSnapshot: LayoutPreset = "split";
+
+const readPreset = (): LayoutPreset => {
+  const stored = storageAdapter.getItem(STORAGE_KEY);
+
+  if (stored === "single" || stored === "split" || stored === "triple") {
+    return stored;
+  }
+
+  return "split";
+};
+
+const notifyPreset = (): void => {
+  for (const listener of presetListeners) {
+    listener();
+  }
+};
+
+const hydratePreset = (): void => {
+  const stored = readPreset();
+  if (stored !== presetSnapshot) {
+    presetSnapshot = stored;
+    notifyPreset();
+  }
+};
+
 const LayoutPresetContext = createContext<LayoutPresetState | null>(null);
 
 const LayoutPresetProvider = ({
@@ -27,24 +55,51 @@ const LayoutPresetProvider = ({
 }: {
   children: ReactNode;
 }): ReactElement => {
-  const getSnapshot = useCallback((): LayoutPreset => {
-    const stored = storageAdapter.getItem(STORAGE_KEY);
-
-    if (stored === "single" || stored === "split" || stored === "triple") {
-      return stored;
+  const subscribe = useCallback((onStoreChange: () => void): (() => void) => {
+    if (typeof window === "undefined") {
+      return () => undefined;
     }
 
-    return "split";
+    presetListeners.add(onStoreChange);
+
+    const handleStorage = (event: StorageEvent): void => {
+      if (event.key !== STORAGE_KEY) {
+        return;
+      }
+
+      const stored = readPreset();
+      if (stored !== presetSnapshot) {
+        presetSnapshot = stored;
+        notifyPreset();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      presetListeners.delete(onStoreChange);
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   const activePreset = useSyncExternalStore<LayoutPreset>(
-    () => () => undefined,
-    getSnapshot,
+    subscribe,
+    (): LayoutPreset => presetSnapshot,
     (): LayoutPreset => "split",
   );
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    hydratePreset();
+  }, []);
+
   const setPreset = useCallback((preset: LayoutPreset): void => {
+    presetSnapshot = preset;
     storageAdapter.setItem(STORAGE_KEY, preset);
+    notifyPreset();
   }, []);
 
   const value = useMemo(

@@ -44,7 +44,7 @@ Define baseline failure modes, degradation paths, and security rules for v0.2.
 ### Boundary validation (no any/unknown)
 
 - All external inputs are validated at the infra boundary before reaching domain logic.
-- Use Zod as the canonical schema validator for v0.2.
+- Use Convex validators plus lightweight guards; schema libraries like Zod are optional (not required in v0.2).
 - Invalid payloads fail fast with safe errors; no raw data persists.
 
 ### Data privacy

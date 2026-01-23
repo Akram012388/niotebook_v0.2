@@ -7,7 +7,7 @@ export default function Home(): ReactElement {
     <AppShell>
       <Suspense
         fallback={
-          <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-dashed border-border bg-surface-muted text-sm text-text-muted">
+          <div className="flex min-h-[320px] items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-sm text-text-muted">
             Loading workspace...
           </div>
         }

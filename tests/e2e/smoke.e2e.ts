@@ -24,8 +24,8 @@ test("workspace shell renders", async ({ page }): Promise<void> => {
 
   try {
     await expect(page.locator("main")).toBeVisible();
-    await expect(page.getByText("Code workspace")).toBeVisible();
     await expect(page.getByText("Lesson video")).toBeVisible();
+    await expect(page.getByText("Assistant")).toBeVisible();
   } catch (error) {
     await captureDiagnostics(page);
     throw error;

@@ -9,7 +9,7 @@ import {
 import { useQuery } from "convex/react";
 import { VideoPlayer } from "../video/VideoPlayer";
 import { useVideoFrame } from "../video/useVideoFrame";
-import { getLessonRef } from "../content/convexContent";
+import { getCoursesRef, getLessonRef } from "../content/convexContent";
 
 type VideoSeekRequest = {
   timeSec: number;
@@ -22,6 +22,8 @@ type VideoPaneProps = {
   codeHash?: string;
   threadId?: string;
   onTimeChange?: (timeSec: number) => void;
+  headerExtras?: ReactElement;
+  showInfoStrip?: boolean;
 };
 
 const formatTimestamp = (timestampSec: number): string => {
@@ -44,15 +46,62 @@ const VideoPane = ({
   codeHash,
   threadId,
   onTimeChange,
+  headerExtras,
+  showInfoStrip = false,
 }: VideoPaneProps): ReactElement => {
   const lesson = useQuery(getLessonRef, { lessonId });
-  const { frame, updateFrame } = useVideoFrame({
+  const courses = useQuery(getCoursesRef, showInfoStrip ? {} : "skip");
+  const { frame, remoteFrame, updateFrame } = useVideoFrame({
     lessonId,
     codeHash,
     threadId,
   });
 
-  const initialTimeSec = frame?.videoTimeSec ?? 0;
+  const course = useMemo(() => {
+    if (!lesson || !courses) {
+      return null;
+    }
+
+    return courses.find((item) => item.id === lesson.courseId) ?? null;
+  }, [courses, lesson]);
+
+  const sourceLabel = (() => {
+    if (!course?.sourceUrl) {
+      return null;
+    }
+
+    try {
+      const url = new URL(course.sourceUrl);
+      const trimmedPath = url.pathname.replace(/\/$/, "");
+      return `${url.hostname}${trimmedPath}`;
+    } catch {
+      return course.sourceUrl;
+    }
+  })();
+
+  const infoItems = (() => {
+    const items: Array<{ label: string; value: string; href?: string }> = [];
+
+    if (lesson?.title) {
+      items.push({ label: "Lecture", value: lesson.title });
+    }
+
+    if (sourceLabel) {
+      items.push({
+        label: "Source",
+        value: sourceLabel,
+        href: course?.sourceUrl,
+      });
+    }
+
+    if (course?.license) {
+      items.push({ label: "License", value: course.license });
+    }
+
+    return items;
+  })();
+
+  const initialTimeSec = remoteFrame?.videoTimeSec ?? null;
   const lastSeek = seekRequest?.timeSec ?? null;
   const displayTime = useMemo((): number | null => {
     if (lastSeek !== null) {
@@ -64,6 +113,8 @@ const VideoPane = ({
 
   const lastSeekRef = useRef<number | null>(null);
   const lastPersistedRef = useRef<number | null>(null);
+  const videoAreaRef = useRef<HTMLDivElement | null>(null);
+  const [maxVideoWidth, setMaxVideoWidth] = useState<number | null>(null);
   const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
     null,
   );
@@ -73,6 +124,39 @@ const VideoPane = ({
       onTimeChange?.(frame.videoTimeSec);
     }
   }, [frame?.videoTimeSec, onTimeChange]);
+
+  useEffect(() => {
+    const element = videoAreaRef.current;
+    if (!element || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const updateSize = (width: number, height: number): void => {
+      if (width <= 0 || height <= 0) {
+        return;
+      }
+      const candidate = Math.min(width, height * (16 / 9));
+      setMaxVideoWidth(Math.round(candidate));
+    };
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) {
+        return;
+      }
+      const rect = entry.contentRect;
+      updateSize(rect.width, rect.height);
+    });
+
+    observer.observe(element);
+
+    const rect = element.getBoundingClientRect();
+    updateSize(rect.width, rect.height);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect((): void => {
     if (lastSeek === null || lastSeekRef.current === lastSeek) {
@@ -104,31 +188,71 @@ const VideoPane = ({
   );
 
   return (
-    <section className="flex h-full flex-col rounded-2xl border border-border bg-surface">
+    <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-border bg-surface">
       <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
         <div>
           <p className="text-sm font-semibold text-foreground">Lesson video</p>
           <p className="text-xs text-text-muted">Player scaffold</p>
         </div>
-        <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
-          1080p
-        </span>
+        <div className="flex items-center gap-2">
+          {headerExtras}
+          <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
+            1080p
+          </span>
+        </div>
       </header>
-      <div className="p-4">
-        {lesson ? (
-          <VideoPlayer
-            videoId={lesson.videoId}
-            initialTimeSec={initialTimeSec}
-            seekToSec={seekRequest?.timeSec}
-            onTimeSample={handleTimeChange}
-            onSeek={handleTimeChange}
-          />
-        ) : (
-          <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-xs text-text-muted">
-            Loading video...
+      <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
+        <div
+          ref={videoAreaRef}
+          className="flex min-h-0 flex-1 items-start justify-center"
+        >
+          {lesson ? (
+            <div
+              className="w-full max-w-full aspect-video"
+              style={{ width: maxVideoWidth ? `${maxVideoWidth}px` : "100%" }}
+            >
+              <VideoPlayer
+                videoId={lesson.videoId}
+                initialTimeSec={initialTimeSec}
+                seekToSec={seekRequest?.timeSec}
+                seekToken={seekRequest?.token}
+                onTimeSample={handleTimeChange}
+                onSeek={handleTimeChange}
+                showControls={false}
+              />
+            </div>
+          ) : (
+            <div className="flex w-full max-w-[720px] aspect-video items-center justify-center rounded-xl border border-dashed border-border bg-surface-muted text-xs text-text-muted">
+              Loading video...
+            </div>
+          )}
+        </div>
+        {showInfoStrip && infoItems.length > 0 ? (
+          <div className="rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] text-text-muted">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {infoItems.map((item) => (
+                <div key={item.label} className="flex items-center gap-1">
+                  <span className="uppercase tracking-[0.08em] text-[10px] text-text-subtle">
+                    {item.label}
+                  </span>
+                  {item.href ? (
+                    <a
+                      href={item.href}
+                      className="text-foreground underline-offset-2 hover:underline"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {item.value}
+                    </a>
+                  ) : (
+                    <span className="text-foreground">{item.value}</span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        )}
-        <div className="mt-3 text-[11px] text-text-subtle">
+        ) : null}
+        <div className="text-[11px] text-text-subtle">
           {displayTime !== null
             ? `Seeking to ${formatTimestamp(displayTime)}`
             : "Awaiting seek"}

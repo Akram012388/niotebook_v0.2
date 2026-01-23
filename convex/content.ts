@@ -18,6 +18,7 @@ type CourseRecord = {
   description?: string;
   license: string;
   sourceUrl: string;
+  youtubePlaylistUrl?: string;
 };
 
 type LessonRecord = {
@@ -43,6 +44,7 @@ const toCourseSummary = (course: CourseRecord): CourseSummary => {
     description: course.description,
     license: course.license,
     sourceUrl: course.sourceUrl,
+    youtubePlaylistUrl: course.youtubePlaylistUrl,
   };
 };
 
@@ -131,8 +133,13 @@ const seedLesson = mutation({
     }
 
     const reuseExisting = args.reuseExisting ?? true;
+    const existingLessons = reuseExisting
+      ? ((await ctx.db.query("lessons").collect()) as LessonRecord[])
+      : [];
     const existingLesson = reuseExisting
-      ? ((await ctx.db.query("lessons").first()) as LessonRecord | null)
+      ? (existingLessons.find(
+          (lesson) => lesson.videoId && lesson.ingestVersion !== undefined,
+        ) ?? null)
       : null;
     const existingCourse = reuseExisting
       ? ((await ctx.db.query("courses").first()) as CourseRecord | null)
@@ -149,11 +156,17 @@ const seedLesson = mutation({
         sourceUrl: "https://example.com",
       }));
 
+    const resolvedVideoId = existingLesson?.videoId ?? args.videoId;
+
+    if (!resolvedVideoId) {
+      throw new Error("seedLesson requires a videoId when no lessons exist.");
+    }
+
     const lessonId =
       existingLesson?._id ??
       (await ctx.db.insert("lessons", {
         courseId,
-        videoId: args.videoId ?? "cs50x-week1",
+        videoId: resolvedVideoId,
         title: args.lessonTitle ?? "Lesson 1",
         durationSec: 3600,
         order: 1,

@@ -15,3 +15,4 @@ AI-native programming learning interface that synchronizes Video + Code + AI.
 - `docs/specs.md`
 - `docs/plan.md`
 - `docs/dev-workflow.md`
+- `docs/ui-ux-contract.md` (binding UI/UX contract)

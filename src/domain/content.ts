@@ -9,6 +9,7 @@ type CourseSummary = {
   description?: string;
   license: string;
   sourceUrl: string;
+  youtubePlaylistUrl?: string;
 };
 
 type LessonSummary = {

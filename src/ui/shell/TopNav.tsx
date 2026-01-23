@@ -4,9 +4,11 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
 } from "react";
+import { SidebarSimple } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { storageAdapter } from "../../infra/storageAdapter";
@@ -17,6 +19,7 @@ import {
   getLessonsByCourseRef,
 } from "../content/convexContent";
 import { LayoutPresetToggle } from "../layout/LayoutPresetToggle";
+import { ControlCenterDrawer } from "./ControlCenterDrawer";
 
 const STORAGE_KEY = "niotebook.theme";
 const LESSON_STORAGE_KEY = "niotebook.lesson";
@@ -31,6 +34,11 @@ const TopNav = (): ReactElement => {
     return stored === "dark" ? "dark" : "light";
   });
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDrawerMounted, setIsDrawerMounted] = useState(false);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
+  const lastActiveRef = useRef<HTMLElement | null>(null);
+  const drawerWasOpenRef = useRef(false);
 
   const courses = useQuery(getCoursesRef);
 
@@ -41,12 +49,12 @@ const TopNav = (): ReactElement => {
   const lesson = useQuery(getLessonRef, lessonId ? { lessonId } : "skip");
 
   const courseId = useMemo((): string | null => {
-    if (lesson?.courseId) {
-      return lesson.courseId as unknown as string;
-    }
-
     if (selectedCourseId) {
       return selectedCourseId;
+    }
+
+    if (lesson?.courseId) {
+      return lesson.courseId as unknown as string;
     }
 
     return courses?.[0]?.id ?? null;
@@ -65,14 +73,12 @@ const TopNav = (): ReactElement => {
     () => (lessons ?? []) as LessonSummary[],
     [lessons],
   );
-
-  const activeCourse = useMemo(() => {
-    return courseOptions.find((course) => course.id === courseId) ?? null;
-  }, [courseId, courseOptions]);
-
-  const activeLesson = useMemo(() => {
-    return lessonOptions.find((item) => item.id === lessonId) ?? null;
-  }, [lessonId, lessonOptions]);
+  const shouldAutoSelectDefault = useMemo((): boolean => {
+    return (
+      process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true" ||
+      process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true"
+    );
+  }, []);
 
   useEffect((): void => {
     document.documentElement.dataset.theme = theme;
@@ -100,30 +106,35 @@ const TopNav = (): ReactElement => {
     [router, searchParams],
   );
 
-  const handleCourseChange = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>): void => {
-      const nextCourseId = event.target.value || null;
-      setSelectedCourseId(nextCourseId);
-      const nextLesson = lessonOptions.find(
-        (item) => item.courseId === nextCourseId,
-      );
-      updateLesson(nextLesson?.id ?? null);
-    },
-    [lessonOptions, updateLesson],
-  );
-
-  const handleCourseBlur = useCallback((): void => {
-    if (!selectedCourseId && courseId) {
-      setSelectedCourseId(courseId);
+  useEffect((): void => {
+    if (lessonId || lessonOptions.length === 0) {
+      return;
     }
-  }, [courseId, selectedCourseId]);
 
-  const handleLessonChange = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>): void => {
-      updateLesson(event.target.value);
-    },
-    [updateLesson],
-  );
+    const isPreviewHost =
+      typeof window !== "undefined" &&
+      window.location.hostname.endsWith(".vercel.app");
+
+    if (!shouldAutoSelectDefault && !isPreviewHost) {
+      return;
+    }
+
+    updateLesson(lessonOptions[0]?.id ?? null);
+  }, [lessonId, lessonOptions, shouldAutoSelectDefault, updateLesson]);
+
+  useEffect((): void => {
+    if (!selectedCourseId || lessonOptions.length === 0) {
+      return;
+    }
+
+    const isCurrentLessonInCourse = lessonOptions.some(
+      (item) => item.id === lessonId,
+    );
+
+    if (!isCurrentLessonInCourse) {
+      updateLesson(lessonOptions[0]?.id ?? null);
+    }
+  }, [lessonId, lessonOptions, selectedCourseId, updateLesson]);
 
   const handleShare = useCallback((): void => {
     // Placeholder for share modal trigger.
@@ -133,90 +144,154 @@ const TopNav = (): ReactElement => {
     // Placeholder for feedback modal trigger.
   }, []);
 
+  const handleSelectLesson = useCallback(
+    (nextLessonId: string | null): void => {
+      updateLesson(nextLessonId);
+      setIsDrawerOpen(false);
+    },
+    [updateLesson],
+  );
+
+  const handleSelectCourse = useCallback(
+    (nextCourseId: string | null): void => {
+      setSelectedCourseId(nextCourseId);
+    },
+    [],
+  );
+
+  const handleOpenDrawer = useCallback((): void => {
+    lastActiveRef.current = document.activeElement as HTMLElement | null;
+    setIsDrawerMounted(true);
+    window.requestAnimationFrame(() => {
+      setIsDrawerOpen(true);
+    });
+  }, []);
+
+  const handleCloseDrawer = useCallback((): void => {
+    setIsDrawerOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isDrawerMounted || isDrawerOpen) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setIsDrawerMounted(false);
+    }, 200);
+
+    return () => window.clearTimeout(timeout);
+  }, [isDrawerMounted, isDrawerOpen]);
+
+  useEffect(() => {
+    if (!isDrawerOpen) {
+      if (drawerWasOpenRef.current) {
+        if (lastActiveRef.current) {
+          lastActiveRef.current.focus();
+          lastActiveRef.current = null;
+        }
+        drawerWasOpenRef.current = false;
+      }
+      return;
+    }
+
+    drawerWasOpenRef.current = true;
+
+    const focusDrawer = (): void => {
+      const drawer = drawerRef.current;
+      if (!drawer) {
+        return;
+      }
+      const focusable = drawer.querySelectorAll<HTMLElement>(
+        "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+      );
+      const first = focusable[0];
+      first?.focus();
+    };
+
+    const handleKey = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") {
+        setIsDrawerOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const drawer = drawerRef.current;
+      if (!drawer) {
+        return;
+      }
+
+      const focusable = Array.from(
+        drawer.querySelectorAll<HTMLElement>(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+        ),
+      ).filter((element) => !element.hasAttribute("disabled"));
+
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    window.setTimeout(focusDrawer, 0);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+    };
+  }, [isDrawerOpen]);
+
   return (
     <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-6 py-4">
+      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold tracking-tight text-foreground">
-            Niotebook
+            niotebook
           </span>
-          {activeCourse || activeLesson ? (
-            <div className="flex flex-col text-[11px] leading-4 text-text-muted">
-              <span>{activeCourse?.title ?? "Course"}</span>
-              <span className="text-text-subtle">
-                {activeLesson?.title ?? "Select a lesson"}
-              </span>
-            </div>
-          ) : null}
-          <div className="flex items-center gap-2">
-            <select
-              value={courseId ?? ""}
-              onChange={handleCourseChange}
-              onBlur={handleCourseBlur}
-              className="rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-medium text-text-muted"
-            >
-              {courseOptions.map((course) => (
-                <option key={course.id} value={course.id}>
-                  {course.title}
-                </option>
-              ))}
-            </select>
-            <select
-              value={lessonId ?? ""}
-              onChange={handleLessonChange}
-              className="rounded-full border border-border bg-surface-muted px-3 py-1 text-xs font-medium text-text-muted"
-            >
-              {lessonOptions.map((lesson) => (
-                <option key={lesson.id} value={lesson.id}>
-                  {lesson.title}
-                </option>
-              ))}
-            </select>
-            {lessonId ? null : (
-              <button
-                type="button"
-                onClick={() => updateLesson(lessonOptions[0]?.id ?? null)}
-                className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-muted"
-              >
-                Start
-              </button>
-            )}
-          </div>
         </div>
         <div className="flex items-center gap-3">
           <LayoutPresetToggle />
           <button
             type="button"
-            onClick={handleShare}
-            className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-muted"
-            aria-label="Share"
+            onClick={handleOpenDrawer}
+            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
+            aria-label="Open control center"
+            title="Control center"
           >
-            Share
-          </button>
-          <button
-            type="button"
-            onClick={handleFeedback}
-            className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-muted"
-            aria-label="Feedback"
-          >
-            Feedback
-          </button>
-          <button
-            type="button"
-            onClick={handleToggleTheme}
-            className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-muted"
-            aria-label="Toggle theme"
-          >
-            {theme === "light" ? "Light" : "Dark"}
-          </button>
-          <button
-            type="button"
-            className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-muted"
-          >
-            User
+            <SidebarSimple size={16} weight="regular" />
           </button>
         </div>
       </div>
+      <ControlCenterDrawer
+        isOpen={isDrawerOpen}
+        isMounted={isDrawerMounted}
+        drawerRef={drawerRef}
+        onClose={handleCloseDrawer}
+        courseId={courseId}
+        courseOptions={courseOptions}
+        lessonId={lessonId}
+        lessonOptions={lessonOptions}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
+        onShare={handleShare}
+        onFeedback={handleFeedback}
+        onSelectLesson={handleSelectLesson}
+        onSelectCourse={handleSelectCourse}
+      />
     </header>
   );
 };
