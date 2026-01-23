@@ -78,7 +78,12 @@ jobs:
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
               handle.write(f"CHECKOUT_REF={ref}\n")
               if base_url:
-                  handle.write(f"BASE_URL=https://{base_url.strip().removeprefix('https://')}\n")
+                  normalized = base_url.strip()
+                  if normalized.startswith("http"):
+                      normalized = normalized.split("//", 1)[1]
+                  normalized = normalized.strip("/")
+                  handle.write(f"BASE_URL=https://{normalized}\n")
+                  handle.write(f"BASE_URL_CLEAN={normalized}\n")
 
           print(f"Resolved checkout ref: {ref}")
           if base_url:
@@ -149,14 +154,6 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$payload"
           payload=$(cat <<JSON
-          {"key":"NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS","value":"true","type":"encrypted","target":["preview"]}
-          JSON
-          )
-          curl -sS -X POST "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/env?upsert=true" \
-            -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d "$payload"
-          payload=$(cat <<JSON
           {"key":"NIOTEBOOK_DEV_AUTH_BYPASS","value":"true","type":"encrypted","target":["preview"]}
           JSON
           )
@@ -168,8 +165,6 @@ jobs:
         if: ${{ env.BASE_URL && env.VERCEL_API_TOKEN && env.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
-          base_url_clean="${BASE_URL#https://}"
-          base_url_clean="${base_url_clean%/}"
           response=$(curl -sS -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
             "https://api.vercel.com/v13/deployments?projectId=${VERCEL_PROJECT_ID}&limit=50")
           deployment_id=$(python -c 'import json,os,sys; data=json.loads(sys.stdin.read()); base=os.environ.get("BASE_URL_CLEAN", ""); print(next((d.get("id", "") for d in data.get("deployments", []) if d.get("url") == base), ""))' <<< "$response")
