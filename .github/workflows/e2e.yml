@@ -140,15 +140,44 @@ jobs:
             -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
             -H "Content-Type: application/json" \
             -d "$payload"
+          payload=$(cat <<JSON
+          {"key":"NIOTEBOOK_E2E_PREVIEW","value":"true","type":"encrypted","target":["preview"]}
+          JSON
+          )
+          curl -sS -X POST "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/env?upsert=true" \
+            -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
+          payload=$(cat <<JSON
+          {"key":"NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS","value":"true","type":"encrypted","target":["preview"]}
+          JSON
+          )
+          curl -sS -X POST "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/env?upsert=true" \
+            -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
+          payload=$(cat <<JSON
+          {"key":"NIOTEBOOK_DEV_AUTH_BYPASS","value":"true","type":"encrypted","target":["preview"]}
+          JSON
+          )
+          curl -sS -X POST "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/env?upsert=true" \
+            -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
       - name: Redeploy Vercel preview
         if: ${{ env.BASE_URL && env.VERCEL_API_TOKEN && env.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
+          base_url_clean="${BASE_URL#https://}"
+          base_url_clean="${base_url_clean%/}"
           response=$(curl -sS -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
-            "https://api.vercel.com/v13/deployments?projectId=${VERCEL_PROJECT_ID}&limit=20")
+            "https://api.vercel.com/v13/deployments?projectId=${VERCEL_PROJECT_ID}&limit=50")
           deployment_id=$(python -c 'import json,os,sys; data=json.loads(sys.stdin.read()); base=os.environ.get("BASE_URL_CLEAN", ""); print(next((d.get("id", "") for d in data.get("deployments", []) if d.get("url") == base), ""))' <<< "$response")
           if [ -z "$deployment_id" ]; then
-            echo "Deployment ID not found for ${BASE_URL_CLEAN}"
+            deployment_id=$(python -c 'import json,sys; data=json.loads(sys.stdin.read()); print(data.get("deployments", [])[0].get("id", "") if data.get("deployments") else "")' <<< "$response")
+          fi
+          if [ -z "$deployment_id" ]; then
+            echo "Deployment ID not found for ${base_url_clean}"
             exit 1
           fi
           redeploy=$(curl -sS -X POST "https://api.vercel.com/v13/deployments/${deployment_id}/redeploy" \
