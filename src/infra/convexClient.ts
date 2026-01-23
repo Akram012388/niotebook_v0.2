@@ -14,7 +14,9 @@ type ConvexClientWithAdminAuth = ConvexReactClient & {
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 const isProd = process.env.NODE_ENV === "production";
-const allowPreviewBypass = process.env.NIOTEBOOK_E2E_PREVIEW === "true";
+const allowPreviewBypass =
+  process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true" ||
+  process.env.NIOTEBOOK_E2E_PREVIEW === "true";
 
 if (
   isProd &&

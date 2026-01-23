@@ -17,6 +17,7 @@ const enableDevAuthBypass = (client: ConvexClientWithAdminAuth): void => {
   if (process.env.NODE_ENV === "production") {
     if (
       process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true" &&
+      process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW !== "true" &&
       process.env.NIOTEBOOK_E2E_PREVIEW !== "true"
     ) {
       throw new Error(
