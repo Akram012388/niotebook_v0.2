@@ -73,6 +73,12 @@ const TopNav = (): ReactElement => {
     () => (lessons ?? []) as LessonSummary[],
     [lessons],
   );
+  const shouldAutoSelectDefault = useMemo((): boolean => {
+    return (
+      process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true" ||
+      process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true"
+    );
+  }, []);
 
   useEffect((): void => {
     document.documentElement.dataset.theme = theme;
@@ -99,6 +105,22 @@ const TopNav = (): ReactElement => {
     },
     [router, searchParams],
   );
+
+  useEffect((): void => {
+    if (lessonId || lessonOptions.length === 0) {
+      return;
+    }
+
+    const isPreviewHost =
+      typeof window !== "undefined" &&
+      window.location.hostname.endsWith(".vercel.app");
+
+    if (!shouldAutoSelectDefault && !isPreviewHost) {
+      return;
+    }
+
+    updateLesson(lessonOptions[0]?.id ?? null);
+  }, [lessonId, lessonOptions, shouldAutoSelectDefault, updateLesson]);
 
   useEffect((): void => {
     if (!selectedCourseId || lessonOptions.length === 0) {

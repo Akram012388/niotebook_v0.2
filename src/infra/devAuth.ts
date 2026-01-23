@@ -14,11 +14,17 @@ type ConvexClientWithAdminAuth = {
 const DEV_BYPASS_KEY = "niotebook.devAuthBypass";
 
 const enableDevAuthBypass = (client: ConvexClientWithAdminAuth): void => {
+  const isVercelPreview = process.env.VERCEL_ENV === "preview";
+  const isPreviewHost =
+    typeof window !== "undefined" &&
+    window.location.hostname.endsWith(".vercel.app");
   if (process.env.NODE_ENV === "production") {
     if (
       process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true" &&
       process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW !== "true" &&
-      process.env.NIOTEBOOK_E2E_PREVIEW !== "true"
+      process.env.NIOTEBOOK_E2E_PREVIEW !== "true" &&
+      !isVercelPreview &&
+      !isPreviewHost
     ) {
       throw new Error(
         "NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS is not allowed in production.",
