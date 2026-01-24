@@ -15,6 +15,11 @@ Scope: Phase 4 from `docs/plan.md` + `docs/specs.md` §8, aligned to `docs/ADR-0
 - Fallback is allowed only before the first emitted token.
 - Convex remains source of truth for resume/thread/frame state.
 
+## Implementation guardrails (Codex kickoff)
+
+- SSE route uses `ReadableStream` and flushes events correctly; include `X-Accel-Buffering: no` and avoid buffering transforms.
+- Convex idempotency is enforced via `(threadId, requestId)` index + insert-or-return-existing mutation; client retries reuse the same `requestId` (only regenerate for a new user message).
+
 ## Known drift in current codebase (must be fixed in Phase 4)
 
 - No Next Route Handler exists for AI streaming (`src/app/api/**/route.ts` missing).
