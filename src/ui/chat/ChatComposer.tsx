@@ -11,14 +11,14 @@ import {
 
 type ChatComposerProps = {
   onSend?: (message: string) => void;
-  transcriptContext?: string[];
+  disabled?: boolean;
 };
 
 const MAX_HEIGHT_PX = 140;
 
 const ChatComposer = ({
   onSend,
-  transcriptContext,
+  disabled = false,
 }: ChatComposerProps): ReactElement => {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -36,20 +36,19 @@ const ChatComposer = ({
   }, [value]);
 
   const handleSend = useCallback((): void => {
+    if (disabled) {
+      return;
+    }
+
     const trimmed = value.trim();
 
     if (!trimmed) {
       return;
     }
 
-    const transcriptPayload = transcriptContext?.slice(0, 6).join(" ");
-    const message = transcriptPayload
-      ? `${trimmed}\n\n[Transcript]\n${transcriptPayload}`
-      : trimmed;
-
-    onSend?.(message);
+    onSend?.(trimmed);
     setValue("");
-  }, [onSend, transcriptContext, value]);
+  }, [disabled, onSend, value]);
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>): void => {
@@ -61,7 +60,7 @@ const ChatComposer = ({
     [handleSend],
   );
 
-  const isReady = value.trim().length > 0;
+  const isReady = value.trim().length > 0 && !disabled;
 
   return (
     <div className="flex items-end gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
@@ -71,8 +70,11 @@ const ChatComposer = ({
         value={value}
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={handleKeyDown}
+        disabled={disabled}
         placeholder="Ask about the lesson..."
-        className="chat-input min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto border-0 bg-transparent text-sm text-foreground outline-none placeholder:text-text-subtle focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0"
+        className={`chat-input min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto border-0 bg-transparent text-sm text-foreground outline-none placeholder:text-text-subtle focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 ${
+          disabled ? "cursor-not-allowed opacity-60" : ""
+        }`}
       />
       <button
         type="button"

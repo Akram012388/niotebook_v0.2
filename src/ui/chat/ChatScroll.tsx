@@ -11,9 +11,13 @@ import {
 
 type ChatScrollProps = {
   children: ReactNode;
+  isStreaming?: boolean;
 };
 
-const ChatScroll = ({ children }: ChatScrollProps): ReactElement => {
+const ChatScroll = ({
+  children,
+  isStreaming = false,
+}: ChatScrollProps): ReactElement => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [atBottom, setAtBottom] = useState(true);
 
@@ -44,8 +48,11 @@ const ChatScroll = ({ children }: ChatScrollProps): ReactElement => {
       return;
     }
 
-    element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
-  }, [children, atBottom]);
+    element.scrollTo({
+      top: element.scrollHeight,
+      behavior: isStreaming ? "auto" : "smooth",
+    });
+  }, [children, atBottom, isStreaming]);
 
   const handleScrollToBottom = useCallback((): void => {
     const element = containerRef.current;

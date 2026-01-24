@@ -7,6 +7,7 @@ import { ChatScroll } from "../chat/ChatScroll";
 import { useChatThread } from "../chat/useChatThread";
 import { useTranscriptWindow } from "../transcript/useTranscriptWindow";
 import type { ChatMessage as ChatMessageType } from "../chat/chatTypes";
+import type { CodeSnapshotSummary } from "../../domain/resume";
 
 type AiPaneProps = {
   lessonId: string;
@@ -14,6 +15,7 @@ type AiPaneProps = {
   videoTimeSec?: number;
   onThreadChange?: (threadId: string | null) => void;
   headerExtras?: ReactElement;
+  codeSnapshot?: CodeSnapshotSummary | null;
 };
 
 const AiPane = ({
@@ -22,27 +24,38 @@ const AiPane = ({
   videoTimeSec = 0,
   onThreadChange,
   headerExtras,
+  codeSnapshot = null,
 }: AiPaneProps): ReactElement => {
-  const { messages, sendMessage, threadId } = useChatThread(lessonId);
+  const { messages, sendMessage, threadId, streamState, streamError } =
+    useChatThread(lessonId);
   const transcriptWindow = useTranscriptWindow(lessonId, videoTimeSec);
 
-  const displayMessages = useMemo<ChatMessageType[]>(() => {
-    if (messages.length === 0) {
-      return [];
-    }
+  const displayMessages = useMemo<ChatMessageType[]>(
+    () => messages,
+    [messages],
+  );
 
-    return messages.map((message) => ({
-      id: message.id as unknown as string,
-      role: message.role,
-      content: message.content,
-      badge: `Lesson • ${Math.floor(message.videoTimeSec / 60)}:${Math.floor(
-        message.videoTimeSec % 60,
-      )
-        .toString()
-        .padStart(2, "0")}`,
-      timestampSec: message.videoTimeSec,
-    }));
-  }, [messages]);
+  const transcriptPayload = useMemo(
+    () => ({
+      startSec: transcriptWindow.startSec,
+      endSec: transcriptWindow.endSec,
+      lines: transcriptWindow.segments.map((segment) => segment.textNormalized),
+    }),
+    [
+      transcriptWindow.endSec,
+      transcriptWindow.segments,
+      transcriptWindow.startSec,
+    ],
+  );
+
+  const codePayload = useMemo(
+    () => ({
+      language: codeSnapshot?.language ?? "unknown",
+      codeHash: codeSnapshot?.codeHash,
+      code: codeSnapshot?.code,
+    }),
+    [codeSnapshot],
+  );
 
   useEffect((): void => {
     onThreadChange?.(threadId);
@@ -50,9 +63,13 @@ const AiPane = ({
 
   const handleSend = useCallback(
     (content: string): void => {
-      void sendMessage(content, videoTimeSec);
+      void sendMessage(content, {
+        videoTimeSec,
+        transcript: transcriptPayload,
+        code: codePayload,
+      });
     },
-    [sendMessage, videoTimeSec],
+    [codePayload, sendMessage, transcriptPayload, videoTimeSec],
   );
 
   const handleSeek = useCallback(
@@ -77,7 +94,7 @@ const AiPane = ({
         </div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
-        <ChatScroll>
+        <ChatScroll isStreaming={streamState === "streaming"}>
           {displayMessages.map((message) => (
             <ChatMessage
               key={message.id}
@@ -86,11 +103,14 @@ const AiPane = ({
             />
           ))}
         </ChatScroll>
+        {streamError ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            {streamError}
+          </div>
+        ) : null}
         <ChatComposer
           onSend={handleSend}
-          transcriptContext={transcriptWindow.segments.map(
-            (segment) => segment.textNormalized,
-          )}
+          disabled={streamState === "streaming"}
         />
       </div>
     </section>

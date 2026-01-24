@@ -6,6 +6,11 @@ type ChatMessage = {
   content: string;
   badge: string;
   timestampSec: number;
+  createdAt: number;
+  isStreaming?: boolean;
+  requestId?: string;
 };
 
-export type { ChatMessage, ChatRole };
+type ChatStreamState = "idle" | "streaming" | "error";
+
+export type { ChatMessage, ChatRole, ChatStreamState };
