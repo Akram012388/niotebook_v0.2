@@ -1,11 +1,29 @@
 import { ConvexHttpClient } from "convex/browser";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { api } from "../../../../convex/_generated/api";
+import {
+  AI_FALLBACK_TIMEOUT_MS,
+  shouldFallbackForStatus,
+} from "../../../domain/ai-fallback";
 import type { RateLimitDecision } from "../../../domain/rate-limits";
-import type { NioSseEvent } from "../../../domain/ai/types";
-import { buildNioContext } from "../../../domain/nioContextBuilder";
+import type { NioErrorCode, NioSseEvent } from "../../../domain/ai/types";
+import {
+  buildNioContext,
+  type NioContextMessage,
+} from "../../../domain/nioContextBuilder";
 import { NIO_SYSTEM_PROMPT } from "../../../domain/nioPrompt";
+import { streamGemini } from "../../../infra/ai/geminiStream";
+import { streamGroq } from "../../../infra/ai/groqStream";
 import { encodeSseEvent, NIO_SSE_HEADERS } from "../../../infra/ai/nioSse";
+import type {
+  NioProviderId,
+  NioProviderStreamResult,
+} from "../../../infra/ai/providerTypes";
+import {
+  createProviderStreamError,
+  isProviderStreamError,
+  NioProviderStreamError,
+} from "../../../infra/ai/providerTypes";
 import { validateNioChatRequest } from "../../../infra/ai/validateNioChatRequest";
 import { hashString } from "../../../infra/hash";
 
@@ -112,6 +130,81 @@ const persistAssistantMessage = async (args: {
   });
 };
 
+type FirstTokenResult =
+  | { kind: "token"; token: string }
+  | { kind: "timeout" }
+  | { kind: "error"; error: NioProviderStreamError };
+
+const normalizeProviderError = (
+  error: unknown,
+  provider: NioProviderId,
+): NioProviderStreamError => {
+  if (isProviderStreamError(error)) {
+    return error;
+  }
+
+  return createProviderStreamError(
+    "Provider stream error.",
+    undefined,
+    provider,
+  );
+};
+
+const readFirstToken = async (
+  iterator: AsyncIterator<string>,
+  timeoutMs: number,
+  provider: NioProviderId,
+): Promise<FirstTokenResult> => {
+  if (timeoutMs <= 0) {
+    return { kind: "timeout" };
+  }
+
+  try {
+    const result = await Promise.race([
+      iterator.next().then((value) => ({ kind: "result" as const, value })),
+      sleep(timeoutMs).then(() => ({ kind: "timeout" as const })),
+    ]);
+
+    if (result.kind === "timeout") {
+      return { kind: "timeout" };
+    }
+
+    if (result.value.done || typeof result.value.value !== "string") {
+      return {
+        kind: "error",
+        error: createProviderStreamError(
+          "Provider stream ended before first token.",
+          undefined,
+          provider,
+        ),
+      };
+    }
+
+    return { kind: "token", token: result.value.value };
+  } catch (error) {
+    return { kind: "error", error: normalizeProviderError(error, provider) };
+  }
+};
+
+const shouldFallbackForFirstToken = (result: FirstTokenResult): boolean => {
+  if (result.kind === "timeout") {
+    return true;
+  }
+
+  if (result.kind === "error") {
+    if (result.error.status) {
+      return shouldFallbackForStatus(result.error.status);
+    }
+
+    return (
+      result.error.code === "PROVIDER_429" ||
+      result.error.code === "PROVIDER_5XX"
+    );
+  }
+
+  return false;
+};
+
 const streamStub = async (args: {
   requestId: string;
   assistantTempId: string;
@@ -208,6 +301,265 @@ const streamStub = async (args: {
   }
 };
 
+const streamWithProviders = async (args: {
+  requestId: string;
+  assistantTempId: string;
+  contextHash: string;
+  inputChars: number;
+  budget: {
+    maxOutputTokens: number;
+    maxContextTokens: number;
+    approxCharBudget: number;
+  };
+  threadId: string;
+  videoTimeSec: number;
+  timeWindow: { startSec: number; endSec: number };
+  codeHash?: string;
+  messages: NioContextMessage[];
+  enqueue: (event: NioSseEvent) => void;
+  isAborted: () => boolean;
+}): Promise<void> => {
+  const startedAtMs = Date.now();
+  let usedFallback = false;
+  let providerResult: NioProviderStreamResult | null = null;
+  let iterator: AsyncIterator<string> | null = null;
+  let firstToken: string | null = null;
+
+  const emitErrorEvent = (
+    code: NioErrorCode,
+    message: string,
+    provider?: NioProviderId,
+  ): void => {
+    args.enqueue({
+      type: "error",
+      requestId: args.requestId,
+      assistantTempId: args.assistantTempId,
+      seq: 1,
+      code,
+      message,
+      provider,
+    });
+  };
+
+  const attemptProvider = async (
+    factory: () => Promise<NioProviderStreamResult>,
+    providerId: NioProviderId,
+  ): Promise<{
+    result: NioProviderStreamResult | null;
+    iterator: AsyncIterator<string> | null;
+    first: FirstTokenResult;
+  }> => {
+    try {
+      const result = await factory();
+      const nextIterator = result.stream[Symbol.asyncIterator]();
+      const remainingTimeout = Math.max(
+        0,
+        AI_FALLBACK_TIMEOUT_MS - (Date.now() - startedAtMs),
+      );
+      const first = await readFirstToken(
+        nextIterator,
+        remainingTimeout,
+        result.provider,
+      );
+
+      return { result, iterator: nextIterator, first };
+    } catch (error) {
+      return {
+        result: null,
+        iterator: null,
+        first: {
+          kind: "error",
+          error: normalizeProviderError(error, providerId),
+        },
+      };
+    }
+  };
+
+  const primaryAttempt = await attemptProvider(
+    () =>
+      streamGemini({
+        messages: args.messages,
+        maxOutputTokens: args.budget.maxOutputTokens,
+      }),
+    "gemini",
+  );
+
+  if (
+    primaryAttempt.first.kind === "token" &&
+    primaryAttempt.result &&
+    primaryAttempt.iterator
+  ) {
+    providerResult = primaryAttempt.result;
+    iterator = primaryAttempt.iterator;
+    firstToken = primaryAttempt.first.token;
+  } else if (shouldFallbackForFirstToken(primaryAttempt.first)) {
+    usedFallback = true;
+    const fallbackAttempt = await attemptProvider(
+      () =>
+        streamGroq({
+          messages: args.messages,
+          maxOutputTokens: args.budget.maxOutputTokens,
+        }),
+      "groq",
+    );
+
+    if (
+      fallbackAttempt.first.kind === "token" &&
+      fallbackAttempt.result &&
+      fallbackAttempt.iterator
+    ) {
+      providerResult = fallbackAttempt.result;
+      iterator = fallbackAttempt.iterator;
+      firstToken = fallbackAttempt.first.token;
+    } else {
+      if (fallbackAttempt.first.kind === "timeout") {
+        emitErrorEvent(
+          "TIMEOUT_FIRST_TOKEN",
+          "Timed out waiting for first token.",
+          "groq",
+        );
+        return;
+      }
+
+      if (fallbackAttempt.first.kind === "error") {
+        emitErrorEvent(
+          fallbackAttempt.first.error.code,
+          fallbackAttempt.first.error.message,
+          fallbackAttempt.first.error.provider ?? "groq",
+        );
+        return;
+      }
+
+      emitErrorEvent("STREAM_ERROR", "Provider failed before first token.");
+      return;
+    }
+  } else {
+    if (primaryAttempt.first.kind === "timeout") {
+      emitErrorEvent(
+        "TIMEOUT_FIRST_TOKEN",
+        "Timed out waiting for first token.",
+        "gemini",
+      );
+      return;
+    }
+
+    if (primaryAttempt.first.kind === "error") {
+      emitErrorEvent(
+        primaryAttempt.first.error.code,
+        primaryAttempt.first.error.message,
+        primaryAttempt.first.error.provider ?? "gemini",
+      );
+      return;
+    }
+
+    emitErrorEvent("STREAM_ERROR", "Provider failed before first token.");
+    return;
+  }
+
+  if (!providerResult || !iterator || !firstToken || args.isAborted()) {
+    return;
+  }
+
+  const timeToFirstTokenMs = Date.now() - startedAtMs;
+
+  args.enqueue({
+    type: "meta",
+    requestId: args.requestId,
+    assistantTempId: args.assistantTempId,
+    provider: providerResult.provider,
+    model: providerResult.model,
+    startedAtMs,
+    contextHash: args.contextHash,
+    budget: args.budget,
+    seq: 0,
+  });
+
+  let seq = 1;
+  let fullText = firstToken;
+  args.enqueue({
+    type: "token",
+    requestId: args.requestId,
+    assistantTempId: args.assistantTempId,
+    seq,
+    token: firstToken,
+  });
+  seq += 1;
+
+  try {
+    while (true) {
+      const { value, done } = await iterator.next();
+      if (done) {
+        break;
+      }
+
+      if (args.isAborted()) {
+        return;
+      }
+
+      if (!value) {
+        continue;
+      }
+
+      fullText += value;
+      args.enqueue({
+        type: "token",
+        requestId: args.requestId,
+        assistantTempId: args.assistantTempId,
+        seq,
+        token: value,
+      });
+      seq += 1;
+    }
+  } catch (error) {
+    const providerError = normalizeProviderError(
+      error,
+      providerResult.provider,
+    );
+    emitErrorEvent(
+      providerError.code,
+      providerError.message,
+      providerError.provider ?? providerResult.provider,
+    );
+    return;
+  }
+
+  const latencyMs = Date.now() - startedAtMs;
+  args.enqueue({
+    type: "done",
+    requestId: args.requestId,
+    assistantTempId: args.assistantTempId,
+    seq,
+    provider: providerResult.provider,
+    model: providerResult.model,
+    usedFallback,
+    latencyMs,
+    timeToFirstTokenMs,
+    usageApprox: {
+      inputChars: args.inputChars,
+      outputChars: fullText.length,
+    },
+    finalText: fullText,
+  });
+
+  try {
+    await persistAssistantMessage({
+      threadId: args.threadId,
+      requestId: args.requestId,
+      content: fullText,
+      videoTimeSec: args.videoTimeSec,
+      timeWindow: args.timeWindow,
+      codeHash: args.codeHash,
+      provider: providerResult.provider,
+      model: providerResult.model,
+      latencyMs,
+      usedFallback,
+      contextHash: args.contextHash,
+    });
+  } catch {
+    return;
+  }
+};
+
 export const POST = async (request: Request): Promise<Response> => {
   let payload: unknown = null;
 
@@ -287,18 +639,6 @@ export const POST = async (request: Request): Promise<Response> => {
     );
   }
 
-  if (!isStubPreview()) {
-    return buildJsonResponse(
-      {
-        error: {
-          code: "STREAM_ERROR",
-          message: "No AI provider configured for this environment.",
-        },
-      },
-      503,
-    );
-  }
-
   const contextHash = await hashString(contextResult.contextText);
   const assistantTimeWindow = {
     startSec: Math.max(0, validation.data.videoTimeSec - 60),
@@ -336,7 +676,25 @@ export const POST = async (request: Request): Promise<Response> => {
       request.signal.addEventListener("abort", abort);
 
       const run = async (): Promise<void> => {
-        await streamStub({
+        if (isStubPreview()) {
+          await streamStub({
+            requestId: validation.data.requestId,
+            assistantTempId: validation.data.assistantTempId,
+            contextHash,
+            inputChars: contextResult.inputChars,
+            budget: contextResult.budget,
+            threadId: validation.data.threadId,
+            videoTimeSec: validation.data.videoTimeSec,
+            timeWindow: assistantTimeWindow,
+            codeHash: validation.data.code.codeHash,
+            enqueue,
+            isAborted: () => aborted,
+          });
+          close();
+          return;
+        }
+
+        await streamWithProviders({
           requestId: validation.data.requestId,
           assistantTempId: validation.data.assistantTempId,
           contextHash,
@@ -346,6 +704,7 @@ export const POST = async (request: Request): Promise<Response> => {
           videoTimeSec: validation.data.videoTimeSec,
           timeWindow: assistantTimeWindow,
           codeHash: validation.data.code.codeHash,
+          messages: contextResult.messages,
           enqueue,
           isAborted: () => aborted,
         });
