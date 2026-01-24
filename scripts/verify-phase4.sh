@@ -5,6 +5,8 @@ echo "=== Phase 4 Verification ==="
 
 # Force stable dev (no Turbopack)
 export NEXT_DISABLE_TURBOPACK=1
+# Ensure dev auth bypass is disabled for prod build
+export NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS=false
 
 echo "→ Kill any running Next dev"
 pkill -f "next dev" || true
@@ -22,6 +24,11 @@ echo "→ Unit tests"
 bun run test
 
 echo "→ Start Next dev (non-Turbopack)"
+export NIOTEBOOK_E2E_PREVIEW=true
+export NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=true
+export NIOTEBOOK_DEV_AUTH_BYPASS=true
+export NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS=true
+export NIOTEBOOK_ALLOW_DEV_BYPASS_IN_DEV=true
 PORT=3000
 bunx next dev --port $PORT >/tmp/next-dev.log 2>&1 &
 DEV_PID=$!
