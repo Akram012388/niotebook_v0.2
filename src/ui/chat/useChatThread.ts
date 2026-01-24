@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { makeFunctionReference } from "convex/server";
 import type { ChatMessageSummary, ChatThreadSummary } from "../../domain/chat";
 import { orderChatMessages } from "../../domain/chat";
 import type { NioChatRequest } from "../../domain/ai/types";
 import { parseSseEvent } from "../../infra/ai/nioSse";
 import { formatTimestamp } from "../formatTimestamp";
 import type { ChatMessage, ChatStreamState } from "./chatTypes";
+import type { EventLogResult } from "../../domain/events";
 import {
   createChatMessageRef,
   ensureChatThreadRef,
@@ -84,6 +86,27 @@ const useChatThread = (lessonId: string): UseChatThreadResult => {
   );
 
   const createMessage = useMutation(createChatMessageRef);
+  const logEventRef = useMemo(
+    () =>
+      makeFunctionReference<"mutation">(
+        "events:logEvent",
+      ) as import("convex/server").FunctionReference<
+        "mutation",
+        "public",
+        {
+          eventType: "nio_message_sent";
+          lessonId?: string;
+          sessionId?: string;
+          metadata: {
+            lessonId?: string;
+            threadId?: string;
+          };
+        },
+        EventLogResult
+      >,
+    [],
+  );
+  const logEvent = useMutation(logEventRef);
 
   const remoteMessages = useMemo(() => {
     return orderChatMessages(messagesPage?.messages ?? []);
@@ -166,6 +189,15 @@ const useChatThread = (lessonId: string): UseChatThreadResult => {
           videoTimeSec: context.videoTimeSec,
           timeWindow,
           codeHash: context.code.codeHash,
+        });
+
+        void logEvent({
+          eventType: "nio_message_sent",
+          lessonId,
+          metadata: {
+            lessonId,
+            threadId: resolvedThreadId,
+          },
         });
       } else if (!activeThreadId) {
         setLocalThreadId(fallbackThreadId);
@@ -355,6 +387,7 @@ const useChatThread = (lessonId: string): UseChatThreadResult => {
       mergedMessages,
       streamState,
       updateLocalMessage,
+      logEvent,
     ],
   );
 

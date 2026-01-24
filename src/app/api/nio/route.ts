@@ -130,6 +130,31 @@ const persistAssistantMessage = async (args: {
   });
 };
 
+const logAiFallbackEvent = async (args: {
+  lessonId: string;
+  threadId: string;
+  fromProvider: NioProviderId;
+  toProvider: NioProviderId;
+  reason: string;
+}): Promise<void> => {
+  if (!isConvexEnabled()) {
+    return;
+  }
+
+  const client = createConvexClient();
+  await client.mutation(api.events.logEvent, {
+    eventType: "ai_fallback_triggered",
+    lessonId: args.lessonId as Id<"lessons">,
+    metadata: {
+      lessonId: args.lessonId as Id<"lessons">,
+      threadId: args.threadId as Id<"chatThreads">,
+      fromProvider: args.fromProvider,
+      toProvider: args.toProvider,
+      reason: args.reason,
+    },
+  });
+};
+
 type FirstTokenResult =
   | { kind: "token"; token: string }
   | { kind: "timeout" }
@@ -203,6 +228,26 @@ const shouldFallbackForFirstToken = (result: FirstTokenResult): boolean => {
   }
 
   return false;
+};
+
+const resolveFallbackReason = (result: FirstTokenResult): string => {
+  if (result.kind === "timeout") {
+    return "timeout_first_token";
+  }
+
+  if (result.kind === "error") {
+    if (result.error.code === "PROVIDER_429") {
+      return "provider_429";
+    }
+
+    if (result.error.code === "PROVIDER_5XX") {
+      return "provider_5xx";
+    }
+
+    return "provider_error";
+  }
+
+  return "unknown";
 };
 
 const streamStub = async (args: {
@@ -312,6 +357,7 @@ const streamWithProviders = async (args: {
     approxCharBudget: number;
   };
   threadId: string;
+  lessonId: string;
   videoTimeSec: number;
   timeWindow: { startSec: number; endSec: number };
   codeHash?: string;
@@ -394,6 +440,14 @@ const streamWithProviders = async (args: {
     firstToken = primaryAttempt.first.token;
   } else if (shouldFallbackForFirstToken(primaryAttempt.first)) {
     usedFallback = true;
+    const fallbackReason = resolveFallbackReason(primaryAttempt.first);
+    logAiFallbackEvent({
+      lessonId: args.lessonId,
+      threadId: args.threadId,
+      fromProvider: "gemini",
+      toProvider: "groq",
+      reason: fallbackReason,
+    }).catch(() => undefined);
     const fallbackAttempt = await attemptProvider(
       () =>
         streamGroq({
@@ -701,6 +755,7 @@ export const POST = async (request: Request): Promise<Response> => {
           inputChars: contextResult.inputChars,
           budget: contextResult.budget,
           threadId: validation.data.threadId,
+          lessonId: validation.data.lessonId,
           videoTimeSec: validation.data.videoTimeSec,
           timeWindow: assistantTimeWindow,
           codeHash: validation.data.code.codeHash,

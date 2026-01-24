@@ -137,6 +137,8 @@ const schema = defineSchema({
       success: v.optional(v.boolean()),
       runtimeMs: v.optional(v.number()),
       threadId: v.optional(v.id("chatThreads")),
+      fromProvider: v.optional(v.string()),
+      toProvider: v.optional(v.string()),
       latencyMs: v.optional(v.number()),
       completionPct: v.optional(v.number()),
       sessionId: v.optional(v.string()),

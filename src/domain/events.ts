@@ -21,6 +21,7 @@ type EventType =
   | "code_run"
   | "nio_message_sent"
   | "nio_message_received"
+  | "ai_fallback_triggered"
   | "lesson_completed"
   | "session_start"
   | "session_end"
@@ -88,6 +89,14 @@ type NioMessageMetadata = {
 
 type NioMessageReceivedMetadata = NioMessageMetadata & {
   latencyMs: number;
+};
+
+type AiFallbackTriggeredMetadata = {
+  lessonId: LessonId;
+  threadId: ChatThreadId;
+  fromProvider: string;
+  toProvider: string;
+  reason: string;
 };
 
 type LessonCompletedMetadata = {
@@ -163,6 +172,7 @@ type EventMetadataMap = {
   code_run: CodeRunMetadata;
   nio_message_sent: NioMessageMetadata;
   nio_message_received: NioMessageReceivedMetadata;
+  ai_fallback_triggered: AiFallbackTriggeredMetadata;
   lesson_completed: LessonCompletedMetadata;
   session_start: SessionEventMetadata;
   session_end: SessionEventMetadata;
@@ -261,6 +271,14 @@ const EVENT_METADATA_VALIDATORS: Record<EventType, EventMetadataValidator> = {
     metadata.lessonId &&
     metadata.threadId &&
     typeof metadata.latencyMs === "number"
+      ? { ok: true }
+      : invalidEventMetadata(),
+  ai_fallback_triggered: (metadata) =>
+    metadata.lessonId &&
+    metadata.threadId &&
+    metadata.fromProvider &&
+    metadata.toProvider &&
+    metadata.reason
       ? { ok: true }
       : invalidEventMetadata(),
   lesson_completed: (metadata) =>

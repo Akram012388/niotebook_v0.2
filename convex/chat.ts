@@ -12,6 +12,7 @@ import {
   type ChatTimeWindow,
 } from "../src/domain/chat";
 import { requireMutationUser, requireQueryUser } from "./auth";
+import { logEventInternal } from "./events";
 import { toDomainId, toGenericId } from "./idUtils";
 
 type ChatThreadRecord = {
@@ -260,6 +261,17 @@ const completeAssistantMessage = mutation({
       usedFallback: args.usedFallback,
       contextHash: args.contextHash,
       createdAt,
+    });
+
+    await logEventInternal(ctx, {
+      eventType: "nio_message_received",
+      lessonId: thread.lessonId,
+      metadata: {
+        lessonId: toDomainId(thread.lessonId as GenericId<"lessons">),
+        threadId: toDomainId(args.threadId as GenericId<"chatThreads">),
+        latencyMs: args.latencyMs,
+      },
+      userId: toGenericId(user.id),
     });
 
     return {
