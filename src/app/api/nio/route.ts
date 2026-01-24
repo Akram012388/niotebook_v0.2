@@ -1,10 +1,7 @@
 import { ConvexHttpClient } from "convex/browser";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { api } from "../../../../convex/_generated/api";
-import {
-  AI_FALLBACK_TIMEOUT_MS,
-  shouldFallbackForStatus,
-} from "../../../domain/ai-fallback";
+import { AI_FALLBACK_TIMEOUT_MS } from "../../../domain/ai-fallback";
 import type { RateLimitDecision } from "../../../domain/rate-limits";
 import type { NioErrorCode, NioSseEvent } from "../../../domain/ai/types";
 import {
@@ -15,6 +12,7 @@ import { NIO_SYSTEM_PROMPT } from "../../../domain/nioPrompt";
 import { streamGemini } from "../../../infra/ai/geminiStream";
 import { streamGroq } from "../../../infra/ai/groqStream";
 import { encodeSseEvent, NIO_SSE_HEADERS } from "../../../infra/ai/nioSse";
+import { shouldFallbackBeforeFirstToken } from "../../../infra/ai/fallbackGate";
 import type {
   NioProviderId,
   NioProviderStreamResult,
@@ -211,23 +209,15 @@ const readFirstToken = async (
   }
 };
 
-const shouldFallbackForFirstToken = (result: FirstTokenResult): boolean => {
-  if (result.kind === "timeout") {
-    return true;
-  }
-
-  if (result.kind === "error") {
-    if (result.error.status) {
-      return shouldFallbackForStatus(result.error.status);
-    }
-
-    return (
-      result.error.code === "PROVIDER_429" ||
-      result.error.code === "PROVIDER_5XX"
-    );
-  }
-
-  return false;
+const shouldFallbackForFirstToken = (
+  result: FirstTokenResult,
+  elapsedMs: number,
+): boolean => {
+  return shouldFallbackBeforeFirstToken({
+    hasFirstToken: result.kind === "token",
+    elapsedMs,
+    error: result.kind === "error" ? result.error : undefined,
+  });
 };
 
 const resolveFallbackReason = (result: FirstTokenResult): string => {
@@ -438,7 +428,9 @@ const streamWithProviders = async (args: {
     providerResult = primaryAttempt.result;
     iterator = primaryAttempt.iterator;
     firstToken = primaryAttempt.first.token;
-  } else if (shouldFallbackForFirstToken(primaryAttempt.first)) {
+  } else if (
+    shouldFallbackForFirstToken(primaryAttempt.first, Date.now() - startedAtMs)
+  ) {
     usedFallback = true;
     const fallbackReason = resolveFallbackReason(primaryAttempt.first);
     logAiFallbackEvent({

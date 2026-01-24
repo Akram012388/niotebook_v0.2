@@ -20,6 +20,8 @@ const webServerEnv: Record<string, string> = {
   NIOTEBOOK_DEV_AUTH_BYPASS: "true",
   NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS: "true",
   NIOTEBOOK_E2E_SEED_PATH: ".e2e-seed.json",
+  NIOTEBOOK_E2E_PREVIEW: "true",
+  NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW: "true",
 };
 
 if (process.env.CONVEX_DEPLOYMENT) {
