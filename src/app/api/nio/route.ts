@@ -1,4 +1,5 @@
 import { ConvexHttpClient } from "convex/browser";
+import type { Id } from "../../../../convex/_generated/dataModel";
 import { api } from "../../../../convex/_generated/api";
 import type { RateLimitDecision } from "../../../domain/rate-limits";
 import type { NioSseEvent } from "../../../domain/ai/types";
@@ -78,6 +79,39 @@ const consumeAiRateLimit = async (): Promise<RateLimitDecision | null> => {
   return client.mutation(api.rateLimits.consumeAiRateLimit, {});
 };
 
+const persistAssistantMessage = async (args: {
+  threadId: string;
+  requestId: string;
+  content: string;
+  videoTimeSec: number;
+  timeWindow: { startSec: number; endSec: number };
+  codeHash?: string;
+  provider: string;
+  model: string;
+  latencyMs: number;
+  usedFallback: boolean;
+  contextHash: string;
+}): Promise<void> => {
+  if (!isConvexEnabled()) {
+    return;
+  }
+
+  const client = createConvexClient();
+  await client.mutation(api.chat.completeAssistantMessage, {
+    threadId: args.threadId as Id<"chatThreads">,
+    requestId: args.requestId,
+    content: args.content,
+    videoTimeSec: args.videoTimeSec,
+    timeWindow: args.timeWindow,
+    codeHash: args.codeHash,
+    provider: args.provider,
+    model: args.model,
+    latencyMs: args.latencyMs,
+    usedFallback: args.usedFallback,
+    contextHash: args.contextHash,
+  });
+};
+
 const streamStub = async (args: {
   requestId: string;
   assistantTempId: string;
@@ -88,6 +122,10 @@ const streamStub = async (args: {
     maxContextTokens: number;
     approxCharBudget: number;
   };
+  threadId: string;
+  videoTimeSec: number;
+  timeWindow: { startSec: number; endSec: number };
+  codeHash?: string;
   enqueue: (event: NioSseEvent) => void;
   isAborted: () => boolean;
 }): Promise<void> => {
@@ -150,6 +188,24 @@ const streamStub = async (args: {
     },
     finalText: fullText,
   });
+
+  try {
+    await persistAssistantMessage({
+      threadId: args.threadId,
+      requestId: args.requestId,
+      content: fullText,
+      videoTimeSec: args.videoTimeSec,
+      timeWindow: args.timeWindow,
+      codeHash: args.codeHash,
+      provider: STUB_PROVIDER,
+      model: STUB_MODEL,
+      latencyMs,
+      usedFallback: false,
+      contextHash: args.contextHash,
+    });
+  } catch {
+    return;
+  }
 };
 
 export const POST = async (request: Request): Promise<Response> => {
@@ -244,6 +300,10 @@ export const POST = async (request: Request): Promise<Response> => {
   }
 
   const contextHash = await hashString(contextResult.contextText);
+  const assistantTimeWindow = {
+    startSec: Math.max(0, validation.data.videoTimeSec - 60),
+    endSec: validation.data.videoTimeSec + 60,
+  };
 
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
@@ -282,6 +342,10 @@ export const POST = async (request: Request): Promise<Response> => {
           contextHash,
           inputChars: contextResult.inputChars,
           budget: contextResult.budget,
+          threadId: validation.data.threadId,
+          videoTimeSec: validation.data.videoTimeSec,
+          timeWindow: assistantTimeWindow,
+          codeHash: validation.data.code.codeHash,
           enqueue,
           isAborted: () => aborted,
         });

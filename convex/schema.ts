@@ -108,10 +108,17 @@ const schema = defineSchema({
     timeWindowStartSec: v.optional(v.number()),
     timeWindowEndSec: v.optional(v.number()),
     codeHash: v.optional(v.string()),
+    requestId: v.optional(v.string()),
+    provider: v.optional(v.string()),
+    model: v.optional(v.string()),
+    latencyMs: v.optional(v.number()),
+    usedFallback: v.optional(v.boolean()),
+    contextHash: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index("by_threadId", ["threadId"])
-    .index("by_threadId_createdAt", ["threadId", "createdAt"]),
+    .index("by_threadId_createdAt", ["threadId", "createdAt"])
+    .index("by_threadId_requestId", ["threadId", "requestId"]),
   events: defineTable({
     userId: v.optional(v.id("users")),
     lessonId: v.optional(v.id("lessons")),

@@ -31,6 +31,12 @@ type ChatMessageRecord = {
   timeWindowStartSec: number;
   timeWindowEndSec: number;
   codeHash?: string;
+  requestId?: string;
+  provider?: string;
+  model?: string;
+  latencyMs?: number;
+  usedFallback?: boolean;
+  contextHash?: string;
   createdAt: number;
 };
 
@@ -58,6 +64,12 @@ const toChatMessageSummary = (
     videoTimeSec: message.videoTimeSec,
     timeWindow,
     codeHash: message.codeHash,
+    requestId: message.requestId,
+    provider: message.provider,
+    model: message.model,
+    latencyMs: message.latencyMs,
+    usedFallback: message.usedFallback,
+    contextHash: message.contextHash,
     createdAt: message.createdAt,
   };
 };
@@ -196,4 +208,86 @@ const createChatMessage = mutation({
   },
 });
 
-export { createChatMessage, ensureChatThread, getChatMessages, getChatThread };
+const completeAssistantMessage = mutation({
+  args: {
+    threadId: v.id("chatThreads"),
+    requestId: v.string(),
+    content: v.string(),
+    videoTimeSec: v.number(),
+    timeWindow: v.object({
+      startSec: v.number(),
+      endSec: v.number(),
+    }),
+    codeHash: v.optional(v.string()),
+    provider: v.string(),
+    model: v.string(),
+    latencyMs: v.number(),
+    usedFallback: v.boolean(),
+    contextHash: v.string(),
+  },
+  handler: async (ctx, args): Promise<ChatMessageSummary> => {
+    const user = await requireMutationUser(ctx);
+    const thread = (await ctx.db.get(args.threadId)) as ChatThreadRecord | null;
+
+    if (!thread || thread.userId !== toGenericId(user.id)) {
+      throw new Error("Chat thread not accessible.");
+    }
+
+    const existing = (await ctx.db
+      .query("chatMessages")
+      .withIndex("by_threadId_requestId", (query) =>
+        query.eq("threadId", args.threadId).eq("requestId", args.requestId),
+      )
+      .first()) as ChatMessageRecord | null;
+
+    if (existing) {
+      return toChatMessageSummary(existing);
+    }
+
+    const createdAt = Date.now();
+    const messageId = await ctx.db.insert("chatMessages", {
+      threadId: args.threadId,
+      role: "assistant",
+      content: args.content,
+      videoTimeSec: args.videoTimeSec,
+      timeWindowStartSec: args.timeWindow.startSec,
+      timeWindowEndSec: args.timeWindow.endSec,
+      codeHash: args.codeHash,
+      requestId: args.requestId,
+      provider: args.provider,
+      model: args.model,
+      latencyMs: args.latencyMs,
+      usedFallback: args.usedFallback,
+      contextHash: args.contextHash,
+      createdAt,
+    });
+
+    return {
+      id: toDomainId(messageId as GenericId<"chatMessages">),
+      threadId: toDomainId(args.threadId as GenericId<"chatThreads">),
+      role: "assistant",
+      content: args.content,
+      videoTimeSec: args.videoTimeSec,
+      timeWindow: {
+        startSec: args.timeWindow.startSec,
+        endSec: args.timeWindow.endSec,
+      },
+      codeHash: args.codeHash,
+      requestId: args.requestId,
+      provider: args.provider,
+      model: args.model,
+      latencyMs: args.latencyMs,
+      usedFallback: args.usedFallback,
+      contextHash: args.contextHash,
+      createdAt,
+    };
+  },
+});
+
+export {
+  completeAssistantMessage,
+  createChatMessage,
+  ensureChatThread,
+  getChatMessages,
+  getChatThread,
+};

@@ -21,6 +21,12 @@ type ChatMessageSummary = {
   videoTimeSec: number;
   timeWindow: ChatTimeWindow;
   codeHash?: string;
+  requestId?: string;
+  provider?: string;
+  model?: string;
+  latencyMs?: number;
+  usedFallback?: boolean;
+  contextHash?: string;
   createdAt: number;
 };
 

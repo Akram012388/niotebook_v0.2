@@ -47,6 +47,7 @@ const toChatMessage = (message: ChatMessageSummary): ChatMessage => {
     content: message.content,
     badge: `Lesson • ${formatTimestamp(message.videoTimeSec)}`,
     timestampSec: message.videoTimeSec,
+    requestId: message.requestId,
     createdAt: message.createdAt,
   };
 };
@@ -93,8 +94,15 @@ const useChatThread = (lessonId: string): UseChatThreadResult => {
       toChatMessage(message),
     );
     const remoteIds = new Set(displayMessages.map((message) => message.id));
+    const remoteRequestIds = new Set(
+      displayMessages
+        .map((message) => message.requestId)
+        .filter((requestId): requestId is string => Boolean(requestId)),
+    );
     const localOnly = localMessages.filter(
-      (message) => !remoteIds.has(message.id),
+      (message) =>
+        !remoteIds.has(message.id) &&
+        (!message.requestId || !remoteRequestIds.has(message.requestId)),
     );
     const combined = [...displayMessages, ...localOnly];
 
