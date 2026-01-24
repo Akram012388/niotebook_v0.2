@@ -35,6 +35,20 @@ type ErrorBody = {
 
 const STUB_PROVIDER = "stub";
 const STUB_MODEL = "nio-stub";
+const isDebug = process.env.NIO_DEBUG === "1";
+
+const debugLog = (message: string, data?: Record<string, unknown>): void => {
+  if (!isDebug) {
+    return;
+  }
+
+  if (data) {
+    console.log(`[nio] ${message}`, data);
+    return;
+  }
+
+  console.log(`[nio] ${message}`);
+};
 
 const isStubPreview = (): boolean => {
   return (
@@ -411,6 +425,7 @@ const streamWithProviders = async (args: {
     }
   };
 
+  debugLog("gemini attempt", { requestId: args.requestId });
   const primaryAttempt = await attemptProvider(
     () =>
       streamGemini({
@@ -419,6 +434,13 @@ const streamWithProviders = async (args: {
       }),
     "gemini",
   );
+
+  if (primaryAttempt.first.kind === "token") {
+    debugLog("gemini first token", {
+      requestId: args.requestId,
+      elapsedMs: Date.now() - startedAtMs,
+    });
+  }
 
   if (
     primaryAttempt.first.kind === "token" &&
@@ -433,6 +455,12 @@ const streamWithProviders = async (args: {
   ) {
     usedFallback = true;
     const fallbackReason = resolveFallbackReason(primaryAttempt.first);
+    debugLog("fallback decision", {
+      requestId: args.requestId,
+      reason: fallbackReason,
+      elapsedMs: Date.now() - startedAtMs,
+      hasToken: primaryAttempt.first.kind === "token",
+    });
     logAiFallbackEvent({
       lessonId: args.lessonId,
       threadId: args.threadId,
@@ -481,6 +509,10 @@ const streamWithProviders = async (args: {
     }
   } else {
     if (primaryAttempt.first.kind === "timeout") {
+      debugLog("gemini timeout", {
+        requestId: args.requestId,
+        elapsedMs: Date.now() - startedAtMs,
+      });
       emitErrorEvent(
         "TIMEOUT_FIRST_TOKEN",
         "Timed out waiting for first token.",
@@ -490,6 +522,15 @@ const streamWithProviders = async (args: {
     }
 
     if (primaryAttempt.first.kind === "error") {
+      debugLog("gemini error", {
+        requestId: args.requestId,
+        name: primaryAttempt.first.error.name,
+        message: primaryAttempt.first.error.message,
+        stack: primaryAttempt.first.error.stack
+          ?.split("\n")
+          .slice(0, 4)
+          .join(" | "),
+      });
       emitErrorEvent(
         primaryAttempt.first.error.code,
         primaryAttempt.first.error.message,
@@ -636,6 +677,14 @@ export const POST = async (request: Request): Promise<Response> => {
       400,
     );
   }
+
+  debugLog("nio request", {
+    requestId: validation.data.requestId,
+    hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+    hasGroqKey: Boolean(process.env.GROQ_API_KEY),
+    stubMode: isStubPreview(),
+    disableConvex: process.env.NEXT_PUBLIC_DISABLE_CONVEX === "true",
+  });
 
   let rateLimitDecision: RateLimitDecision | null = null;
 

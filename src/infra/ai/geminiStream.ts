@@ -60,6 +60,19 @@ const streamGemini = async (
   input: GeminiStreamInput,
 ): Promise<NioProviderStreamResult> => {
   const apiKey = process.env.GEMINI_API_KEY;
+  const isDebug = process.env.NIO_DEBUG === "1";
+  const debugLog = (message: string, data?: Record<string, unknown>): void => {
+    if (!isDebug) {
+      return;
+    }
+
+    if (data) {
+      console.log(`[nio:gemini] ${message}`, data);
+      return;
+    }
+
+    console.log(`[nio:gemini] ${message}`);
+  };
 
   if (!apiKey) {
     throw createProviderStreamError("Gemini API key is missing.");
@@ -87,18 +100,29 @@ const streamGemini = async (
       : {}),
   };
 
-  const response = await fetch(
-    `${GEMINI_API_BASE}/${GEMINI_MODEL}:streamGenerateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
+  const requestUrl = `${GEMINI_API_BASE}/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`;
+  debugLog("request", { model: GEMINI_MODEL, url: requestUrl });
+
+  const response = await fetch(requestUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(body),
+  });
+
+  debugLog("response", { status: response.status });
 
   if (!response.ok) {
+    if (isDebug) {
+      try {
+        const clone = response.clone();
+        const text = await clone.text();
+        debugLog("error body", { preview: text.slice(0, 200) });
+      } catch {
+        debugLog("error body", { preview: "<unavailable>" });
+      }
+    }
     throw createProviderStreamError(
       `Gemini request failed with status ${response.status}.`,
       response.status,
@@ -121,6 +145,7 @@ const streamGemini = async (
     const reader = responseBody.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let sawToken = false;
 
     while (true) {
       const { value, done } = await reader.read();
@@ -156,6 +181,10 @@ const streamGemini = async (
 
         const token = parseGeminiToken(parsed);
         if (token) {
+          if (!sawToken) {
+            sawToken = true;
+            debugLog("first token", { length: token.length });
+          }
           yield token;
         }
       }
