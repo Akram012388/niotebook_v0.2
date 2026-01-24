@@ -53,7 +53,11 @@ const applyChatMessageLimit = (
   messages: ChatMessageSummary[],
   limit: number,
 ): ChatMessageSummary[] => {
-  return messages.slice(0, limit);
+  if (limit <= 0) {
+    return [];
+  }
+
+  return messages.slice(-limit);
 };
 
 export type {

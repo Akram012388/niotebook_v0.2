@@ -128,7 +128,7 @@ const getChatMessages = query({
       .withIndex("by_threadId_createdAt", (query) =>
         query.eq("threadId", args.threadId),
       )
-      .order("asc")
+      .order("desc")
       .paginate({
         cursor: args.cursor ?? null,
         numItems: args.limit,
