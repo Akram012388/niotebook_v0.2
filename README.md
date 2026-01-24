@@ -38,6 +38,7 @@ AI-native learning workspace that synchronizes Video + Code + AI.
 - `docs/specs.md`
 - `docs/plan.md`
 - `docs/dev-workflow.md`
+- `docs/env-requirements.md` (environment setup + secrets)
 - `docs/ui-ux-contract.md` (binding UI/UX contract)
 - `docs/ui-reference.md`
 - `docs/session-tasks.md`
