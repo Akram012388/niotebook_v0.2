@@ -300,3 +300,41 @@ Exit criteria (must pass):
 5. “Last N messages” used for context are exactly the last N displayed.
 6. E2E smoke passes without real AI keys.
 7. Manual dev test succeeds with at least one provider key.
+
+---
+
+## Phase 4 Veracity Review (2026-01-26)
+
+Phase 4 Veracity (Against docs/phase4-tasks.md)
+
+- Branch state looks clean and current: phase4-implementation is clean and matches origin/phase4-implementation.
+- All Phase 4 core deliverables exist and are wired end-to-end:
+  - Types + validation: src/domain/ai/types.ts, src/infra/ai/validateNioChatRequest.ts
+  - Prompt SSoT + anti-drift: src/domain/nioPrompt.ts, tests/unit/nio-prompt.test.ts, docs/ADR-005-nio-prompt.md
+  - Context builder: src/domain/nioContextBuilder.ts, tests/unit/nio-context-builder.test.ts
+  - SSE contract + parsing: src/infra/ai/nioSse.ts, tests/unit/nio-sse.test.ts
+  - /api/nio SSE route + stub mode + fallback gate: src/app/api/nio/route.ts, src/infra/ai/fallbackGate.ts, tests/unit/nio-route-sse.test.ts, tests/unit/ai-fallback-gate.test.ts
+  - Providers: src/infra/ai/geminiStream.ts, src/infra/ai/groqStream.ts
+  - Persistence + idempotency: convex/chat.ts, convex/schema.ts, tests/unit/chat-idempotency.test.ts
+  - UI streaming UX + scroll affordance + no transcript injection: src/ui/chat/useChatThread.ts, src/ui/chat/ChatScroll.tsx, src/ui/chat/ChatComposer.tsx, src/ui/panes/AiPane.tsx
+  - Transcript window unified to ±60s: src/ui/transcript/useTranscriptWindow.ts
+  - E2E smoke covers stub stream: tests/e2e/smoke.e2e.ts
+- The “Known drift” list in docs/phase4-tasks.md#known-drift-in-current-codebase appears fixed in code (route exists, assistant persistence exists, transcript injection removed, window is ±60s, chat pagination is newest-first via .order("desc")).
+
+Issues / Discrepancies Found
+
+- Doc drift (northstar mismatch): docs/phase4-tasks.md still says “Status: READY TO IMPLEMENT” and still lists “Known drift” items that are already resolved in the codebase. If this doc is the authoritative latest record, it’s currently stale.
+- SSE sequencing bug: src/app/api/nio/route.ts emits SSE error with seq: 1 even when an error can occur after multiple tokens; this violates the “seq is monotonic” rule from docs/phase4-tasks.md (§P4-01).
+- Convex auth boundary risk: src/app/api/nio/route.ts calls Convex mutations via ConvexHttpClient without passing user auth. With NIOTEBOOK_DEV_AUTH_BYPASS disabled (intended for prod per docs/env-requirements.md), rate limiting + persistence + server-side fallback analytics can silently fail (caught/ignored in several places). This is the biggest “real-world deploy” concern.
+- Script strictness mismatch: scripts/verify-phase4.sh ignores typecheck failures (bun run typecheck || true), which is inconsistent with CI gating in .github/workflows/ci.yml and the intent of docs/ADR-004-cicd.md.
+- ADR-003 gap (if treated as required now): docs/ADR-003-error-security.md calls for jailbreak neutralization before model call; I don’t see an implementation of that in the /api/nio path yet.
+
+CI/CD + E2E Pipeline Consistency
+
+- CI checks align with docs/ADR-004-cicd.md: .github/workflows/ci.yml runs lint, check:any, check:unknown, typecheck, test, build.
+- E2E flow is coherent with Phase 4 stub mode: .github/workflows/e2e.yml seeds + sets preview flags and runs test:e2e; tests/e2e/smoke.e2e.ts asserts the stubbed response text.
+
+PR Readiness
+
+- For a “Phase 4 implementation” PR: mostly ready, but I’d block on (1) the SSE error.seq monotonicity issue, and (2) explicitly resolving/deciding the /api/nio → Convex auth story (otherwise production correctness of persistence/rate limiting is fragile).
+- One decision I need from you: is this PR intended to be production-safe with NIOTEBOOK_DEV_AUTH_BYPASS OFF? My recommended default is “yes”; if “no (preview/dev only)”, then we should at least document that clearly and still fix the SSE seq issue.
