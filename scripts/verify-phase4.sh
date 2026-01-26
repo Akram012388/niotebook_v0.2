@@ -18,7 +18,7 @@ rm -rf node_modules/.cache || true
 
 echo "→ Build + typecheck"
 bun run build
-bun run typecheck || true
+bun run typecheck
 
 echo "→ Unit tests"
 bun run test
