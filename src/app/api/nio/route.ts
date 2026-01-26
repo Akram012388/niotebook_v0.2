@@ -13,6 +13,7 @@ import { streamGemini } from "../../../infra/ai/geminiStream";
 import { streamGroq } from "../../../infra/ai/groqStream";
 import { encodeSseEvent, NIO_SSE_HEADERS } from "../../../infra/ai/nioSse";
 import { shouldFallbackBeforeFirstToken } from "../../../infra/ai/fallbackGate";
+import { neutralizePromptInjection } from "../../../infra/ai/promptInjection";
 import type {
   NioProviderId,
   NioProviderStreamResult,
@@ -61,6 +62,22 @@ const isConvexEnabled = (): boolean => {
   return process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
 };
 
+const isConvexAuthRequired = (): boolean => {
+  if (process.env.NODE_ENV !== "production") {
+    return false;
+  }
+
+  if (process.env.NIOTEBOOK_E2E_PREVIEW === "true") {
+    return false;
+  }
+
+  if (process.env.NIOTEBOOK_DEV_AUTH_BYPASS === "true") {
+    return false;
+  }
+
+  return true;
+};
+
 const resolveConvexUrl = (): string => {
   return (
     process.env.NEXT_PUBLIC_CONVEX_URL ??
@@ -69,9 +86,40 @@ const resolveConvexUrl = (): string => {
   );
 };
 
-const createConvexClient = (): ConvexHttpClient => {
+const resolveConvexAuthHeader = (request: Request): string | null => {
+  const header = request.headers.get("authorization");
+  if (!header) {
+    return null;
+  }
+
+  const trimmed = header.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (trimmed.startsWith("Bearer ") || trimmed.startsWith("Convex ")) {
+    return trimmed;
+  }
+
+  return `Bearer ${trimmed}`;
+};
+
+const createConvexClient = (authHeader?: string | null): ConvexHttpClient => {
+  if (!authHeader) {
+    return new ConvexHttpClient(resolveConvexUrl(), {
+      skipConvexDeploymentUrlCheck: true,
+    });
+  }
+
+  const fetchWithAuth: typeof fetch = (input, init) => {
+    const headers = new Headers(init?.headers ?? {});
+    headers.set("Authorization", authHeader);
+    return fetch(input, { ...init, headers });
+  };
+
   return new ConvexHttpClient(resolveConvexUrl(), {
     skipConvexDeploymentUrlCheck: true,
+    fetch: fetchWithAuth,
   });
 };
 
@@ -100,12 +148,14 @@ const buildStubTokens = (text: string): string[] => {
   return parts.map((part, index) => (index === 0 ? part : ` ${part}`));
 };
 
-const consumeAiRateLimit = async (): Promise<RateLimitDecision | null> => {
+const consumeAiRateLimit = async (
+  authHeader?: string | null,
+): Promise<RateLimitDecision | null> => {
   if (!isConvexEnabled()) {
     return null;
   }
 
-  const client = createConvexClient();
+  const client = createConvexClient(authHeader);
   return client.mutation(api.rateLimits.consumeAiRateLimit, {});
 };
 
@@ -121,12 +171,13 @@ const persistAssistantMessage = async (args: {
   latencyMs: number;
   usedFallback: boolean;
   contextHash: string;
+  authHeader?: string | null;
 }): Promise<void> => {
   if (!isConvexEnabled()) {
     return;
   }
 
-  const client = createConvexClient();
+  const client = createConvexClient(args.authHeader);
   await client.mutation(api.chat.completeAssistantMessage, {
     threadId: args.threadId as Id<"chatThreads">,
     requestId: args.requestId,
@@ -148,12 +199,13 @@ const logAiFallbackEvent = async (args: {
   fromProvider: NioProviderId;
   toProvider: NioProviderId;
   reason: string;
+  authHeader?: string | null;
 }): Promise<void> => {
   if (!isConvexEnabled()) {
     return;
   }
 
-  const client = createConvexClient();
+  const client = createConvexClient(args.authHeader);
   await client.mutation(api.events.logEvent, {
     eventType: "ai_fallback_triggered",
     lessonId: args.lessonId as Id<"lessons">,
@@ -268,6 +320,7 @@ const streamStub = async (args: {
   videoTimeSec: number;
   timeWindow: { startSec: number; endSec: number };
   codeHash?: string;
+  authHeader?: string | null;
   enqueue: (event: NioSseEvent) => void;
   isAborted: () => boolean;
 }): Promise<void> => {
@@ -344,8 +397,10 @@ const streamStub = async (args: {
       latencyMs,
       usedFallback: false,
       contextHash: args.contextHash,
+      authHeader: args.authHeader,
     });
-  } catch {
+  } catch (error) {
+    console.error("[nio] stub persistence failed", error);
     return;
   }
 };
@@ -366,6 +421,7 @@ const streamWithProviders = async (args: {
   timeWindow: { startSec: number; endSec: number };
   codeHash?: string;
   messages: NioContextMessage[];
+  authHeader?: string | null;
   enqueue: (event: NioSseEvent) => void;
   isAborted: () => boolean;
 }): Promise<void> => {
@@ -374,6 +430,7 @@ const streamWithProviders = async (args: {
   let providerResult: NioProviderStreamResult | null = null;
   let iterator: AsyncIterator<string> | null = null;
   let firstToken: string | null = null;
+  let seq = 1;
 
   const emitErrorEvent = (
     code: NioErrorCode,
@@ -384,7 +441,7 @@ const streamWithProviders = async (args: {
       type: "error",
       requestId: args.requestId,
       assistantTempId: args.assistantTempId,
-      seq: 1,
+      seq,
       code,
       message,
       provider,
@@ -467,7 +524,10 @@ const streamWithProviders = async (args: {
       fromProvider: "gemini",
       toProvider: "groq",
       reason: fallbackReason,
-    }).catch(() => undefined);
+      authHeader: args.authHeader,
+    }).catch((error) => {
+      console.error("[nio] fallback event failed", error);
+    });
     const fallbackAttempt = await attemptProvider(
       () =>
         streamGroq({
@@ -561,7 +621,6 @@ const streamWithProviders = async (args: {
     seq: 0,
   });
 
-  let seq = 1;
   let fullText = firstToken;
   args.enqueue({
     type: "token",
@@ -641,10 +700,32 @@ const streamWithProviders = async (args: {
       latencyMs,
       usedFallback,
       contextHash: args.contextHash,
+      authHeader: args.authHeader,
     });
-  } catch {
+  } catch (error) {
+    console.error("[nio] assistant persistence failed", error);
     return;
   }
+};
+
+const fetchTranscriptWindow = async (args: {
+  lessonId: string;
+  startSec: number;
+  endSec: number;
+  authHeader?: string | null;
+}): Promise<string[]> => {
+  if (!isConvexEnabled()) {
+    return [];
+  }
+
+  const client = createConvexClient(args.authHeader);
+  const segments = await client.query(api.transcripts.getTranscriptWindow, {
+    lessonId: args.lessonId as Id<"lessons">,
+    startSec: args.startSec,
+    endSec: args.endSec,
+  });
+
+  return segments.map((segment) => segment.textNormalized);
 };
 
 export const POST = async (request: Request): Promise<Response> => {
@@ -686,11 +767,26 @@ export const POST = async (request: Request): Promise<Response> => {
     disableConvex: process.env.NEXT_PUBLIC_DISABLE_CONVEX === "true",
   });
 
+  const convexAuthHeader = resolveConvexAuthHeader(request);
+
+  if (isConvexEnabled() && isConvexAuthRequired() && !convexAuthHeader) {
+    return buildJsonResponse(
+      {
+        error: {
+          code: "AUTH_REQUIRED",
+          message: "Authentication required for assistant requests.",
+        },
+      },
+      401,
+    );
+  }
+
   let rateLimitDecision: RateLimitDecision | null = null;
 
   try {
-    rateLimitDecision = await consumeAiRateLimit();
-  } catch {
+    rateLimitDecision = await consumeAiRateLimit(convexAuthHeader);
+  } catch (error) {
+    console.error("[nio] rate limit check failed", error);
     rateLimitDecision = null;
   }
 
@@ -712,14 +808,53 @@ export const POST = async (request: Request): Promise<Response> => {
     );
   }
 
+  const sanitizedUser = neutralizePromptInjection(validation.data.userMessage);
+  const sanitizedHistory = validation.data.recentMessages.map((message) =>
+    message.role === "user"
+      ? {
+          ...message,
+          content: neutralizePromptInjection(message.content).text,
+        }
+      : message,
+  );
+
+  if (sanitizedUser.flagged) {
+    debugLog("prompt injection neutralized", {
+      requestId: validation.data.requestId,
+    });
+  }
+
+  let transcriptPayload = validation.data.transcript;
+
+  if (transcriptPayload.lines.length === 0 && isConvexEnabled()) {
+    try {
+      const lines = await fetchTranscriptWindow({
+        lessonId: validation.data.lessonId,
+        startSec: transcriptPayload.startSec,
+        endSec: transcriptPayload.endSec,
+        authHeader: convexAuthHeader,
+      });
+      if (lines.length > 0) {
+        transcriptPayload = {
+          ...transcriptPayload,
+          lines,
+        };
+      }
+    } catch {
+      debugLog("transcript fetch failed", {
+        requestId: validation.data.requestId,
+      });
+    }
+  }
+
   const contextResult = buildNioContext({
     systemPrompt: NIO_SYSTEM_PROMPT,
     lessonId: validation.data.lessonId,
     videoTimeSec: validation.data.videoTimeSec,
-    transcript: validation.data.transcript,
+    transcript: transcriptPayload,
     code: validation.data.code,
-    recentMessages: validation.data.recentMessages,
-    userMessage: validation.data.userMessage,
+    recentMessages: sanitizedHistory,
+    userMessage: sanitizedUser.text,
   });
 
   if (!contextResult.ok) {
@@ -745,10 +880,15 @@ export const POST = async (request: Request): Promise<Response> => {
       const encoder = new TextEncoder();
       let aborted = false;
       let closed = false;
+      let lastSeq = 0;
 
       const enqueue = (event: NioSseEvent): void => {
         if (closed || aborted) {
           return;
+        }
+
+        if (event.type !== "meta") {
+          lastSeq = event.seq;
         }
 
         controller.enqueue(encoder.encode(encodeSseEvent(event)));
@@ -782,6 +922,7 @@ export const POST = async (request: Request): Promise<Response> => {
             videoTimeSec: validation.data.videoTimeSec,
             timeWindow: assistantTimeWindow,
             codeHash: validation.data.code.codeHash,
+            authHeader: convexAuthHeader,
             enqueue,
             isAborted: () => aborted,
           });
@@ -801,6 +942,7 @@ export const POST = async (request: Request): Promise<Response> => {
           timeWindow: assistantTimeWindow,
           codeHash: validation.data.code.codeHash,
           messages: contextResult.messages,
+          authHeader: convexAuthHeader,
           enqueue,
           isAborted: () => aborted,
         });
@@ -812,7 +954,7 @@ export const POST = async (request: Request): Promise<Response> => {
           type: "error",
           requestId: validation.data.requestId,
           assistantTempId: validation.data.assistantTempId,
-          seq: 1,
+          seq: Math.max(1, lastSeq + 1),
           code: "STREAM_ERROR",
           message: "Streaming failed unexpectedly.",
         });
