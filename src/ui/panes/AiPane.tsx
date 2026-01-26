@@ -10,6 +10,7 @@ import { useTranscriptWindow } from "../transcript/useTranscriptWindow";
 import type { ChatMessage as ChatMessageType } from "../chat/chatTypes";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 import { getLessonRef } from "../content/convexContent";
+import { resolveLectureNumber } from "../../domain/lectureNumber";
 
 type AiPaneProps = {
   lessonId: string;
@@ -34,31 +35,12 @@ const AiPane = ({
     isConvexEnabled ? { lessonId } : "skip",
   );
   const lectureNumber = useMemo(() => {
-    const candidates = [
-      lesson?.subtitlesUrl,
-      lesson?.transcriptUrl,
-      lesson?.title,
-    ];
-    for (const value of candidates) {
-      if (!value) {
-        continue;
-      }
-      const urlMatch = value.match(/\/lectures\/(\d+)\//i);
-      if (urlMatch?.[1]) {
-        const parsed = Number(urlMatch[1]);
-        if (Number.isFinite(parsed)) {
-          return parsed;
-        }
-      }
-      const match = value.match(/\b(?:lecture|week)\s*(\d+)\b/i);
-      if (match?.[1]) {
-        const parsed = Number(match[1]);
-        if (Number.isFinite(parsed)) {
-          return parsed;
-        }
-      }
-    }
-    return lesson?.order;
+    return resolveLectureNumber({
+      subtitlesUrl: lesson?.subtitlesUrl,
+      transcriptUrl: lesson?.transcriptUrl,
+      title: lesson?.title,
+      order: lesson?.order,
+    });
   }, [
     lesson?.order,
     lesson?.subtitlesUrl,
@@ -113,9 +95,24 @@ const AiPane = ({
         videoTimeSec,
         transcript: transcriptPayload,
         code: codePayload,
+        lesson: {
+          title: lesson?.title,
+          lectureNumber: lectureNumber ?? undefined,
+          subtitlesUrl: lesson?.subtitlesUrl,
+          transcriptUrl: lesson?.transcriptUrl,
+        },
       });
     },
-    [codePayload, sendMessage, transcriptPayload, videoTimeSec],
+    [
+      codePayload,
+      lectureNumber,
+      lesson?.subtitlesUrl,
+      lesson?.title,
+      lesson?.transcriptUrl,
+      sendMessage,
+      transcriptPayload,
+      videoTimeSec,
+    ],
   );
 
   const handleSeek = useCallback(

@@ -19,6 +19,7 @@ import {
 } from "@phosphor-icons/react";
 import { useMemo, useState, type ReactElement, type RefObject } from "react";
 import type { CourseSummary, LessonSummary } from "../../domain/content";
+import { resolveLectureNumber } from "../../domain/lectureNumber";
 
 type ControlCenterDrawerProps = {
   isOpen: boolean;
@@ -38,27 +39,12 @@ type ControlCenterDrawerProps = {
 };
 
 const getLectureNumber = (lesson: LessonSummary): number | null => {
-  const candidates = [lesson.subtitlesUrl, lesson.transcriptUrl, lesson.title];
-  for (const value of candidates) {
-    if (!value) {
-      continue;
-    }
-    const urlMatch = value.match(/\/lectures\/(\d+)\//i);
-    if (urlMatch?.[1]) {
-      const parsed = Number(urlMatch[1]);
-      if (Number.isFinite(parsed)) {
-        return parsed;
-      }
-    }
-    const match = value.match(/\b(?:lecture|week)\s*(\d+)\b/i);
-    if (match?.[1]) {
-      const parsed = Number(match[1]);
-      if (Number.isFinite(parsed)) {
-        return parsed;
-      }
-    }
-  }
-  return lesson.order ?? null;
+  return resolveLectureNumber({
+    subtitlesUrl: lesson.subtitlesUrl,
+    transcriptUrl: lesson.transcriptUrl,
+    title: lesson.title,
+    order: lesson.order,
+  });
 };
 
 const ControlCenterDrawer = ({

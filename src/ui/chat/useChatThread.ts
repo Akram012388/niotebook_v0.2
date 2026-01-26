@@ -10,6 +10,7 @@ import { parseSseEvent } from "../../infra/ai/nioSse";
 import { formatTimestamp } from "../formatTimestamp";
 import type { ChatMessage, ChatStreamState } from "./chatTypes";
 import type { EventLogResult } from "../../domain/events";
+import { readChatCache, writeChatCache } from "../../infra/chatLocalCache";
 import {
   createChatMessageRef,
   ensureChatThreadRef,
@@ -28,6 +29,12 @@ type ChatSendContext = {
     language: string;
     codeHash?: string;
     code?: string;
+  };
+  lesson?: {
+    title?: string;
+    lectureNumber?: number;
+    subtitlesUrl?: string;
+    transcriptUrl?: string;
   };
 };
 
@@ -54,6 +61,48 @@ const toChatMessage = (
     timestampSec: message.videoTimeSec,
     requestId: message.requestId,
     createdAt: message.createdAt,
+  };
+};
+
+const toCachedMessage = (
+  message: ChatMessage,
+): {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestampSec: number;
+  createdAt: number;
+  requestId?: string;
+} => {
+  return {
+    id: message.id,
+    role: message.role,
+    content: message.content,
+    timestampSec: message.timestampSec,
+    createdAt: message.createdAt,
+    requestId: message.requestId,
+  };
+};
+
+const fromCachedMessage = (
+  message: {
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+    timestampSec: number;
+    createdAt: number;
+    requestId?: string;
+  },
+  lectureLabel: string,
+): ChatMessage => {
+  return {
+    id: message.id,
+    role: message.role,
+    content: message.content,
+    badge: `${lectureLabel} • ${formatTimestamp(message.timestampSec)}`,
+    timestampSec: message.timestampSec,
+    createdAt: message.createdAt,
+    requestId: message.requestId,
   };
 };
 
@@ -118,6 +167,11 @@ const useChatThread = (
     return orderChatMessages(messagesPage?.messages ?? []);
   }, [messagesPage]);
 
+  const cachedMessages = useMemo(() => {
+    const cached = readChatCache(lessonId);
+    return cached.map((message) => fromCachedMessage(message, lectureLabel));
+  }, [lectureLabel, lessonId]);
+
   const mergedMessages = useMemo(() => {
     const displayMessages = remoteMessages.map((message) =>
       toChatMessage(message, lectureLabel),
@@ -128,17 +182,44 @@ const useChatThread = (
         .map((message) => message.requestId)
         .filter((requestId): requestId is string => Boolean(requestId)),
     );
-    const localOnly = localMessages.filter(
+    const cachedOnly = cachedMessages.filter(
       (message) =>
         !remoteIds.has(message.id) &&
         (!message.requestId || !remoteRequestIds.has(message.requestId)),
     );
-    const combined = [...displayMessages, ...localOnly];
+    const cachedIds = new Set(cachedOnly.map((message) => message.id));
+    const localOnly = localMessages.filter(
+      (message) =>
+        !remoteIds.has(message.id) &&
+        !cachedIds.has(message.id) &&
+        (!message.requestId || !remoteRequestIds.has(message.requestId)),
+    );
+    const combined = [
+      ...displayMessages,
+      ...cachedOnly,
+      ...localOnly.map((message) => ({
+        ...message,
+        badge: `${lectureLabel} • ${formatTimestamp(message.timestampSec)}`,
+      })),
+    ];
 
     return [...combined].sort(
       (left, right) => left.createdAt - right.createdAt,
     );
-  }, [lectureLabel, localMessages, remoteMessages]);
+  }, [cachedMessages, lectureLabel, localMessages, remoteMessages]);
+
+  useEffect(() => {
+    const cacheCandidates = mergedMessages.filter(
+      (message) => !message.isStreaming && message.content.trim().length > 0,
+    );
+    if (cacheCandidates.length === 0) {
+      return;
+    }
+    writeChatCache(
+      lessonId,
+      cacheCandidates.map((message) => toCachedMessage(message)),
+    );
+  }, [lessonId, mergedMessages]);
 
   const rafRef = useRef<number | null>(null);
 
@@ -240,6 +321,7 @@ const useChatThread = (
           codeHash: context.code.codeHash,
           code: context.code.code,
         },
+        lesson: context.lesson,
       };
 
       let response: Response;

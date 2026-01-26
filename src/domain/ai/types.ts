@@ -17,6 +17,13 @@ type NioCodePayload = {
   code?: string;
 };
 
+type NioLessonMetaPayload = {
+  title?: string;
+  lectureNumber?: number;
+  subtitlesUrl?: string;
+  transcriptUrl?: string;
+};
+
 type NioChatRequest = {
   requestId: string;
   assistantTempId: string;
@@ -27,6 +34,7 @@ type NioChatRequest = {
   recentMessages: NioChatMessage[];
   transcript: NioTranscriptPayload;
   code: NioCodePayload;
+  lesson?: NioLessonMetaPayload;
 };
 
 type NioErrorCode =
@@ -100,6 +108,7 @@ export type {
   NioChatRequest,
   NioCodePayload,
   NioErrorCode,
+  NioLessonMetaPayload,
   NioSseDoneEvent,
   NioSseErrorEvent,
   NioSseEvent,

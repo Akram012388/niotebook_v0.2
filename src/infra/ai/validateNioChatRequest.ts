@@ -2,6 +2,7 @@ import type {
   NioChatMessage,
   NioChatRequest,
   NioCodePayload,
+  NioLessonMetaPayload,
   NioTranscriptPayload,
 } from "../../domain/ai/types";
 
@@ -90,6 +91,41 @@ const parseRecentMessages = (value: unknown): NioChatMessage[] | null => {
   return parsed as NioChatMessage[];
 };
 
+const parseLessonMeta = (value: unknown): NioLessonMetaPayload | null => {
+  if (value === undefined) {
+    return null;
+  }
+
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const { title, lectureNumber, subtitlesUrl, transcriptUrl } = value;
+
+  if (title !== undefined && !isString(title)) {
+    return null;
+  }
+
+  if (lectureNumber !== undefined && !isNumber(lectureNumber)) {
+    return null;
+  }
+
+  if (subtitlesUrl !== undefined && !isString(subtitlesUrl)) {
+    return null;
+  }
+
+  if (transcriptUrl !== undefined && !isString(transcriptUrl)) {
+    return null;
+  }
+
+  return {
+    title,
+    lectureNumber,
+    subtitlesUrl,
+    transcriptUrl,
+  };
+};
+
 const validateNioChatRequest = (payload: unknown): ValidationResult => {
   if (!isRecord(payload)) {
     return { ok: false, error: "Request payload must be an object." };
@@ -105,6 +141,7 @@ const validateNioChatRequest = (payload: unknown): ValidationResult => {
     recentMessages,
     transcript,
     code,
+    lesson,
   } = payload;
 
   if (!isString(requestId) || requestId.trim().length === 0) {
@@ -146,6 +183,11 @@ const validateNioChatRequest = (payload: unknown): ValidationResult => {
     return { ok: false, error: "code payload must be provided." };
   }
 
+  const parsedLesson = parseLessonMeta(lesson);
+  if (parsedLesson === null && lesson !== undefined) {
+    return { ok: false, error: "lesson metadata must be valid." };
+  }
+
   return {
     ok: true,
     data: {
@@ -158,6 +200,7 @@ const validateNioChatRequest = (payload: unknown): ValidationResult => {
       recentMessages: parsedMessages,
       transcript: parsedTranscript,
       code: parsedCode,
+      lesson: parsedLesson ?? undefined,
     },
   };
 };

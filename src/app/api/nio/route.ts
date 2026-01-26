@@ -14,6 +14,7 @@ import { streamGroq } from "../../../infra/ai/groqStream";
 import { encodeSseEvent, NIO_SSE_HEADERS } from "../../../infra/ai/nioSse";
 import { shouldFallbackBeforeFirstToken } from "../../../infra/ai/fallbackGate";
 import { neutralizePromptInjection } from "../../../infra/ai/promptInjection";
+import { fetchSubtitleWindow } from "../../../infra/ai/subtitleFallback";
 import type {
   NioProviderId,
   NioProviderStreamResult,
@@ -25,6 +26,7 @@ import {
 } from "../../../infra/ai/providerTypes";
 import { validateNioChatRequest } from "../../../infra/ai/validateNioChatRequest";
 import { hashString } from "../../../infra/hash";
+import { resolveLectureNumber } from "../../../domain/lectureNumber";
 
 type ErrorBody = {
   error: {
@@ -94,6 +96,10 @@ const resolveConvexAuthHeader = (request: Request): string | null => {
 
   const trimmed = header.trim();
   if (!trimmed) {
+    return null;
+  }
+
+  if (trimmed.includes("undefined") || trimmed.includes("null")) {
     return null;
   }
 
@@ -728,30 +734,6 @@ const fetchTranscriptWindow = async (args: {
   return segments.map((segment) => segment.textNormalized);
 };
 
-const extractLectureNumber = (value: string | undefined): number | null => {
-  if (!value) {
-    return null;
-  }
-
-  const patterns = [
-    /\/lectures\/(\d+)\//i,
-    /lecture\s*(\d+)/i,
-    /week\s*(\d+)/i,
-  ];
-
-  for (const pattern of patterns) {
-    const match = value.match(pattern);
-    if (match && match[1]) {
-      const parsed = Number(match[1]);
-      if (Number.isFinite(parsed)) {
-        return parsed;
-      }
-    }
-  }
-
-  return null;
-};
-
 const fetchLessonMeta = async (args: {
   lessonId: string;
   authHeader?: string | null;
@@ -759,6 +741,8 @@ const fetchLessonMeta = async (args: {
   title?: string;
   order?: number;
   lectureNumber?: number;
+  subtitlesUrl?: string;
+  transcriptUrl?: string;
 } | null> => {
   if (!isConvexEnabled()) {
     return null;
@@ -773,16 +757,19 @@ const fetchLessonMeta = async (args: {
     return null;
   }
 
-  const lectureNumber =
-    extractLectureNumber(lesson.subtitlesUrl) ??
-    extractLectureNumber(lesson.transcriptUrl) ??
-    extractLectureNumber(lesson.title) ??
-    lesson.order;
+  const lectureNumber = resolveLectureNumber({
+    subtitlesUrl: lesson.subtitlesUrl,
+    transcriptUrl: lesson.transcriptUrl,
+    title: lesson.title,
+    order: lesson.order,
+  });
 
   return {
     title: lesson.title,
     order: lesson.order,
-    lectureNumber,
+    lectureNumber: lectureNumber ?? undefined,
+    subtitlesUrl: lesson.subtitlesUrl,
+    transcriptUrl: lesson.transcriptUrl,
   };
 };
 
@@ -913,9 +900,18 @@ export const POST = async (request: Request): Promise<Response> => {
     title?: string;
     order?: number;
     lectureNumber?: number;
-  } | null = null;
+    subtitlesUrl?: string;
+    transcriptUrl?: string;
+  } | null = validation.data.lesson
+    ? {
+        title: validation.data.lesson.title,
+        lectureNumber: validation.data.lesson.lectureNumber,
+        subtitlesUrl: validation.data.lesson.subtitlesUrl,
+        transcriptUrl: validation.data.lesson.transcriptUrl,
+      }
+    : null;
 
-  if (isConvexEnabled()) {
+  if (!lessonMeta && isConvexEnabled()) {
     try {
       lessonMeta = await fetchLessonMeta({
         lessonId: validation.data.lessonId,
@@ -923,6 +919,39 @@ export const POST = async (request: Request): Promise<Response> => {
       });
     } catch {
       debugLog("lesson meta fetch failed", {
+        requestId: validation.data.requestId,
+      });
+    }
+  }
+
+  if (lessonMeta && lessonMeta.lectureNumber === undefined) {
+    lessonMeta.lectureNumber =
+      resolveLectureNumber({
+        subtitlesUrl: lessonMeta.subtitlesUrl,
+        transcriptUrl: lessonMeta.transcriptUrl,
+        title: lessonMeta.title,
+        order: lessonMeta.order,
+      }) ?? undefined;
+  }
+
+  if (
+    !transcriptPayload.lines.some((line) => line.trim().length > 0) &&
+    lessonMeta?.subtitlesUrl
+  ) {
+    try {
+      const lines = await fetchSubtitleWindow({
+        subtitlesUrl: lessonMeta.subtitlesUrl,
+        startSec: transcriptPayload.startSec,
+        endSec: transcriptPayload.endSec,
+      });
+      if (lines.length > 0) {
+        transcriptPayload = {
+          ...transcriptPayload,
+          lines,
+        };
+      }
+    } catch {
+      debugLog("subtitle fallback failed", {
         requestId: validation.data.requestId,
       });
     }
