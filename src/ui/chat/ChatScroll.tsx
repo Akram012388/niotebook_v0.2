@@ -8,6 +8,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
+import { ArrowDown } from "@phosphor-icons/react";
 
 type ChatScrollProps = {
   children: ReactNode;
@@ -77,9 +78,10 @@ const ChatScroll = ({
         <button
           type="button"
           onClick={handleScrollToBottom}
-          className="absolute bottom-3 right-3 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-muted shadow-sm transition hover:bg-surface-muted hover:text-foreground"
+          className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-text-muted shadow-sm transition hover:bg-surface-muted hover:text-foreground"
+          aria-label="Scroll to bottom"
         >
-          Scroll to bottom
+          <ArrowDown size={16} weight="bold" />
         </button>
       ) : null}
     </div>

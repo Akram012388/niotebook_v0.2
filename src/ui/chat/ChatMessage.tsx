@@ -8,6 +8,9 @@ type ChatMessageProps = {
 
 const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
   const isUser = message.role === "user";
+  const isThinking = Boolean(
+    message.isStreaming && message.content.length === 0,
+  );
 
   const handleSeek = (): void => {
     onSeek?.(message.timestampSec);
@@ -19,7 +22,9 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
         isUser ? "items-end" : "items-start"
       }`}
     >
-      <div className={`flex items-center gap-2 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
+      <div
+        className={`flex items-center gap-2 ${isUser ? "flex-row-reverse" : "flex-row"}`}
+      >
         <div
           className={`max-w-[80%] rounded-xl border px-3 py-2 text-sm leading-6 ${
             isUser
@@ -27,9 +32,16 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
               : "border-border bg-surface text-foreground"
           }`}
         >
-          <p className="whitespace-pre-wrap" data-testid="chat-message">
-            {message.content}
-          </p>
+          {isThinking ? (
+            <span
+              className="nio-thinking h-2.5 w-2.5 rounded-full bg-foreground opacity-70"
+              aria-hidden="true"
+            />
+          ) : (
+            <p className="whitespace-pre-wrap" data-testid="chat-message">
+              {message.content}
+            </p>
+          )}
         </div>
         <button
           type="button"
