@@ -13,6 +13,7 @@ import type * as chat from "../chat.js";
 import type * as content from "../content.js";
 import type * as events from "../events.js";
 import type * as idUtils from "../idUtils.js";
+import type * as ingest from "../ingest.js";
 import type * as invites from "../invites.js";
 import type * as lessonCompletions from "../lessonCompletions.js";
 import type * as rateLimits from "../rateLimits.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   content: typeof content;
   events: typeof events;
   idUtils: typeof idUtils;
+  ingest: typeof ingest;
   invites: typeof invites;
   lessonCompletions: typeof lessonCompletions;
   rateLimits: typeof rateLimits;
