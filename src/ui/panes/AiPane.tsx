@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, type ReactElement } from "react";
+import { useQuery } from "convex/react";
 import { ChatComposer } from "../chat/ChatComposer";
 import { ChatMessage } from "../chat/ChatMessage";
 import { ChatScroll } from "../chat/ChatScroll";
@@ -8,6 +9,7 @@ import { useChatThread } from "../chat/useChatThread";
 import { useTranscriptWindow } from "../transcript/useTranscriptWindow";
 import type { ChatMessage as ChatMessageType } from "../chat/chatTypes";
 import type { CodeSnapshotSummary } from "../../domain/resume";
+import { getLessonRef } from "../content/convexContent";
 
 type AiPaneProps = {
   lessonId: string;
@@ -26,8 +28,20 @@ const AiPane = ({
   headerExtras,
   codeSnapshot = null,
 }: AiPaneProps): ReactElement => {
+  const isConvexEnabled = process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
+  const lesson = useQuery(
+    getLessonRef,
+    isConvexEnabled ? { lessonId } : "skip",
+  );
+  const lectureLabel = useMemo(() => {
+    if (lesson?.order) {
+      return `Lecture ${lesson.order}`;
+    }
+
+    return "Lecture";
+  }, [lesson?.order]);
   const { messages, sendMessage, threadId, streamState, streamError } =
-    useChatThread(lessonId);
+    useChatThread(lessonId, lectureLabel);
   const transcriptWindow = useTranscriptWindow(lessonId, videoTimeSec);
 
   const displayMessages = useMemo<ChatMessageType[]>(

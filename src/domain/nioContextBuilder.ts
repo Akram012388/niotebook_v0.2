@@ -15,6 +15,8 @@ type NioContextMessage = {
 type NioContextBuildInput = {
   systemPrompt: string;
   lessonId: string;
+  lessonTitle?: string;
+  lessonOrder?: number;
   videoTimeSec: number;
   transcript: NioTranscriptPayload;
   code: NioCodePayload;
@@ -81,23 +83,48 @@ const buildCodeBlock = (code: string | undefined): string => {
 
 const buildContextMessage = (input: {
   lessonId: string;
+  lessonTitle?: string;
+  lessonOrder?: number;
   videoTimeSec: number;
   transcript: NioTranscriptPayload;
   transcriptText: string;
   code: NioCodePayload;
   codeText: string;
 }): string => {
-  const { lessonId, videoTimeSec, transcript, transcriptText, code, codeText } =
-    input;
+  const {
+    lessonId,
+    lessonTitle,
+    lessonOrder,
+    videoTimeSec,
+    transcript,
+    transcriptText,
+    code,
+    codeText,
+  } = input;
   const videoTimestamp = formatTimestamp(videoTimeSec);
   const windowStart = formatTimestamp(transcript.startSec);
   const windowEnd = formatTimestamp(transcript.endSec);
+  const lectureLabel = (() => {
+    if (lessonOrder !== undefined && lessonTitle) {
+      return `Lecture ${lessonOrder}: ${lessonTitle}`;
+    }
+
+    if (lessonOrder !== undefined) {
+      return `Lecture ${lessonOrder}`;
+    }
+
+    if (lessonTitle) {
+      return `Lecture: ${lessonTitle}`;
+    }
+
+    return `Lesson: ${lessonId}`;
+  })();
   const codeLabel = code.codeHash
     ? `Code (${code.language} • ${code.codeHash})`
     : `Code (${code.language})`;
 
   return [
-    `Lesson: ${lessonId}`,
+    lectureLabel,
     `Video time: ${videoTimestamp} (${Math.floor(videoTimeSec)}s)`,
     `Transcript window: ${windowStart} - ${windowEnd} (±60s)`,
     "Transcript (untrusted context):",
@@ -166,6 +193,8 @@ const buildNioContext = (
   const buildTotalChars = (nextHistory: NioChatMessage[]): number => {
     const contextMessage = buildContextMessage({
       lessonId: input.lessonId,
+      lessonTitle: input.lessonTitle,
+      lessonOrder: input.lessonOrder,
       videoTimeSec: input.videoTimeSec,
       transcript: input.transcript,
       transcriptText,
@@ -219,6 +248,8 @@ const buildNioContext = (
 
   const contextMessage = buildContextMessage({
     lessonId: input.lessonId,
+    lessonTitle: input.lessonTitle,
+    lessonOrder: input.lessonOrder,
     videoTimeSec: input.videoTimeSec,
     transcript: input.transcript,
     transcriptText,

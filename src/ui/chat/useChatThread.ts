@@ -44,12 +44,15 @@ type UseChatThreadResult = {
 const PAGE_LIMIT = 20;
 const DEV_BYPASS_KEY = "niotebook.devAuthBypass";
 
-const toChatMessage = (message: ChatMessageSummary): ChatMessage => {
+const toChatMessage = (
+  message: ChatMessageSummary,
+  lectureLabel: string,
+): ChatMessage => {
   return {
     id: message.id as unknown as string,
     role: message.role,
     content: message.content,
-    badge: `Lecture • ${formatTimestamp(message.videoTimeSec)}`,
+    badge: `${lectureLabel} • ${formatTimestamp(message.videoTimeSec)}`,
     timestampSec: message.videoTimeSec,
     requestId: message.requestId,
     createdAt: message.createdAt,
@@ -81,7 +84,10 @@ const resolveConvexAuthHeader = (): string | null => {
   return `Convex ${token}`;
 };
 
-const useChatThread = (lessonId: string): UseChatThreadResult => {
+const useChatThread = (
+  lessonId: string,
+  lectureLabel: string,
+): UseChatThreadResult => {
   const isConvexEnabled = process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
   const [streamState, setStreamState] = useState<ChatStreamState>("idle");
   const [streamError, setStreamError] = useState<string | null>(null);
@@ -133,7 +139,7 @@ const useChatThread = (lessonId: string): UseChatThreadResult => {
 
   const mergedMessages = useMemo(() => {
     const displayMessages = remoteMessages.map((message) =>
-      toChatMessage(message),
+      toChatMessage(message, lectureLabel),
     );
     const remoteIds = new Set(displayMessages.map((message) => message.id));
     const remoteRequestIds = new Set(
@@ -151,7 +157,7 @@ const useChatThread = (lessonId: string): UseChatThreadResult => {
     return [...combined].sort(
       (left, right) => left.createdAt - right.createdAt,
     );
-  }, [localMessages, remoteMessages]);
+  }, [lectureLabel, localMessages, remoteMessages]);
 
   const rafRef = useRef<number | null>(null);
 
@@ -226,7 +232,7 @@ const useChatThread = (lessonId: string): UseChatThreadResult => {
         id: assistantTempId,
         role: "assistant",
         content: "",
-        badge: `Lecture • ${formatTimestamp(context.videoTimeSec)}`,
+        badge: `${lectureLabel} • ${formatTimestamp(context.videoTimeSec)}`,
         timestampSec: context.videoTimeSec,
         createdAt: Date.now(),
         isStreaming: true,
@@ -410,6 +416,7 @@ const useChatThread = (lessonId: string): UseChatThreadResult => {
       ensureThread,
       isConvexEnabled,
       lessonId,
+      lectureLabel,
       mergedMessages,
       streamState,
       updateLocalMessage,

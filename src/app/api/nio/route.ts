@@ -766,6 +766,29 @@ const fetchTranscriptWindow = async (args: {
   return segments.map((segment) => segment.textNormalized);
 };
 
+const fetchLessonMeta = async (args: {
+  lessonId: string;
+  authHeader?: string | null;
+}): Promise<{ title?: string; order?: number } | null> => {
+  if (!isConvexEnabled()) {
+    return null;
+  }
+
+  const client = createConvexClient(args.authHeader);
+  const lesson = await client.query(api.content.getLesson, {
+    lessonId: args.lessonId as Id<"lessons">,
+  });
+
+  if (!lesson) {
+    return null;
+  }
+
+  return {
+    title: lesson.title,
+    order: lesson.order,
+  };
+};
+
 export const POST = async (request: Request): Promise<Response> => {
   let payload: unknown = null;
 
@@ -890,9 +913,26 @@ export const POST = async (request: Request): Promise<Response> => {
     }
   }
 
+  let lessonMeta: { title?: string; order?: number } | null = null;
+
+  if (isConvexEnabled()) {
+    try {
+      lessonMeta = await fetchLessonMeta({
+        lessonId: validation.data.lessonId,
+        authHeader: convexAuthHeader,
+      });
+    } catch {
+      debugLog("lesson meta fetch failed", {
+        requestId: validation.data.requestId,
+      });
+    }
+  }
+
   const contextResult = buildNioContext({
     systemPrompt: NIO_SYSTEM_PROMPT,
     lessonId: validation.data.lessonId,
+    lessonTitle: lessonMeta?.title,
+    lessonOrder: lessonMeta?.order,
     videoTimeSec: validation.data.videoTimeSec,
     transcript: transcriptPayload,
     code: validation.data.code,
