@@ -104,6 +104,44 @@ const resolveConvexAuthHeader = (request: Request): string | null => {
   return `Bearer ${trimmed}`;
 };
 
+const resolveDevBypassAuthHeader = (): string | null => {
+  if (process.env.NIOTEBOOK_DEV_AUTH_BYPASS !== "true") {
+    return null;
+  }
+
+  const allowPreviewBypass = process.env.NIOTEBOOK_E2E_PREVIEW === "true";
+  const allowDevBypassInDev =
+    process.env.NODE_ENV !== "production" &&
+    process.env.NIOTEBOOK_ALLOW_DEV_BYPASS_IN_DEV === "true";
+
+  if (!allowPreviewBypass && !allowDevBypassInDev) {
+    return null;
+  }
+
+  const encodeBase64 = (value: string): string => {
+    if (typeof Buffer !== "undefined") {
+      return Buffer.from(value, "utf8").toString("base64");
+    }
+
+    if (typeof btoa !== "undefined") {
+      return btoa(value);
+    }
+
+    return "";
+  };
+
+  const identity = {
+    subject: "local-dev",
+    issuer: "niotebook",
+    email: "dev@niotebook.local",
+  };
+  const encodedIdentity = encodeBase64(JSON.stringify(identity));
+  if (!encodedIdentity) {
+    return null;
+  }
+  return `Convex dev-bypass:${encodedIdentity}`;
+};
+
 const createConvexClient = (authHeader?: string | null): ConvexHttpClient => {
   if (!authHeader) {
     return new ConvexHttpClient(resolveConvexUrl(), {
@@ -767,7 +805,8 @@ export const POST = async (request: Request): Promise<Response> => {
     disableConvex: process.env.NEXT_PUBLIC_DISABLE_CONVEX === "true",
   });
 
-  const convexAuthHeader = resolveConvexAuthHeader(request);
+  const convexAuthHeader =
+    resolveConvexAuthHeader(request) ?? resolveDevBypassAuthHeader();
 
   if (isConvexEnabled() && isConvexAuthRequired() && !convexAuthHeader) {
     return buildJsonResponse(
@@ -826,7 +865,11 @@ export const POST = async (request: Request): Promise<Response> => {
 
   let transcriptPayload = validation.data.transcript;
 
-  if (transcriptPayload.lines.length === 0 && isConvexEnabled()) {
+  const hasTranscriptLines = transcriptPayload.lines.some(
+    (line) => line.trim().length > 0,
+  );
+
+  if (!hasTranscriptLines && isConvexEnabled()) {
     try {
       const lines = await fetchTranscriptWindow({
         lessonId: validation.data.lessonId,
