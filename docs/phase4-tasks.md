@@ -338,3 +338,15 @@ PR Readiness
 
 - For a “Phase 4 implementation” PR: mostly ready, but I’d block on (1) the SSE error.seq monotonicity issue, and (2) explicitly resolving/deciding the /api/nio → Convex auth story (otherwise production correctness of persistence/rate limiting is fragile).
 - One decision I need from you: is this PR intended to be production-safe with NIOTEBOOK_DEV_AUTH_BYPASS OFF? My recommended default is “yes”; if “no (preview/dev only)”, then we should at least document that clearly and still fix the SSE seq issue.
+
+---
+
+## Phase 4 Follow-up Tasks (2026-01-26)
+
+- [ ] Validate transcript availability end-to-end (Convex window query → UI payload → `/api/nio`), and fix the root cause for missing transcript lines during live chat.
+- [ ] Enforce monotonic SSE `seq` for `error` events (use current token seq when streaming fails mid-stream).
+- [ ] Resolve `/api/nio` Convex auth strategy for production (pass auth or use server-authoritative path) and ensure rate limit + persistence + analytics do not silently fail.
+- [ ] Implement ADR-003 prompt injection neutralization prior to provider call (minimal, deterministic; no drift).
+- [ ] Update ChatScroll “Scroll to bottom” control to ChatGPT-style circular down-arrow button (appearance only; no behavior changes).
+- [ ] Add ChatGPT-style “thinking” indicator (pulsing dot) while streaming before first token.
+- [ ] Align `scripts/verify-phase4.sh` with CI strictness (do not ignore typecheck failures).
