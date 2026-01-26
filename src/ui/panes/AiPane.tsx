@@ -43,16 +43,16 @@ const AiPane = ({
       if (!value) {
         continue;
       }
-      const match = value.match(/\b(?:lecture|week)\s*(\d+)\b/i);
-      if (match?.[1]) {
-        const parsed = Number(match[1]);
+      const urlMatch = value.match(/\/lectures\/(\d+)\//i);
+      if (urlMatch?.[1]) {
+        const parsed = Number(urlMatch[1]);
         if (Number.isFinite(parsed)) {
           return parsed;
         }
       }
-      const urlMatch = value.match(/\/lectures\/(\d+)\//i);
-      if (urlMatch?.[1]) {
-        const parsed = Number(urlMatch[1]);
+      const match = value.match(/\b(?:lecture|week)\s*(\d+)\b/i);
+      if (match?.[1]) {
+        const parsed = Number(match[1]);
         if (Number.isFinite(parsed)) {
           return parsed;
         }

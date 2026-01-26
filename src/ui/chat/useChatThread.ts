@@ -10,7 +10,6 @@ import { parseSseEvent } from "../../infra/ai/nioSse";
 import { formatTimestamp } from "../formatTimestamp";
 import type { ChatMessage, ChatStreamState } from "./chatTypes";
 import type { EventLogResult } from "../../domain/events";
-import { storageAdapter } from "../../infra/storageAdapter";
 import {
   createChatMessageRef,
   ensureChatThreadRef,
@@ -42,7 +41,6 @@ type UseChatThreadResult = {
 };
 
 const PAGE_LIMIT = 20;
-const DEV_BYPASS_KEY = "niotebook.devAuthBypass";
 
 const toChatMessage = (
   message: ChatMessageSummary,
@@ -65,23 +63,6 @@ const buildRecentMessages = (
   return messages
     .slice(-PAGE_LIMIT)
     .map((message) => ({ role: message.role, content: message.content }));
-};
-
-const resolveConvexAuthHeader = (): string | null => {
-  if (process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS !== "true") {
-    return null;
-  }
-
-  const token = storageAdapter.getItem(DEV_BYPASS_KEY);
-  if (!token) {
-    return null;
-  }
-
-  if (token.startsWith("Bearer ") || token.startsWith("Convex ")) {
-    return token;
-  }
-
-  return `Convex ${token}`;
 };
 
 const useChatThread = (
@@ -264,16 +245,11 @@ const useChatThread = (
       let response: Response;
 
       try {
-        const authHeader = resolveConvexAuthHeader();
-        const headers: Record<string, string> = {
-          "Content-Type": "application/json",
-        };
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
         response = await fetch("/api/nio", {
           method: "POST",
-          headers,
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify(payload),
         });
       } catch {

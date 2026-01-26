@@ -37,6 +37,30 @@ type ControlCenterDrawerProps = {
   onSelectCourse: (courseId: string | null) => void;
 };
 
+const getLectureNumber = (lesson: LessonSummary): number | null => {
+  const candidates = [lesson.subtitlesUrl, lesson.transcriptUrl, lesson.title];
+  for (const value of candidates) {
+    if (!value) {
+      continue;
+    }
+    const urlMatch = value.match(/\/lectures\/(\d+)\//i);
+    if (urlMatch?.[1]) {
+      const parsed = Number(urlMatch[1]);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+    const match = value.match(/\b(?:lecture|week)\s*(\d+)\b/i);
+    if (match?.[1]) {
+      const parsed = Number(match[1]);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+  }
+  return lesson.order ?? null;
+};
+
 const ControlCenterDrawer = ({
   isOpen,
   isMounted,
@@ -113,7 +137,8 @@ const ControlCenterDrawer = ({
       return lessonOptions;
     }
     return lessonOptions.filter((lesson) => {
-      const orderText = `lecture ${lesson.order}`;
+      const lectureNumber = getLectureNumber(lesson);
+      const orderText = lectureNumber ? `lecture ${lectureNumber}` : "lecture";
       return (
         lesson.title.toLowerCase().includes(normalized) ||
         orderText.includes(normalized)
@@ -215,6 +240,7 @@ const ControlCenterDrawer = ({
                       <div className="flex flex-col gap-2">
                         {filteredLectures.map((lesson) => {
                           const isActive = lesson.id === lessonId;
+                          const lectureNumber = getLectureNumber(lesson);
                           return (
                             <button
                               key={lesson.id}
@@ -228,7 +254,7 @@ const ControlCenterDrawer = ({
                             >
                               <div className="flex flex-col">
                                 <span className="text-[10px] uppercase tracking-[0.08em] text-text-subtle">
-                                  Lecture {lesson.order}
+                                  Lecture {lectureNumber ?? lesson.order}
                                 </span>
                                 <span className="text-sm text-foreground">
                                   {lesson.title}
