@@ -16,7 +16,7 @@ type NioContextBuildInput = {
   systemPrompt: string;
   lessonId: string;
   lessonTitle?: string;
-  lessonOrder?: number;
+  lectureNumber?: number;
   videoTimeSec: number;
   transcript: NioTranscriptPayload;
   code: NioCodePayload;
@@ -84,7 +84,7 @@ const buildCodeBlock = (code: string | undefined): string => {
 const buildContextMessage = (input: {
   lessonId: string;
   lessonTitle?: string;
-  lessonOrder?: number;
+  lectureNumber?: number;
   videoTimeSec: number;
   transcript: NioTranscriptPayload;
   transcriptText: string;
@@ -94,7 +94,7 @@ const buildContextMessage = (input: {
   const {
     lessonId,
     lessonTitle,
-    lessonOrder,
+    lectureNumber,
     videoTimeSec,
     transcript,
     transcriptText,
@@ -105,12 +105,12 @@ const buildContextMessage = (input: {
   const windowStart = formatTimestamp(transcript.startSec);
   const windowEnd = formatTimestamp(transcript.endSec);
   const lectureLabel = (() => {
-    if (lessonOrder !== undefined && lessonTitle) {
-      return `Lecture ${lessonOrder}: ${lessonTitle}`;
+    if (lectureNumber !== undefined && lessonTitle) {
+      return `Lecture ${lectureNumber}: ${lessonTitle}`;
     }
 
-    if (lessonOrder !== undefined) {
-      return `Lecture ${lessonOrder}`;
+    if (lectureNumber !== undefined) {
+      return `Lecture ${lectureNumber}`;
     }
 
     if (lessonTitle) {
@@ -194,7 +194,7 @@ const buildNioContext = (
     const contextMessage = buildContextMessage({
       lessonId: input.lessonId,
       lessonTitle: input.lessonTitle,
-      lessonOrder: input.lessonOrder,
+      lectureNumber: input.lectureNumber,
       videoTimeSec: input.videoTimeSec,
       transcript: input.transcript,
       transcriptText,
@@ -249,7 +249,7 @@ const buildNioContext = (
   const contextMessage = buildContextMessage({
     lessonId: input.lessonId,
     lessonTitle: input.lessonTitle,
-    lessonOrder: input.lessonOrder,
+    lectureNumber: input.lectureNumber,
     videoTimeSec: input.videoTimeSec,
     transcript: input.transcript,
     transcriptText,

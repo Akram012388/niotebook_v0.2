@@ -33,13 +33,45 @@ const AiPane = ({
     getLessonRef,
     isConvexEnabled ? { lessonId } : "skip",
   );
+  const lectureNumber = useMemo(() => {
+    const candidates = [
+      lesson?.subtitlesUrl,
+      lesson?.transcriptUrl,
+      lesson?.title,
+    ];
+    for (const value of candidates) {
+      if (!value) {
+        continue;
+      }
+      const match = value.match(/\b(?:lecture|week)\s*(\d+)\b/i);
+      if (match?.[1]) {
+        const parsed = Number(match[1]);
+        if (Number.isFinite(parsed)) {
+          return parsed;
+        }
+      }
+      const urlMatch = value.match(/\/lectures\/(\d+)\//i);
+      if (urlMatch?.[1]) {
+        const parsed = Number(urlMatch[1]);
+        if (Number.isFinite(parsed)) {
+          return parsed;
+        }
+      }
+    }
+    return lesson?.order;
+  }, [
+    lesson?.order,
+    lesson?.subtitlesUrl,
+    lesson?.title,
+    lesson?.transcriptUrl,
+  ]);
   const lectureLabel = useMemo(() => {
-    if (lesson?.order) {
-      return `Lecture ${lesson.order}`;
+    if (lectureNumber !== undefined && lectureNumber !== null) {
+      return `Lecture ${lectureNumber}`;
     }
 
     return "Lecture";
-  }, [lesson?.order]);
+  }, [lectureNumber]);
   const { messages, sendMessage, threadId, streamState, streamError } =
     useChatThread(lessonId, lectureLabel);
   const transcriptWindow = useTranscriptWindow(lessonId, videoTimeSec);

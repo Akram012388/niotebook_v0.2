@@ -71,7 +71,10 @@ const isConvexAuthRequired = (): boolean => {
     return false;
   }
 
-  if (process.env.NIOTEBOOK_DEV_AUTH_BYPASS === "true") {
+  if (
+    process.env.NIOTEBOOK_DEV_AUTH_BYPASS === "true" ||
+    process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true"
+  ) {
     return false;
   }
 
@@ -105,7 +108,10 @@ const resolveConvexAuthHeader = (request: Request): string | null => {
 };
 
 const resolveDevBypassAuthHeader = (): string | null => {
-  if (process.env.NIOTEBOOK_DEV_AUTH_BYPASS !== "true") {
+  if (
+    process.env.NIOTEBOOK_DEV_AUTH_BYPASS !== "true" &&
+    process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS !== "true"
+  ) {
     return null;
   }
 
@@ -766,10 +772,38 @@ const fetchTranscriptWindow = async (args: {
   return segments.map((segment) => segment.textNormalized);
 };
 
+const extractLectureNumber = (value: string | undefined): number | null => {
+  if (!value) {
+    return null;
+  }
+
+  const patterns = [
+    /\/lectures\/(\d+)\//i,
+    /lecture\s*(\d+)/i,
+    /week\s*(\d+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = value.match(pattern);
+    if (match && match[1]) {
+      const parsed = Number(match[1]);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+  }
+
+  return null;
+};
+
 const fetchLessonMeta = async (args: {
   lessonId: string;
   authHeader?: string | null;
-}): Promise<{ title?: string; order?: number } | null> => {
+}): Promise<{
+  title?: string;
+  order?: number;
+  lectureNumber?: number;
+} | null> => {
   if (!isConvexEnabled()) {
     return null;
   }
@@ -783,9 +817,16 @@ const fetchLessonMeta = async (args: {
     return null;
   }
 
+  const lectureNumber =
+    extractLectureNumber(lesson.subtitlesUrl) ??
+    extractLectureNumber(lesson.transcriptUrl) ??
+    extractLectureNumber(lesson.title) ??
+    lesson.order;
+
   return {
     title: lesson.title,
     order: lesson.order,
+    lectureNumber,
   };
 };
 
@@ -913,7 +954,11 @@ export const POST = async (request: Request): Promise<Response> => {
     }
   }
 
-  let lessonMeta: { title?: string; order?: number } | null = null;
+  let lessonMeta: {
+    title?: string;
+    order?: number;
+    lectureNumber?: number;
+  } | null = null;
 
   if (isConvexEnabled()) {
     try {
@@ -932,7 +977,7 @@ export const POST = async (request: Request): Promise<Response> => {
     systemPrompt: NIO_SYSTEM_PROMPT,
     lessonId: validation.data.lessonId,
     lessonTitle: lessonMeta?.title,
-    lessonOrder: lessonMeta?.order,
+    lectureNumber: lessonMeta?.lectureNumber,
     videoTimeSec: validation.data.videoTimeSec,
     transcript: transcriptPayload,
     code: validation.data.code,
