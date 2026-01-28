@@ -13,7 +13,7 @@ AI-native learning workspace that synchronizes Video + Code + AI.
 
 - Requirements: Node 20.x, Bun 1.1.x (run `exec /bin/zsh` after installing Bun).
 - Install dependencies: `bun install`.
-- Copy `.env.example` to `.env.local` and set at least `CONVEX_DEPLOYMENT` and `NEXT_PUBLIC_CONVEX_URL`.
+- Copy `.env.example` to `.env.local` and set at least `NEXT_PUBLIC_CONVEX_URL` and `CONVEX_URL`.
 - Start the app: `bun run dev` and open `http://localhost:3000`.
 - Optional: run Convex locally with `bun run dev:convex`.
 

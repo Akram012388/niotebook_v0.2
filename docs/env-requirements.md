@@ -27,45 +27,38 @@ throws on production builds if the bypass is enabled without preview allowances.
 
 ## CI requirements
 
-The CI workflow (`.github/workflows/ci.yml`) requires the following secrets:
+The CI workflow (`.github/workflows/ci.yml`) expects a Convex URL so the build
+can initialize the client:
 
-- `NEXT_PUBLIC_CONVEX_URL`
-- `CONVEX_DEPLOYMENT`
-
-These must be set in GitHub Secrets for the repository.
+- `DEV_CONVEX_URL`
 
 ## E2E workflow requirements
 
 The E2E workflow (`.github/workflows/e2e.yml`) expects:
 
-- `CONVEX_PREVIEW_DEPLOY_KEY` (mapped to `CONVEX_DEPLOY_KEY` for preview deploys)
-- `CONVEX_DEPLOYMENT`
-- `NEXT_PUBLIC_CONVEX_URL`
+- `CONVEX_PREVIEW_DEPLOY_KEY` (mapped to `CONVEX_DEPLOY_KEY` for seeding)
+- `PREVIEW_DATA_CONVEX_URL`
 - `NIOTEBOOK_E2E_VIDEO_ID`
-- `VERCEL_AUTOMATION_BYPASS_SECRET`
-- `VERCEL_API_TOKEN`
-- `VERCEL_PROJECT_ID`
-- `VERCEL_E2E_ALIAS` (optional)
 
-The E2E seed script (`scripts/e2eSeed.ts`) requires `CONVEX_DEPLOY_KEY` and sets
-preview-specific flags inside the Convex deployment.
+Optional (only if Vercel Deployment Protection is enabled):
+
+- `VERCEL_AUTOMATION_BYPASS_SECRET`
 
 ## Vercel preview configuration
 
-The E2E workflow upserts these preview env vars in Vercel:
+Preview deployments should point to the long-lived preview-data Convex backend:
 
-- `NEXT_PUBLIC_CONVEX_URL`
-- `CONVEX_DEPLOYMENT`
-- `NIOTEBOOK_E2E_PREVIEW=true`
-- `NIOTEBOOK_DEV_AUTH_BYPASS=true`
+- `NEXT_PUBLIC_CONVEX_URL` = preview-data URL
+- `NEXT_PUBLIC_DEFAULT_LESSON_ID` = lecture 10 lessonId
 
-These are intended for preview only.
+Do not set stub flags (`NIOTEBOOK_E2E_PREVIEW`) in Vercel preview by default.
 
 ## Vercel production configuration
 
 Required for production:
 
-- `NEXT_PUBLIC_CONVEX_URL` (and optionally `CONVEX_URL` if server side needs it)
+- `NEXT_PUBLIC_CONVEX_URL`
+- `CONVEX_URL` (server-side Convex HTTP client)
 - `GEMINI_API_KEY` and `GROQ_API_KEY` if you want real AI providers
 
 Do not set preview-only flags in production.
@@ -76,7 +69,7 @@ Use this as a baseline for local development:
 
 ```
 NEXT_PUBLIC_CONVEX_URL=...your Convex URL...
-CONVEX_DEPLOYMENT=...optional if needed...
+CONVEX_URL=...same as above for server-side calls...
 GEMINI_API_KEY=...your Gemini key...
 GROQ_API_KEY=...your Groq key...
 NIOTEBOOK_E2E_PREVIEW=false
