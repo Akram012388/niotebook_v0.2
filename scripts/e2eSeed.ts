@@ -9,8 +9,6 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
 };
 
-const previewName = process.env.CONVEX_PREVIEW_NAME ?? "e2e";
-
 if (process.env.NODE_ENV === "production") {
   throw new Error("E2E seeding is not allowed in production.");
 }
@@ -23,8 +21,7 @@ if (!deployKey) {
 
 const runConvex = (command: string, args: string[]): string => {
   const base = ["npx", "convex", command];
-  const previewArgs = ["--preview-name", previewName];
-  const commandArgs = [...base, ...previewArgs, ...args];
+  const commandArgs = [...base, ...args];
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     CONVEX_DEPLOY_KEY: deployKey,
@@ -46,10 +43,6 @@ const runConvex = (command: string, args: string[]): string => {
 };
 
 const main = (): void => {
-  runConvex("env", ["set", "NIOTEBOOK_E2E_PREVIEW", "true"]);
-  runConvex("env", ["set", "NIOTEBOOK_DEV_AUTH_BYPASS", "true"]);
-  runConvex("env", ["set", "NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS", "true"]);
-
   const rawLesson = runConvex("run", [
     "content:seedLesson",
     JSON.stringify({

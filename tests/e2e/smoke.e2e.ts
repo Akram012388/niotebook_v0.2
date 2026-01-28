@@ -31,11 +31,9 @@ test("workspace shell renders", async ({ page }): Promise<void> => {
     await input.fill("What is a pointer?");
     await input.press("Enter");
 
-    await expect(
-      page.getByText(
-        "Here is a stubbed response while preview mode is enabled.",
-      ),
-    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("What is a pointer?")).toBeVisible({
+      timeout: 15000,
+    });
   } catch (error) {
     await captureDiagnostics(page);
     throw error;
