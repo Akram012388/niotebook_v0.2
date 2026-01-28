@@ -16,6 +16,10 @@ It is intended to keep local, CI, and deployment configuration consistent.
 - `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW` - Client-facing flag for preview/stub mode. Used in `src/app/api/nio/route.ts` and `src/infra/convexClient.ts`.
 - `NEXT_PUBLIC_DISABLE_CONVEX` - Disables Convex usage when set to `true`. Used in `src/app/api/nio/route.ts` and `src/infra/convexClient.ts`.
 
+## Preview maintenance
+
+- `NIOTEBOOK_PREVIEW_DATA` - Enables preview-data cleanup cron. Set to `true` only on the preview-data deployment.
+
 ## Dev auth bypass
 
 - `NIOTEBOOK_DEV_AUTH_BYPASS` - Enables dev bypass on Convex server. Used in `convex/auth.ts`.
@@ -31,6 +35,13 @@ The CI workflow (`.github/workflows/ci.yml`) expects a Convex URL so the build
 can initialize the client:
 
 - `DEV_CONVEX_URL`
+
+## Data refresh workflows
+
+The repository includes automated data refresh workflows:
+
+- `preview-data refresh` (nightly + manual) uses `CONVEX_PREVIEW_DEPLOY_KEY` and `PREVIEW_DATA_CONVEX_URL`.
+- `prod refresh` (manual) uses `CONVEX_PROD_DEPLOY_KEY`, `PROD_CONVEX_URL`, and `NIOTEBOOK_INGEST_TOKEN_PROD`.
 
 ## E2E workflow requirements
 

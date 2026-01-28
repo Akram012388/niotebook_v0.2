@@ -52,7 +52,7 @@ const runConvex = (
 
   try {
     return JSON.parse(stdout);
-  } catch (error) {
+  } catch {
     throw new Error(`Failed to parse ${functionName} output: ${stdout}`);
   }
 };

@@ -11,11 +11,13 @@
 import type * as auth from "../auth.js";
 import type * as chat from "../chat.js";
 import type * as content from "../content.js";
+import type * as crons from "../crons.js";
 import type * as events from "../events.js";
 import type * as idUtils from "../idUtils.js";
 import type * as ingest from "../ingest.js";
 import type * as invites from "../invites.js";
 import type * as lessonCompletions from "../lessonCompletions.js";
+import type * as maintenance from "../maintenance.js";
 import type * as rateLimits from "../rateLimits.js";
 import type * as resume from "../resume.js";
 import type * as transcripts from "../transcripts.js";
@@ -30,11 +32,13 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   chat: typeof chat;
   content: typeof content;
+  crons: typeof crons;
   events: typeof events;
   idUtils: typeof idUtils;
   ingest: typeof ingest;
   invites: typeof invites;
   lessonCompletions: typeof lessonCompletions;
+  maintenance: typeof maintenance;
   rateLimits: typeof rateLimits;
   resume: typeof resume;
   transcripts: typeof transcripts;
