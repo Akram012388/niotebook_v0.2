@@ -40,10 +40,6 @@ The E2E workflow (`.github/workflows/e2e.yml`) expects:
 - `PREVIEW_DATA_CONVEX_URL`
 - `NIOTEBOOK_E2E_VIDEO_ID`
 
-Optional (only if Vercel Deployment Protection is enabled):
-
-- `VERCEL_AUTOMATION_BYPASS_SECRET`
-
 ## Vercel preview configuration
 
 Preview deployments should point to the long-lived preview-data Convex backend:
