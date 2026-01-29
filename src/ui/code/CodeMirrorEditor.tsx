@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * React wrapper around a CodeMirror 6 EditorView.
+ *
+ * The editor is created once on mount. Language, theme, and tab-size
+ * are managed via compartments so they can be reconfigured without
+ * destroying the view.
+ */
+
 import { useEffect, useRef, type ReactElement } from "react";
 import { Compartment, EditorState } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
@@ -7,6 +15,7 @@ import type { RuntimeLanguage } from "../../infra/runtime/types";
 import {
   baseExtensions,
   languageExtension,
+  tabSizeExtension,
   themeExtension,
 } from "./codemirrorSetup";
 
@@ -32,9 +41,13 @@ const CodeMirrorEditor = ({
 }: CodeMirrorEditorProps): ReactElement => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+
+  // Stable compartment refs — created once, reused across renders.
   const langCompartment = useRef(new Compartment());
   const themeCompartment = useRef(new Compartment());
+  const tabCompartment = useRef(new Compartment());
   const keymapCompartment = useRef(new Compartment());
+
   const isExternalUpdate = useRef(false);
   const onChangeRef = useRef(onChange);
   const onRunRef = useRef(onRun);
@@ -42,7 +55,10 @@ const CodeMirrorEditor = ({
   onChangeRef.current = onChange;
   onRunRef.current = onRun;
 
-  // Create editor on mount
+  // ---- Mount: create editor ----
+  // Intentionally depends only on [] so the editor is created once.
+  // `value` and `language` are read from their current values at mount
+  // time; subsequent changes are handled by the sync effects below.
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -56,7 +72,7 @@ const CodeMirrorEditor = ({
       },
       {
         key: "Mod-s",
-        run: () => true, // prevent default, auto-save handles it
+        run: () => true, // swallow — auto-save handles persistence
       },
     ]);
 
@@ -66,6 +82,7 @@ const CodeMirrorEditor = ({
         ...baseExtensions(),
         langCompartment.current.of(languageExtension(language)),
         themeCompartment.current.of(themeExtension(isDark())),
+        tabCompartment.current.of(tabSizeExtension(language)),
         keymapCompartment.current.of(runKeymap),
         EditorView.updateListener.of((update) => {
           if (update.docChanged && !isExternalUpdate.current) {
@@ -82,7 +99,7 @@ const CodeMirrorEditor = ({
 
     viewRef.current = view;
 
-    // Theme observer
+    // Observe data-theme changes on <html> to auto-switch theme.
     const observer = new MutationObserver(() => {
       view.dispatch({
         effects: themeCompartment.current.reconfigure(themeExtension(isDark())),
@@ -98,19 +115,22 @@ const CodeMirrorEditor = ({
       view.destroy();
       viewRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only: value/language read once, synced via effects below
   }, []);
 
-  // Reconfigure language
+  // ---- Reconfigure language + tab size when language changes ----
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
     view.dispatch({
-      effects: langCompartment.current.reconfigure(languageExtension(language)),
+      effects: [
+        langCompartment.current.reconfigure(languageExtension(language)),
+        tabCompartment.current.reconfigure(tabSizeExtension(language)),
+      ],
     });
   }, [language]);
 
-  // Sync external value changes
+  // ---- Sync external value changes (e.g. snapshot hydration) ----
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
