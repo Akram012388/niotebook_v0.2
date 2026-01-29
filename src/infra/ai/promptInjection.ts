@@ -4,7 +4,7 @@ type PromptNeutralizationResult = {
 };
 
 const INJECTION_PATTERNS: RegExp[] = [
-  /ignore (all|any|previous) instructions/gi,
+  /ignore (all|a[n]y|previous) instructions/gi,
   /system prompt/gi,
   /developer message/gi,
   /jailbreak/gi,
