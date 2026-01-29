@@ -16,6 +16,7 @@ AI-native learning workspace that synchronizes Video + Code + AI.
 - Copy `.env.example` to `.env.local` and set at least `NEXT_PUBLIC_CONVEX_URL` and `CONVEX_URL`.
 - Start the app: `bun run dev` and open `http://localhost:3000`.
 - Optional: run Convex locally with `bun run dev:convex`.
+- Auth for alpha is Clerk invite-only (email code). See `docs/clerk-auth-alpha.md`.
 
 ## Scripts
 
@@ -39,6 +40,7 @@ AI-native learning workspace that synchronizes Video + Code + AI.
 - `docs/plan.md`
 - `docs/dev-workflow.md`
 - `docs/env-requirements.md` (environment setup + secrets)
+- `docs/clerk-auth-alpha.md` (auth gate plan)
 - `docs/ui-ux-contract.md` (binding UI/UX contract)
 - `docs/ui-reference.md`
 - `docs/session-tasks.md`

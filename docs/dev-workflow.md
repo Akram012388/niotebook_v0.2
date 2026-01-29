@@ -6,7 +6,7 @@
 - Phase 3 complete: YouTube embed + authoritative video time flow
 - Transcript ingestion pipeline (CS50x 2026) and control center redesign
 - Convex schema and core APIs (courses, lessons, transcripts, chat, resume)
-- Security foundations (invite TTL, rate limits, error taxonomy)
+- Security foundations (auth boundaries, rate limits, error taxonomy)
 - CI baseline (lint, typecheck, unit tests, E2E wiring)
 
 **What’s next**

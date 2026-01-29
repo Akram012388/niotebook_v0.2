@@ -42,7 +42,7 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 ### In scope (v0.2)
 
 - Single-learner product.
-- Invite code + email magic link.
+- Clerk invite-only + email code sign-in.
 - YouTube embedded MOOC content.
 - Unified UI: Video + Code + AI.
 - Continuous temporal sync (video ↔ AI thread), code sync on edit.
@@ -77,8 +77,8 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 
 ### 4.1 Onboarding
 
-1. Enter invite code
-2. Email magic link
+1. Receive Clerk invite email
+2. Sign in with email code
 3. Land in “Course picker” → choose course → choose lesson → start
 
 ### 4.2 Learning loop
@@ -143,7 +143,7 @@ Layouts are user-selectable per session and persisted.
 ### 5.5 Admin cockpit (analytics)
 
 - Admin-only route with ChatGPT-level polish and minimal chrome.
-- Dashboard includes KPI cards and a compact invites panel (create/revoke, status).
+- Dashboard includes KPI cards; invite management is handled in Clerk for alpha (admin panel integration deferred).
 - Filters: time range (UTC), course, lesson, cohort (inviteBatchId).
 - KPI cards:
   - invite redemption %
@@ -158,9 +158,9 @@ Layouts are user-selectable per session and persisted.
   - feedback response rate
 
 - KPI definitions:
-  - invite redemption = invite_redeemed / invite_issued
-  - onboarding conversion = lesson_started / magic_link_verified
-  - activation = activated_users / magic_link_verified
+- invite redemption = invite_redeemed / invite_issued (custom invite flow only)
+- onboarding conversion = lesson_started / auth_email_code_verified
+- activation = activated_users / auth_email_code_verified
   - activation criteria = lesson_started + 1 code run + 1 Nio message within 24h
   - D1/D7 retention = active users day 1/7 after activation / activated_users
   - median session length = median time between first/last meaningful action (30m inactivity ends session)
@@ -342,17 +342,21 @@ Output:
 
 ---
 
-## 9) Auth (invite code + magic link)
+## 9) Auth (Clerk invite-only + email code)
 
 ### 9.1 Auth system
 
-- Convex Auth + email magic links.
+- Clerk invite-only auth with email code.
+- Convex uses Clerk identity (`ctx.auth.getUserIdentity()`).
+- Admin access controlled by `NIOTEBOOK_ADMIN_EMAILS` allowlist.
+- `inviteBatchId` is stored as Clerk invitation metadata for cohort tracking.
+- Implementation plan: `docs/clerk-auth-alpha.md`.
 
-### 9.2 “Pretty email” requirement
+### 9.2 Email template requirement
 
-- Use an email provider that supports branded HTML templates.
+- Use Clerk email templates for invite + code delivery.
 - Requirements:
-  - single CTA button
+  - clear CTA or code display
   - device/time note
   - minimal but warm copy
 
@@ -442,7 +446,7 @@ Infer these and the spec becomes implementation-ready:
 
 1. **First few courses to ship in alpha:** CS50x (latest 2026), CS50P, CS50W, CS50AI with Python.
 2. **Lesson granularity:** playlist = course, video = lesson, chapters = timestamped segments.
-3. **Invite code admin UX:** integration via a simple yet sleek cockpit style “admin-only” page only for admin to access, therefore the app must gatekeep 3 types of users -> admin (full access), user (workspace acess but no admin control strictly), guest (only landing page + login + signup page access, strictly).
+3. **Invite admin UX:** alpha uses Clerk dashboard for invites; admin console invite management (via Clerk Admin API) is deferred. Roles remain: admin (admin console access), user (workspace), guest (landing + auth only).
 
 With these pointers also produce directives for:
 

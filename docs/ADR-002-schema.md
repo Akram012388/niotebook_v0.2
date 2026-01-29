@@ -23,6 +23,7 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 
 - `users`: tokenIdentifier, email?, role (admin/user/guest), inviteBatchId?
 - `invites`: code, createdAt, createdByUserId?, expiresAt, status (active|used|expired), usedAt?, usedByUserId?, inviteBatchId, role (user/admin)
+  - Alpha auth uses Clerk invite-only; the `invites` table is reserved for a future custom invite-code flow.
 
 ### Learning state
 
@@ -42,6 +43,7 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 ### System + abuse
 
 - `rateLimits`: scope (invite_redeem|ai_request), subject, windowStartMs, count
+  - `invite_redeem` applies only if the custom invite-code flow returns.
 
 ### Event taxonomy (v0.2)
 
@@ -51,8 +53,8 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 - Core events:
   - `invite_issued` (inviteId, createdBy)
   - `invite_redeemed` (inviteId, redeemedBy)
-  - `magic_link_sent` (emailHash)
-  - `magic_link_verified` (userId)
+  - `auth_email_code_sent` (emailHash) [future]
+  - `auth_email_code_verified` (userId) [future]
   - `course_selected` (courseId)
   - `lesson_started` (courseId, lessonId)
   - `video_play` / `video_pause` / `video_seek` (lessonId, videoTimeSec)
@@ -113,7 +115,7 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 ## Access Control (high-level)
 
 - Users may only read/write their own frames, snapshots, threads, messages, events, and completion records.
-- Admin role may read analytics across users and manage invites.
+- Admin role may read analytics across users; invite management is handled in Clerk for alpha.
 - Guests only access landing/auth routes.
 
 ## Consequences

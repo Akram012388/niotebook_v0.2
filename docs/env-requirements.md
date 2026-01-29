@@ -10,6 +10,12 @@ It is intended to keep local, CI, and deployment configuration consistent.
 - `GEMINI_API_KEY` - Required for real Gemini streaming. Used in `src/infra/ai/geminiStream.ts`.
 - `GROQ_API_KEY` - Required for Groq fallback streaming. Used in `src/infra/ai/groqStream.ts`.
 
+## Auth (Clerk)
+
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk frontend key.
+- `CLERK_SECRET_KEY` - Clerk backend key for server actions.
+- `NIOTEBOOK_ADMIN_EMAILS` - Comma-separated allowlist for admin users.
+
 ## Feature toggles
 
 - `NIOTEBOOK_E2E_PREVIEW` - Enables stubbed AI responses and allows dev auth bypass in preview. Used in `src/app/api/nio/route.ts` and `convex/auth.ts`.
@@ -33,6 +39,11 @@ It is intended to keep local, CI, and deployment configuration consistent.
 
 Do not set `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS=true` in production. The client
 throws on production builds if the bypass is enabled without preview allowances.
+
+## Invite tracking
+
+Alpha uses Clerk invitations. Store `inviteBatchId` in Clerk invitation metadata
+and sync it into the `users` table on first sign-in.
 
 ## CI requirements
 

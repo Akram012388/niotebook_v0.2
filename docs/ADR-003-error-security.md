@@ -20,19 +20,19 @@ Define baseline failure modes, degradation paths, and security rules for v0.2.
 - **YouTube playback error**: show retry CTA; preserve code + chat state.
 - **Convex unreachable**: switch to IndexedDB cache; queue writes; show subtle “syncing” badge.
 - **AI provider down**: fail over to fallback on 5xx/429 or timeout ≥10s; if both fail, show non-blocking error and keep chat input enabled for retry.
-- **Magic link expired**: prompt resend with single CTA.
+- **Email code expired**: prompt resend with single CTA.
 - **Runtime warm-up slow**: show “preparing runtimes…” inline status; no blocking modals.
 
 ### Auth + roles
 
-- Invite codes are single-use; default TTL is 7 days.
+- Alpha uses Clerk invite-only auth; invitations are managed in Clerk.
 - Role enforcement is server-side in Convex mutations/queries.
 - Admin routes require explicit role check; guests never access workspace.
 - Guests cannot access course content or transcripts; content/transcript queries require authenticated identity.
 
 ### Rate limiting + abuse
 
-- Throttle invite redemption attempts: 5 attempts/hour/IP (with backoff).
+- Throttle invite redemption attempts only if custom invite-code flow returns.
 - Throttle AI requests: 20 requests/10 minutes/user.
 
 ### Prompt injection + AI safety

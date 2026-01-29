@@ -3,7 +3,7 @@
 ## Implementation Phases
 
 - Phase 0 — Spec lock: finalize P1, P2, P8, P9 definitions.
-- Phase 1 — Foundations: schema, auth/invites, YouTube sync + transcript ingest.
+- Phase 1 — Foundations: schema, Clerk auth (invite-only), YouTube sync + transcript ingest.
 - Phase 2 — Core loop: lesson routing, editor/runtime scaffolding, resume persistence.
 - Phase 3 — Video authority: YouTube player wiring, authoritative videoTimeSec flow, runtime correctness.
 - Phase 4 — AI + chat: Nio prompt, context builder, streaming.
@@ -48,7 +48,7 @@ Tasks:
 
 - Define cockpit layout and KPI card ordering.
 - Define share + feedback counters and queries for analytics panel.
-- Define invite management UI (create/revoke/status).
+- Define invite management UX (alpha uses Clerk dashboard; admin console integration deferred).
 - Define filter behaviors and time-range presets (start with 1d/7d/30d).
   Deliverables:
 - Admin cockpit UX spec (see `docs/specs.md`).
@@ -126,7 +126,7 @@ Tasks:
 
 - Map failure modes to explicit UI states.
 - Add transcript ingest failure handling and mismatch warn threshold (>120s).
-- Enforce role checks, invite TTL (7 days), rate limits, and boundary validation.
+- Enforce role checks, auth boundary validation, and rate limits (invite TTL applies if custom invite code flow returns).
 - Define AI fallback triggers (5xx/429 or timeout ≥10s).
   Deliverables:
 - Error-state UX map.

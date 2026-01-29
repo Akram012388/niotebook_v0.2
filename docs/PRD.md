@@ -10,15 +10,15 @@ Problem
 
 Target User
 
-- Single self-paced learner invited via code + magic link; no classrooms or shared sessions.
+- Single self-paced learner invited via Clerk email invite (invite-only) and email code sign-in; no classrooms or shared sessions.
 
 Non-Goals
 
-- No classroom/teacher features beyond the single admin cockpit for invite/role management; no shared sessions, transcript UI, offline AI/video, AI file I/O, attachments, or tool execution.
+- No classroom/teacher features beyond the admin analytics cockpit; invite management is handled in Clerk for alpha; no shared sessions, transcript UI, offline AI/video, AI file I/O, attachments, or tool execution.
 
 Core Loop
 
-- Onboard with invite code → magic link → pick course/lesson.
+- Onboard with Clerk invite email → email code sign-in → pick course/lesson.
 - Initial content includes CS50x (2026), CS50P, CS50W, and CS50 AI (2023) delivered as YouTube-embedded lessons; playlist = course, video = lesson, chapters = timestamps.
 - Watch embedded YouTube, code in notepad-style editor, and chat with Nio (Prof. David Malan–modeled persona, not named in UI).
 - Continuous sync ties video time, code snapshot, and chat thread; resume on any device at last frame.
@@ -38,7 +38,8 @@ Engineering Principles
 
 Functional Requirements
 
-- Auth: invite code + email magic link; admin-only cockpit for invite management; roles: admin (invite and role management), user (learning workspace), guest (landing + login only).
+- Auth: Clerk invite-only + email code; admin allowlist via `NIOTEBOOK_ADMIN_EMAILS`; roles: admin (admin console access), user (workspace), guest (landing + login only). Invite batch tracking uses `inviteBatchId` from Clerk metadata; admin invite management via Clerk dashboard for alpha.
+- Alpha auth implementation plan: `docs/clerk-auth-alpha.md`.
 - Admin cockpit UX: ultra-polished, analytics-first dashboard (ChatGPT-level interface quality); analytics use UTC and cohort = inviteBatchId.
 - Layout: fixed presets (1-col 100, 2-col 60/40, 3-col 40/30/30); persisted per session.
 - Video: YouTube embed; time sampled every 2–5s and on seek/pause; clicking chat badge seeks smoothly.
