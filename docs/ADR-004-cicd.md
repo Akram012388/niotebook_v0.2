@@ -30,8 +30,8 @@ Optional:
 
 ### Vercel build command
 
-- Use conditional deploy in Vercel Project Settings (no `vercel.json`):
-  - `if [ "$VERCEL_ENV" = "production" ]; then npx convex deploy --cmd "bun run build"; else bun run build; fi`
+- Use `bun run build` only in Vercel Project Settings (no `vercel.json`).
+- Convex deploy + ingest are handled by GitHub workflows, not Vercel.
 
 ### GitHub Actions
 
@@ -47,7 +47,7 @@ PR checks (required):
 Preview-data refresh:
 
 - Trigger: nightly (02:00 UTC) + manual
-- Deploy Convex to `preview-data`, run ingest, then hard-fail if transcript windows are empty.
+- Deploy Convex to the pinned preview-data deployment, run ingest with `NIOTEBOOK_INGEST_TOKEN`, then hard-fail if transcript windows are empty.
 
 Prod refresh (ingest):
 
@@ -57,7 +57,7 @@ Prod refresh (ingest):
 E2E (Playwright) on preview deploy:
 
 - Trigger: `repository_dispatch` with type `vercel.deployment.success`
-- Use deployed preview URL as `BASE_URL` and seed into `preview-data`.
+- Use deployed preview URL as `BASE_URL` and seed into preview-data via token-gated ops mutation.
 - Run: `bun run test:e2e`
 
 ## Consequences

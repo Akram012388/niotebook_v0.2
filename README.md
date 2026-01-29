@@ -30,7 +30,7 @@ AI-native learning workspace that synchronizes Video + Code + AI.
 ## Data Ingest
 
 - `bun run ingest:cs50x` seeds CS50x 2026 lessons/transcripts into Convex.
-- Production ingest requires `NIOTEBOOK_INGEST_TOKEN` (or admin access).
+- Ingest and transcript verification require `NIOTEBOOK_INGEST_TOKEN` when running against preview-data or prod.
 
 ## Docs
 

@@ -377,14 +377,11 @@ Output:
 
 ## 11.2 Vercel ↔ Convex alignment
 
-Convex supports running with Vercel so that preview deployments use **fresh Convex backends**. ([Convex Developer Hub][5])
+Convex supports per-preview deployments, but v0.2 uses a **long-lived preview-data** backend to keep seeded data stable. ([Convex Developer Hub][5])
 
 For Vercel Build Command:
 
-- Use Convex deploy wrapping Bun build:
-  - `npx convex deploy --cmd 'bun run build'`
-
-Convex also supports `--preview-run` to seed preview deployments. ([Convex Developer Hub][5])
+- Use `bun run build` only. Convex deploy + ingest run in GitHub Actions.
 
 ## 11.3 E2E after preview deploy
 

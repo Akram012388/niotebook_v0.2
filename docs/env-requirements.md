@@ -20,6 +20,11 @@ It is intended to keep local, CI, and deployment configuration consistent.
 
 - `NIOTEBOOK_PREVIEW_DATA` - Enables preview-data cleanup cron. Set to `true` only on the preview-data deployment.
 
+## Ingest safeguards
+
+- `NIOTEBOOK_ALLOW_PROD_INGEST` - Required to allow ingest when `NODE_ENV=production`. Set to `true` only on preview-data and prod deployments that run ingest.
+- `NIOTEBOOK_INGEST_TOKEN` - Shared ingest/ops token used by `scripts/ingestCs50x2026.ts`, `scripts/verifyTranscriptWindows.ts`, and `scripts/e2eSeed.ts`.
+
 ## Dev auth bypass
 
 - `NIOTEBOOK_DEV_AUTH_BYPASS` - Enables dev bypass on Convex server. Used in `convex/auth.ts`.
@@ -40,16 +45,21 @@ can initialize the client:
 
 The repository includes automated data refresh workflows:
 
-- `preview-data refresh` (nightly + manual) uses `CONVEX_PREVIEW_DEPLOY_KEY` and `PREVIEW_DATA_CONVEX_URL`.
+- `preview-data refresh` (nightly + manual) uses `CONVEX_PREVIEW_DEPLOY_KEY`, `PREVIEW_DATA_CONVEX_URL`, and `NIOTEBOOK_INGEST_TOKEN_PREVIEW_DATA`.
 - `prod refresh` (manual) uses `CONVEX_PROD_DEPLOY_KEY`, `PROD_CONVEX_URL`, and `NIOTEBOOK_INGEST_TOKEN_PROD`.
+
+Both workflows call token-gated verification via `scripts/verifyTranscriptWindows.ts`.
 
 ## E2E workflow requirements
 
 The E2E workflow (`.github/workflows/e2e.yml`) expects:
 
-- `CONVEX_PREVIEW_DEPLOY_KEY` (mapped to `CONVEX_DEPLOY_KEY` for seeding)
 - `PREVIEW_DATA_CONVEX_URL`
+- `NIOTEBOOK_INGEST_TOKEN_PREVIEW_DATA`
 - `NIOTEBOOK_E2E_VIDEO_ID`
+
+The seed script (`scripts/e2eSeed.ts`) runs against preview-data and requires
+`CONVEX_URL`, `NIOTEBOOK_INGEST_TOKEN`, and `NIOTEBOOK_E2E_VIDEO_ID`.
 
 ## Vercel preview configuration
 

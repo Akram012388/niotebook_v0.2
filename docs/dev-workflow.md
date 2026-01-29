@@ -52,9 +52,9 @@ follow it for layout, navigation, and interaction behavior.
 - PR checks: lint, typecheck, unit tests, build (`.github/workflows/ci.yml`).
 - Semgrep: `p/security-audit` ruleset, fails PR on findings (`.github/workflows/semgrep.yml`).
 - E2E: triggered by Vercel preview deploy via `repository_dispatch` with `BASE_URL` (`.github/workflows/e2e.yml`).
-- Preview-data refresh: nightly + manual (`.github/workflows/preview-data-refresh.yml`).
-- Prod refresh (ingest): manual (`.github/workflows/prod-refresh.yml`).
-- Vercel build command: conditional deploy in Project Settings (no `vercel.json`).
+- Preview-data refresh: nightly + manual (`.github/workflows/preview-data-refresh.yml`) using token-gated ingest/verify.
+- Prod refresh (ingest): manual (`.github/workflows/prod-refresh.yml`) using token-gated ingest/verify.
+- Vercel build command: `bun run build` only (Convex deploy handled by GitHub workflows).
 
 ## Environment Variables
 
