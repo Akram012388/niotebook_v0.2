@@ -6,7 +6,7 @@ import {
   toTranscriptWindowSegments,
   type TranscriptSegment,
 } from "../src/domain/transcript";
-import { toDomainId, toGenericId } from "./idUtils";
+import { toDomainId } from "./idUtils";
 
 const COURSE_SOURCE_PLAYLIST_ID = "cs50x-2026";
 
