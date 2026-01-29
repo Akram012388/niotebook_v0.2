@@ -14,6 +14,7 @@ import type { CodeSnapshotSummary } from "../../domain/resume";
 import { hashString } from "../../infra/hash";
 import { useDebouncedValue } from "../../infra/useDebouncedValue";
 import type { RuntimeLanguage } from "../../infra/runtime/types";
+import { CodeMirrorEditor } from "./CodeMirrorEditor";
 import { LanguageTabs } from "./LanguageTabs";
 
 const DEFAULT_CODE_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
@@ -27,12 +28,14 @@ type CodeEditorProps = {
   lessonId: string;
   onLanguageChange?: (language: RuntimeLanguage) => void;
   onSnapshot?: (snapshot: CodeSnapshotSummary) => void;
+  onRun?: () => void;
 };
 
 const CodeEditor = ({
   lessonId,
   onLanguageChange,
   onSnapshot,
+  onRun,
 }: CodeEditorProps): ReactElement => {
   const [language, setLanguage] = useState<RuntimeLanguage>("js");
   const [code, setCode] = useState(DEFAULT_CODE_BY_LANGUAGE.js);
@@ -138,12 +141,9 @@ const CodeEditor = ({
     setLanguage(next);
   }, []);
 
-  const handleCodeChange = useCallback(
-    (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
-      setCode(event.target.value);
-    },
-    [],
-  );
+  const handleCodeChange = useCallback((next: string): void => {
+    setCode(next);
+  }, []);
 
   const handleSave = useCallback(async (): Promise<void> => {
     const codeHash = await hashString(code);
@@ -221,11 +221,11 @@ const CodeEditor = ({
           Save snapshot
         </button>
       </div>
-      <textarea
+      <CodeMirrorEditor
         value={code}
+        language={language}
         onChange={handleCodeChange}
-        className="min-h-0 flex-1 rounded-xl border border-border bg-black p-4 font-mono text-xs text-slate-100 caret-slate-100 dark:bg-slate-50 dark:text-slate-900 dark:caret-slate-900"
-        data-testid="code-editor"
+        onRun={onRun}
       />
     </div>
   );

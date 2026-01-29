@@ -202,7 +202,8 @@ const CodePane = ({
             onClick={handleRun}
             className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
           >
-            Run
+            Run{" "}
+            <span className="hidden text-text-muted/60 sm:inline">⌘↵</span>
           </button>
           <button
             type="button"
@@ -226,6 +227,7 @@ const CodePane = ({
             lessonId={lessonId}
             onLanguageChange={handleLanguageChange}
             onSnapshot={handleSnapshot}
+            onRun={handleRun}
           />
         </div>
         <div className="flex min-h-0 flex-[1] flex-col rounded-lg border border-border bg-black text-slate-100 dark:bg-slate-50 dark:text-slate-900">
