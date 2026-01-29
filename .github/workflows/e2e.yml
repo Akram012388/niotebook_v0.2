@@ -19,9 +19,9 @@ jobs:
     env:
       BASE_URL: ${{ github.event.inputs.base_url || github.event.client_payload.deployment_url || github.event.client_payload.url || github.event.client_payload.deploymentUrl || github.event.client_payload.target_url }}
       CHECKOUT_REF: main
-      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
       CONVEX_URL: ${{ secrets.PREVIEW_DATA_CONVEX_URL }}
       NEXT_PUBLIC_DEFAULT_LESSON_ID: k170tmrc8zxxqtabctyddvhhqx7zkgae
+      NIOTEBOOK_INGEST_TOKEN: ${{ secrets.NIOTEBOOK_INGEST_TOKEN_PREVIEW_DATA }}
       NIOTEBOOK_E2E_VIDEO_ID: ${{ secrets.NIOTEBOOK_E2E_VIDEO_ID }}
       E2E_USE_WEBSERVER: "false"
       NIOTEBOOK_E2E_SEED_PATH: .e2e-seed.json
