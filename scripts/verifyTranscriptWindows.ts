@@ -27,13 +27,18 @@ const main = async (): Promise<void> => {
   const result = (await client.query(
     verifyTranscriptQuery,
     payload as never,
-  )) as { lectureTenCount: number; lectureZeroCount: number };
+  )) as {
+    lectureTenCount: number;
+    lectureZeroCount: number;
+    lectureZeroLabel?: string;
+  };
 
   console.log(
     `Verified Lecture 10: ${result.lectureTenCount} transcript segments (960-1020).`,
   );
+  const lectureZeroLabel = result.lectureZeroLabel ?? "Lecture 0";
   console.log(
-    `Verified Lecture 0: ${result.lectureZeroCount} transcript segments (0-60).`,
+    `Verified ${lectureZeroLabel}: ${result.lectureZeroCount} transcript segments (0-60).`,
   );
 };
 

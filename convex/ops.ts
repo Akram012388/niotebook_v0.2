@@ -32,6 +32,7 @@ type LessonRecord = {
   videoId: string;
   subtitlesUrl?: string;
   transcriptUrl?: string;
+  transcriptStatus?: "ok" | "warn" | "missing" | "error";
 };
 
 type UserRecord = {
@@ -78,6 +79,7 @@ const verifyTranscriptWindows = query({
   ): Promise<{
     lectureTenCount: number;
     lectureZeroCount: number;
+    lectureZeroLabel?: string;
   }> => {
     ensureIngestToken(args.ingestToken);
 
@@ -160,12 +162,32 @@ const verifyTranscriptWindows = query({
       throw new Error("Transcript window empty for Lecture 10 (960-1020).");
     }
 
-    const lectureZeroCount = await readWindow(lectureZero._id, 0, 60);
+    let lectureZeroCount = await readWindow(lectureZero._id, 0, 60);
+    let lectureZeroLabel: string | undefined = "Lecture 0";
+
     if (lectureZeroCount === 0) {
-      throw new Error("Transcript window empty for Lecture 0 (0-60).");
+      const fallbackLesson = lessons.find(
+        (lesson) =>
+          lesson._id !== lectureZero._id &&
+          (lesson.transcriptStatus === "ok" ||
+            lesson.transcriptStatus === "warn"),
+      );
+
+      if (!fallbackLesson) {
+        throw new Error("Transcript window empty for Lecture 0 (0-60).");
+      }
+
+      lectureZeroCount = await readWindow(fallbackLesson._id, 0, 60);
+      lectureZeroLabel = `Lesson order ${fallbackLesson.order}`;
+
+      if (lectureZeroCount === 0) {
+        throw new Error(
+          "Transcript window empty for Lecture 0 (0-60) and fallback lesson (0-60).",
+        );
+      }
     }
 
-    return { lectureTenCount, lectureZeroCount };
+    return { lectureTenCount, lectureZeroCount, lectureZeroLabel };
   },
 });
 
