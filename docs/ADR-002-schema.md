@@ -78,6 +78,7 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 ### Transcript ingest rules
 
 - Deploy-only ingest; idempotent per lessonId when ingestVersion changes (delete + insert).
+- Automation: preview-data refresh nightly; prod refresh is manual/gated.
 - transcriptStatus values: ok | warn | missing | error.
 
 ## Relationships

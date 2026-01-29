@@ -69,7 +69,7 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 - license label
 - source link (compact info strip in the video pane)
 - transcript ingestion (official CS50 SRT via /x/weeks/ parsing; SRT only; stored in Convex as segment-per-row; AI context only; no transcript UI; no local transcript storage)
-- ingestion cadence: deploy-only (manual re-ingest later if needed)
+- ingestion cadence: deploy-only; preview-data refresh nightly; prod refresh manual/gated
 
 ---
 
