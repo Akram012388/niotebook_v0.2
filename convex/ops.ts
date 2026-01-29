@@ -31,6 +31,7 @@ type LessonRecord = {
   order: number;
   videoId: string;
   subtitlesUrl?: string;
+  transcriptUrl?: string;
 };
 
 type UserRecord = {
@@ -69,7 +70,7 @@ const toTranscriptSegment = (
 const verifyTranscriptWindows = query({
   args: {
     ingestToken: v.string(),
-    defaultLessonId: v.id("lessons"),
+    defaultLessonId: v.optional(v.string()),
   },
   handler: async (
     ctx,
@@ -101,6 +102,36 @@ const verifyTranscriptWindows = query({
       throw new Error("Lecture 0 lesson not found in Convex.");
     }
 
+    let lectureTen: LessonRecord | null = null;
+    if (args.defaultLessonId) {
+      try {
+        const candidate = (await ctx.db.get(
+          args.defaultLessonId as GenericId<"lessons">,
+        )) as LessonRecord | null;
+        if (candidate) {
+          lectureTen = candidate;
+        }
+      } catch {
+        lectureTen = null;
+      }
+    }
+
+    if (!lectureTen) {
+      lectureTen =
+        lessons.find((lesson) =>
+          lesson.subtitlesUrl?.includes("/lectures/10/"),
+        ) ??
+        lessons.find((lesson) =>
+          lesson.transcriptUrl?.includes("/lectures/10/"),
+        ) ??
+        lessons.find((lesson) => lesson.order === 11) ??
+        null;
+    }
+
+    if (!lectureTen) {
+      throw new Error("Lecture 10 lesson not found in Convex.");
+    }
+
     const readWindow = async (
       lessonId: GenericId<"lessons">,
       startSec: number,
@@ -124,11 +155,7 @@ const verifyTranscriptWindows = query({
       ).length;
     };
 
-    const lectureTenCount = await readWindow(
-      toGenericId(args.defaultLessonId),
-      960,
-      1020,
-    );
+    const lectureTenCount = await readWindow(lectureTen._id, 960, 1020);
     if (lectureTenCount === 0) {
       throw new Error("Transcript window empty for Lecture 10 (960-1020).");
     }
