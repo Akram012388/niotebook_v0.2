@@ -560,6 +560,7 @@ const runIngest = async (): Promise<void> => {
     }
 
     let cursor: string | null = null;
+    let lastCursor: string | null = null;
     do {
       const response = (await client.mutation(clearSegmentsMutation, {
         lessonId: meta.lessonId,
@@ -567,7 +568,16 @@ const runIngest = async (): Promise<void> => {
         limit: 500,
         ingestToken: ingestToken ?? undefined,
       } as never)) as { nextCursor: string | null; cleared: number };
+      if (response.cleared === 0) {
+        cursor = null;
+        break;
+      }
+      lastCursor = cursor;
       cursor = response.nextCursor;
+      if (cursor && cursor === lastCursor) {
+        console.warn("Clear transcript loop detected; stopping early.");
+        cursor = null;
+      }
     } while (cursor);
 
     const chunks = chunkArray(lesson.transcriptSegments ?? [], 500);

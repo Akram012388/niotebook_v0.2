@@ -236,6 +236,13 @@ const clearTranscriptSegmentsBatch = mutation({
         numItems: args.limit ?? 500,
       });
 
+    if (page.page.length === 0) {
+      return {
+        nextCursor: null,
+        cleared: 0,
+      };
+    }
+
     for (const segment of page.page as TranscriptSegmentRecord[]) {
       await ctx.db.delete(segment._id);
     }
