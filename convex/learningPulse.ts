@@ -10,11 +10,42 @@ import {
 import type { UserId, LessonId, CourseId } from "../src/domain/ids";
 
 /**
+ * Estimate video watch seconds by pairing consecutive play→pause events
+ * and summing the wall-clock duration between each pair.
+ */
+const estimateVideoWatchSec = (
+  sessionEvents: Array<{ type: string; createdAt: number }>,
+): number => {
+  const plays = sessionEvents
+    .filter((e) => e.type === "video_play")
+    .sort((a, b) => a.createdAt - b.createdAt);
+  const pauses = sessionEvents
+    .filter((e) => e.type === "video_pause")
+    .sort((a, b) => a.createdAt - b.createdAt);
+
+  let totalSec = 0;
+  const usedPauses = new Set<number>();
+  for (const play of plays) {
+    const nextPause = pauses.find(
+      (p) => p.createdAt > play.createdAt && !usedPauses.has(p.createdAt),
+    );
+    if (nextPause) {
+      usedPauses.add(nextPause.createdAt);
+      totalSec += (nextPause.createdAt - play.createdAt) / 1000;
+    }
+  }
+  return totalSec;
+};
+
+/**
  * getPulse – gathers session & progress data, returns a LearningPulse.
  *
  * Strategy:
  *  - Sessions: derived from pairs of session_start / session_end events
  *  - Lesson progress: derived from lessonCompletions + lessons table
+ *
+ * Performance: lesson lookups are batched via Promise.all and course data
+ * is fetched once per unique course (O(n + k) instead of O(n × k)).
  */
 const getPulse = query({
   args: {},
@@ -29,7 +60,6 @@ const getPulse = query({
       .withIndex("by_userId", (q) => q.eq("userId", user.id))
       .collect();
 
-    // Build sessions from session_start/session_end pairs
     const startEvents = events
       .filter((e) => e.type === "session_start")
       .sort((a, b) => a.createdAt - b.createdAt);
@@ -38,7 +68,6 @@ const getPulse = query({
       .filter((e) => e.type === "session_end")
       .sort((a, b) => a.createdAt - b.createdAt);
 
-    // Match by sessionId in metadata
     const endBySessionId = new Map<string, (typeof endEvents)[0]>();
     for (const e of endEvents) {
       if (e.metadata.sessionId) endBySessionId.set(e.metadata.sessionId, e);
@@ -51,11 +80,8 @@ const getPulse = query({
       const end = endBySessionId.get(sid);
       if (!end) continue;
 
-      // Count events in this session
       const sessionEvents = events.filter((e) => e.sessionId === sid);
-      const videoWatchSec = sessionEvents
-        .filter((e) => e.type === "video_play" || e.type === "video_pause")
-        .reduce((sum, e) => sum + (e.metadata.videoTimeSec ?? 0), 0);
+      const videoWatchSec = estimateVideoWatchSec(sessionEvents);
       const codeRunCount = sessionEvents.filter(
         (e) => e.type === "code_run",
       ).length;
@@ -86,7 +112,6 @@ const getPulse = query({
       completions.map((c) => [c.lessonId.toString(), c]),
     );
 
-    // Get all lessons the user has interacted with (from frames)
     const frames = await ctx.db
       .query("frames")
       .withIndex("by_userId_lessonId", (q) => q.eq("userId", user.id))
@@ -97,17 +122,37 @@ const getPulse = query({
       ...frames.map((f) => f.lessonId),
     ]);
 
-    const lessonProgress: LessonProgressInput[] = [];
-    for (const lessonGenId of lessonIds) {
-      const lesson = await ctx.db.get(lessonGenId);
-      if (!lesson) continue;
+    // ── Batch lesson + course lookups (O(n + k)) ──
+    const lessons = await Promise.all(
+      [...lessonIds].map((id) => ctx.db.get(id)),
+    );
+    const validLessons = lessons.filter(Boolean);
 
-      // Count total lessons in course
+    const courseIds = [...new Set(validLessons.map((l) => l!.courseId))];
+
+    const courseLessonCounts = new Map<string, number>();
+    const courseTitles = new Map<string, string>();
+    for (const courseId of courseIds) {
+      const course = await ctx.db.get(courseId);
+      if (course) courseTitles.set(courseId.toString(), course.title);
+
       const courseLessons = await ctx.db
         .query("lessons")
-        .withIndex("by_courseId", (q) => q.eq("courseId", lesson.courseId))
+        .withIndex("by_courseId", (q) => q.eq("courseId", courseId))
         .collect();
+      courseLessonCounts.set(courseId.toString(), courseLessons.length);
+    }
 
+    const lessonById = new Map(
+      validLessons.map((l) => [l!._id.toString(), l!]),
+    );
+
+    const lessonProgress: LessonProgressInput[] = [];
+    for (const lessonGenId of lessonIds) {
+      const lesson = lessonById.get(lessonGenId.toString());
+      if (!lesson) continue;
+
+      const courseKey = lesson.courseId.toString();
       const completion = completionByLesson.get(lessonGenId.toString());
       const frame = frames.find(
         (f) => f.lessonId.toString() === lessonGenId.toString(),
@@ -116,8 +161,9 @@ const getPulse = query({
       lessonProgress.push({
         lessonId: toDomainId(lessonGenId) as unknown as LessonId,
         courseId: toDomainId(lesson.courseId) as unknown as CourseId,
+        courseTitle: courseTitles.get(courseKey),
         order: lesson.order,
-        totalLessons: courseLessons.length,
+        totalLessons: courseLessonCounts.get(courseKey) ?? 0,
         completed: !!completion,
         completedAt: completion?.completedAt,
         lastVideoTimeSec: frame?.videoTimeSec ?? 0,

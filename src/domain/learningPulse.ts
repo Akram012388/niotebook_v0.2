@@ -17,6 +17,7 @@ type LearningSessionInput = {
 type LessonProgressInput = {
   lessonId: LessonId;
   courseId: CourseId;
+  courseTitle?: string;
   order: number;
   totalLessons: number;
   completed: boolean;
@@ -51,6 +52,7 @@ type PaceInsight = {
 
 type CourseProgress = {
   courseId: CourseId;
+  courseTitle?: string;
   completedLessons: number;
   totalLessons: number;
   completionPct: number;
@@ -101,6 +103,12 @@ const startOfDayUTC = (ms: number): number => {
 
 // ── Functions ──
 
+/**
+ * Compute the user's learning streak from session timestamps.
+ * A "day" is defined as a UTC calendar day. Sessions spanning midnight
+ * count toward both days. The current streak counts backward from today
+ * (or yesterday if not active today).
+ */
 const computeStreak = (
   sessions: LearningSessionInput[],
   now: number,
@@ -114,13 +122,19 @@ const computeStreak = (
     };
   }
 
-  const activeDays = new Set(sessions.map((s) => toDateStr(s.startedAt)));
+  // Collect unique active days from both startedAt and endedAt to handle
+  // sessions that span midnight
+  const activeDays = new Set<string>();
+  for (const s of sessions) {
+    activeDays.add(toDateStr(s.startedAt));
+    activeDays.add(toDateStr(s.endedAt));
+  }
+
   const sortedDays = [...activeDays].sort();
   const lastActive = sortedDays[sortedDays.length - 1];
   const todayStr = toDateStr(now);
   const isActiveToday = activeDays.has(todayStr);
 
-  // Compute consecutive streaks from sorted unique days
   const dayMs = sortedDays.map((d) => startOfDayUTC(new Date(d + "T00:00:00Z").getTime()));
 
   let longestStreak = 1;
@@ -135,7 +149,6 @@ const computeStreak = (
     if (currentRun > longestStreak) longestStreak = currentRun;
   }
 
-  // Current streak: count backward from today (or yesterday if not active today)
   const todayMs = startOfDayUTC(now);
   let checkDay = isActiveToday ? todayMs : todayMs - MS_PER_DAY;
   let currentStreak = 0;
@@ -153,6 +166,12 @@ const computeStreak = (
   };
 };
 
+/**
+ * Compute pace insights: session frequency, average duration, and trend.
+ * Trend compares session count in the last 2 weeks vs the 2 weeks before.
+ * Returns "insufficient_data" when fewer than 4 total sessions or when
+ * there is no historical baseline (all sessions in the recent window).
+ */
 const computePace = (
   sessions: LearningSessionInput[],
   now: number,
@@ -165,7 +184,6 @@ const computePace = (
   const avgSessionMinutes =
     totalSessions > 0 ? totalStudyMinutes / totalSessions : 0;
 
-  // Compute sessions per week based on span
   const firstSession = sessions.reduce(
     (min, s) => Math.min(min, s.startedAt),
     Infinity,
@@ -174,7 +192,6 @@ const computePace = (
   const avgSessionsPerWeek =
     totalSessions > 0 ? totalSessions / spanWeeks : 0;
 
-  // Trend: last 2 weeks vs previous 2 weeks
   let trend: PaceInsight["trend"] = "insufficient_data";
   if (totalSessions >= 4) {
     const twoWeeksAgo = now - 2 * MS_PER_WEEK;
@@ -187,7 +204,8 @@ const computePace = (
     ).length;
 
     if (previous === 0) {
-      trend = recent > 0 ? "accelerating" : "steady";
+      // No historical baseline — can't determine trend
+      trend = "insufficient_data";
     } else {
       const ratio = recent / previous;
       if (ratio > 1.2) trend = "accelerating";
@@ -205,6 +223,10 @@ const computePace = (
   };
 };
 
+/**
+ * Group lesson progress entries by course and compute per-course completion
+ * statistics. Optionally estimates days to completion based on current pace.
+ */
 const computeCourseProgress = (
   lessonProgress: LessonProgressInput[],
   pace: PaceInsight,
@@ -212,8 +234,12 @@ const computeCourseProgress = (
   const byCourse = new Map<string, LessonProgressInput[]>();
   for (const lp of lessonProgress) {
     const key = lp.courseId as string;
-    if (!byCourse.has(key)) byCourse.set(key, []);
-    byCourse.get(key)!.push(lp);
+    const existing = byCourse.get(key);
+    if (existing) {
+      existing.push(lp);
+    } else {
+      byCourse.set(key, [lp]);
+    }
   }
 
   return [...byCourse.entries()].map(([courseId, lessons]) => {
@@ -225,11 +251,11 @@ const computeCourseProgress = (
         : 0;
     const currentLessonOrder = Math.max(...lessons.map((l) => l.order));
 
-    // Estimate completion
+    const courseTitle = lessons.find((l) => l.courseTitle)?.courseTitle;
+
     let estimatedCompletionDays: number | null = null;
     const remaining = totalLessons - completedLessons;
     if (remaining > 0 && pace.avgSessionsPerWeek > 0 && pace.totalSessions >= 4) {
-      // Assume roughly 1 lesson per session
       const lessonsPerWeek = pace.avgSessionsPerWeek;
       const weeksLeft = remaining / lessonsPerWeek;
       estimatedCompletionDays = Math.round(weeksLeft * 7);
@@ -237,6 +263,7 @@ const computeCourseProgress = (
 
     return {
       courseId: courseId as CourseId,
+      courseTitle,
       completedLessons,
       totalLessons,
       completionPct,
@@ -246,6 +273,10 @@ const computeCourseProgress = (
   });
 };
 
+/**
+ * Infer the user's learning style from session-level aggregates:
+ * video vs code ratio, Nio engagement, and session duration pattern.
+ */
 const computeLearningStyle = (
   sessions: LearningSessionInput[],
 ): LearningStyle => {
@@ -259,7 +290,6 @@ const computeLearningStyle = (
   }
 
   const totalVideoSec = sessions.reduce((s, x) => s + x.videoWatchSec, 0);
-  // Estimate code time: assume ~30sec per code run
   const totalCodeSec = sessions.reduce((s, x) => s + x.codeRunCount * 30, 0);
   const totalActivitySec = totalVideoSec + totalCodeSec || 1;
 
@@ -284,6 +314,10 @@ const computeLearningStyle = (
   };
 };
 
+/**
+ * Build human-readable context lines for Nio's system prompt.
+ * Uses courseTitle when available, falling back to the raw courseId.
+ */
 const buildNioContextEnrichment = (
   streak: StreakInfo,
   pace: PaceInsight,
@@ -300,10 +334,10 @@ const buildNioContextEnrichment = (
   const progressLine =
     courses.length > 0
       ? courses
-          .map(
-            (c) =>
-              `${c.courseId} progress: ${c.completedLessons}/${c.totalLessons} lessons (${c.completionPct}%)`,
-          )
+          .map((c) => {
+            const label = c.courseTitle ?? (c.courseId as string);
+            return `${label} progress: ${c.completedLessons}/${c.totalLessons} lessons (${c.completionPct}%)`;
+          })
           .join("; ")
       : "No course progress yet";
 
@@ -313,7 +347,6 @@ const buildNioContextEnrichment = (
   if (style.nioEngaged) styleTraits.push("Nio-engaged");
   const styleLine = `Style: ${styleTraits.join(", ")}`;
 
-  // Summary
   const parts: string[] = [];
   if (streak.currentStreak > 0)
     parts.push(`${streak.currentStreak}-day streak`);
@@ -331,6 +364,10 @@ const buildNioContextEnrichment = (
   return { summaryLine, streakLine, paceLine, progressLine, styleLine };
 };
 
+/**
+ * Main entry point: compute the full LearningPulse from raw session
+ * and lesson progress data. Pure function — no side effects.
+ */
 const computeLearningPulse = (input: PulseInput): LearningPulse => {
   const streak = computeStreak(input.sessions, input.now);
   const pace = computePace(input.sessions, input.now);

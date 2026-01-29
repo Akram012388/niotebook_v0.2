@@ -16,6 +16,7 @@ import type { CourseId, LessonId, UserId } from "../../../src/domain/ids";
 const uid = "user_1" as UserId;
 const lid = (n: number) => `lesson_${n}` as LessonId;
 const cid = "course_1" as CourseId;
+const cid2 = "course_2" as CourseId;
 
 const DAY = 86_400_000;
 
@@ -24,7 +25,7 @@ const makeSession = (
 ): LearningSessionInput => ({
   sessionId: `s_${overrides.startedAt}`,
   userId: uid,
-  endedAt: overrides.startedAt + 30 * 60_000, // 30min default
+  endedAt: overrides.startedAt + 30 * 60_000,
   lessonId: lid(1),
   eventsCount: 10,
   videoWatchSec: 600,
@@ -83,15 +84,14 @@ describe("computeStreak", () => {
 
   it("broken streak (gap day)", () => {
     const sessions = [
-      makeSession({ startedAt: NOW }), // today
-      makeSession({ startedAt: NOW - 1 * DAY }), // yesterday
-      // gap on day -2
+      makeSession({ startedAt: NOW }),
+      makeSession({ startedAt: NOW - 1 * DAY }),
       makeSession({ startedAt: NOW - 3 * DAY }),
       makeSession({ startedAt: NOW - 4 * DAY }),
     ];
     const result = computeStreak(sessions, NOW);
-    expect(result.currentStreak).toBe(2); // today + yesterday
-    expect(result.longestStreak).toBe(2); // both runs are 2
+    expect(result.currentStreak).toBe(2);
+    expect(result.longestStreak).toBe(2);
   });
 
   it("streak from yesterday when not active today", () => {
@@ -102,6 +102,28 @@ describe("computeStreak", () => {
     const result = computeStreak(sessions, NOW);
     expect(result.currentStreak).toBe(2);
     expect(result.isActiveToday).toBe(false);
+  });
+
+  it("session spanning midnight counts both days", () => {
+    const june14_2330 = Date.UTC(2024, 5, 14, 23, 30, 0);
+    const june15_0030 = Date.UTC(2024, 5, 15, 0, 30, 0);
+    const sessions = [
+      makeSession({ startedAt: june14_2330, endedAt: june15_0030 }),
+    ];
+    const now = Date.UTC(2024, 5, 15, 12, 0, 0);
+    const result = computeStreak(sessions, now);
+    expect(result.currentStreak).toBe(2);
+    expect(result.isActiveToday).toBe(true);
+  });
+
+  it("very long streak (30+ days) works without issue", () => {
+    const sessions = Array.from({ length: 35 }, (_, i) =>
+      makeSession({ startedAt: NOW - i * DAY }),
+    );
+    const result = computeStreak(sessions, NOW);
+    expect(result.currentStreak).toBe(35);
+    expect(result.longestStreak).toBe(35);
+    expect(result.isActiveToday).toBe(true);
   });
 });
 
@@ -123,7 +145,6 @@ describe("computePace", () => {
   });
 
   it("detects accelerating trend", () => {
-    // 1 session 3 weeks ago, 5 sessions in last 2 weeks
     const sessions = [
       makeSession({ startedAt: NOW - 21 * DAY }),
       makeSession({ startedAt: NOW - 3 * DAY }),
@@ -137,7 +158,6 @@ describe("computePace", () => {
   });
 
   it("detects slowing trend", () => {
-    // 5 sessions 3-4 weeks ago, 1 session in last 2 weeks
     const sessions = [
       makeSession({ startedAt: NOW - 20 * DAY }),
       makeSession({ startedAt: NOW - 21 * DAY }),
@@ -151,7 +171,6 @@ describe("computePace", () => {
   });
 
   it("detects steady trend", () => {
-    // 3 sessions each period
     const sessions = [
       makeSession({ startedAt: NOW - 20 * DAY }),
       makeSession({ startedAt: NOW - 21 * DAY }),
@@ -162,6 +181,31 @@ describe("computePace", () => {
     ];
     const result = computePace(sessions, NOW);
     expect(result.trend).toBe("steady");
+  });
+
+  it("returns insufficient_data when all sessions are in last 2 weeks", () => {
+    const sessions = [
+      makeSession({ startedAt: NOW - 1 * DAY }),
+      makeSession({ startedAt: NOW - 3 * DAY }),
+      makeSession({ startedAt: NOW - 5 * DAY }),
+      makeSession({ startedAt: NOW - 7 * DAY }),
+      makeSession({ startedAt: NOW - 10 * DAY }),
+    ];
+    const result = computePace(sessions, NOW);
+    expect(result.totalSessions).toBe(5);
+    expect(result.trend).toBe("insufficient_data");
+  });
+
+  it("exactly 4 sessions all recent returns insufficient_data", () => {
+    const sessions = [
+      makeSession({ startedAt: NOW - 1 * DAY }),
+      makeSession({ startedAt: NOW - 2 * DAY }),
+      makeSession({ startedAt: NOW - 3 * DAY }),
+      makeSession({ startedAt: NOW - 4 * DAY }),
+    ];
+    const result = computePace(sessions, NOW);
+    expect(result.totalSessions).toBe(4);
+    expect(result.trend).toBe("insufficient_data");
   });
 });
 
@@ -194,6 +238,44 @@ describe("computeCourseProgress", () => {
     const pace = computePace([makeSession({ startedAt: NOW })], NOW);
     const result = computeCourseProgress(progress, pace);
     expect(result[0].estimatedCompletionDays).toBeNull();
+  });
+
+  it("handles multiple courses", () => {
+    const progress = [
+      makeProgress({ order: 1, completed: true, courseId: cid, lessonId: lid(1), totalLessons: 10 }),
+      makeProgress({ order: 2, completed: false, courseId: cid, lessonId: lid(2), totalLessons: 10 }),
+      makeProgress({ order: 1, completed: true, courseId: cid2, lessonId: lid(3), totalLessons: 5 }),
+      makeProgress({ order: 2, completed: true, courseId: cid2, lessonId: lid(4), totalLessons: 5 }),
+      makeProgress({ order: 3, completed: false, courseId: cid2, lessonId: lid(5), totalLessons: 5 }),
+    ];
+    const pace = computePace(
+      Array.from({ length: 6 }, (_, i) =>
+        makeSession({ startedAt: NOW - i * 3 * DAY }),
+      ),
+      NOW,
+    );
+    const result = computeCourseProgress(progress, pace);
+    expect(result).toHaveLength(2);
+
+    const c1 = result.find((c) => c.courseId === cid)!;
+    expect(c1.completedLessons).toBe(1);
+    expect(c1.totalLessons).toBe(10);
+    expect(c1.completionPct).toBe(10);
+
+    const c2 = result.find((c) => c.courseId === cid2)!;
+    expect(c2.completedLessons).toBe(2);
+    expect(c2.totalLessons).toBe(5);
+    expect(c2.completionPct).toBe(40);
+  });
+
+  it("propagates courseTitle", () => {
+    const progress = [
+      makeProgress({ order: 1, completed: true, courseTitle: "CS50x" }),
+      makeProgress({ order: 2, completed: false, lessonId: lid(2) }),
+    ];
+    const pace = computePace([], NOW);
+    const result = computeCourseProgress(progress, pace);
+    expect(result[0].courseTitle).toBe("CS50x");
   });
 });
 
@@ -233,30 +315,21 @@ describe("computeLearningStyle", () => {
 
   it("detects short-burst pattern", () => {
     const result = computeLearningStyle([
-      makeSession({
-        startedAt: NOW,
-        endedAt: NOW + 10 * 60_000, // 10 min
-      }),
+      makeSession({ startedAt: NOW, endedAt: NOW + 10 * 60_000 }),
     ]);
     expect(result.sessionPattern).toBe("short-burst");
   });
 
   it("detects deep-focus pattern", () => {
     const result = computeLearningStyle([
-      makeSession({
-        startedAt: NOW,
-        endedAt: NOW + 60 * 60_000, // 60 min
-      }),
+      makeSession({ startedAt: NOW, endedAt: NOW + 60 * 60_000 }),
     ]);
     expect(result.sessionPattern).toBe("deep-focus");
   });
 
   it("detects mixed pattern", () => {
     const result = computeLearningStyle([
-      makeSession({
-        startedAt: NOW,
-        endedAt: NOW + 25 * 60_000,
-      }),
+      makeSession({ startedAt: NOW, endedAt: NOW + 25 * 60_000 }),
     ]);
     expect(result.sessionPattern).toBe("mixed");
   });
@@ -316,6 +389,48 @@ describe("buildNioContextEnrichment", () => {
     expect(result.streakLine).toBe("No current streak");
     expect(result.progressLine).toBe("No course progress yet");
   });
+
+  it("uses courseTitle in progressLine when available", () => {
+    const courses = [
+      {
+        courseId: cid,
+        courseTitle: "CS50x",
+        completedLessons: 4,
+        totalLessons: 12,
+        completionPct: 33,
+        currentLessonOrder: 5,
+        estimatedCompletionDays: 18,
+      },
+    ];
+    const result = buildNioContextEnrichment(
+      { currentStreak: 1, longestStreak: 1, lastActiveDate: "2024-06-15", isActiveToday: true },
+      { avgSessionMinutes: 30, avgSessionsPerWeek: 3, totalStudyMinutes: 90, totalSessions: 3, trend: "insufficient_data" },
+      courses,
+      { videoHeavy: false, codeHeavy: false, nioEngaged: false, sessionPattern: "mixed" },
+    );
+    expect(result.progressLine).toContain("CS50x progress:");
+    expect(result.progressLine).not.toContain("course_1");
+  });
+
+  it("falls back to courseId when courseTitle is absent", () => {
+    const courses = [
+      {
+        courseId: cid,
+        completedLessons: 2,
+        totalLessons: 10,
+        completionPct: 20,
+        currentLessonOrder: 3,
+        estimatedCompletionDays: null,
+      },
+    ];
+    const result = buildNioContextEnrichment(
+      { currentStreak: 0, longestStreak: 0, lastActiveDate: "", isActiveToday: false },
+      { avgSessionMinutes: 0, avgSessionsPerWeek: 0, totalStudyMinutes: 0, totalSessions: 0, trend: "insufficient_data" },
+      courses,
+      { videoHeavy: false, codeHeavy: false, nioEngaged: false, sessionPattern: "mixed" },
+    );
+    expect(result.progressLine).toContain("course_1 progress:");
+  });
 });
 
 // ── Integration ──
@@ -347,7 +462,8 @@ describe("computeLearningPulse", () => {
     expect(pulse.streak.currentStreak).toBe(8);
     expect(pulse.streak.isActiveToday).toBe(true);
     expect(pulse.pace.totalSessions).toBe(8);
-    expect(pulse.pace.trend).not.toBe("insufficient_data");
+    // All 8 sessions are within last 2 weeks with no previous baseline
+    expect(pulse.pace.trend).toBe("insufficient_data");
     expect(pulse.courses).toHaveLength(1);
     expect(pulse.courses[0].completionPct).toBe(17);
     expect(pulse.style.codeHeavy).toBe(true);
@@ -368,5 +484,25 @@ describe("computeLearningPulse", () => {
     expect(pulse.pace.totalSessions).toBe(0);
     expect(pulse.courses).toHaveLength(0);
     expect(pulse.style.sessionPattern).toBe("mixed");
+  });
+
+  it("propagates courseTitle to nioContext", () => {
+    const sessions = Array.from({ length: 6 }, (_, i) =>
+      makeSession({ startedAt: NOW - i * 3 * DAY }),
+    );
+    const progress = [
+      makeProgress({ order: 1, completed: true, courseTitle: "Intro to Python" }),
+      makeProgress({ order: 2, completed: false, lessonId: lid(2) }),
+    ];
+
+    const pulse = computeLearningPulse({
+      userId: uid,
+      sessions,
+      lessonProgress: progress,
+      now: NOW,
+    });
+
+    expect(pulse.courses[0].courseTitle).toBe("Intro to Python");
+    expect(pulse.nioContext.progressLine).toContain("Intro to Python progress:");
   });
 });
