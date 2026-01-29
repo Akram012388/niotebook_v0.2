@@ -592,6 +592,8 @@ const runIngest = async (): Promise<void> => {
 };
 
 runIngest().catch((error) => {
-  process.stdout.write(`${String(error)}\n`);
+  console.error(
+    error instanceof Error ? (error.stack ?? error.message) : error,
+  );
   process.exit(1);
 });
