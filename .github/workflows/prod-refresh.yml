@@ -35,4 +35,4 @@ jobs:
           NODE_ENV="production" \
           bun run ingest:cs50x
       - name: Verify transcript windows
-        run: CONVEX_URL="${CONVEX_URL}" bun ./scripts/verifyTranscriptWindows.ts
+        run: CONVEX_URL="${CONVEX_URL}" NIOTEBOOK_INGEST_TOKEN="${NIOTEBOOK_INGEST_TOKEN}" bun ./scripts/verifyTranscriptWindows.ts
