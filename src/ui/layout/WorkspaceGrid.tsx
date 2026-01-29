@@ -15,6 +15,7 @@ import { VideoPane } from "../panes/VideoPane";
 import { LayoutGrid } from "./LayoutGrid";
 import { useLayoutPreset } from "./LayoutPresetContext";
 import { storageAdapter } from "../../infra/storageAdapter";
+import type { CodeSnapshotSummary } from "../../domain/resume";
 
 const paneListeners = new Set<() => void>();
 let singlePaneSnapshot: "video" | "code" = "video";
@@ -170,6 +171,9 @@ const WorkspaceGrid = (): ReactElement => {
   const [videoTimeSec, setVideoTimeSec] = useState<number>(0);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [codeHash, setCodeHash] = useState<string | null>(null);
+  const [codeSnapshot, setCodeSnapshot] = useState<CodeSnapshotSummary | null>(
+    null,
+  );
   const isMounted = useSyncExternalStore(
     subscribe,
     () => true,
@@ -202,8 +206,9 @@ const WorkspaceGrid = (): ReactElement => {
     [],
   );
 
-  const handleSnapshot = useCallback((snapshot: { codeHash: string }): void => {
+  const handleSnapshot = useCallback((snapshot: CodeSnapshotSummary): void => {
     setCodeHash(snapshot.codeHash);
+    setCodeSnapshot(snapshot);
   }, []);
 
   useEffect(() => {
@@ -452,6 +457,7 @@ const WorkspaceGrid = (): ReactElement => {
                 lessonId={activeLessonId}
                 onSeek={handleSeek}
                 videoTimeSec={videoTimeSec}
+                codeSnapshot={codeSnapshot}
                 onThreadChange={handleThreadChange}
                 headerExtras={
                   <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
@@ -528,6 +534,7 @@ const WorkspaceGrid = (): ReactElement => {
         lessonId={activeLessonId}
         onSeek={handleSeek}
         videoTimeSec={videoTimeSec}
+        codeSnapshot={codeSnapshot}
         onThreadChange={handleThreadChange}
       />
     </LayoutGrid>

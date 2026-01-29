@@ -27,7 +27,7 @@
 - ~~Hover/active highlight consistency is partial.~~ (completed)
 - ~~Spacing scale (8/12/16) not strictly adhered everywhere.~~ (completed; drawer spacing intentionally compact)
 - ~~Icons policy: update chat composer send icon to Phosphor and only highlight when input has text.~~ (completed)
-- Docs drift: update ingest security notes to include token-or-admin gating in prod (`NIOTEBOOK_INGEST_TOKEN`) in addition to `NIOTEBOOK_ALLOW_PROD_INGEST=true`.
+- ~~Docs drift: update ingest security notes to include token-or-admin gating in prod (`NIOTEBOOK_INGEST_TOKEN`) in addition to `NIOTEBOOK_ALLOW_PROD_INGEST=true`.~~ (completed)
 
 ## Data correctness re-check (contract)
 

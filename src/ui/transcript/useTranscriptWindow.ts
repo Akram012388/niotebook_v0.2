@@ -8,7 +8,7 @@ import {
 import { getTranscriptWindowRef } from "./convexTranscript";
 
 const WINDOW_PRE_SEC = 60;
-const WINDOW_POST_SEC = 120;
+const WINDOW_POST_SEC = 60;
 
 type TranscriptWindowState = {
   segments: TranscriptWindowSegment[];

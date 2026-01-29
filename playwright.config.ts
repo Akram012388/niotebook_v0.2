@@ -5,13 +5,6 @@ const baseURL = process.env.BASE_URL?.trim() || "http://localhost:3000";
 const useWebServer =
   (process.env.E2E_USE_WEBSERVER === "true" && !process.env.BASE_URL) ||
   (!process.env.BASE_URL && !isCi);
-const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-const extraHTTPHeaders = bypassSecret
-  ? {
-      "x-vercel-protection-bypass": bypassSecret,
-      "x-vercel-set-bypass-cookie": "true",
-    }
-  : undefined;
 
 const webServerEnv: Record<string, string> = {
   NEXT_PUBLIC_DISABLE_CONVEX: "false",
@@ -20,6 +13,8 @@ const webServerEnv: Record<string, string> = {
   NIOTEBOOK_DEV_AUTH_BYPASS: "true",
   NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS: "true",
   NIOTEBOOK_E2E_SEED_PATH: ".e2e-seed.json",
+  NIOTEBOOK_E2E_PREVIEW: "true",
+  NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW: "true",
 };
 
 if (process.env.CONVEX_DEPLOYMENT) {
@@ -52,7 +47,6 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
-    ...(extraHTTPHeaders ? { extraHTTPHeaders } : {}),
   },
   webServer: useWebServer
     ? {

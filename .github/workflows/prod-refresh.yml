@@ -1,0 +1,38 @@
+name: prod refresh
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type YES to run prod refresh"
+        required: true
+        default: "NO"
+
+jobs:
+  refresh:
+    if: ${{ github.event.inputs.confirm == 'YES' }}
+    runs-on: ubuntu-latest
+    env:
+      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PROD_DEPLOY_KEY }}
+      CONVEX_URL: ${{ secrets.PROD_CONVEX_URL }}
+      NIOTEBOOK_INGEST_TOKEN: ${{ secrets.NIOTEBOOK_INGEST_TOKEN_PROD }}
+      NIOTEBOOK_ALLOW_PROD_INGEST: "true"
+      NODE_ENV: "production"
+      NEXT_PUBLIC_DEFAULT_LESSON_ID: k170tmrc8zxxqtabctyddvhhqx7zkgae
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.1.19"
+      - run: bun install --frozen-lockfile
+      - name: Deploy Convex production
+        run: npx convex deploy --yes
+      - name: Ingest CS50x data
+        run: |
+          CONVEX_URL="${CONVEX_URL}" \
+          NIOTEBOOK_ALLOW_PROD_INGEST="true" \
+          NIOTEBOOK_INGEST_TOKEN="${NIOTEBOOK_INGEST_TOKEN}" \
+          NODE_ENV="production" \
+          bun run ingest:cs50x
+      - name: Verify transcript windows
+        run: CONVEX_URL="${CONVEX_URL}" bun ./scripts/verifyTranscriptWindows.ts

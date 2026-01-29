@@ -9,6 +9,7 @@ import {
 import { useQuery } from "convex/react";
 import { VideoPlayer } from "../video/VideoPlayer";
 import { useVideoFrame } from "../video/useVideoFrame";
+import { formatTimestamp } from "../formatTimestamp";
 import { getCoursesRef, getLessonRef } from "../content/convexContent";
 
 type VideoSeekRequest = {
@@ -24,20 +25,6 @@ type VideoPaneProps = {
   onTimeChange?: (timeSec: number) => void;
   headerExtras?: ReactElement;
   showInfoStrip?: boolean;
-};
-
-const formatTimestamp = (timestampSec: number): string => {
-  const hours = Math.floor(timestampSec / 3600);
-  const minutes = Math.floor((timestampSec % 3600) / 60);
-  const seconds = Math.floor(timestampSec % 60);
-  const paddedMinutes = minutes.toString().padStart(2, "0");
-  const paddedSeconds = seconds.toString().padStart(2, "0");
-
-  if (hours > 0) {
-    return `${hours}:${paddedMinutes}:${paddedSeconds}`;
-  }
-
-  return `${minutes}:${paddedSeconds}`;
 };
 
 const VideoPane = ({

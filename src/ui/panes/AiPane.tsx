@@ -1,12 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, type ReactElement } from "react";
+import { useQuery } from "convex/react";
 import { ChatComposer } from "../chat/ChatComposer";
 import { ChatMessage } from "../chat/ChatMessage";
 import { ChatScroll } from "../chat/ChatScroll";
 import { useChatThread } from "../chat/useChatThread";
 import { useTranscriptWindow } from "../transcript/useTranscriptWindow";
 import type { ChatMessage as ChatMessageType } from "../chat/chatTypes";
+import type { CodeSnapshotSummary } from "../../domain/resume";
+import { getLessonRef } from "../content/convexContent";
+import { resolveLectureNumber } from "../../domain/lectureNumber";
 
 type AiPaneProps = {
   lessonId: string;
@@ -14,6 +18,7 @@ type AiPaneProps = {
   videoTimeSec?: number;
   onThreadChange?: (threadId: string | null) => void;
   headerExtras?: ReactElement;
+  codeSnapshot?: CodeSnapshotSummary | null;
 };
 
 const AiPane = ({
@@ -22,27 +27,63 @@ const AiPane = ({
   videoTimeSec = 0,
   onThreadChange,
   headerExtras,
+  codeSnapshot = null,
 }: AiPaneProps): ReactElement => {
-  const { messages, sendMessage, threadId } = useChatThread(lessonId);
-  const transcriptWindow = useTranscriptWindow(lessonId, videoTimeSec);
-
-  const displayMessages = useMemo<ChatMessageType[]>(() => {
-    if (messages.length === 0) {
-      return [];
+  const isConvexEnabled = process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
+  const lesson = useQuery(
+    getLessonRef,
+    isConvexEnabled ? { lessonId } : "skip",
+  );
+  const lectureNumber = useMemo(() => {
+    return resolveLectureNumber({
+      subtitlesUrl: lesson?.subtitlesUrl,
+      transcriptUrl: lesson?.transcriptUrl,
+      title: lesson?.title,
+      order: lesson?.order,
+    });
+  }, [
+    lesson?.order,
+    lesson?.subtitlesUrl,
+    lesson?.title,
+    lesson?.transcriptUrl,
+  ]);
+  const lectureLabel = useMemo(() => {
+    if (lectureNumber !== undefined && lectureNumber !== null) {
+      return `Lecture ${lectureNumber}`;
     }
 
-    return messages.map((message) => ({
-      id: message.id as unknown as string,
-      role: message.role,
-      content: message.content,
-      badge: `Lesson • ${Math.floor(message.videoTimeSec / 60)}:${Math.floor(
-        message.videoTimeSec % 60,
-      )
-        .toString()
-        .padStart(2, "0")}`,
-      timestampSec: message.videoTimeSec,
-    }));
-  }, [messages]);
+    return "Lecture";
+  }, [lectureNumber]);
+  const { messages, sendMessage, threadId, streamState, streamError } =
+    useChatThread(lessonId, lectureLabel);
+  const transcriptWindow = useTranscriptWindow(lessonId, videoTimeSec);
+
+  const displayMessages = useMemo<ChatMessageType[]>(
+    () => messages,
+    [messages],
+  );
+
+  const transcriptPayload = useMemo(
+    () => ({
+      startSec: transcriptWindow.startSec,
+      endSec: transcriptWindow.endSec,
+      lines: transcriptWindow.segments.map((segment) => segment.textNormalized),
+    }),
+    [
+      transcriptWindow.endSec,
+      transcriptWindow.segments,
+      transcriptWindow.startSec,
+    ],
+  );
+
+  const codePayload = useMemo(
+    () => ({
+      language: codeSnapshot?.language ?? "unknown",
+      codeHash: codeSnapshot?.codeHash,
+      code: codeSnapshot?.code,
+    }),
+    [codeSnapshot],
+  );
 
   useEffect((): void => {
     onThreadChange?.(threadId);
@@ -50,9 +91,28 @@ const AiPane = ({
 
   const handleSend = useCallback(
     (content: string): void => {
-      void sendMessage(content, videoTimeSec);
+      void sendMessage(content, {
+        videoTimeSec,
+        transcript: transcriptPayload,
+        code: codePayload,
+        lesson: {
+          title: lesson?.title,
+          lectureNumber: lectureNumber ?? undefined,
+          subtitlesUrl: lesson?.subtitlesUrl,
+          transcriptUrl: lesson?.transcriptUrl,
+        },
+      });
     },
-    [sendMessage, videoTimeSec],
+    [
+      codePayload,
+      lectureNumber,
+      lesson?.subtitlesUrl,
+      lesson?.title,
+      lesson?.transcriptUrl,
+      sendMessage,
+      transcriptPayload,
+      videoTimeSec,
+    ],
   );
 
   const handleSeek = useCallback(
@@ -77,7 +137,7 @@ const AiPane = ({
         </div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
-        <ChatScroll>
+        <ChatScroll isStreaming={streamState === "streaming"}>
           {displayMessages.map((message) => (
             <ChatMessage
               key={message.id}
@@ -86,11 +146,14 @@ const AiPane = ({
             />
           ))}
         </ChatScroll>
+        {streamError ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            {streamError}
+          </div>
+        ) : null}
         <ChatComposer
           onSend={handleSend}
-          transcriptContext={transcriptWindow.segments.map(
-            (segment) => segment.textNormalized,
-          )}
+          disabled={streamState === "streaming"}
         />
       </div>
     </section>

@@ -21,6 +21,12 @@ type ChatMessageSummary = {
   videoTimeSec: number;
   timeWindow: ChatTimeWindow;
   codeHash?: string;
+  requestId?: string;
+  provider?: string;
+  model?: string;
+  latencyMs?: number;
+  usedFallback?: boolean;
+  contextHash?: string;
   createdAt: number;
 };
 
@@ -53,7 +59,11 @@ const applyChatMessageLimit = (
   messages: ChatMessageSummary[],
   limit: number,
 ): ChatMessageSummary[] => {
-  return messages.slice(0, limit);
+  if (limit <= 0) {
+    return [];
+  }
+
+  return messages.slice(-limit);
 };
 
 export type {

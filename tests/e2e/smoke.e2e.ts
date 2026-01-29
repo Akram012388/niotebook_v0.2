@@ -26,6 +26,14 @@ test("workspace shell renders", async ({ page }): Promise<void> => {
     await expect(page.locator("main")).toBeVisible();
     await expect(page.getByText("Lesson video")).toBeVisible();
     await expect(page.getByText("Assistant")).toBeVisible();
+
+    const input = page.getByPlaceholder("Ask about the lesson...");
+    await input.fill("What is a pointer?");
+    await input.press("Enter");
+
+    await expect(page.getByText("What is a pointer?")).toBeVisible({
+      timeout: 15000,
+    });
   } catch (error) {
     await captureDiagnostics(page);
     throw error;

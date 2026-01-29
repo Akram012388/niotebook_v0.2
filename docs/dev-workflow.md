@@ -52,15 +52,17 @@ follow it for layout, navigation, and interaction behavior.
 - PR checks: lint, typecheck, unit tests, build (`.github/workflows/ci.yml`).
 - Semgrep: `p/security-audit` ruleset, fails PR on findings (`.github/workflows/semgrep.yml`).
 - E2E: triggered by Vercel preview deploy via `repository_dispatch` with `BASE_URL` (`.github/workflows/e2e.yml`).
-- Vercel build command: `npx convex deploy --cmd 'bun run build'` (`vercel.json`).
+- Preview-data refresh: nightly + manual (`.github/workflows/preview-data-refresh.yml`).
+- Prod refresh (ingest): manual (`.github/workflows/prod-refresh.yml`).
+- Vercel build command: conditional deploy in Project Settings (no `vercel.json`).
 
 ## Environment Variables
 
 See `.env.example` for required variables:
 
 - `NEXT_PUBLIC_APP_URL`
-- `CONVEX_DEPLOYMENT`
 - `NEXT_PUBLIC_CONVEX_URL`
+- `CONVEX_URL`
 - `GEMINI_API_KEY`
 - `GROQ_API_KEY`
 - `SENTRY_DSN`
@@ -68,5 +70,5 @@ See `.env.example` for required variables:
 
 ## Convex Status
 
-- `convex.json` is a placeholder until Phase 0/first preview deploy.
-- Bind to a real Convex project when ready and update `CONVEX_DEPLOYMENT`.
+- Deployments are isolated per environment (dev/preview-data/prod).
+- Data ingest is automated per deployment; avoid manual dashboard edits.

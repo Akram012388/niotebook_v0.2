@@ -1,0 +1,26 @@
+name: preview-data refresh
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    env:
+      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+      CONVEX_URL: ${{ secrets.PREVIEW_DATA_CONVEX_URL }}
+      NEXT_PUBLIC_DEFAULT_LESSON_ID: k170tmrc8zxxqtabctyddvhhqx7zkgae
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.1.19"
+      - run: bun install --frozen-lockfile
+      - name: Deploy Convex preview-data
+        run: npx convex deploy --preview-create preview-data --yes
+      - name: Ingest CS50x data
+        run: CONVEX_URL="${CONVEX_URL}" bun run ingest:cs50x
+      - name: Verify transcript windows
+        run: CONVEX_URL="${CONVEX_URL}" bun ./scripts/verifyTranscriptWindows.ts

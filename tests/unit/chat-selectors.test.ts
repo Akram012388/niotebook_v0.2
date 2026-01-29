@@ -84,6 +84,6 @@ describe("chat selectors", (): void => {
     const limited = applyChatMessageLimit(messages, 1);
 
     expect(limited).toHaveLength(1);
-    expect(limited[0]?.id).toBe("message-1");
+    expect(limited[0]?.id).toBe("message-2");
   });
 });

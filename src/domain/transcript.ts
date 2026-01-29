@@ -15,7 +15,7 @@ type TranscriptWindowSegment = {
   textNormalized: string;
 };
 
-const TRANSCRIPT_START_PAD_SEC = 5;
+const TRANSCRIPT_START_PAD_SEC = 30;
 
 const toTranscriptWindowSegments = (
   segments: TranscriptSegment[],
