@@ -1,43 +1,20 @@
-# UI/UX Contract Deep-Dive (Strict) — Findings
+# Session Tasks — Ops Refactor (Plan-Driven)
 
-## Blocking issues (contract violations / acceptance blockers)
+## Status
 
-- ~~Drawer focus trap is missing (explicit contract).~~ (completed)
-- ~~Course selection auto-select-first-lesson is broken (explicit contract) and course switching is effectively pinned when a lesson is selected.~~ (completed)
-- ~~1-col pane switching does not match the contract text.~~ (completed)
-- ~~Keyboard shortcuts leak into the drawer context.~~ (completed)
-- ~~Focus ring “always visible” is not guaranteed for all controls.~~ (completed; chat input intentionally has no outline)
+- Current phase: Phase 2 (OPS-2)
+- Last updated: 2026-01-29
 
-## Phase 3 completion blockers (current)
+## Plan (North Star)
 
-- ~~Fix video resume race: apply persisted `videoTimeSec` even when it arrives after player ready.~~ (completed)
-- ~~Make ingest crash-safe/idempotent: avoid skipping transcript reinserts after partial failures.~~ (completed)
+- [x] OPS-1 (phase 1, logging) — Update ingest error logging in `scripts/ingestCs50x2026.ts`. Files: `scripts/ingestCs50x2026.ts`, `docs/session-tasks.md`. Completed: 4645e61.
+- [~] OPS-2 (phase 2, verify) — Add token-gated transcript verification query in `convex/ops.ts` and rewrite verifier script to call it via `ConvexHttpClient`. Files: `convex/ops.ts`, `scripts/verifyTranscriptWindows.ts`, `docs/session-tasks.md`. Status: in_progress.
+- [ ] OPS-3 (phase 3, preview refresh) — Pin preview-data refresh workflow to deployment-scoped key and token-based ingest/verify. Files: `.github/workflows/preview-data-refresh.yml`, `docs/session-tasks.md`.
+- [ ] OPS-4 (phase 4, prod refresh) — Use token-based verifier in prod refresh workflow. Files: `.github/workflows/prod-refresh.yml`, `docs/session-tasks.md`.
+- [ ] OPS-5 (phase 5, e2e seed) — Add token-gated E2E seed mutation and update seed script/workflow to use it. Files: `convex/ops.ts`, `scripts/e2eSeed.ts`, `.github/workflows/e2e.yml`, `docs/session-tasks.md`.
 
-## Phase 3 tech-debt (must fix before signoff)
+## Execution Rules
 
-- ~~Re-seek same timestamp should retrigger: include seek token/nonce to force player seek.~~ (completed)
-- ~~Drawer focus trap edge-case: prevent overlay from becoming focus target or trap Tab at overlay.~~ (completed)
-- ~~Prod ingest safety: require admin even when `NIOTEBOOK_ALLOW_PROD_INGEST=true` or add explicit guard token.~~ (completed)
-- ~~Remove duplicate `getFrame` vs `getLatestFrame` or document why both exist.~~ (completed)
-
-## Non-blocking issues (polish gaps vs strict contract)
-
-- ~~Drawer motion timing is not implemented.~~ (completed)
-- ~~Layout toggle is not “icon buttons with tooltips” per contract.~~ (completed)
-- ~~Hover/active highlight consistency is partial.~~ (completed)
-- ~~Spacing scale (8/12/16) not strictly adhered everywhere.~~ (completed; drawer spacing intentionally compact)
-- ~~Icons policy: update chat composer send icon to Phosphor and only highlight when input has text.~~ (completed)
-- ~~Docs drift: update ingest security notes to include token-or-admin gating in prod (`NIOTEBOOK_INGEST_TOKEN`) in addition to `NIOTEBOOK_ALLOW_PROD_INGEST=true`.~~ (completed)
-
-## Data correctness re-check (contract)
-
-- Looks compliant: canonical CS50 weeks URLs + slug pages, YouTube ID extracted from discovered URLs (not hardcoded), and prod ingest gated by `NIOTEBOOK_ALLOW_PROD_INGEST=true` with token-or-admin requirement. `scripts/ingestCs50x2026.ts`, `convex/ingest.ts`
-
-## Control center redesign
-
-- Completed: drawer refactor, tabs, lectures list + search, courses list, settings/user panels, share/feedback cards, contract updates.
-
-## Deferred to end-of-phase
-
-- Error state banners are only partial.
-  - Code runtime error has an inline banner; video failures show as a small status line inside the player instead of a pane banner; chat errors not surfaced as inline banners. `src/ui/panes/CodePane.tsx`, `src/ui/video/VideoPlayer.tsx`, `src/ui/panes/AiPane.tsx`
+- Before starting a task: mark it as `[~] in_progress` in this file.
+- After committing a task: mark it as `[x] completed` and append the commit SHA.
+- Never mark tasks completed without a commit.
