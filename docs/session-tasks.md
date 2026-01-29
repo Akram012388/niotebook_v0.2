@@ -2,7 +2,7 @@
 
 ## Status
 
-- Current phase: Phase 5 (OPS-5)
+- Current phase: Final validation
 - Last updated: 2026-01-29
 
 ## Plan (North Star)
@@ -11,7 +11,7 @@
 - [x] OPS-2 (phase 2, verify) — Add token-gated transcript verification query in `convex/ops.ts` and rewrite verifier script to call it via `ConvexHttpClient`. Files: `convex/ops.ts`, `scripts/verifyTranscriptWindows.ts`, `docs/session-tasks.md`. Completed: f593a46.
 - [x] OPS-3 (phase 3, preview refresh) — Pin preview-data refresh workflow to deployment-scoped key and token-based ingest/verify. Files: `.github/workflows/preview-data-refresh.yml`, `docs/session-tasks.md`. Completed: 58374ef.
 - [x] OPS-4 (phase 4, prod refresh) — Use token-based verifier in prod refresh workflow. Files: `.github/workflows/prod-refresh.yml`, `docs/session-tasks.md`. Completed: 428163c.
-- [~] OPS-5 (phase 5, e2e seed) — Add token-gated E2E seed mutation and update seed script/workflow to use it. Files: `convex/ops.ts`, `scripts/e2eSeed.ts`, `.github/workflows/e2e.yml`, `docs/session-tasks.md`. Status: in_progress.
+- [x] OPS-5 (phase 5, e2e seed) — Add token-gated E2E seed mutation and update seed script/workflow to use it. Files: `convex/ops.ts`, `scripts/e2eSeed.ts`, `.github/workflows/e2e.yml`, `docs/session-tasks.md`. Completed: f2f77e2.
 
 ## Execution Rules
 
