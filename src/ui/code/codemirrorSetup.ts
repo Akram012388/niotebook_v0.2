@@ -10,6 +10,7 @@ import { html } from "@codemirror/lang-html";
 import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
 import {
+  HighlightStyle,
   bracketMatching,
   defaultHighlightStyle,
   foldGutter,
@@ -18,6 +19,7 @@ import {
   syntaxHighlighting,
 } from "@codemirror/language";
 import { searchKeymap } from "@codemirror/search";
+import { tags } from "@lezer/highlight";
 import {
   EditorView,
   drawSelection,
@@ -117,9 +119,28 @@ const niotebookDarkTheme = EditorView.theme(
   { dark: true },
 );
 
+const niotebookDarkHighlight = HighlightStyle.define([
+  { tag: tags.keyword, color: "#c792ea" },
+  { tag: tags.operator, color: "#89ddff" },
+  { tag: tags.string, color: "#c3e88d" },
+  { tag: tags.number, color: "#f78c6c" },
+  { tag: tags.bool, color: "#ff5370" },
+  { tag: tags.comment, color: "#546e7a", fontStyle: "italic" },
+  { tag: tags.variableName, color: "#eeffff" },
+  { tag: tags.function(tags.variableName), color: "#82aaff" },
+  { tag: tags.definition(tags.variableName), color: "#82aaff" },
+  { tag: tags.typeName, color: "#ffcb6b" },
+  { tag: tags.className, color: "#ffcb6b" },
+  { tag: tags.propertyName, color: "#f07178" },
+  { tag: tags.tagName, color: "#f07178" },
+  { tag: tags.attributeName, color: "#c792ea" },
+  { tag: tags.punctuation, color: "#89ddff" },
+  { tag: tags.meta, color: "#546e7a" },
+]);
+
 export function themeExtension(dark: boolean): Extension {
   return dark
-    ? [niotebookDarkTheme, syntaxHighlighting(defaultHighlightStyle, { fallback: true })]
+    ? [niotebookDarkTheme, syntaxHighlighting(niotebookDarkHighlight), syntaxHighlighting(defaultHighlightStyle, { fallback: true })]
     : [niotebookLightTheme, syntaxHighlighting(defaultHighlightStyle, { fallback: true })];
 }
 

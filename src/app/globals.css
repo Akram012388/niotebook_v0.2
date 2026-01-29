@@ -92,19 +92,9 @@ button:disabled {
   }
 }
 
-/* CodeMirror overrides */
+/* CodeMirror container sizing */
 .cm-editor {
   height: 100%;
-  border: none !important;
-  outline: none !important;
-}
-
-.cm-editor.cm-focused {
-  outline: none !important;
-}
-
-.cm-scroller {
-  font-family: var(--font-geist-mono), ui-monospace, monospace !important;
 }
 
 .nio-thinking {

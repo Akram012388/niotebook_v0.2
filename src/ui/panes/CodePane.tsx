@@ -203,7 +203,9 @@ const CodePane = ({
             className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
           >
             Run{" "}
-            <span className="hidden text-text-muted/60 sm:inline">⌘↵</span>
+            <span className="hidden text-text-muted/60 sm:inline" suppressHydrationWarning>
+              {typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘↵" : "Ctrl+↵"}
+            </span>
           </button>
           <button
             type="button"
