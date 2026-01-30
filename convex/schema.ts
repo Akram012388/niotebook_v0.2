@@ -27,6 +27,39 @@ const schema = defineSchema({
       v.literal("missing"),
       v.literal("error"),
     ),
+    environmentConfig: v.optional(
+      v.object({
+        presetId: v.optional(v.string()),
+        primaryLanguage: v.string(),
+        allowedLanguages: v.array(v.string()),
+        starterFiles: v.optional(
+          v.array(
+            v.object({
+              path: v.string(),
+              content: v.string(),
+              readonly: v.boolean(),
+            }),
+          ),
+        ),
+        packages: v.optional(
+          v.array(
+            v.object({
+              language: v.string(),
+              name: v.string(),
+              version: v.optional(v.string()),
+            }),
+          ),
+        ),
+        runtimeSettings: v.optional(
+          v.object({
+            timeoutMs: v.optional(v.number()),
+            maxOutputBytes: v.optional(v.number()),
+            stdinEnabled: v.optional(v.boolean()),
+            compilerFlags: v.optional(v.array(v.string())),
+          }),
+        ),
+      }),
+    ),
   }).index("by_courseId", ["courseId"]),
   chapters: defineTable({
     lessonId: v.id("lessons"),
