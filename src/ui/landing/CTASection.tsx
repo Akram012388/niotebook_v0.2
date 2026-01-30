@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 
 export function CTASection(): ReactElement {
@@ -47,8 +48,8 @@ export function CTASection(): ReactElement {
           Join the beta. It&apos;s free, it&apos;s fast, and your IDE will thank you.
         </p>
 
-        <a
-          href="/sign-in"
+        <Link
+          href="/workspace"
           className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
           style={{ background: 'var(--accent)', color: 'var(--accent-foreground)', '--tw-ring-color': 'var(--text-muted)', '--tw-ring-offset-color': 'var(--background)' } as React.CSSProperties}
         >
@@ -56,7 +57,7 @@ export function CTASection(): ReactElement {
           <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
           </svg>
-        </a>
+        </Link>
       </div>
 
     </section>

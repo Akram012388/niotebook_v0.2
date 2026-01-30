@@ -1,5 +1,4 @@
-"use client";
-
+import Link from "next/link";
 import { type ReactElement } from "react";
 
 export function LandingNav(): ReactElement {
@@ -18,13 +17,13 @@ export function LandingNav(): ReactElement {
           beta
         </span>
       </div>
-      <a
+      <Link
         href="/sign-in"
         className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         style={{ background: 'var(--surface-muted)', color: 'var(--foreground)' }}
       >
         Sign in
-      </a>
+      </Link>
     </nav>
   );
 }
