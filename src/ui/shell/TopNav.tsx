@@ -9,7 +9,7 @@ import {
   type ReactElement,
 } from "react";
 import { SidebarSimple } from "@phosphor-icons/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { storageAdapter } from "../../infra/storageAdapter";
 import type { CourseSummary, LessonSummary } from "../../domain/content";
@@ -28,6 +28,7 @@ type ThemeMode = "light" | "dark";
 
 const TopNav = (): ReactElement => {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [theme, setTheme] = useState<ThemeMode>(() => {
     const stored = storageAdapter.getItem(STORAGE_KEY);
@@ -101,9 +102,9 @@ const TopNav = (): ReactElement => {
       storageAdapter.setItem(LESSON_STORAGE_KEY, nextLessonId);
       const params = new URLSearchParams(searchParams.toString());
       params.set("lessonId", nextLessonId);
-      router.replace(`/?${params.toString()}`);
+      router.replace(`${pathname}?${params.toString()}`);
     },
-    [router, searchParams],
+    [pathname, router, searchParams],
   );
 
   useEffect((): void => {

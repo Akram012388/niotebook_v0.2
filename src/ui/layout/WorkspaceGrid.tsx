@@ -8,7 +8,7 @@ import {
   useState,
   type ReactElement,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AiPane } from "../panes/AiPane";
 import { CodePane } from "../panes/CodePane";
 import { VideoPane } from "../panes/VideoPane";
@@ -77,6 +77,7 @@ const hydratePaneStore = (): void => {
 
 const WorkspaceGrid = (): ReactElement => {
   const { activePreset, setPreset } = useLayoutPreset();
+  const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const subscribe = useCallback((onStoreChange: () => void): (() => void) => {
@@ -305,8 +306,8 @@ const WorkspaceGrid = (): ReactElement => {
 
     const params = new URLSearchParams(searchParams.toString());
     params.set("lessonId", startLessonId);
-    router.replace(`/?${params.toString()}`);
-  }, [lessonId, router, searchParams, startLessonId]);
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [lessonId, pathname, router, searchParams, startLessonId]);
 
   const activeLessonId = lessonId ?? startLessonId;
 
