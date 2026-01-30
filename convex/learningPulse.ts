@@ -7,7 +7,6 @@ import {
   type LessonProgressInput,
   type LearningPulse,
 } from "../src/domain/learningPulse";
-import type { UserId, LessonId, CourseId } from "../src/domain/ids";
 
 /**
  * Estimate video watch seconds by pairing consecutive play→pause events
@@ -51,7 +50,7 @@ const getPulse = query({
   args: {},
   handler: async (ctx): Promise<LearningPulse> => {
     const user = await requireQueryUser(ctx);
-    const userId = toDomainId(user.id) as unknown as UserId;
+    const userId = toDomainId(user.id);
     const now = Date.now();
 
     // ── Gather session events ──
@@ -94,7 +93,7 @@ const getPulse = query({
         userId,
         startedAt: start.createdAt,
         endedAt: end.createdAt,
-        lessonId: toDomainId(start.lessonId!) as unknown as LessonId,
+        lessonId: toDomainId(start.lessonId!),
         eventsCount: sessionEvents.length,
         videoWatchSec,
         codeRunCount,
@@ -159,8 +158,8 @@ const getPulse = query({
       );
 
       lessonProgress.push({
-        lessonId: toDomainId(lessonGenId) as unknown as LessonId,
-        courseId: toDomainId(lesson.courseId) as unknown as CourseId,
+        lessonId: toDomainId(lessonGenId),
+        courseId: toDomainId(lesson.courseId),
         courseTitle: courseTitles.get(courseKey),
         order: lesson.order,
         totalLessons: courseLessonCounts.get(courseKey) ?? 0,
