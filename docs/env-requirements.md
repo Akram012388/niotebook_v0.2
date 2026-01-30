@@ -20,7 +20,7 @@ It is intended to keep local, CI, and deployment configuration consistent.
 ## Feature toggles
 
 - `NIOTEBOOK_E2E_PREVIEW` - Enables stubbed AI responses and allows dev auth bypass in preview. Used in `src/app/api/nio/route.ts` and `convex/auth.ts`.
-- `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW` - Client-facing flag for preview/stub mode. Used in `src/app/api/nio/route.ts` and `src/infra/convexClient.ts`.
+- `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW` - Client-facing flag for preview e2e mode. Enables the `niotebook-e2e` readiness marker in `src/app/layout.tsx` and preview bypass in `src/infra/convexClient.ts`.
 - `NEXT_PUBLIC_DISABLE_CONVEX` - Disables Convex usage when set to `true`. Used in `src/app/api/nio/route.ts` and `src/infra/convexClient.ts`.
 
 ## Preview maintenance
@@ -77,14 +77,25 @@ The E2E workflow (`.github/workflows/e2e.yml`) expects:
 The seed script (`scripts/e2eSeed.ts`) runs against preview-data and requires
 `CONVEX_URL`, `NIOTEBOOK_INGEST_TOKEN`, and `NIOTEBOOK_E2E_VIDEO_ID`.
 
+The workflow preflights the deployed URL and only runs Playwright if it finds
+the `niotebook-e2e` marker (emitted when `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=true`).
+
 ## Vercel preview configuration
 
 Preview deployments should point to the long-lived preview-data Convex backend:
 
 - `NEXT_PUBLIC_CONVEX_URL` = preview-data URL
-- `NEXT_PUBLIC_DEFAULT_LESSON_ID` = lecture 10 lessonId
 
-Do not set stub flags (`NIOTEBOOK_E2E_PREVIEW`) in Vercel preview by default.
+Do not set `NEXT_PUBLIC_DEFAULT_LESSON_ID` in Vercel preview; the e2e workflow
+injects a fresh lesson id per run.
+
+For e2e-ready preview deployments, set:
+
+- `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=true`
+- `NIOTEBOOK_E2E_PREVIEW=true`
+- `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS=true`
+
+The e2e workflow skips preview deployments that do not expose the readiness marker.
 
 ## Vercel production configuration
 

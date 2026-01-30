@@ -391,6 +391,10 @@ For Vercel Build Command:
 
 Use Vercel’s recommended `repository_dispatch` flow on successful deployments (`vercel.deployment.success`). ([Vercel][6])
 
+Playwright runs only when the preview is e2e-ready (the app emits the
+`niotebook-e2e` marker when `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=true`) and the
+deployment ref is `main`.
+
 This guarantees Playwright runs against the real deployed URL (not localhost).
 
 ## 11.4 Security scanning and monitoring

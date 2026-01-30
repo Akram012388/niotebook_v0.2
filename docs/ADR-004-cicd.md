@@ -59,6 +59,8 @@ E2E (Playwright) on preview deploy:
 - Trigger: `repository_dispatch` with type `vercel.deployment.success`
 - Use deployed preview URL as `BASE_URL` and seed into preview-data via token-gated ops mutation.
 - Run: `bun run test:e2e`
+- Preflight the deployed URL for the `niotebook-e2e` marker and skip if missing.
+- Skip `repository_dispatch` runs for non-`main` refs.
 
 ## Consequences
 

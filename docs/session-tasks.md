@@ -2,8 +2,8 @@
 
 ## Status
 
-- Current focus: Auth gate stabilization + Convex auth handshake
-- Branch: `fix/auth-gate-followup`
+- Current focus: Auth gate complete + e2e preview gating stabilized
+- Branch: `main`
 - Last updated: 2026-01-30
 
 ## Tasks
@@ -12,8 +12,10 @@
 - [x] AUTH-2 — Configure Clerk Dev instance (invite-only, paths, email code). Status: completed.
 - [x] AUTH-3 — Set Convex env `CLERK_JWT_ISSUER_DOMAIN` on preview-data + prod and redeploy Convex. Status: completed.
 - [x] AUTH-4 — Set Vercel Preview + Production env vars for Clerk Dev keys and `NIOTEBOOK_ADMIN_EMAILS`. Status: completed.
-- [~] AUTH-5 — Verify sign-in flow and `users.inviteBatchId` sync; address Convex auth handshake errors. Status: in_progress.
-- [~] AUTH-7 — Wait for `useConvexAuth()` before bootstrap and update Clerk redirects. Commit: `7e14dd2` (pending PR).
+- [x] AUTH-5 — Verify sign-in flow and `users.inviteBatchId` sync; address Convex auth handshake errors. Status: completed.
+- [x] AUTH-7 — Wait for `useConvexAuth()` before bootstrap and update Clerk redirects. Commit: `7e14dd2` (merged).
+- [x] E2E-1 — Gate e2e runs to e2e-ready previews + main-only dispatch. Commit: `c6fa8bf`.
+- [x] E2E-2 — Stabilize e2e chat message assertion. Commit: `bd70d9f`.
 
 ## Notes
 
