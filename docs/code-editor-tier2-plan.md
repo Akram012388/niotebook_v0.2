@@ -17,7 +17,7 @@
 5. [Phase 3: xterm.js Terminal](#phase-3-xtermjs-terminal)
 6. [Phase 4: Wasmer/WASIX Integration](#phase-4-wasmerwasix-integration)
 7. [Phase 5: Cross-file Imports ✅ COMPLETED](#phase-5-cross-file-imports)
-8. [Phase 6: Lesson-aware Environment Configs](#phase-6-lesson-aware-environment-configs)
+8. [Phase 6: Lesson-aware Environment Configs ✅ COMPLETED](#phase-6-lesson-aware-environment-configs)
 9. [Phase 7: Split-pane Resizable Layout](#phase-7-split-pane-resizable-layout)
 10. [Phase 8: Enhanced Autocomplete](#phase-8-enhanced-autocomplete)
 
@@ -1327,7 +1327,7 @@ feat(imports): enable cross-file imports for Python, C, and JS
 
 ---
 
-## Phase 6: Lesson-aware Environment Configs
+## Phase 6: Lesson-aware Environment Configs ✅ COMPLETED
 
 **Goal:** Each course/lesson can specify its language, starter files, allowed packages, and runtime settings. When a student opens a lesson, the environment auto-configures.
 
