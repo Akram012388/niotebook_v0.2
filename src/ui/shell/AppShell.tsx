@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useMemo, type ReactElement, type ReactNode } from "react";
-import { LayoutPresetProvider, useLayoutPreset } from "../layout/LayoutPresetContext";
+import { Suspense, type ReactElement, type ReactNode } from "react";
+import { LayoutPresetProvider } from "../layout/LayoutPresetContext";
 import { TopNav } from "./TopNav";
 
 type AppShellProps = {
@@ -9,14 +9,7 @@ type AppShellProps = {
 };
 
 const AppShellFrame = ({ children }: AppShellProps): ReactElement => {
-  const { activePreset } = useLayoutPreset();
-
-  const mainClass = useMemo(() => {
-    if (activePreset === "single") {
-      return "mx-auto flex w-full max-w-none flex-1 flex-col px-4 py-4 overflow-hidden";
-    }
-    return "mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-4 py-4 overflow-hidden";
-  }, [activePreset]);
+  const mainClass = "flex w-full flex-1 flex-col overflow-hidden";
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
