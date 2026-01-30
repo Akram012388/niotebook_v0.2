@@ -122,11 +122,12 @@ async function routeCommand(
     const vfs = useFileSystemStore.getState().vfs;
     const targetPath = args[0] ?? "/project";
     const resolved = targetPath.startsWith("/") ? targetPath : `/project/${targetPath}`;
-    const nodes = vfs.readDir(resolved);
-    if (!nodes) {
+    const dirNode = vfs.stat(resolved);
+    if (!dirNode || dirNode.kind !== "directory") {
       terminal.writeLn(`\x1b[31mls: cannot access '${resolved}': No such directory\x1b[0m`);
       return 1;
     }
+    const nodes = vfs.readDir(resolved);
     for (const node of nodes) {
       if (node.kind === "directory") {
         terminal.writeLn(`\x1b[34m${node.name}/\x1b[0m`);

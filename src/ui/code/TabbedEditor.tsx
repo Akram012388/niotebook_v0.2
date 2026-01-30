@@ -61,7 +61,6 @@ const TabbedEditor = (): ReactElement => {
       <TabBar />
       {activeFile ? (
         <CodeMirrorEditor
-          key={activeFile.id}
           editorState={activeFile.editorState}
           onStateChange={handleStateChange}
         />

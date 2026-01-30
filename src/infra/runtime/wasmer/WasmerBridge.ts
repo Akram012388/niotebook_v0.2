@@ -137,7 +137,7 @@ class WasmerBridge {
       }
 
       const msg: SandboxCommand = { type: "run", id, command, args, files };
-      this.iframe!.contentWindow!.postMessage(msg, "*");
+      this.iframe!.contentWindow!.postMessage(msg, window.location.origin);
     });
   }
 
@@ -146,14 +146,14 @@ class WasmerBridge {
     if (!this.iframe?.contentWindow) return;
     const files = serializeVFS(vfs);
     const msg: SandboxCommand = { type: "fs-sync", files };
-    this.iframe.contentWindow.postMessage(msg, "*");
+    this.iframe.contentWindow.postMessage(msg, window.location.origin);
   }
 
   /** Kill the currently running command. */
   kill(id: string): void {
     if (!this.iframe?.contentWindow) return;
     const msg: SandboxCommand = { type: "kill", id };
-    this.iframe.contentWindow.postMessage(msg, "*");
+    this.iframe.contentWindow.postMessage(msg, window.location.origin);
   }
 
   /** Tear down the bridge and remove the iframe. */
@@ -175,6 +175,11 @@ class WasmerBridge {
   // ── Private ───────────────────────────────────────────────
 
   private handleMessage(event: MessageEvent<SandboxResponse>): void {
+    // Validate origin — only accept messages from our own origin
+    if (event.origin !== window.location.origin) return;
+    // Validate source — only accept messages from our iframe
+    if (this.iframe && event.source !== this.iframe.contentWindow) return;
+
     const msg = event.data;
     if (!msg || typeof msg !== "object" || !("type" in msg)) return;
 
