@@ -28,10 +28,15 @@ test("workspace shell renders", async ({ page }): Promise<void> => {
     await expect(page.getByText("Assistant")).toBeVisible();
 
     const input = page.getByPlaceholder("Ask about the lesson...");
-    await input.fill("What is a pointer?");
+    const message = `What is a pointer? ${Date.now()}`;
+    await input.fill(message);
     await input.press("Enter");
 
-    await expect(page.getByText("What is a pointer?")).toBeVisible({
+    const messageLocator = page
+      .getByTestId("chat-message")
+      .filter({ hasText: message })
+      .last();
+    await expect(messageLocator).toBeVisible({
       timeout: 15000,
     });
   } catch (error) {
