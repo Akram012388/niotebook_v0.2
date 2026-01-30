@@ -132,11 +132,10 @@ export function HeroSection(): ReactElement {
         >
           {/* Title bar */}
           <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-            {/* Intentional skeuomorphic macOS window controls — hardcoded colors by design */}
             <div className="flex gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
-              <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/80" />
-              <span className="w-2.5 h-2.5 rounded-full bg-green-400/80" />
+              <span className="w-2.5 h-2.5 rounded-full opacity-80" style={{ background: 'var(--text-subtle)' }} />
+              <span className="w-2.5 h-2.5 rounded-full opacity-60" style={{ background: 'var(--text-subtle)' }} />
+              <span className="w-2.5 h-2.5 rounded-full opacity-40" style={{ background: 'var(--text-subtle)' }} />
             </div>
             <span className="ml-2 text-xs font-mono" style={{ color: 'var(--text-subtle)' }}>main.py</span>
           </div>
