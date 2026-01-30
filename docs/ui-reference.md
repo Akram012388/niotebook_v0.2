@@ -1,25 +1,25 @@
 # UI Reference Contract (Mobbin-first)
 
-Status: DRAFT (upgrade to FROZEN when Phase‑1 UI scope is locked)
+Status: DRAFT (upgrade to FROZEN when Phase-1 UI scope is locked)
 
 This document defines the **UI/UX reference baseline** for Niotebook v0.2.
 It is a **visual + interaction contract** to keep implementation consistent with:
 
 - docs/PRD.md
 - docs/specs.md
-- docs/plan.md (Phase‑1 UI scaffolding milestone)
+- docs/plan.md (Phase-1 UI scaffolding milestone)
 - docs/guidelines.md (KISS, FP boundaries, minimal chrome)
 
 For binding UI behavior and layout decisions, see `docs/ui-ux-contract.md`.
 If there is a conflict, the UI/UX contract wins.
 
-This doc is intentionally **Mobbin-first** to avoid “design-by-imagination” drift.
+This doc is intentionally **Mobbin-first** to avoid "design-by-imagination" drift.
 
 ---
 
 ## 0) Non-negotiables (Niotebook constraints)
 
-These override any reference UI if there’s a conflict.
+These override any reference UI if there's a conflict.
 
 1. Light-first UI
 
@@ -41,7 +41,7 @@ These override any reference UI if there’s a conflict.
 - Code pane: notepad-style editor + terminal output + run/stop
 - AI pane: ChatGPT-grade polish and behavior (minimalist, fast, no clutter)
 
-4. The “Sync primitive” must be visible through behavior, not UI clutter
+4. The "Sync primitive" must be visible through behavior, not UI clutter
 
 - Chat is continuously synced to lesson/time; messages show a subtle `Lesson • mm:ss` badge on hover.
 - Clicking a badge seeks video smoothly.
@@ -63,9 +63,9 @@ Entry point (Web / Latest):
 
 ---
 
-## 2) Canonical reference set (Phase‑1 relevant)
+## 2) Canonical reference set (Phase-1 relevant)
 
-This is the minimum reference pack required to implement the Phase‑1 UI shell.
+This is the minimum reference pack required to implement the Phase-1 UI shell.
 
 ### 2.1 Global shell + navigation (minimalist)
 
@@ -100,14 +100,14 @@ Primary references:
   - `Enter` sends; `Shift+Enter` inserts newline.
   - Send button is a **circular icon button** aligned to the right of the composer.
 - Scroll behavior:
-  - When user scrolls up, show a **“scroll to bottom”** affordance.
+  - When user scrolls up, show a **"scroll to bottom"** affordance.
   - Streaming messages do not cause layout jumps; autoscroll only if user is at bottom.
 - Message metadata:
   - Each user/assistant message includes a subtle badge on hover:
     - `Lesson • mm:ss` (or `Lesson • hh:mm:ss` for long)
   - Clicking badge seeks the video smoothly.
 - Strict TA tone:
-  - No off-topic chatting UX affordances (no “fun modes” / stickers / etc).
+  - No off-topic chatting UX affordances (no "fun modes" / stickers / etc).
   - Keep the UI professional and learning-focused.
 
 ### 2.3 Theme selection UX (simple, non-invasive)
@@ -130,23 +130,27 @@ References:
   https://mobbin.com/explore/screens/513802e0-b43d-4803-a1ad-a056a6ac2264
 - OpenAI Web CSS HTML Split (split editor concept for HTML/CSS mode)
   https://mobbin.com/explore/screens/1b6cfd4b-a047-4af3-8361-ad4d2dbd9116
-- Retool Web SQL Query Editor (editor toolbar density + “run” affordance style)
+- Retool Web SQL Query Editor (editor toolbar density + "run" affordance style)
   https://mobbin.com/explore/screens/68441054-0ffc-4831-ad77-9879d8aa7c74
 - Databricks Web Code Editor Populated (editor readability / gutters)
   https://mobbin.com/explore/screens/765bb960-4da4-4519-8c2f-802a7096901b
 
-**Niotebook code pane UX contract**
+**Niotebook code pane UX contract (Tier 2 — Implemented)**
 
-- Language selector: compact dropdown (C / Python / JS / TS / HTML / CSS).
+The code pane has been upgraded from a basic textarea to a full IDE-like workspace:
+
+- **Editor:** CodeMirror 6 with syntax highlighting, auto-indent, bracket matching, search, and enhanced autocomplete.
+- **File tree sidebar** (200px, collapsible): recursive expand/collapse, context menu (new file, new folder, rename, delete). Hidden in triple-column layout.
+- **Tabbed editing:** multiple open files with dirty indicators (dot) and close buttons. Single CM6 `EditorView` with state swapping for instant tab switches.
+- **Split-pane layout:** vertical resizable divider between editor area and terminal. Drag handle, persisted split ratio.
+- **Terminal (xterm.js):** real terminal UI with ANSI colors, scrollback, streaming output. Toolbar with clear and kill buttons. Dark/light themes.
+- **Lesson environment badge:** shows active environment config in the header.
 - Controls:
-  - Run
-  - Stop
-  - Clear output
-  - (Optional) Reset snippet (per lesson) — defer if not in plan.md
-- Terminal output:
-  - Monospace
-  - Shows stdout/stderr clearly
-  - Must not feel like a “log dump”; keep spacing readable.
+  - Run (flushes dirty files to VFS, streams output to terminal)
+  - Stop (kills running process)
+  - Clear (clears terminal)
+- **Virtual Filesystem (VFS):** in-memory file tree with IndexedDB persistence. Multi-file projects, cross-file imports (Python, C, JS).
+- **Desktop-only:** viewports below 1024px show a friendly message.
 
 ### 2.5 Video pane (player-first; no transcript UI)
 
@@ -181,22 +185,22 @@ References:
   - Tabs: Lectures + Courses
   - Lectures view includes search + list (Lecture N + title)
   - Courses view shows course rows (title + description + meta)
-- Avoid “LMS dashboard” complexity.
+- Avoid "LMS dashboard" complexity.
 
 ---
 
 ## 3) Implementation rules for Codex/agents (to prevent UI drift)
 
-When implementing Phase‑1 UI scaffolding:
+When implementing Phase-1 UI scaffolding:
 
 1. Every UI PR must include:
 
 - Which layout preset(s) it touches (1/2/3-col)
 - Which pane(s) it changes (video/code/ai)
 - Which Mobbin reference link(s) it follows (at least 1)
-- A “no extra UI” statement: what was explicitly deferred
+- A "no extra UI" statement: what was explicitly deferred
 
-2. No “invented design systems”
+2. No "invented design systems"
 
 - Use Tailwind + existing component primitives only.
 - If a component must be added, keep it local, minimal, and directly justified.
@@ -209,9 +213,9 @@ When implementing Phase‑1 UI scaffolding:
 
 ---
 
-## 4) Phase‑1 UI acceptance checklist (practical)
+## 4) Phase-1 UI acceptance checklist (practical)
 
-A Phase‑1 UI scaffold is acceptable when:
+A Phase-1 UI scaffold is acceptable when:
 
 - Layout presets render correctly and persist.
 - Theme toggle is always visible; default is light.
