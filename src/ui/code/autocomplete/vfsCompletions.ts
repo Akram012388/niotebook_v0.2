@@ -188,10 +188,14 @@ function getCrossFileSymbolCompletions(
 
 function createVfsCompletionSource(
   language: RuntimeLanguage,
-  vfs: VirtualFS,
+  vfsGetter: VirtualFS | (() => VirtualFS),
   currentPath: string,
 ) {
+  const getVfs = typeof vfsGetter === "function" ? vfsGetter : () => vfsGetter;
+
   return (context: CompletionContext): CompletionResult | null => {
+    const vfs = getVfs();
+
     // Try import completions first
     const importResult = getImportCompletions(context, language, vfs, currentPath);
     if (importResult) return importResult;
