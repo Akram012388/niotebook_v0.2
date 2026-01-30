@@ -211,25 +211,31 @@ const CodePane = ({
     };
   }, [language, lessonId, logEvent]);
 
-  // ── Snapshot callback ─────────────────────────────────────
+  // ── Snapshot callback — reactive to VFS main file changes ──
+
+  const mainFilePath = useFileSystemStore((s) => s.mainFilePath);
+  const files = useFileSystemStore((s) => s.files);
+  // Derive main file content reactively so onSnapshot fires when it changes
+  const mainFileContent = useMemo(() => {
+    // Subscribe to files list so this recalculates when VFS mutates
+    void files;
+    return getMainFileContent();
+  }, [files, getMainFileContent]);
 
   useEffect(() => {
     if (!onSnapshot) return;
+    if (!mainFileContent) return;
 
-    const content = getMainFileContent();
-    if (!content) return;
-
-    // Fire snapshot with main file content for backward compat
     onSnapshot({
       id: "local-snapshot" as CodeSnapshotSummary["id"],
       userId: "local-user" as CodeSnapshotSummary["userId"],
       lessonId: lessonId as CodeSnapshotSummary["lessonId"],
       language,
-      code: content,
+      code: mainFileContent,
       codeHash: "",
       updatedAt: Date.now(),
     });
-  }, [getMainFileContent, language, lessonId, onSnapshot]);
+  }, [mainFileContent, mainFilePath, language, lessonId, onSnapshot]);
 
   // ── Handlers ──────────────────────────────────────────────
 
