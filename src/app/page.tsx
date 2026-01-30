@@ -1,6 +1,7 @@
 import { type ReactElement } from "react";
 import { LandingNav } from "@/ui/landing/LandingNav";
 import { HeroSection } from "@/ui/landing/HeroSection";
+import { ValuePropSection } from "@/ui/landing/ValuePropSection";
 import { FeaturesSection } from "@/ui/landing/FeaturesSection";
 import { CTASection, LandingFooter } from "@/ui/landing/CTASection";
 
@@ -17,6 +18,7 @@ export default function Home(): ReactElement {
       <LandingNav />
       <main id="content" className="min-h-screen">
         <HeroSection />
+        <ValuePropSection />
         <FeaturesSection />
         <CTASection />
       </main>
