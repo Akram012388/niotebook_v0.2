@@ -79,6 +79,17 @@ Preview-only e2e flags:
 - `NIOTEBOOK_E2E_PREVIEW`
 - `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS`
 
+## Tier 2 Code Editor Dependencies
+
+The Tier 2 code editor adds these client-side dependencies (all MIT/ISC licensed, zero infrastructure cost):
+
+- **CodeMirror 6:** `@codemirror/state`, `@codemirror/view`, `@codemirror/language`, `@codemirror/commands`, `@codemirror/autocomplete`, `@codemirror/search`, `@codemirror/lang-javascript`, `@codemirror/lang-python`, `@codemirror/lang-html`, `@codemirror/lang-cpp`, `@codemirror/theme-one-dark`, `@lezer/highlight`
+- **Terminal:** `@xterm/xterm`, `@xterm/addon-fit`, `@xterm/addon-web-links`
+- **State management:** `zustand` (v5)
+- **Persistence:** `idb` (IndexedDB wrapper)
+
+All browser-only components (CM6, xterm.js) are loaded via `next/dynamic({ ssr: false })`.
+
 ## Convex Status
 
 - Deployments are isolated per environment (dev/preview-data/prod).

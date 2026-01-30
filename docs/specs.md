@@ -2,7 +2,7 @@
 
 Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes in your latest decisions:
 
-- **C execution:** keep it simple _and_ premium; no “language switch latency” felt.
+- **C execution:** keep it simple _and_ premium; no "language switch latency" felt.
 - **Resume anywhere:** cross-device session persistence is a v0.2 requirement.
 - **Chat:** one continuous thread per lesson across sessions, with subtle per-message lesson/timestamp affinity.
 - **Checkpoints:** internal only.
@@ -13,9 +13,9 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 
 # Niotebook v0.2 Spec
 
-## 1) Non‑negotiable principles
+## 1) Non-negotiable principles
 
-### 1.1 KISS (but not “toy”)
+### 1.1 KISS (but not "toy")
 
 - Fewer moving parts > more features.
 - Every feature must have:
@@ -30,7 +30,7 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 
 ### 1.3 Premium UX budget
 
-- No “jank.”
+- No "jank."
 - Everything important is either:
   - instant, or
   - has a **subtle** progress affordance (never blocking the learner).
@@ -46,7 +46,7 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 - YouTube embedded MOOC content.
 - Unified UI: Video + Code + AI.
 - Continuous temporal sync (video ↔ AI thread), code sync on edit.
-- In-browser execution for at least: JS + Python + HTML/CSS; C handled via the “KISS premium” plan in §6.
+- In-browser execution for at least: JS + Python + HTML/CSS; C handled via the "KISS premium" plan in §6.
 - Cross-device resume.
 
 ### Deferred (explicit non-goals)
@@ -60,8 +60,8 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 
 ## 3) Content and licensing
 
-- CS50x course materials are licensed under **CC BY‑NC‑SA 4.0**. ([edX][1])
-  You must treat this as **non‑commercial content** unless you later secure permission or switch to content licenses that permit commercial usage.
+- CS50x course materials are licensed under **CC BY-NC-SA 4.0**. ([edX][1])
+  You must treat this as **non-commercial content** unless you later secure permission or switch to content licenses that permit commercial usage.
 
 **v0.2 requirement:** every course/lesson must show:
 
@@ -79,14 +79,14 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 
 1. Receive Clerk invite email
 2. Sign in with email code
-3. Land in “Course picker” → choose course → choose lesson → start
+3. Land in "Course picker" → choose course → choose lesson → start
 
 ### 4.2 Learning loop
 
 - Video plays (YouTube embed)
 - Code editor is available immediately
 - AI chat is always present (per chosen layout mode)
-- “Nio” responses are context-bound to:
+- "Nio" responses are context-bound to:
   - current lesson
   - current time window (±60s)
   - current code (if present)
@@ -104,9 +104,9 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 
 ### 5.1 Global layout modes (fixed presets only)
 
-- **1‑col:** 100%
-- **2‑col:** 60/40
-- **3‑col:** 40/30/30
+- **1-col:** 100%
+- **2-col:** 60/40
+- **3-col:** 40/30/30
 
 Layouts are user-selectable per session and persisted.
 
@@ -115,7 +115,7 @@ Layouts are user-selectable per session and persisted.
 - Light-first palette; dark mode optional.
 - Sans-first typography with monospace accents in code/terminal contexts.
 - Minimal chrome, strong spacing discipline, subtle separators.
-- ChatGPT web app feel: YouTube + simple code lab embedded in a clean chat‑centric interface.
+- ChatGPT web app feel: YouTube + simple code lab embedded in a clean chat-centric interface.
 
 ### 5.3 Required UI micro-interactions
 
@@ -128,7 +128,7 @@ Layouts are user-selectable per session and persisted.
   - video/chat error banners are deferred to end-of-phase stabilization
 
 - Share and feedback actions live in control center settings (inline cards; app-level links only).
-- “Context affinity” in chat thread:
+- "Context affinity" in chat thread:
   - each message shows a subtle badge on hover: `Lesson • 12:34`
   - clicking badge seeks video to that time (non-jarring, smooth)
 
@@ -177,32 +177,84 @@ Layouts are user-selectable per session and persisted.
 
 ## 6) Code editor + execution
 
-You want “notepad-style,” multi-language, and **no perceptible latency when switching languages**.
+### 6.1 Editor: CodeMirror 6 (Tier 2 — Implemented)
 
-### 6.1 Editor choice
+The code editor was rebuilt from a plain `<textarea>` to a full IDE-like experience powered by **CodeMirror 6**. All `@codemirror/*` packages are installed. The editor is desktop-only (min 1024px viewport).
 
-- Prefer **CodeMirror 6** with language packs (lighter than Monaco).
-- Editor features (v0.2):
-  - syntax highlight + basic indentation
-  - run button
-  - clear output
-  - stop execution
-  - optional “reset code” per lesson
+**Architecture:**
 
-### 6.2 Execution architecture (pluggable “Language Packs”)
+```
+CodePane
+├── CodePaneHeader (run/stop/clear + LessonEnvBadge)
+├── SplitPane (vertical resizable divider, persisted ratio)
+│   ├── EditorArea
+│   │   ├── FileTreeSidebar (200px, collapsible, hidden in triple layout)
+│   │   └── TabbedEditor
+│   │       ├── TabBar (open files, dirty indicators, close buttons)
+│   │       └── CodeMirrorEditor (CM6 EditorView, state-swappable per tab)
+│   └── TerminalPanel
+│       ├── TerminalToolbar (clear, kill)
+│       └── XTermView (xterm.js instance)
+```
+
+**Key design decisions:**
+- Single `EditorView` instance with swappable `EditorState` per tab (instant tab switching).
+- Language modes lazy-loaded per file (JS, Python, HTML, C/C++ via `@codemirror/lang-cpp`).
+- All browser-only components loaded via `next/dynamic({ ssr: false })` — CM6, xterm.js, and Wasmer access DOM APIs at import time.
+- `Ctrl+S` / `Cmd+S` saves to VFS (browser save dialog suppressed).
+- ARIA roles on file tree (`role="tree"`), tabs (`role="tablist"`/`role="tab"`), editor panel (`role="tabpanel"`).
+
+**State management (Zustand v5 — three stores):**
+1. **`useFileSystemStore`** — VFS wrapper: file tree, CRUD, IndexedDB persistence, lesson environment initialization.
+2. **`useEditorStore`** — open tabs, active tab, dirty flags, CM6 `EditorState` per tab, save/saveAll.
+3. **`useTerminalStore`** — xterm.js Terminal ref, running state, write/writeLn/clear, command routing.
+
+**Virtual Filesystem (VFS):**
+- `VirtualFS` class: in-memory tree with full CRUD, path resolution, glob, event subscriptions.
+- IndexedDB persistence via `idb` (graceful fallback to in-memory if unavailable).
+- VFS is the single source of truth — editor reads on open, writes on save (500ms auto-save debounce), runtime reads fresh before execution.
+
+**Terminal (xterm.js):**
+- Real terminal UI with ANSI color support, scrollback (1000 lines), cursor movement.
+- Streaming stdout/stderr from runtime executions via `onStdout`/`onStderr` callbacks.
+- Command routing via `commandRouter.ts` — dispatches to executors or Wasmer sandbox.
+- Dark/light themes matching Niotebook palette.
+
+**Wasmer/WASIX sandbox (iframe isolation):**
+- `/editor-sandbox` route with COOP/COEP headers (main app unaffected — Clerk, Convex, YouTube still work).
+- `WasmerBridge` postMessage protocol: parent ↔ iframe communication for run/stdin/kill/fs-sync.
+- Falls back to Pyodide (Python) and VFS builtins (ls, cat, etc.) when Wasmer unavailable.
+- No `@wasmer/sdk` npm dependency — loaded dynamically at runtime inside the sandbox.
+
+**Cross-file imports:**
+- Python: all `.py` files mounted to Pyodide FS + `sys.path` injection.
+- C: `#include "..."` resolved from VFS before compilation.
+- JS: `require()` shim reads from VFS.
+
+**Lesson-aware environments:**
+- `LessonEnvironment` type: `primaryLanguage`, `starterFiles[]`, `allowedLanguages`, `environmentConfig`.
+- `LessonEnvBadge` shows active environment in the code pane header.
+- Preset library via `envPresets.ts` with fallback to "sandbox" default.
+
+**Enhanced autocomplete:**
+- Context-aware completions via `completionProvider.ts`.
+- Language-specific keyword and API suggestions.
+
+### 6.2 Execution architecture (pluggable "Language Packs")
 
 Define a uniform executor interface:
 
 - `init(): Promise<void>`
-- `run({ code, stdin?, timeoutMs }): Promise<{ stdout, stderr, exitCode, runtimeMs }>`
+- `run({ code, stdin?, timeoutMs, filesystem?, onStdout?, onStderr? }): Promise<{ stdout, stderr, exitCode, runtimeMs }>`
 - `stop(): void`
 
 Executors run in isolated contexts:
 
 - JS/Python in **WebWorkers**
 - HTML/CSS in sandboxed iframe
+- Wasmer/WASIX in isolated iframe (`/editor-sandbox`) with COOP/COEP headers
 
-### 6.3 Latency strategy (how we meet “premium”)
+### 6.3 Latency strategy (how we meet "premium")
 
 Goal: **language switch feels instant**.
 
@@ -213,7 +265,7 @@ Mechanism:
   - use `requestIdleCallback` + progressive fetching
   - cache artifacts via the browser cache/service worker
 
-- UX: a tiny non-blocking “Preparing runtime…” status in the code pane (no modal, no spinner taking over the UI).
+- UX: a tiny non-blocking "Preparing runtime…" status in the code pane (no modal, no spinner taking over the UI).
 
 ### 6.4 Language support plan (v0.2)
 
@@ -221,6 +273,7 @@ Mechanism:
 
 - Native execution in Worker.
 - Capture console.log → stdout.
+- Cross-file `require()` shim resolves from VFS.
 
 **TS (deferred)**
 
@@ -229,32 +282,23 @@ Mechanism:
 **Python**
 
 - Use Pyodide in Worker (lazy load + prefetch + cache).
-- Expect initial download cost; hide it behind background warm-up.
+- All `.py` files mounted to Pyodide FS for cross-file imports.
+- Wasmer CPython available as alternative via sandbox iframe.
 
 **HTML/CSS**
 
 - Render into sandboxed iframe; reload on run.
 
-**C (your requirement + KISS premium)**
-To keep the “no latency” feel, avoid heavyweight clang/LLVM toolchains.
+**C**
 
-**Pragmatic v0.2 approach:**
+- TCC-in-browser fallback for compilation.
+- `#include "..."` resolved from VFS before compilation.
+- Wasmer Clang available via sandbox iframe for real compilation.
 
-- Use a **Tiny C Compiler (TCC) in-browser** approach (WASM/emulation), compiled and cached as a language pack.
-- This has real prior art: running TCC in a browser via an emulator and executing the produced binary in the same environment. ([GitHub][2])
+Acceptance criteria for "C pack":
 
-Acceptance criteria for “C pack”:
-
-- After warm-up, compile+run “hello world” in < 500ms on a modern laptop.
+- After warm-up, compile+run "hello world" in < 500ms on a modern laptop.
 - Switching from Python → C after warm-up: < 100ms perceived delay (no blocking UI).
-
-If C fails the perf bar on real devices:
-
-- keep C editor + highlighting,
-- show “C runtime still warming up” (non-blocking) rather than a broken run,
-- and treat “C run” as an explicit alpha capability that improves iteratively.
-
-That keeps the product premium even while the C pack matures.
 
 ---
 
@@ -271,7 +315,7 @@ A `Frame` binds:
 
 ### 7.2 Continuous sync rules
 
-- Video time is sampled and persisted in buckets (e.g., every 2–5 seconds and on seek/pause).
+- Video time is sampled and persisted in buckets (e.g., every 2-5 seconds and on seek/pause).
 - AI chat messages always stamped with:
   - `videoTimeSec`
   - `window: [t-60, t+60]`
@@ -279,7 +323,7 @@ A `Frame` binds:
 
 - Code persists only if user edited code (debounced).
 
-### 7.3 Persistence for “resume anywhere”
+### 7.3 Persistence for "resume anywhere"
 
 Store canonical state in Convex:
 
@@ -300,7 +344,7 @@ Conflict resolution:
 
 ---
 
-## 8) AI (Nio) — strict TA mode
+## 8) AI (Nio) - strict TA mode
 
 System prompt is defined in `docs/ADR-005-nio-prompt.md`.
 
@@ -389,7 +433,7 @@ For Vercel Build Command:
 
 ## 11.3 E2E after preview deploy
 
-Use Vercel’s recommended `repository_dispatch` flow on successful deployments (`vercel.deployment.success`). ([Vercel][6])
+Use Vercel's recommended `repository_dispatch` flow on successful deployments (`vercel.deployment.success`). ([Vercel][6])
 
 Playwright runs only when the preview is e2e-ready (the app emits the
 `niotebook-e2e` marker when `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=true`) and the
@@ -402,13 +446,13 @@ This guarantees Playwright runs against the real deployed URL (not localhost).
 - **Sentry**: runtime errors + performance traces (client + server)
 - **Semgrep**: run in CI on PRs (rule set tuned later)
 
-(Keep pre-commit hooks minimal: lint/typecheck only; don’t block commits with heavy scans.)
+(Keep pre-commit hooks minimal: lint/typecheck only; don't block commits with heavy scans.)
 
 ---
 
 # 12) Valkey (cache/queue) recommendation
 
-Valkey is a Linux Foundation–backed open-source key/value datastore used for caching and message-queue workloads. ([linuxfoundation.org][7])
+Valkey is a Linux Foundation-backed open-source key/value datastore used for caching and message-queue workloads. ([linuxfoundation.org][7])
 
 **v0.2 decision:** do **not** add Valkey yet.
 
@@ -444,7 +488,7 @@ Suggested layout:
 
 ---
 
-# 14) Final “lock” pointers (only 3)
+# 14) Final "lock" pointers (only 3)
 
 Infer these and the spec becomes implementation-ready:
 
