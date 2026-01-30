@@ -19,7 +19,7 @@
 7. [Phase 5: Cross-file Imports ✅ COMPLETED](#phase-5-cross-file-imports)
 8. [Phase 6: Lesson-aware Environment Configs ✅ COMPLETED](#phase-6-lesson-aware-environment-configs)
 9. [Phase 7: Split-pane Resizable Layout](#phase-7-split-pane-resizable-layout)
-10. [Phase 8: Enhanced Autocomplete](#phase-8-enhanced-autocomplete)
+10. [Phase 8: Enhanced Autocomplete ✅ COMPLETED](#phase-8-enhanced-autocomplete)
 
 ---
 
@@ -1626,7 +1626,7 @@ feat(layout): add resizable split-pane layout for editor + terminal
 
 ---
 
-## Phase 8: Enhanced Autocomplete
+## Phase 8: Enhanced Autocomplete ✅ COMPLETED
 
 **Goal:** Context-aware autocomplete that knows about other files in the project, imported modules, and language-specific completions beyond what CM6 provides by default.
 

@@ -7,7 +7,7 @@
 import { create } from "zustand";
 import type { Terminal } from "@xterm/xterm";
 
-type ShellMode = "command" | "interactive";
+type ShellMode = "command" | "interactive" | "shell";
 
 type TerminalStoreState = {
   isRunning: boolean;
