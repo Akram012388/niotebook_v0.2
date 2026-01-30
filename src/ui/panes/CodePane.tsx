@@ -24,6 +24,9 @@ import {
 } from "../../infra/runtime/runtimeManager";
 import type { RuntimeLanguage, RuntimeState } from "../../infra/runtime/types";
 import { RUNTIME_TIMEOUT_MS } from "../../infra/runtime/runtimeConstants";
+import type { LessonEnvironment } from "../../domain/lessonEnvironment";
+import { getPresetOrDefault } from "../../infra/runtime/envPresets";
+import { LessonEnvBadge } from "../code/LessonEnvBadge";
 
 // ── SSR-safe dynamic import of EditorArea ─────────────────────
 
@@ -64,15 +67,25 @@ type CodePaneProps = {
   lessonId: string;
   onSnapshot?: (snapshot: CodeSnapshotSummary) => void;
   headerExtras?: ReactElement;
+  /** Optional preset id or full environment config. Falls back to "sandbox". */
+  environmentPresetId?: string;
+  environmentConfig?: LessonEnvironment;
 };
 
 const CodePane = ({
   lessonId,
   onSnapshot,
   headerExtras,
+  environmentPresetId,
+  environmentConfig,
 }: CodePaneProps): ReactElement => {
-  // TODO: language switching will be wired to environment configs (Phase 6)
-  const [language] = useState<RuntimeLanguage>("js");
+  // Resolve the active environment: explicit config > preset id > sandbox default
+  const environment: LessonEnvironment = useMemo(
+    () => environmentConfig ?? getPresetOrDefault(environmentPresetId),
+    [environmentConfig, environmentPresetId],
+  );
+
+  const [language] = useState<RuntimeLanguage>(environment.primaryLanguage);
   const [, setRuntimeState] = useState<RuntimeState>({
     language: "js",
     status: "idle",
@@ -84,6 +97,9 @@ const CodePane = ({
   const initializeFromTemplate = useFileSystemStore(
     (s) => s.initializeFromTemplate,
   );
+  const initializeFromEnvironment = useFileSystemStore(
+    (s) => s.initializeFromEnvironment,
+  );
   const isLoaded = useFileSystemStore((s) => s.isLoaded);
   const getMainFileContent = useFileSystemStore((s) => s.getMainFileContent);
   const openFile = useEditorStore((s) => s.openFile);
@@ -93,14 +109,23 @@ const CodePane = ({
   useEffect(() => {
     if (isLoaded) return;
 
-    const filename = EXTENSION_BY_LANGUAGE[language];
-    const content = DEFAULT_CODE_BY_LANGUAGE[language];
+    // Use environment config if available; otherwise fall back to simple template
+    if (environment.starterFiles.length > 0) {
+      initializeFromEnvironment(environment);
 
-    initializeFromTemplate([{ path: filename, content }]);
-
-    // Open the main file in the editor
-    void openFile(`/project/${filename}`);
-  }, [isLoaded, language, initializeFromTemplate, openFile]);
+      // Open the first starter file in the editor
+      const firstFile = environment.starterFiles[0];
+      const firstPath = firstFile.path.startsWith("/")
+        ? firstFile.path
+        : `/project/${firstFile.path}`;
+      void openFile(firstPath);
+    } else {
+      const filename = EXTENSION_BY_LANGUAGE[language];
+      const content = DEFAULT_CODE_BY_LANGUAGE[language];
+      initializeFromTemplate([{ path: filename, content }]);
+      void openFile(`/project/${filename}`);
+    }
+  }, [isLoaded, language, environment, initializeFromTemplate, initializeFromEnvironment, openFile]);
 
   // ── Convex snapshot integration (backward compat) ─────────
 
@@ -267,11 +292,14 @@ const CodePane = ({
   return (
     <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-border bg-surface">
       <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
-        <div>
-          <p className="text-sm font-semibold text-foreground">
-            Code workspace
-          </p>
-          <p className="text-xs text-text-muted">Editor + output scaffold</p>
+        <div className="flex items-center gap-3">
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              Code workspace
+            </p>
+            <p className="text-xs text-text-muted">Editor + output scaffold</p>
+          </div>
+          <LessonEnvBadge environment={environment} />
         </div>
         <div className="flex items-center gap-2 text-xs">
           {headerExtras}
