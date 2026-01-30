@@ -72,6 +72,24 @@ function deriveState(vfs: VirtualFS): {
   return { files, directories };
 }
 
+/** Debounce timer handle for auto-persist. */
+let autoPersistTimer: ReturnType<typeof setTimeout> | null = null;
+const AUTO_PERSIST_DEBOUNCE_MS = 500;
+/** Lesson ID for persistence — set during load/init. */
+let currentLessonId: string | null = null;
+
+function scheduleAutoPersist(): void {
+  if (!currentLessonId) return;
+  if (autoPersistTimer !== null) {
+    clearTimeout(autoPersistTimer);
+  }
+  const lessonId = currentLessonId;
+  autoPersistTimer = setTimeout(() => {
+    autoPersistTimer = null;
+    void useFileSystemStore.getState().persistToIndexedDB(lessonId);
+  }, AUTO_PERSIST_DEBOUNCE_MS);
+}
+
 const useFileSystemStore = create<FileSystemState & FileSystemActions>()(
   (set, get) => ({
     vfs: new VirtualFS(),
@@ -85,6 +103,7 @@ const useFileSystemStore = create<FileSystemState & FileSystemActions>()(
       const { vfs } = get();
       const file = vfs.writeFile(path, content ?? "");
       set(deriveState(vfs));
+      scheduleAutoPersist();
       return file;
     },
 
@@ -92,6 +111,7 @@ const useFileSystemStore = create<FileSystemState & FileSystemActions>()(
       const { vfs } = get();
       const dir = vfs.mkdir(path);
       set(deriveState(vfs));
+      scheduleAutoPersist();
       return dir;
     },
 
@@ -99,6 +119,7 @@ const useFileSystemStore = create<FileSystemState & FileSystemActions>()(
       const { vfs } = get();
       vfs.writeFile(path, content);
       set(deriveState(vfs));
+      scheduleAutoPersist();
     },
 
     deleteNode: (path) => {
@@ -107,6 +128,7 @@ const useFileSystemStore = create<FileSystemState & FileSystemActions>()(
       const mainFilePath =
         get().mainFilePath === path ? null : get().mainFilePath;
       set({ ...deriveState(vfs), mainFilePath });
+      scheduleAutoPersist();
     },
 
     renameNode: (oldPath, newPath) => {
@@ -115,10 +137,12 @@ const useFileSystemStore = create<FileSystemState & FileSystemActions>()(
       const mainFilePath =
         get().mainFilePath === oldPath ? newPath : get().mainFilePath;
       set({ ...deriveState(vfs), mainFilePath });
+      scheduleAutoPersist();
     },
 
     loadFromIndexedDB: async (lessonId) => {
       const { vfs } = get();
+      currentLessonId = lessonId;
       const snapshot = await loadProject(lessonId);
       if (!snapshot) return false;
       vfs.restore(snapshot);
