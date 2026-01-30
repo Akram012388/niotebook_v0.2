@@ -36,10 +36,16 @@ type VFSSnapshotFile = {
 
 type VFSSnapshotNode = VFSSnapshotFile | VFSSnapshot;
 
+/** Maximum single file size: 1 MB. */
+const MAX_FILE_SIZE = 1_048_576;
+/** Maximum total VFS size: 50 MB. */
+const MAX_TOTAL_SIZE = 52_428_800;
+
 class VirtualFS {
   private root: VFSDirectory;
   private listeners: Set<(event: VFSEvent) => void> = new Set();
   private mainFilePath: string | null = null;
+  private totalSize = 0;
 
   constructor() {
     this.root = this.createDirectory("/", "/");
@@ -79,15 +85,36 @@ class VirtualFS {
   // ── Write ─────────────────────────────────────────────────
 
   writeFile(path: string, content: string): VFSFile {
+    if (content.length > MAX_FILE_SIZE) {
+      throw new Error(
+        `File exceeds maximum size of ${String(MAX_FILE_SIZE)} bytes (got ${String(content.length)})`,
+      );
+    }
+
     const normalized = this.normalizePath(path);
     const existing = this.getNode(normalized);
 
     if (existing?.kind === "file") {
+      const delta = content.length - existing.content.length;
+      if (this.totalSize + delta > MAX_TOTAL_SIZE) {
+        throw new Error(
+          `VFS total size would exceed ${String(MAX_TOTAL_SIZE)} bytes`,
+        );
+      }
+      this.totalSize += delta;
       existing.content = content;
       existing.updatedAt = Date.now();
       this.emit({ type: "update", path: normalized, node: existing });
       return existing;
     }
+
+    // Check total size for new file
+    if (this.totalSize + content.length > MAX_TOTAL_SIZE) {
+      throw new Error(
+        `VFS total size would exceed ${String(MAX_TOTAL_SIZE)} bytes`,
+      );
+    }
+    this.totalSize += content.length;
 
     // Ensure parent directories exist
     const parentPath = this.parentOf(normalized);
@@ -182,6 +209,11 @@ class VirtualFS {
     const node = this.getNode(normalized);
     if (!node) return;
 
+    // Reclaim size
+    this.walkFiles(node, (file) => {
+      this.totalSize -= file.content.length;
+    });
+
     const parentPath = this.parentOf(normalized);
     const parent = this.getNode(parentPath);
     if (parent?.kind === "directory") {
@@ -204,6 +236,11 @@ class VirtualFS {
   restore(snapshot: VFSSnapshotNode): void {
     if (snapshot.kind !== "directory") return;
     this.root = this.deserializeDirectory(snapshot);
+    // Recalculate total size
+    this.totalSize = 0;
+    this.walkFiles(this.root, (file) => {
+      this.totalSize += file.content.length;
+    });
     this.emit({ type: "create", path: "/", node: this.root });
   }
 
@@ -371,5 +408,5 @@ class VirtualFS {
   }
 }
 
-export { VirtualFS };
+export { VirtualFS, MAX_FILE_SIZE, MAX_TOTAL_SIZE };
 export type { VFSSnapshot, VFSSnapshotFile, VFSSnapshotNode };
