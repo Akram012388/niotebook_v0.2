@@ -106,8 +106,10 @@ jobs:
               ref = os.environ.get("GITHUB_SHA")
 
           if not ref:
-              raise SystemExit(
-                  "Unable to resolve git ref from payload or Vercel API."
+              ref = os.environ.get("CHECKOUT_REF") or "main"
+              print(
+                  "Unable to resolve git ref from payload; "
+                  f"defaulting to {ref}."
               )
 
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
