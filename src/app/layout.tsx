@@ -16,8 +16,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Niotebook",
-  description: "Niotebook v0.2",
+  title: "Niotebook — Watch. Code. Learn.",
+  description:
+    "Your CS lecture just became an IDE. Video + editor + AI in one canvas, zero tab-switching.",
+  openGraph: {
+    title: "Niotebook — Watch. Code. Learn.",
+    description:
+      "Your CS lecture just became an IDE. Video + editor + AI in one canvas, zero tab-switching.",
+    type: "website",
+    url: "https://niotebook.com",
+    siteName: "Niotebook",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Niotebook — Watch. Code. Learn.",
+    description: "Your CS lecture just became an IDE. Video + editor + AI in one canvas.",
+  },
 };
 
 type RootLayoutProps = {
