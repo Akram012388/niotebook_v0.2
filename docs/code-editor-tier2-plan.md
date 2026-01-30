@@ -16,7 +16,7 @@
 4. [Phase 2: File Tree + Tabbed Editor](#phase-2-file-tree--tabbed-editor)
 5. [Phase 3: xterm.js Terminal](#phase-3-xtermjs-terminal)
 6. [Phase 4: Wasmer/WASIX Integration](#phase-4-wasmerwasix-integration)
-7. [Phase 5: Cross-file Imports](#phase-5-cross-file-imports)
+7. [Phase 5: Cross-file Imports ✅ COMPLETED](#phase-5-cross-file-imports)
 8. [Phase 6: Lesson-aware Environment Configs](#phase-6-lesson-aware-environment-configs)
 9. [Phase 7: Split-pane Resizable Layout](#phase-7-split-pane-resizable-layout)
 10. [Phase 8: Enhanced Autocomplete](#phase-8-enhanced-autocomplete)
@@ -1205,7 +1205,7 @@ feat(wasmer): integrate Wasmer/WASIX for real shell commands via iframe isolatio
 
 ---
 
-## Phase 5: Cross-file Imports
+## Phase 5: Cross-file Imports ✅ COMPLETED
 
 **Goal:** `import utils` in Python finds `/project/utils.py`. `#include "helpers.h"` in C finds `/project/helpers.h`. `require('./lib')` in JS finds `/project/lib.js`. All resolved within VirtualFS.
 
