@@ -11,6 +11,14 @@ import { runRuntime } from "../../../infra/runtime/runtimeManager";
 import { getWasmerBridge } from "../../../infra/runtime/wasmer/WasmerBridge";
 import type { RuntimeLanguage } from "../../../infra/runtime/types";
 import type { TerminalStoreState, TerminalStoreActions } from "./useTerminalStore";
+import {
+  runEcho,
+  runPwd,
+  runCatVFS,
+  runLsVFS,
+  runMkdirVFS,
+  runRmVFS,
+} from "../../../infra/runtime/builtins/vfsBuiltins";
 
 type ParsedCommand = {
   executable: string;
@@ -109,79 +117,36 @@ async function routeCommand(
   }
 
   if (executable === "echo") {
-    terminal.writeLn(args.join(" "));
-    return 0;
+    const io = { stdout: (d: string) => terminal.write(d), stderr: (d: string) => terminal.write(`\x1b[31m${d}\x1b[0m`) };
+    return runEcho(args, io);
   }
 
   if (executable === "pwd") {
-    terminal.writeLn("/project");
-    return 0;
+    const io = { stdout: (d: string) => terminal.write(d), stderr: (d: string) => terminal.write(`\x1b[31m${d}\x1b[0m`) };
+    return runPwd(io);
   }
 
   if (executable === "ls") {
     const vfs = useFileSystemStore.getState().vfs;
-    const targetPath = args[0] ?? "/project";
-    const resolved = targetPath.startsWith("/") ? targetPath : `/project/${targetPath}`;
-    const dirNode = vfs.stat(resolved);
-    if (!dirNode || dirNode.kind !== "directory") {
-      terminal.writeLn(`\x1b[31mls: cannot access '${resolved}': No such directory\x1b[0m`);
-      return 1;
-    }
-    const nodes = vfs.readDir(resolved);
-    for (const node of nodes) {
-      if (node.kind === "directory") {
-        terminal.writeLn(`\x1b[34m${node.name}/\x1b[0m`);
-      } else {
-        terminal.writeLn(node.name);
-      }
-    }
-    return 0;
+    const io = { stdout: (d: string) => terminal.write(d), stderr: (d: string) => terminal.write(`\x1b[31m${d}\x1b[0m`) };
+    return runLsVFS(args, vfs, io);
   }
 
   if (executable === "cat") {
     const vfs = useFileSystemStore.getState().vfs;
-    if (args.length === 0) {
-      terminal.writeLn("\x1b[31mcat: missing file operand\x1b[0m");
-      return 1;
-    }
-    for (const arg of args) {
-      const resolved = arg.startsWith("/") ? arg : `/project/${arg}`;
-      const content = vfs.readFile(resolved);
-      if (content === null) {
-        terminal.writeLn(`\x1b[31mcat: ${arg}: No such file\x1b[0m`);
-        return 1;
-      }
-      terminal.write(content);
-      if (!content.endsWith("\n")) {
-        terminal.writeLn("");
-      }
-    }
-    return 0;
+    const io = { stdout: (d: string) => terminal.write(d), stderr: (d: string) => terminal.write(`\x1b[31m${d}\x1b[0m`) };
+    return runCatVFS(args, vfs, io);
   }
 
   if (executable === "mkdir") {
     const vfs = useFileSystemStore.getState().vfs;
-    for (const arg of args) {
-      if (arg.startsWith("-")) continue;
-      const resolved = arg.startsWith("/") ? arg : `/project/${arg}`;
-      vfs.mkdir(resolved);
-    }
-    return 0;
+    return runMkdirVFS(args, vfs);
   }
 
   if (executable === "rm") {
     const vfs = useFileSystemStore.getState().vfs;
-    for (const arg of args) {
-      if (arg.startsWith("-")) continue;
-      const resolved = arg.startsWith("/") ? arg : `/project/${arg}`;
-      if (vfs.exists(resolved)) {
-        vfs.delete(resolved);
-      } else {
-        terminal.writeLn(`\x1b[31mrm: cannot remove '${arg}': No such file\x1b[0m`);
-        return 1;
-      }
-    }
-    return 0;
+    const io = { stdout: (d: string) => terminal.write(d), stderr: (d: string) => terminal.write(`\x1b[31m${d}\x1b[0m`) };
+    return runRmVFS(args, vfs, io);
   }
 
   // ── Try sandbox bridge for runtime commands ───────────────

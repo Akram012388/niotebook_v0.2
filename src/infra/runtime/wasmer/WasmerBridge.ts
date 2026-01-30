@@ -33,11 +33,17 @@ class WasmerBridge {
   private readyResolve: (() => void) | null = null;
   private messageHandler: ((event: MessageEvent<SandboxResponse>) => void) | null = null;
   private onFsWrite: ((path: string, content: string) => void) | null = null;
+  private onFsDelete: ((path: string) => void) | null = null;
   private commandCounter = 0;
 
   /** Set a callback for when the sandbox writes files back. */
   setFsWriteHandler(handler: (path: string, content: string) => void): void {
     this.onFsWrite = handler;
+  }
+
+  /** Set a callback for when the sandbox deletes files. */
+  setFsDeleteHandler(handler: (path: string) => void): void {
+    this.onFsDelete = handler;
   }
 
   /** Get current bridge status. */
@@ -233,6 +239,11 @@ class WasmerBridge {
 
       case "fs-write": {
         this.onFsWrite?.(msg.path, msg.content);
+        break;
+      }
+
+      case "fs-delete": {
+        this.onFsDelete?.(msg.path);
         break;
       }
     }
