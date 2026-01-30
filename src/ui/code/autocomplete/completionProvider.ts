@@ -6,9 +6,9 @@
  */
 import type { CompletionSource } from "@codemirror/autocomplete";
 
-import type { VirtualFS } from "../../../infra/vfs/VirtualFS";
 import type { RuntimeLanguage } from "../../../infra/runtime/types";
 import { createVfsCompletionSource } from "./vfsCompletions";
+import { useFileSystemStore } from "../../../infra/vfs/useFileSystemStore";
 import { pythonCompletions } from "./pythonCompletions";
 import { cCompletions } from "./cCompletions";
 import { jsCompletions } from "./jsCompletions";
@@ -32,13 +32,14 @@ const LANGUAGE_COMPLETIONS: Record<RuntimeLanguage, CompletionSource> = {
  */
 function createNiotebookCompletions(
   language: RuntimeLanguage,
-  vfs: VirtualFS,
+  _vfs: unknown,
   currentPath: string,
 ): CompletionSource[] {
   const sources: CompletionSource[] = [];
 
-  // VFS-aware completions (import paths + cross-file symbols)
-  sources.push(createVfsCompletionSource(language, vfs, currentPath));
+  // VFS-aware completions — reads VFS lazily from the store at query time
+  // to avoid stale closures when files change after editor state creation.
+  sources.push(createVfsCompletionSource(language, () => useFileSystemStore.getState().vfs, currentPath));
 
   // Language-specific builtins
   const langSource = LANGUAGE_COMPLETIONS[language];
