@@ -64,6 +64,14 @@ const AuthGateWithClerk = ({ children }: AuthGateProps): ReactElement => {
 const AuthGate = ({ children }: AuthGateProps): ReactElement => {
   const isClerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const isProd = process.env.NODE_ENV === "production";
+  const isE2ePreview = process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true";
+  const isPreviewHost =
+    typeof window !== "undefined" &&
+    window.location.hostname.endsWith(".vercel.app");
+
+  if (isE2ePreview && isPreviewHost) {
+    return <>{children}</>;
+  }
 
   if (!isClerkEnabled) {
     if (isProd) {
