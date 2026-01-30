@@ -101,6 +101,10 @@ jobs:
               client_payload.get("deploymentId"),
               client_payload.get("deployment_id"),
           )
+          deployment_target = pick(
+              deployment.get("target"),
+              client_payload.get("target"),
+          )
 
           if not ref and os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
               ref = os.environ.get("GITHUB_SHA")
@@ -112,6 +116,14 @@ jobs:
                   f"defaulting to {ref}."
               )
 
+          skip_reason = None
+          if deployment_target == "production":
+              skip_reason = "deployment target is production"
+          if normalized == "niotebook-v0-2.vercel.app":
+              skip_reason = (
+                  "base URL is production (niotebook-v0-2.vercel.app)"
+              )
+
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
               handle.write(f"CHECKOUT_REF={ref}\n")
               if normalized:
@@ -119,6 +131,9 @@ jobs:
                   handle.write(f"BASE_URL_CLEAN={normalized}\n")
               if deployment_id:
                   handle.write(f"VERCEL_DEPLOYMENT_ID={deployment_id}\n")
+              if skip_reason:
+                  handle.write("SKIP_E2E=true\n")
+                  handle.write(f"SKIP_E2E_REASON={skip_reason}\n")
 
           print(f"Payload inputs.ref: {inputs.get('ref')}")
           print(f"Payload inputs.base_url: {inputs.get('base_url')}")
@@ -129,6 +144,7 @@ jobs:
           print(f"Payload client_payload.url: {client_payload.get('url')}")
           print(f"Payload deployment.url: {deployment.get('url')}")
           print(f"Payload deployment.id: {deployment_id}")
+          print(f"Payload deployment.target: {deployment_target}")
           print(f"Payload meta.githubCommitSha: {meta.get('githubCommitSha')}")
           print(f"Payload meta.githubCommitRef: {meta.get('githubCommitRef')}")
           print(f"Payload meta.gitSha: {meta.get('gitSha')}")
@@ -142,32 +158,47 @@ jobs:
               print(f"Resolved base URL clean: {normalized}")
           if deployment_id:
               print(f"Payload deployment.id: {deployment_id}")
+          if skip_reason:
+              print(f"Skipping e2e: {skip_reason}")
           PY
+      - name: Skip e2e on production deployments
+        if: env.SKIP_E2E == 'true'
+        run: |
+          echo "Skipping e2e: ${SKIP_E2E_REASON}"
       - uses: actions/checkout@v4
+        if: env.SKIP_E2E != 'true'
         with:
           ref: ${{ env.CHECKOUT_REF }}
       - uses: oven-sh/setup-bun@v2
+        if: env.SKIP_E2E != 'true'
         with:
           bun-version: "1.1.19"
       - run: bun install --frozen-lockfile
+        if: env.SKIP_E2E != 'true'
       - run: bunx playwright install --with-deps
+        if: env.SKIP_E2E != 'true'
       - name: E2E diagnostics
+        if: env.SKIP_E2E != 'true'
         run: |
           echo "Trigger: ${{ github.event_name }}"
           echo "Resolved CHECKOUT_REF: ${{ env.CHECKOUT_REF }}"
           echo "Resolved BASE_URL: ${{ env.BASE_URL }}"
           echo "Resolved BASE_URL_CLEAN: ${{ env.BASE_URL_CLEAN }}"
       - name: Validate BASE_URL
+        if: env.SKIP_E2E != 'true'
         run: |
           if [ -z "${BASE_URL}" ]; then
             echo "BASE_URL is empty. Provide base_url or ensure repository_dispatch payload includes a deployment URL."
             exit 1
           fi
       - run: bun run e2e:seed
+        if: env.SKIP_E2E != 'true'
       - run: bun ./scripts/e2eEnv.ts --github
+        if: env.SKIP_E2E != 'true'
       - run: bun run test:e2e
+        if: env.SKIP_E2E != 'true'
       - uses: actions/upload-artifact@v4
-        if: ${{ always() }}
+        if: ${{ always() && env.SKIP_E2E != 'true' }}
         with:
           name: playwright-results
           path: |
