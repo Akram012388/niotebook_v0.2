@@ -24,7 +24,7 @@ const mountedFiles: Map<string, string> = new Map();
 
 function postToParent(msg: SandboxResponse): void {
   if (typeof window !== "undefined" && window.parent !== window) {
-    window.parent.postMessage(msg, "*");
+    window.parent.postMessage(msg, window.location.origin);
   }
 }
 
@@ -343,7 +343,8 @@ async function initSandboxShell(): Promise<void> {
 
   // Listen for commands from parent
   window.addEventListener("message", (event: MessageEvent<SandboxCommand>) => {
-    // Basic origin validation — accept same-origin messages
+    // Origin validation — accept same-origin messages from parent only
+    if (event.origin !== window.location.origin) return;
     if (event.source !== window.parent) return;
 
     const cmd = event.data;
