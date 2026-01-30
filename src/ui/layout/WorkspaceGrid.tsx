@@ -273,7 +273,9 @@ const WorkspaceGrid = (): ReactElement => {
         if (activePreset === "split") {
           setRightPane("chat");
         }
+        return;
       }
+
     };
 
     window.addEventListener("keydown", handleKey);

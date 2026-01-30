@@ -2,7 +2,9 @@
 
 import { Suspense, useMemo, type ReactElement, type ReactNode } from "react";
 import { LayoutPresetProvider, useLayoutPreset } from "../layout/LayoutPresetContext";
+import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { TopNav } from "./TopNav";
+import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 
 type AppShellProps = {
   children: ReactNode;
@@ -10,6 +12,7 @@ type AppShellProps = {
 
 const AppShellFrame = ({ children }: AppShellProps): ReactElement => {
   const { activePreset } = useLayoutPreset();
+  const shortcuts = useKeyboardShortcuts();
 
   const mainClass = useMemo(() => {
     if (activePreset === "single") {
@@ -34,6 +37,7 @@ const AppShellFrame = ({ children }: AppShellProps): ReactElement => {
         <TopNav />
       </Suspense>
       <main className={mainClass}>{children}</main>
+      <KeyboardShortcutsDialog isOpen={shortcuts.isOpen} onClose={shortcuts.close} />
     </div>
   );
 };
