@@ -27,15 +27,12 @@ const TabbedEditor = (): ReactElement => {
   );
 
   const handleStateChange = useCallback(
-    (state: EditorState) => {
+    (state: EditorState, docChanged?: boolean) => {
       if (!activeFileId) return;
       updateEditorState(activeFileId, state);
 
-      // Check if doc changed to mark dirty
-      const current = useEditorStore
-        .getState()
-        .openFiles.find((f) => f.id === activeFileId);
-      if (current && state.doc.toString() !== current.editorState.doc.toString()) {
+      // Use the docChanged flag from CM6 transaction instead of O(n) toString comparison
+      if (docChanged) {
         markDirty(activeFileId, true);
       }
     },
