@@ -22,6 +22,23 @@
 
 ---
 
+## Cost Analysis
+
+All Tier 2 dependencies are **MIT-licensed open-source** with **zero infrastructure cost**. Everything runs client-side in the browser:
+
+| Dependency | License | Cost | Notes |
+|-----------|---------|------|-------|
+| Zustand | MIT | $0 | Client-side state management |
+| idb | ISC | $0 | IndexedDB wrapper |
+| @xterm/xterm + addons | MIT | $0 | Terminal UI, no server |
+| CodeMirror 6 | MIT | $0 | Already in use |
+| Pyodide | MPL-2.0 | $0 | Python WASM, loaded from CDN |
+| Wasmer JS SDK | MIT | $0 | WASM runtime, client-side |
+
+No backend servers, no paid APIs, no SaaS dependencies. The only "infrastructure" is the user's browser and the existing Convex backend (already provisioned).
+
+---
+
 ## Architecture Overview
 
 ### Current State
@@ -337,6 +354,32 @@ EditorArea
         └── Renders activeFile.editorState
 ```
 
+### Internal Scroll Behavior
+
+Both the editor and terminal must scroll **internally** without causing the parent container to scroll:
+
+- **CodeMirror editor**: CM6 handles scrolling natively via its own scroll DOM (`cm-scroller` element with `overflow: auto`). No additional CSS needed — just ensure the parent container is `min-h-0 flex-1 overflow-hidden` so CM6's internal scroller takes over.
+- **Parent containers**: Both the editor pane and terminal pane must be styled as `min-h-0 flex-1 overflow-hidden` flex children. This ensures they fill available space without pushing the outer layout.
+
+### File Tree Conditional on Layout
+
+`FileTreeSidebar` is **conditionally rendered** based on the active `LayoutPreset` from `useLayoutPreset()` context:
+
+| Layout Preset | File Tree | Rationale |
+|--------------|-----------|-----------|
+| `"single"` (1-pane) | ✅ Shown | Full-width view has room for sidebar |
+| `"split"` (2-pane) | ✅ Shown | Code pane is wide enough |
+| `"triple"` (3-pane) | ❌ Hidden | Code pane is narrow; just editor + terminal |
+
+`EditorArea` accepts `showFileTree: boolean` prop:
+
+```typescript
+type EditorAreaProps = {
+  showFileTree: boolean; // derived from useLayoutPreset().activePreset !== "triple"
+  // ...other props
+};
+```
+
 ### CM6 Multi-Document Strategy
 
 The key insight: CM6 `EditorView` is expensive to create/destroy, but `EditorState` is cheap. We keep **one `EditorView`** and swap its state when tabs change:
@@ -457,6 +500,19 @@ import { WebLinksAddon } from "@xterm/addon-web-links";
 // onData → routes to commandRouter or sends to running process stdin
 // ResizeObserver → fitAddon.fit()
 ```
+
+### Terminal Internal Scroll
+
+xterm.js manages its own scrollback buffer internally. Configure via the `scrollback` option (default 1000 lines):
+
+```typescript
+const terminal = new Terminal({
+  scrollback: 1000,  // lines of scrollback history
+  // ...other options
+});
+```
+
+The terminal container must be `min-h-0 flex-1 overflow-hidden` — xterm.js renders its own viewport and scroll region inside the container. The parent must **never** have `overflow-y: auto/scroll`; that would conflict with xterm's built-in scrolling.
 
 ### Terminal Themes
 
@@ -1011,6 +1067,22 @@ type SplitPaneState = {
 };
 ```
 
+### Editor-Terminal Divider Style
+
+The CodePane container uses **zero padding and zero gap** between editor and terminal. A single 1px `border-t border-border` divider separates them (VS Code style). Both panes bleed edge-to-edge within the container.
+
+```
+┌─────────────────────────────────┐
+│  Editor (flex-[3])              │  ← no padding, edge-to-edge
+│  CM6 fills entire area          │
+├─────────────────────────────────┤  ← 1px border-t border-border
+│  Terminal (flex-[2])            │  ← no padding, edge-to-edge
+│  xterm.js fills entire area     │
+└─────────────────────────────────┘
+```
+
+**Remove** any `gap-4 p-4` from the CodePane inner container. The editor and terminal are `flex-[3]` and `flex-[2]` respectively with `min-h-0 overflow-hidden`. The divider is purely the CSS border on the terminal container's top edge — no separate divider element needed for the static layout (the `SplitDivider` component is only for the draggable resize handle).
+
 ### Implementation Notes
 
 ```typescript
@@ -1197,3 +1269,194 @@ Phases 1 → 2 → 7 → 3 → 5 → 6 → 4 → 8
 - **SharedArrayBuffer** required for Wasmer (Phase 4 only)
 - Chrome 91+, Firefox 79+, Safari 16.4+ (all support SharedArrayBuffer with proper headers)
 - Fallback path works without SharedArrayBuffer (Phases 1–3, 5–8)
+
+---
+
+## Gaps, Gotchas & Risk Mitigations
+
+### 1. SSR / Hydration — Browser-Only Libraries
+
+**Issue:** Both CodeMirror 6 and xterm.js access `document`, `window`, and DOM APIs at import time. Next.js 16 with App Router renders components on the server by default. Importing these at the top level will crash SSR.
+
+**Mitigation:**
+- All CM6 and xterm.js components must use `next/dynamic` with `{ ssr: false }` or be wrapped in a client-only boundary.
+- The existing `CodeEditor.tsx` already has `"use client"` but does not use CM6 directly (it's a `<textarea>`). When replacing with real CM6, ensure the CM6 import is dynamic:
+  ```typescript
+  const TabbedEditor = dynamic(() => import("./TabbedEditor"), { ssr: false });
+  const TerminalPanel = dynamic(() => import("./terminal/TerminalPanel"), { ssr: false });
+  ```
+- **xterm.js CSS** (`@xterm/xterm/css/xterm.css`) must also be imported client-side only or in a global CSS file.
+
+### 2. No Existing CodeMirror 6 Component
+
+**Issue:** The plan references `CodeMirrorEditor.tsx` as "existing, enhanced" but the actual codebase has **no CM6 component** — `CodeEditor.tsx` is a plain `<textarea>`. There is no `@codemirror/*` in `package.json`.
+
+**Mitigation:** Phase 2 must include installing all CM6 packages:
+```bash
+bun add @codemirror/state @codemirror/view @codemirror/language @codemirror/commands @codemirror/autocomplete @codemirror/lang-javascript @codemirror/lang-python @codemirror/lang-html @codemirror/lang-cpp
+```
+This is a **significant bundle addition** (~200KB gzipped). Must be lazy-loaded.
+
+### 3. Code Snapshot Integration Gap
+
+**Issue:** The current `CodeEditor.tsx` persists code via Convex `resume:upsertCodeSnapshot` — a single `{ lessonId, language, code }` tuple. The Tier 2 VFS introduces multi-file state stored in IndexedDB. These two persistence systems will conflict:
+- Which is the source of truth — IndexedDB VFS or Convex snapshot?
+- When a student returns to a lesson, do we load from IndexedDB or Convex?
+- The Convex snapshot stores one code string; VFS stores a file tree.
+
+**Mitigation:**
+- **Phase 1** should define a migration strategy: Convex snapshots become the "cloud backup" of the active file only (or a serialized VFS snapshot). IndexedDB is the primary local store.
+- Add a `vfsSnapshot: string` (JSON-serialized file tree) field to the Convex snapshot table for full multi-file persistence.
+- On lesson load: try IndexedDB first → fall back to Convex snapshot → fall back to lesson template.
+
+### 4. COOP/COEP Will Break Clerk and Convex
+
+**Issue:** Setting `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` globally will break:
+- **Clerk** authentication popups (OAuth redirects open in a new window that can't communicate back)
+- **Convex** WebSocket connection (Convex client JS is loaded from `convex.cloud` CDN)
+- **YouTube embeds** (loaded from `youtube.com`)
+- **Sentry** error reporting (loaded from Sentry CDN)
+
+**Mitigation:**
+- **Do NOT set COOP/COEP globally.** Only Phase 4 (Wasmer) needs SharedArrayBuffer.
+- Option A: Use `credentialless` COEP (weaker but compatible with most third-party resources). Check browser support.
+- Option B: Run the Wasmer-powered terminal in a separate **cross-origin iframe** that has its own headers. Communication via `postMessage`.
+- Option C: Skip SharedArrayBuffer entirely and use Pyodide (which works without it) + single-threaded WASI. Performance is acceptable for educational use.
+- **Recommendation:** Option C for MVP. Option B if true shell performance is needed later.
+
+### 5. Wasmer JS SDK — Package Name Wrong
+
+**Issue:** The plan references `@aspect-build/aspect-cli` as the Wasmer JS SDK. This is incorrect. The actual packages are:
+- `@aspect-build/aspect-*` — this is Aspect Build, not Wasmer
+- The Wasmer JS SDK is `@aspect-build/wasmer` or `wasmer` — but the ecosystem is fragmented
+
+**Mitigation:** At implementation time, use the **Wasmer SDK from wasmer.io/javascript**. The current stable approach is:
+- `@aspect-build/wasmer-js` or the `wasmer` npm package
+- Verify at https://github.com/aspect-build/aspect-wasmer-js (or check wasmer.io)
+- Consider using Wasmer's **WASI runner** directly rather than a high-level SDK
+
+### 6. Bundle Size Impact
+
+**Issue:** New dependencies add significant JS to the client bundle:
+
+| Package | Gzipped Size | Notes |
+|---------|-------------|-------|
+| @codemirror/* (full) | ~200KB | Language modes, autocomplete, etc. |
+| @xterm/xterm | ~130KB | Terminal core |
+| @xterm/addon-fit | ~3KB | |
+| zustand | ~2KB | Minimal |
+| idb | ~2KB | Minimal |
+| Pyodide | ~6MB | Loaded on demand, not bundled |
+
+**Mitigation:**
+- All heavy packages must be `next/dynamic` with `{ ssr: false }` — they are never in the initial page load.
+- CM6 extensions should be loaded per-language (don't load Python language support until a Python file is opened).
+- xterm.js should only load when the terminal pane is first revealed.
+- Add `splitChunks` hints in next.config.ts to isolate editor/terminal chunks.
+
+### 7. Mobile / Touch Support
+
+**Issue:** The plan doesn't address mobile at all. Key problems:
+- **File tree sidebar** at 200px is too wide on mobile screens
+- **Split-pane drag** divider doesn't work well with touch (need `touchstart`/`touchmove`)
+- **xterm.js on mobile** — virtual keyboard conflicts, viewport resizing issues
+- **CM6 on mobile** — works but is heavy; mobile keyboards can conflict with editor key bindings
+
+**Mitigation:**
+- On screens < 768px, collapse file tree by default and use a drawer/modal
+- `SplitPane` must handle `TouchEvent` in addition to `MouseEvent` (the plan mentions this in `startDrag` signature but doesn't detail it)
+- Consider hiding the terminal on mobile and showing output inline (like current `OutputPanel`)
+- Add `@media (max-width: 768px)` breakpoint handling to `EditorArea`
+
+### 8. Safari WebAssembly Quirks
+
+**Issue:** Safari has historically had WASM limitations:
+- Stricter memory limits for WebAssembly (2GB cap vs 4GB in Chrome)
+- `SharedArrayBuffer` only available with COOP/COEP headers (same as others, but Safari was later to support `credentialless`)
+- Pyodide works in Safari 16.4+ but has known performance differences
+
+**Mitigation:**
+- Test Pyodide and any WASI runtimes in Safari early (Phase 4)
+- Set conservative memory limits for WASM modules
+- Include Safari in the CI browser matrix (Playwright supports WebKit)
+
+### 9. Race Conditions — VFS ↔ Editor ↔ Terminal
+
+**Issue:** Multiple stores (VFS, Editor, Terminal) reading/writing the same files:
+- User edits file in editor → editor store marks dirty → user runs code → runtime reads from VFS (stale!)
+- Terminal `cat file.txt` reads from VFS while editor has unsaved changes
+- Two tabs open same file → changes in one don't reflect in the other (impossible by design since one view, but edge case if file tree re-opens it)
+
+**Mitigation:**
+- **Auto-save to VFS** on every keystroke (debounced 300ms) — editor state flows to VFS immediately
+- Before runtime execution, flush all dirty editor states to VFS (`saveAll()`)
+- The `VFS.subscribe()` event system should notify the terminal if files change mid-execution (or just read at exec start)
+- Document that VFS is the single source of truth; editor states are derived views
+
+### 10. IndexedDB Reliability
+
+**Issue:** IndexedDB can be:
+- Cleared by the browser (low disk space, private browsing, user clears data)
+- Blocked in some corporate environments
+- Slow on first read with large projects
+- Not available in SSR (obviously)
+
+**Mitigation:**
+- Always fall back gracefully: `loadFromIndexedDB()` failure → load from Convex snapshot → load from lesson template
+- Cap VFS total size (e.g. 5MB per project) to keep IndexedDB fast
+- Show a subtle indicator when VFS is persisted vs. ephemeral
+- Never depend on IndexedDB for critical state — Convex is the durable store
+
+### 11. Keyboard Shortcuts Conflict
+
+**Issue:** CM6, xterm.js, and the browser all compete for keyboard shortcuts:
+- `Ctrl+S` — CM6 wants it, browser wants it, we want "save to VFS"
+- `Ctrl+C` — xterm.js wants it (kill process), browser wants it (copy)
+- `Tab` — CM6 wants it (indent), browser wants it (focus next element)
+- `Escape` — used to unfocus both CM6 and xterm
+
+**Mitigation:**
+- CM6: Use `keymap` extension to handle `Ctrl+S` → save to VFS, prevent default
+- xterm.js: Differentiate `Ctrl+C` with selection (copy) vs. without selection (SIGINT)
+- Use `event.preventDefault()` judiciously — don't trap users
+- Add a "focus mode" indicator so users know which pane has keyboard focus
+
+### 12. Accessibility Gaps
+
+**Issue:** The plan doesn't mention accessibility:
+- File tree needs `role="tree"`, `role="treeitem"`, `aria-expanded`
+- Tab bar needs `role="tablist"`, `role="tab"`, `aria-selected`
+- xterm.js has limited screen reader support (it's a canvas-based terminal)
+- Split-pane divider needs `role="separator"`, `aria-valuenow`, keyboard arrows
+
+**Mitigation:**
+- Use semantic ARIA roles on all custom widgets
+- CM6 has good built-in accessibility — don't override it
+- For xterm.js, enable the `screenReaderMode` option (creates a hidden textarea mirror)
+- Divider should respond to Arrow keys for keyboard-only resize
+
+### 13. Missing `@codemirror/lang-cpp` — It's `@codemirror/lang-c` That Doesn't Exist
+
+**Issue:** There is no official `@codemirror/lang-c` package. C/C++ support comes from:
+- `@codemirror/lang-cpp` (covers both C and C++)
+- Or use `@lezer/cpp` parser directly
+
+**Mitigation:** Use `@codemirror/lang-cpp` for C files. The language mode handles C syntax fine (C is a subset of C++ for parsing purposes).
+
+### 14. Zustand v5 — API Changes
+
+**Issue:** The plan specifies `zustand@^5.0.0`. Zustand v5 has breaking changes from v4:
+- `create` no longer needs the middleware pattern for devtools
+- `useStore` selector API changed
+- TypeScript generics are different
+
+**Mitigation:** Since this is a greenfield addition (no existing Zustand), v5 is fine. Just ensure all store code follows v5 patterns. Check https://zustand.docs.pmnd.rs/migrations/migrating-to-v5 at implementation time.
+
+### 15. Convex Schema Migration
+
+**Issue:** Phase 6 extends `convex/schema.ts` with `environmentConfig` on the lessons table. This requires a Convex schema migration on the production database.
+
+**Mitigation:**
+- Make `environmentConfig` optional (`v.optional(v.object({...}))`) so existing lessons don't break
+- Deploy schema change before deploying the UI that reads it
+- Default to `"sandbox"` preset when `environmentConfig` is null
