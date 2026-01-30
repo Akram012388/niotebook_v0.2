@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { type ReactElement } from "react";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function LandingNav(): ReactElement {
   return (
@@ -17,13 +18,16 @@ export function LandingNav(): ReactElement {
           beta
         </span>
       </div>
-      <Link
-        href="/sign-in"
-        className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-        style={{ background: 'var(--surface-muted)', color: 'var(--foreground)' }}
-      >
-        Sign in
-      </Link>
+      <div className="flex items-center gap-3">
+        <ThemeToggle />
+        <Link
+          href="/sign-in"
+          className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          style={{ background: 'var(--surface-muted)', color: 'var(--foreground)' }}
+        >
+          Sign in
+        </Link>
+      </div>
     </nav>
   );
 }

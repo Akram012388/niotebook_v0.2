@@ -59,7 +59,7 @@ export function HeroSection(): ReactElement {
   }, []);
 
   return (
-    <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden px-4 sm:px-6">
+    <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20">
       {/* Background gradient orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
