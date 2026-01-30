@@ -1,4 +1,5 @@
 import { makeRequireShim } from "./imports/jsModules";
+import { runInSandboxedIframe } from "./jsSandbox";
 import type {
   RuntimeExecutor,
   RuntimeRunInput,
@@ -18,71 +19,34 @@ const initJsExecutor = async (): Promise<RuntimeExecutor> => {
     const start = performance.now();
     aborted = false;
     const timeoutMs = input.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-    let stdout = "";
-    let stderr = "";
-    let timedOut = false;
 
-    const originalLog = console.log;
-    const originalError = console.error;
-
-    console.log = (...args: unknown[]): void => {
-      const line = `${args.map(String).join(" ")}\n`;
-      stdout += line;
-      input.onStdout?.(line);
-    };
-
-    console.error = (...args: unknown[]): void => {
-      const line = `${args.map(String).join(" ")}\n`;
-      stderr += line;
-      input.onStderr?.(line);
-    };
-
-    try {
-      const result = await new Promise<void>((resolve, reject) => {
-        const timer = window.setTimeout(() => {
-          timedOut = true;
-          reject(new Error("Runtime timed out."));
-        }, timeoutMs);
-
-        try {
-          // Prepend require() shim if VFS is provided (enables cross-file imports)
-          let code = input.code;
-          if (input.filesystem) {
-            const mainPath =
-              input.filesystem.getMainFilePath() ?? "/project/main.js";
-            const shim = makeRequireShim(mainPath, input.filesystem);
-            if (shim) {
-              code = shim + "\n" + code;
-            }
-          }
-
-          const fn = new Function(code);
-          fn();
-          window.clearTimeout(timer);
-          resolve();
-        } catch (error) {
-          window.clearTimeout(timer);
-          reject(error);
-        }
-      });
-
-      void result;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      stderr = stderr ? `${stderr}${message}\n` : `${message}\n`;
-    } finally {
-      console.log = originalLog;
-      console.error = originalError;
+    // Prepend require() shim if VFS is provided (enables cross-file imports)
+    let code = input.code;
+    if (input.filesystem) {
+      const mainPath =
+        input.filesystem.getMainFilePath() ?? "/project/main.js";
+      const shim = makeRequireShim(mainPath, input.filesystem);
+      if (shim) {
+        code = shim + "\n" + code;
+      }
     }
+
+    // Run in a sandboxed iframe for DOM isolation
+    const result = await runInSandboxedIframe(
+      code,
+      timeoutMs,
+      input.onStdout,
+      input.onStderr,
+    );
 
     const runtimeMs = Math.round(performance.now() - start);
 
     return {
-      stdout,
-      stderr,
-      exitCode: aborted || timedOut || stderr ? 1 : 0,
+      stdout: result.stdout,
+      stderr: result.stderr,
+      exitCode: aborted || result.timedOut || result.stderr ? 1 : 0,
       runtimeMs,
-      timedOut,
+      timedOut: result.timedOut,
     };
   };
 
