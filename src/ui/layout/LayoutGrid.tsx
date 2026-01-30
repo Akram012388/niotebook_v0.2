@@ -12,7 +12,7 @@ const LayoutGrid = ({ preset, children }: LayoutGridProps): ReactElement => {
 
   return (
     <div
-      className={`grid h-full min-h-0 gap-4 ${columns}`}
+      className={`grid h-full min-h-0 ${columns}`}
       style={{ gridAutoRows: "minmax(0, 1fr)" }}
     >
       {children}
