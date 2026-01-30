@@ -443,7 +443,7 @@ feat(vfs): add virtual filesystem with IndexedDB persistence
 
 ---
 
-## Phase 2: File Tree + Tabbed Editor
+## Phase 2: File Tree + Tabbed Editor ✅ COMPLETED
 
 **Goal:** Sidebar file explorer + tabbed multi-document editing with CodeMirror 6 (built from scratch). Each tab has its own CM6 `EditorState`. Switching tabs is instant (no re-parse).
 
