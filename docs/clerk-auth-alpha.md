@@ -112,4 +112,6 @@ Manual checks:
 - Create branch for implementation.
 - Open PR, merge to `main`.
 - Vercel deploys automatically.
+- Preview e2e runs require `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=true` to emit the
+  `niotebook-e2e` readiness marker; CI skips previews without it.
 - Invite alpha users via Clerk dashboard.

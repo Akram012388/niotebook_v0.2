@@ -145,6 +145,7 @@ Tasks:
 - Add Vitest + Playwright (smoke test) + configs.
 - Add Sentry SDK wiring + env placeholders.
 - Add CI workflows (PR checks, Semgrep, Vercel preview E2E) and Vercel build command.
+- Gate preview e2e runs on the `niotebook-e2e` readiness marker (set via `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=true`).
 - Add .env.example with required vars (Convex, AI, Sentry, app URL).
   Deliverables:
 - Bootstrapped repo ready for Phase 0 implementation.
