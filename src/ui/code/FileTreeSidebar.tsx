@@ -53,7 +53,7 @@ const FileTreeSidebar = (): ReactElement => {
 
   if (collapsed) {
     return (
-      <div className="flex w-8 flex-shrink-0 flex-col items-center border-r border-workspace-border bg-workspace-sidebar pt-2 text-workspace-text">
+      <div className="flex min-w-0 w-full flex-col items-center bg-workspace-sidebar pt-2 text-workspace-text">
         <button
           type="button"
           className="text-xs text-workspace-text-muted hover:text-workspace-text"
@@ -68,7 +68,7 @@ const FileTreeSidebar = (): ReactElement => {
   }
 
   return (
-    <div className="flex w-[200px] flex-shrink-0 flex-col border-r border-workspace-border bg-workspace-sidebar text-workspace-text">
+    <div className="flex min-w-0 w-full flex-col bg-workspace-sidebar text-workspace-text">
       <div className="flex items-center justify-between border-b border-workspace-border-muted px-2 py-1.5">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-workspace-text-muted">
           Files
