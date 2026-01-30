@@ -118,25 +118,25 @@ function computeRelativePath(fromDir: string, toPath: string): string {
 
 // ── Cross-file symbol completions ───────────────────────────
 
-type SymbolPattern = {
-  regex: RegExp;
+type SymbolPatternFactory = {
+  makeRegex: () => RegExp;
   type: Completion["type"];
 };
 
-const SYMBOL_PATTERNS: Record<RuntimeLanguage, SymbolPattern[]> = {
+const SYMBOL_PATTERN_FACTORIES: Record<RuntimeLanguage, SymbolPatternFactory[]> = {
   python: [
-    { regex: /^def\s+(\w+)/gm, type: "function" },
-    { regex: /^class\s+(\w+)/gm, type: "class" },
-    { regex: /^(\w+)\s*=/gm, type: "variable" },
+    { makeRegex: () => /^def\s+(\w+)/gm, type: "function" },
+    { makeRegex: () => /^class\s+(\w+)/gm, type: "class" },
+    { makeRegex: () => /^(\w+)\s*=/gm, type: "variable" },
   ],
   js: [
-    { regex: /(?:^|\n)function\s+(\w+)/g, type: "function" },
-    { regex: /(?:^|\n)(?:const|let|var)\s+(\w+)/g, type: "variable" },
-    { regex: /(?:^|\n)class\s+(\w+)/g, type: "class" },
-    { regex: /(?:^|\n)export\s+(?:default\s+)?(?:function|class|const|let|var)\s+(\w+)/g, type: "function" },
+    { makeRegex: () => /(?:^|\n)function\s+(\w+)/g, type: "function" },
+    { makeRegex: () => /(?:^|\n)(?:const|let|var)\s+(\w+)/g, type: "variable" },
+    { makeRegex: () => /(?:^|\n)class\s+(\w+)/g, type: "class" },
+    { makeRegex: () => /(?:^|\n)export\s+(?:default\s+)?(?:function|class|const|let|var)\s+(\w+)/g, type: "function" },
   ],
   c: [
-    { regex: /\w+\s+(\w+)\s*\(/gm, type: "function" },
+    { makeRegex: () => /\w+\s+(\w+)\s*\(/gm, type: "function" },
   ],
   html: [],
 };
@@ -150,8 +150,8 @@ function getCrossFileSymbolCompletions(
   const word = context.matchBefore(/\w+/);
   if (!word || word.from === word.to) return null;
 
-  const patterns = SYMBOL_PATTERNS[language];
-  if (!patterns || patterns.length === 0) return null;
+  const factories = SYMBOL_PATTERN_FACTORIES[language];
+  if (!factories || factories.length === 0) return null;
 
   const allFiles = vfs.glob("**/*");
   const seen = new Set<string>();
@@ -161,9 +161,9 @@ function getCrossFileSymbolCompletions(
     if (file.path === currentPath) continue;
     if (file.language !== language) continue;
 
-    for (const { regex, type } of patterns) {
-      // Reset regex state
-      regex.lastIndex = 0;
+    for (const { makeRegex, type } of factories) {
+      // Create a fresh regex each call to avoid lastIndex statefulness bugs
+      const regex = makeRegex();
       let m: RegExpExecArray | null;
       while ((m = regex.exec(file.content)) !== null) {
         const name = m[1];
