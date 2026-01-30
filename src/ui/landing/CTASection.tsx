@@ -54,12 +54,16 @@ export function CTASection(): ReactElement {
         </a>
       </div>
 
-      {/* Footer */}
-      <div className="mt-24 sm:mt-32 text-center">
-        <p className="text-xs font-mono" style={{ color: 'var(--text-subtle)' }}>
-          © {new Date().getFullYear()} Niotebook · Built for learners who ship
-        </p>
-      </div>
     </section>
+  );
+}
+
+export function LandingFooter(): ReactElement {
+  return (
+    <footer className="py-8 text-center" style={{ borderTop: '1px solid var(--border)' }}>
+      <p className="text-xs font-mono" style={{ color: 'var(--text-subtle)' }}>
+        © {new Date().getFullYear()} Niotebook · Built for learners who ship
+      </p>
+    </footer>
   );
 }
