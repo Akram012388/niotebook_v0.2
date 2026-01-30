@@ -6,7 +6,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 type UseSplitPaneOptions = {
   direction: "horizontal" | "vertical";
   initialSplit: number;
+  /** Minimum size for the first pane in pixels. */
   minFirst: number;
+  /** Minimum size for the second pane in pixels. */
   minSecond: number;
   storageKey?: string;
 };
@@ -19,12 +21,23 @@ type UseSplitPaneReturn = {
   keyStep: (delta: number) => void;
 };
 
+/**
+ * Clamp a ratio given pixel-based minimums and the total container size.
+ * When containerSize is unknown (0), falls back to 0..1 range.
+ */
 function clampRatio(
   ratio: number,
-  minFirst: number,
-  minSecond: number,
+  minFirstPx: number,
+  minSecondPx: number,
+  containerSize?: number,
 ): number {
-  return Math.min(Math.max(ratio, minFirst), 1 - minSecond);
+  if (containerSize && containerSize > 0) {
+    const minFirstRatio = minFirstPx / containerSize;
+    const minSecondRatio = minSecondPx / containerSize;
+    return Math.min(Math.max(ratio, minFirstRatio), 1 - minSecondRatio);
+  }
+  // Fallback: treat as small ratios to avoid locking panes
+  return Math.min(Math.max(ratio, 0.05), 0.95);
 }
 
 function loadRatio(storageKey: string | undefined): number | null {
@@ -57,9 +70,8 @@ function useSplitPane({
 }: UseSplitPaneOptions): UseSplitPaneReturn {
   const [ratio, setRatio] = useState<number>(() => {
     const stored = loadRatio(storageKey);
-    return stored !== null
-      ? clampRatio(stored, minFirst, minSecond)
-      : initialSplit;
+    // On initial render we don't have container size, so trust the stored/initial value
+    return stored ?? initialSplit;
   });
 
   const [isDragging, setIsDragging] = useState(false);
@@ -87,7 +99,7 @@ function useSplitPane({
           ? moveEvent.clientY - rect.top
           : moveEvent.clientX - rect.left;
 
-        const newRatio = clampRatio(offset / total, minFirst, minSecond);
+        const newRatio = clampRatio(offset / total, minFirst, minSecond, total);
         setRatio(newRatio);
       };
 
@@ -107,20 +119,28 @@ function useSplitPane({
   );
 
   const handleDoubleClick = useCallback(() => {
-    const clamped = clampRatio(initialSplit, minFirst, minSecond);
+    const container = containerRef.current;
+    const total = container
+      ? (direction === "vertical" ? container.getBoundingClientRect().height : container.getBoundingClientRect().width)
+      : undefined;
+    const clamped = clampRatio(initialSplit, minFirst, minSecond, total);
     setRatio(clamped);
     saveRatio(storageKey, clamped);
     window.dispatchEvent(new Event("resize"));
-  }, [initialSplit, minFirst, minSecond, storageKey]);
+  }, [direction, initialSplit, minFirst, minSecond, storageKey]);
 
   const keyStep = useCallback(
     (delta: number) => {
-      const newRatio = clampRatio(ratioRef.current + delta, minFirst, minSecond);
+      const container = containerRef.current;
+      const total = container
+        ? (direction === "vertical" ? container.getBoundingClientRect().height : container.getBoundingClientRect().width)
+        : undefined;
+      const newRatio = clampRatio(ratioRef.current + delta, minFirst, minSecond, total);
       setRatio(newRatio);
       saveRatio(storageKey, newRatio);
       window.dispatchEvent(new Event("resize"));
     },
-    [minFirst, minSecond, storageKey],
+    [direction, minFirst, minSecond, storageKey],
   );
 
   // Sync localStorage when ratio changes from external sources

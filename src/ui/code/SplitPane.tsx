@@ -11,7 +11,9 @@ import { useSplitPane } from "./useSplitPane";
 type SplitPaneProps = {
   direction: "horizontal" | "vertical";
   initialSplit: number;
+  /** Minimum size for the first pane in pixels. */
   minFirst: number;
+  /** Minimum size for the second pane in pixels. */
   minSecond: number;
   storageKey?: string;
   first: ReactNode;
