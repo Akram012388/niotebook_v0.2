@@ -10,7 +10,11 @@ import { EditorState } from "@codemirror/state";
 
 import type { RuntimeLanguage } from "../../infra/runtime/types";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
-import { baseExtensions, loadLanguage, themeExtension } from "./codemirrorSetup";
+import {
+  baseExtensions,
+  loadLanguage,
+  themeExtension,
+} from "./codemirrorSetup";
 import { createNiotebookCompletions } from "./autocomplete/completionProvider";
 
 // ── Types ───────────────────────────────────────────────────
@@ -48,11 +52,6 @@ function basename(path: string): string {
   return last === -1 ? path : path.slice(last + 1);
 }
 
-function isDarkMode(): boolean {
-  if (typeof document === "undefined") return true;
-  return document.documentElement.classList.contains("dark");
-}
-
 async function createEditorState(
   content: string,
   language: RuntimeLanguage | null,
@@ -65,10 +64,7 @@ async function createEditorState(
       ? createNiotebookCompletions(language, vfs, filePath)
       : undefined;
 
-  const extensions = [
-    ...baseExtensions(completionSources),
-    themeExtension(isDarkMode()),
-  ];
+  const extensions = [...baseExtensions(completionSources), themeExtension()];
 
   if (language) {
     const langSupport = await loadLanguage(language);

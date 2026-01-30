@@ -151,7 +151,7 @@ function baseExtensions(
  * Returns the workspace theme extension.
  * Always uses a dark, VS Code-like workspace palette.
  */
-function themeExtension(_dark: boolean): import("@codemirror/state").Extension {
+function themeExtension(): import("@codemirror/state").Extension {
   return [
     oneDark,
     niotebookWorkspaceTheme,
