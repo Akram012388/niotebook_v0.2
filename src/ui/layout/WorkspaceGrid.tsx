@@ -390,7 +390,7 @@ const WorkspaceGrid = (): ReactElement => {
   if (effectivePreset === "split") {
     return (
       <div className="flex h-full min-h-0">
-        <div className="flex min-w-0 flex-[3] flex-col min-h-0">
+        <div className="flex min-w-0 flex-[3] flex-col min-h-0 border-r border-border">
           <div className="flex-1 min-h-0">
             {leftPane === "video" ? (
               <VideoPane
