@@ -2,7 +2,7 @@
 
 Niotebook v0.2 PRD (Minimal)
 
-Note: Implementation details live in `docs/ADR-001-prd-scope.md` to keep this PRD product-level.
+Note: Implementation details live in `docs/ADR-001-prd-scope.md` to keep this PRD product‑level.
 
 Problem
 
@@ -20,7 +20,7 @@ Core Loop
 
 - Onboard with Clerk invite email → email code sign-in → pick course/lesson.
 - Initial content includes CS50x (2026), CS50P, CS50W, and CS50 AI (2023) delivered as YouTube-embedded lessons; playlist = course, video = lesson, chapters = timestamps.
-- Watch embedded YouTube, code in notepad-style editor, and chat with Nio (Prof. David Malan-modeled persona, not named in UI).
+- Watch embedded YouTube, code in notepad-style editor, and chat with Nio (Prof. David Malan–modeled persona, not named in UI).
 - Continuous sync ties video time, code snapshot, and chat thread; resume on any device at last frame.
 
 UX Principles
@@ -42,9 +42,9 @@ Functional Requirements
 - Alpha auth implementation plan: `docs/clerk-auth-alpha.md`.
 - Admin cockpit UX: ultra-polished, analytics-first dashboard (ChatGPT-level interface quality); analytics use UTC and cohort = inviteBatchId.
 - Layout: fixed presets (1-col 100, 2-col 60/40, 3-col 40/30/30); persisted per session.
-- Video: YouTube embed; time sampled every 2-5s and on seek/pause; clicking chat badge seeks smoothly.
+- Video: YouTube embed; time sampled every 2–5s and on seek/pause; clicking chat badge seeks smoothly.
 - Code Editor: CodeMirror 6 with syntax highlight/indent, run, clear output, stop, optional reset-per-lesson. Tier 2 upgrade adds virtual filesystem (VFS), file tree sidebar, tabbed multi-file editing, xterm.js terminal with streaming output, resizable split-pane layout, cross-file imports, lesson-aware environment configs, and enhanced autocomplete. See `docs/code-editor-tier2-plan.md`.
-- Execution Packs: JS (Worker), Python (Pyodide Worker), HTML/CSS (sandboxed iframe), C via in-browser TCC pack; uniform executor interface init/run/stop; warm-up via idle prefetch/cache and "Preparing runtimes…" inline status. Wasmer/WASIX sandbox available via iframe isolation (`/editor-sandbox` route with COOP/COEP headers) for real shell commands; falls back to Pyodide/TCC when unavailable.
+- Execution Packs: JS (Worker), Python (Pyodide Worker), HTML/CSS (sandboxed iframe), C via in-browser TCC pack; uniform executor interface init/run/stop; warm-up via idle prefetch/cache and “Preparing runtimes…” inline status. Wasmer/WASIX sandbox available via iframe isolation (`/editor-sandbox` route with COOP/COEP headers) for real shell commands; falls back to Pyodide/TCC when unavailable.
 - Sync/Resume: Frame = lessonId + videoTimeSec + codeHash? + threadId; persist in Convex; IndexedDB for instant reload cache; chat messages stamped with time window ±60s and codeHash?. Internal-only checkpoints support resume, AI context reconstruction, and deterministic E2E assertions; no checkpoint UI.
 - AI: Providers Gemini 3 Flash preview primary, Groq llama-3.3-70b-versatile fallback; strict CS50 TA behavior, context-bound to lesson/time/code; refuses off-topic prompts and redirects to the active lesson; streaming via Next.js route handler; store assistant message on completion.
 - Content Compliance: Each course/lesson shows attribution, license label, source link (compact info strip); treat CS50x content as CC BY-NC-SA (non-commercial).
@@ -62,7 +62,7 @@ Risks
 
 Acceptance Criteria
 
-- Language switch after warm-up feels instant; C "hello world" compile+run <500ms on modern laptop; Python/JS warm-up hidden by background prefetch; switching Python→C after warm-up <100ms perceived delay or shows non-blocking warm-up notice.
+- Language switch after warm-up feels instant; C “hello world” compile+run <500ms on modern laptop; Python/JS warm-up hidden by background prefetch; switching Python→C after warm-up <100ms perceived delay or shows non-blocking warm-up notice.
 - Chat shows `Lesson • mm:ss` badge per message; clicking seeks smoothly; streaming text renders without layout shifts; autoscroll affordance present when scrolled up.
 - Resume on another device restores last video bucket, code snapshot per language, and same chat thread.
 - Theme toggle available in control center settings; layouts selectable and persisted; light theme default; minimal chrome with sans-first typography and monospace accents.
