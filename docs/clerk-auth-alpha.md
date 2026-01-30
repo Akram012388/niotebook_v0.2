@@ -57,7 +57,7 @@ Actions:
 - Add `/sign-in` and `/sign-up` routes using Clerk UI components.
 - Gate `/` in `src/app/page.tsx`:
   - `SignedOut`: render Clerk sign-in
-  - `SignedIn`: render `AppShell` + `WorkspaceShell`
+  - `SignedIn`: wait for `useConvexAuth()` to be authenticated before rendering `AppShell` + `WorkspaceShell`
 
 ## Phase 3 — User Bootstrap + Invite Tracking
 
@@ -75,7 +75,7 @@ Actions:
     - `email`
     - `inviteBatchId` (Clerk public metadata)
     - `role` (admin if email in `NIOTEBOOK_ADMIN_EMAILS`, else `user`)
-- Call `auth:upsertUser` once on sign-in via a small client hook.
+- Call `auth:upsertUser` once on sign-in via a small client hook (only after Convex auth is ready).
 
 ## Phase 4 — Env + Docs
 
