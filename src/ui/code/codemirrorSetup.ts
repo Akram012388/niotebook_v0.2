@@ -10,6 +10,7 @@ import {
   closeBracketsKeymap,
   completionKeymap,
 } from "@codemirror/autocomplete";
+import type { CompletionSource } from "@codemirror/autocomplete";
 import {
   defaultKeymap,
   history,
@@ -106,8 +107,15 @@ const niotebookLightTheme = EditorView.theme(
 
 // ── Extension bundles ─────────────────────────────────────────
 
-/** Base extensions shared across all languages and themes. */
-function baseExtensions(): import("@codemirror/state").Extension[] {
+/**
+ * Base extensions shared across all languages and themes.
+ *
+ * @param completionOverrides - Optional custom CompletionSource array.
+ *   When provided, autocompletion uses these sources instead of the default.
+ */
+function baseExtensions(
+  completionOverrides?: CompletionSource[],
+): import("@codemirror/state").Extension[] {
   return [
     lineNumbers(),
     highlightActiveLineGutter(),
@@ -119,7 +127,9 @@ function baseExtensions(): import("@codemirror/state").Extension[] {
     indentOnInput(),
     bracketMatching(),
     closeBrackets(),
-    autocompletion(),
+    completionOverrides
+      ? autocompletion({ override: completionOverrides })
+      : autocompletion(),
     rectangularSelection(),
     crosshairCursor(),
     highlightActiveLine(),

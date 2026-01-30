@@ -11,6 +11,7 @@ import { EditorState } from "@codemirror/state";
 import type { RuntimeLanguage } from "../../infra/runtime/types";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
 import { baseExtensions, loadLanguage, themeExtension } from "./codemirrorSetup";
+import { createNiotebookCompletions } from "./autocomplete/completionProvider";
 
 // ── Types ───────────────────────────────────────────────────
 
@@ -55,8 +56,19 @@ function isDarkMode(): boolean {
 async function createEditorState(
   content: string,
   language: RuntimeLanguage | null,
+  filePath?: string,
 ): Promise<EditorState> {
-  const extensions = [...baseExtensions(), themeExtension(isDarkMode())];
+  // Build custom completions if we have language + VFS context
+  const vfs = useFileSystemStore.getState().vfs;
+  const completionSources =
+    language && filePath
+      ? createNiotebookCompletions(language, vfs, filePath)
+      : undefined;
+
+  const extensions = [
+    ...baseExtensions(completionSources),
+    themeExtension(isDarkMode()),
+  ];
 
   if (language) {
     const langSupport = await loadLanguage(language);
@@ -87,7 +99,7 @@ const useEditorStore = create<EditorStoreState & EditorStoreActions>()(
       const vfs = useFileSystemStore.getState().vfs;
       const content = vfs.readFile(path) ?? "";
       const language = vfs.inferLanguage(basename(path));
-      const editorState = await createEditorState(content, language);
+      const editorState = await createEditorState(content, language, path);
 
       const file: OpenFile = {
         id: path,
