@@ -5,11 +5,15 @@ import {
   useState,
   type ReactElement,
 } from "react";
+import dynamic from "next/dynamic";
 import { useMutation } from "convex/react";
 import { makeFunctionReference } from "convex/server";
-import { CodeEditor } from "../code/CodeEditor";
 import { OutputPanel } from "../code/OutputPanel";
 import { RuntimeStatus } from "../code/RuntimeStatus";
+import { EditorSkeleton } from "../code/EditorSkeleton";
+import { useLayoutPreset } from "../layout/LayoutPresetContext";
+import { useEditorStore } from "../code/useEditorStore";
+import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
 import type { EventLogResult } from "../../domain/events";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 import { toRuntimeSnapshot, type RuntimeSnapshot } from "../../domain/runtime";
@@ -22,6 +26,31 @@ import {
 import type { RuntimeLanguage, RuntimeState } from "../../infra/runtime/types";
 import { RUNTIME_TIMEOUT_MS } from "../../infra/runtime/runtimeConstants";
 
+// ── SSR-safe dynamic import of EditorArea ─────────────────────
+
+const EditorArea = dynamic(() => import("../code/EditorArea"), {
+  ssr: false,
+  loading: () => <EditorSkeleton />,
+});
+
+// ── Default templates per language ────────────────────────────
+
+const DEFAULT_CODE_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
+  js: "console.log('Hello, CS50');",
+  python: "print('Hello, CS50')",
+  html: "<h1>Hello, CS50</h1>",
+  c: '#include <stdio.h>\n\nint main(void) {\n  printf("Hello, CS50\\n");\n  return 0;\n}\n',
+};
+
+const EXTENSION_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
+  js: "main.js",
+  python: "main.py",
+  html: "index.html",
+  c: "main.c",
+};
+
+// ── Component ─────────────────────────────────────────────────
+
 type CodePaneProps = {
   lessonId: string;
   onSnapshot?: (snapshot: CodeSnapshotSummary) => void;
@@ -33,14 +62,39 @@ const CodePane = ({
   onSnapshot,
   headerExtras,
 }: CodePaneProps): ReactElement => {
-  const [language, setLanguage] = useState<RuntimeLanguage>("js");
+  // TODO: language switching will be wired to environment configs (Phase 6)
+  const [language] = useState<RuntimeLanguage>("js");
   const [runtimeState, setRuntimeState] = useState<RuntimeState>({
     language: "js",
     status: "idle",
   });
   const [output, setOutput] = useState<RuntimeSnapshot | null>(null);
-  const [latestSnapshot, setLatestSnapshot] =
-    useState<CodeSnapshotSummary | null>(null);
+
+  const { activePreset } = useLayoutPreset();
+  const showFileTree = activePreset !== "triple";
+
+  const initializeFromTemplate = useFileSystemStore(
+    (s) => s.initializeFromTemplate,
+  );
+  const isLoaded = useFileSystemStore((s) => s.isLoaded);
+  const getMainFileContent = useFileSystemStore((s) => s.getMainFileContent);
+  const openFile = useEditorStore((s) => s.openFile);
+
+  // ── Initialize VFS on mount ───────────────────────────────
+
+  useEffect(() => {
+    if (isLoaded) return;
+
+    const filename = EXTENSION_BY_LANGUAGE[language];
+    const content = DEFAULT_CODE_BY_LANGUAGE[language];
+
+    initializeFromTemplate([{ path: filename, content }]);
+
+    // Open the main file in the editor
+    void openFile(`/project/${filename}`);
+  }, [isLoaded, language, initializeFromTemplate, openFile]);
+
+  // ── Convex snapshot integration (backward compat) ─────────
 
   const logEventRef = useMemo(
     () =>
@@ -67,9 +121,7 @@ const CodePane = ({
 
   const runtimeOutput = useMemo(() => output?.output ?? null, [output]);
 
-  const handleLanguageChange = useCallback((next: RuntimeLanguage): void => {
-    setLanguage(next);
-  }, []);
+  // ── Runtime warmup ────────────────────────────────────────
 
   useEffect(() => {
     let cancelled = false;
@@ -87,29 +139,23 @@ const CodePane = ({
       void logEvent({
         eventType: "runtime_warmup_start",
         lessonId,
-        metadata: {
-          language,
-          durationMs: 0,
-        },
+        metadata: { language, durationMs: 0 },
       });
     }
 
     loadExecutor(language)
       .then(() => {
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
-        const warmupDuration = Math.round(performance.now() - warmupStartedAt);
+        const warmupDuration = Math.round(
+          performance.now() - warmupStartedAt,
+        );
 
         if (process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true") {
           void logEvent({
             eventType: "runtime_warmup_end",
             lessonId,
-            metadata: {
-              language,
-              durationMs: warmupDuration,
-            },
+            metadata: { language, durationMs: warmupDuration },
           });
         }
 
@@ -120,10 +166,7 @@ const CodePane = ({
         });
       })
       .catch(() => {
-        if (cancelled) {
-          return;
-        }
-
+        if (cancelled) return;
         setRuntimeState({
           language,
           status: "error",
@@ -137,18 +180,34 @@ const CodePane = ({
     };
   }, [language, lessonId, logEvent]);
 
-  const handleSnapshot = useCallback(
-    (snapshot: CodeSnapshotSummary): void => {
-      setLatestSnapshot(snapshot);
-      onSnapshot?.(snapshot);
-    },
-    [onSnapshot],
-  );
+  // ── Snapshot callback ─────────────────────────────────────
+
+  useEffect(() => {
+    if (!onSnapshot) return;
+
+    const content = getMainFileContent();
+    if (!content) return;
+
+    // Fire snapshot with main file content for backward compat
+    onSnapshot({
+      id: "local-snapshot" as CodeSnapshotSummary["id"],
+      userId: "local-user" as CodeSnapshotSummary["userId"],
+      lessonId: lessonId as CodeSnapshotSummary["lessonId"],
+      language,
+      code: content,
+      codeHash: "",
+      updatedAt: Date.now(),
+    });
+  }, [getMainFileContent, language, lessonId, onSnapshot]);
+
+  // ── Handlers ──────────────────────────────────────────────
 
   const handleRun = useCallback(async (): Promise<void> => {
-    if (!latestSnapshot) {
-      return;
-    }
+    // Flush dirty files to VFS before running
+    useEditorStore.getState().saveAll();
+
+    const code = getMainFileContent();
+    if (!code) return;
 
     setRuntimeState({
       language,
@@ -157,7 +216,7 @@ const CodePane = ({
     });
 
     const result = await runRuntime(language, {
-      code: latestSnapshot.code,
+      code,
       timeoutMs: RUNTIME_TIMEOUT_MS,
     });
 
@@ -170,7 +229,7 @@ const CodePane = ({
         ? "Runtime timed out"
         : `${language.toUpperCase()} runtime ready`,
     });
-  }, [language, latestSnapshot]);
+  }, [language, getMainFileContent]);
 
   const handleStop = useCallback((): void => {
     stopRuntime(language).catch(() => undefined);
@@ -222,11 +281,7 @@ const CodePane = ({
       </header>
       <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
         <div className="flex min-h-0 flex-[4] flex-col">
-          <CodeEditor
-            lessonId={lessonId}
-            onLanguageChange={handleLanguageChange}
-            onSnapshot={handleSnapshot}
-          />
+          <EditorArea showFileTree={showFileTree} />
         </div>
         <div className="flex min-h-0 flex-[1] flex-col rounded-lg border border-border bg-black text-slate-100 dark:bg-slate-50 dark:text-slate-900">
           <div className="px-3 pt-3">
