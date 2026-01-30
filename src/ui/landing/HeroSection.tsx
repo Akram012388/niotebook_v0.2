@@ -40,7 +40,7 @@ function TypingCode(): ReactElement {
               : i === visibleLines
                 ? line.text.slice(0, visibleChars)
                 : ''}
-            {i === visibleLines && (
+            {(i === visibleLines || (visibleLines >= CODE_LINES.length && i === CODE_LINES.length - 1)) && (
               <span className="inline-block w-[2px] h-[1em] ml-px align-middle animate-[blink_1s_step-end_infinite]" style={{ background: 'var(--accent)' }} />
             )}
           </span>
