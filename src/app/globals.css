@@ -96,3 +96,23 @@ button:disabled {
   display: inline-block;
   animation: nio-thinking 1s ease-in-out infinite;
 }
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -20px); }
+}
