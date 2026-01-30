@@ -16,7 +16,7 @@ const SignInPage = (): ReactElement => {
         routing="path"
         path="/sign-in"
         signUpUrl="/sign-up"
-        fallbackRedirectUrl="/"
+        fallbackRedirectUrl="/workspace"
       />
     </AuthShell>
   );

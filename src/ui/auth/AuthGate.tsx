@@ -26,7 +26,7 @@ const AuthGateWithClerk = ({ children }: AuthGateProps): ReactElement => {
             appearance={clerkAppearance}
             routing="hash"
             signUpUrl="/sign-up"
-            fallbackRedirectUrl="/"
+            fallbackRedirectUrl="/workspace"
           />
         </AuthShell>
       </SignedOut>
