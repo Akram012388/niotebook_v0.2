@@ -4,17 +4,22 @@ import type { RuntimeLanguage } from "../../infra/runtime/types";
 type LanguageTabsProps = {
   active: RuntimeLanguage;
   onSelect: (language: RuntimeLanguage) => void;
+  /** When provided, only these languages are shown. Defaults to all. */
+  allowedLanguages?: RuntimeLanguage[];
 };
 
-const LANGUAGES: RuntimeLanguage[] = ["js", "python", "html", "c"];
+const ALL_LANGUAGES: RuntimeLanguage[] = ["js", "python", "html", "c"];
 
 const LanguageTabs = ({
   active,
   onSelect,
+  allowedLanguages,
 }: LanguageTabsProps): ReactElement => {
+  const languages = allowedLanguages ?? ALL_LANGUAGES;
+
   return (
     <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1 text-xs text-text-muted">
-      {LANGUAGES.map((language) => (
+      {languages.map((language) => (
         <button
           key={language}
           type="button"

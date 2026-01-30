@@ -16,6 +16,7 @@ import {
   saveProject,
 } from "./indexedDbBackend";
 import type { VFSDirectory, VFSFile, VFSNode } from "./types";
+import type { LessonEnvironment } from "../../domain/lessonEnvironment";
 
 type TemplateFile = {
   path: string;
@@ -40,6 +41,7 @@ type FileSystemActions = {
   loadFromIndexedDB: (lessonId: string) => Promise<boolean>;
   persistToIndexedDB: (lessonId: string) => Promise<void>;
   initializeFromTemplate: (files: TemplateFile[]) => void;
+  initializeFromEnvironment: (env: LessonEnvironment) => void;
   getMainFileContent: () => string;
   refreshDerivedState: () => void;
 };
@@ -146,6 +148,26 @@ const useFileSystemStore = create<FileSystemState & FileSystemActions>()(
         vfs.setMainFile(firstPath);
         set({ mainFilePath: firstPath });
       }
+      set({ ...deriveState(vfs), isLoaded: true });
+    },
+
+    initializeFromEnvironment: (env) => {
+      const { vfs, projectRoot } = get();
+      const templateFiles: TemplateFile[] = env.starterFiles.map((sf) => ({
+        path: sf.path.startsWith("/") ? sf.path : `${projectRoot}/${sf.path}`,
+        content: sf.content,
+      }));
+
+      for (const file of templateFiles) {
+        vfs.writeFile(file.path, file.content);
+      }
+
+      if (!get().mainFilePath && templateFiles.length > 0) {
+        const firstPath = templateFiles[0].path;
+        vfs.setMainFile(firstPath);
+        set({ mainFilePath: firstPath });
+      }
+
       set({ ...deriveState(vfs), isLoaded: true });
     },
 
