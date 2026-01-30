@@ -1505,7 +1505,7 @@ feat(env): add lesson-aware environment configs with presets
 
 ---
 
-## Phase 7: Split-pane Resizable Layout
+## Phase 7: Split-pane Resizable Layout ✅ COMPLETED
 
 **Goal:** Editor on top (or left), terminal on bottom (or right), with a draggable divider. The CodePane area becomes a proper IDE-like split layout.
 
