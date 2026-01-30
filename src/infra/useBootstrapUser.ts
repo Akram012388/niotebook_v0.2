@@ -10,7 +10,7 @@ type BootstrapState = {
   error?: string;
 };
 
-const useBootstrapUser = (): BootstrapState => {
+const useBootstrapUser = (enabled = true): BootstrapState => {
   const { isLoaded, isSignedIn, user } = useUser();
   const upsertUser = useMutation(upsertUserRef);
   const hasRunRef = useRef(false);
@@ -22,7 +22,7 @@ const useBootstrapUser = (): BootstrapState => {
       return;
     }
 
-    if (!isSignedIn) {
+    if (!enabled || !isSignedIn) {
       hasRunRef.current = false;
       return;
     }
@@ -48,11 +48,17 @@ const useBootstrapUser = (): BootstrapState => {
         setReady(false);
       },
     );
-  }, [isLoaded, isSignedIn, upsertUser, user?.publicMetadata?.inviteBatchId]);
+  }, [
+    enabled,
+    isLoaded,
+    isSignedIn,
+    upsertUser,
+    user?.publicMetadata?.inviteBatchId,
+  ]);
 
   return {
-    ready: isSignedIn ? ready : false,
-    error: isSignedIn ? error : undefined,
+    ready: enabled && isSignedIn ? ready : false,
+    error: enabled && isSignedIn ? error : undefined,
   };
 };
 
