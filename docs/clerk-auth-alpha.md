@@ -26,18 +26,18 @@ It is the execution contract for the upcoming Clerk-based auth gate.
    - `http://localhost:3000`
    - `*.vercel.app`
 5. Create invitations for alpha testers.
-   - Set public metadata per invite:
-     - `inviteBatchId: "alpha-2026-01"` (or cohort label)
-     - optional `role: "admin"` (not required; admin is email-based)
+   - If the invite UI does not expose metadata in Dev, set `inviteBatchId` after first sign-in under Clerk → Users → Public metadata.
 6. Record keys:
    - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
    - `CLERK_SECRET_KEY`
 
 ## Phase 1 — Convex Auth Provider
 
-1. Convex dashboard → Auth → add Clerk provider.
-2. Configure issuer + JWKS from Clerk.
-3. Verify `ctx.auth.getUserIdentity()` resolves Clerk identity.
+1. Add `convex/auth.config.ts` with Clerk provider configuration.
+2. Set `CLERK_JWT_ISSUER_DOMAIN` in Convex environment variables for preview-data and prod.
+   - Alpha uses the Dev issuer (e.g. `https://one-muskrat-8.clerk.accounts.dev`).
+3. Deploy Convex to apply the auth config (`npx convex deploy`).
+4. Verify `ctx.auth.getUserIdentity()` resolves Clerk identity in Convex functions.
 
 ## Phase 2 — App Integration (Auth Gate)
 
@@ -83,6 +83,7 @@ Add to `.env.example`:
 
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=`
 - `CLERK_SECRET_KEY=`
+- `CLERK_JWT_ISSUER_DOMAIN=`
 - `NIOTEBOOK_ADMIN_EMAILS=akram012388@gmail.com,niotebook@gmail.com`
 
 Update docs:

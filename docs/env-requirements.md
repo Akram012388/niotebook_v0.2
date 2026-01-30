@@ -14,6 +14,7 @@ It is intended to keep local, CI, and deployment configuration consistent.
 
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk frontend key.
 - `CLERK_SECRET_KEY` - Clerk backend key for server actions.
+- `CLERK_JWT_ISSUER_DOMAIN` - Clerk issuer for Convex auth config (set in Convex env vars).
 - `NIOTEBOOK_ADMIN_EMAILS` - Comma-separated allowlist for admin users.
 
 ## Feature toggles
@@ -43,7 +44,11 @@ throws on production builds if the bypass is enabled without preview allowances.
 ## Invite tracking
 
 Alpha uses Clerk invitations. Store `inviteBatchId` in Clerk invitation metadata
-and sync it into the `users` table on first sign-in.
+and sync it into the `users` table on first sign-in. If the invite UI does not
+expose metadata in Dev, set it on the user profile after sign-in.
+
+For alpha, preview + prod deployments use the Clerk Dev issuer in
+`CLERK_JWT_ISSUER_DOMAIN`.
 
 ## CI requirements
 
