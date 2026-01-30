@@ -165,6 +165,28 @@ Tasks:
 - Core loop wiring across player/editor/runtime/resume.
 - Resume sync path (Convex source of truth).
 
+## P13 — Tier 2 Code Editor (Complete)
+
+Phase: post-Phase 4
+Branch: `jarvis/code-editor-tier2`
+Dependencies: P11, P7
+Status: IMPLEMENTED
+
+The code editor was rebuilt from a plain textarea to a professional IDE-like environment. All eight sub-phases completed:
+
+1. **Virtual Filesystem (VFS)** — In-memory file tree with IndexedDB persistence, event subscriptions, Zustand store (`useFileSystemStore`).
+2. **File Tree + Tabbed Editor** — CodeMirror 6 (installed from scratch), `FileTreeSidebar`, `TabBar`, `TabbedEditor` with per-tab `EditorState` swapping, `useEditorStore`.
+3. **xterm.js Terminal** — `TerminalPanel` with `XTermView`, `TerminalToolbar`, streaming stdout/stderr, Zustand `useTerminalStore`, dark/light themes.
+4. **Wasmer/WASIX Integration** — Iframe sandbox (`/editor-sandbox`) with COOP/COEP headers, `WasmerBridge` postMessage protocol, fallback to Pyodide/builtins.
+5. **Cross-file Imports** — Python (`sys.path` + Pyodide FS mount), C (`#include` resolution from VFS), JS (`require()` shim reading VFS).
+6. **Lesson-aware Environment Configs** — `LessonEnvironment` type with starter files, `environmentConfig` on lessons, `LessonEnvBadge` UI, environment presets.
+7. **Split-pane Resizable Layout** — `SplitPane` component (vertical divider between editor and terminal), mouse-drag resize, persisted split ratio.
+8. **Enhanced Autocomplete** — Context-aware completions via `completionProvider`, language-specific keyword/API suggestions.
+
+Key dependencies added: `@codemirror/*` (state, view, language, commands, autocomplete, search, lang-javascript, lang-python, lang-html, lang-cpp, theme-one-dark), `@lezer/highlight`, `@xterm/xterm`, `@xterm/addon-fit`, `@xterm/addon-web-links`, `zustand`, `idb`.
+
+Deliverables: `docs/code-editor-tier2-plan.md` (full implementation plan).
+
 ## P12 — Video Authority + Runtime Correctness
 
 Phase: 3
