@@ -3,6 +3,8 @@
 This guide documents the required environment variables and where they are used.
 It is intended to keep local, CI, and deployment configuration consistent.
 
+Tag: `auth-e2e-docs-alignment-2026-01-30`
+
 ## Core runtime variables
 
 - `NEXT_PUBLIC_CONVEX_URL` - Required for the client Convex SDK unless Convex is disabled. Used in `src/infra/convexClient.ts`.
