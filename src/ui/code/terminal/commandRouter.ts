@@ -80,6 +80,13 @@ async function tryRouteThroughSandbox(
     vfs.writeFile(path, content);
   });
 
+  // Set up fs-delete handler to sync deletions back to VFS
+  bridge.setFsDeleteHandler((path) => {
+    if (vfs.exists(path)) {
+      vfs.delete(path);
+    }
+  });
+
   try {
     const result = await bridge.sendCommand(
       cmd.executable,
