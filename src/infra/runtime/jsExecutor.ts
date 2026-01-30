@@ -1,3 +1,4 @@
+import { makeRequireShim } from "./imports/jsModules";
 import type {
   RuntimeExecutor,
   RuntimeRunInput,
@@ -44,7 +45,18 @@ const initJsExecutor = async (): Promise<RuntimeExecutor> => {
         }, timeoutMs);
 
         try {
-          const fn = new Function(input.code);
+          // Prepend require() shim if VFS is provided (enables cross-file imports)
+          let code = input.code;
+          if (input.filesystem) {
+            const mainPath =
+              input.filesystem.getMainFilePath() ?? "/project/main.js";
+            const shim = makeRequireShim(mainPath, input.filesystem);
+            if (shim) {
+              code = shim + "\n" + code;
+            }
+          }
+
+          const fn = new Function(code);
           fn();
           window.clearTimeout(timer);
           resolve();
