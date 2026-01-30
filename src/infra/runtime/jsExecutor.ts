@@ -25,11 +25,15 @@ const initJsExecutor = async (): Promise<RuntimeExecutor> => {
     const originalError = console.error;
 
     console.log = (...args: unknown[]): void => {
-      stdout += `${args.map(String).join(" ")}\n`;
+      const line = `${args.map(String).join(" ")}\n`;
+      stdout += line;
+      input.onStdout?.(line);
     };
 
     console.error = (...args: unknown[]): void => {
-      stderr += `${args.map(String).join(" ")}\n`;
+      const line = `${args.map(String).join(" ")}\n`;
+      stderr += line;
+      input.onStderr?.(line);
     };
 
     try {
