@@ -1,14 +1,39 @@
 "use client";
 
-import type { ReactElement, ReactNode } from "react";
-import { ClerkLoaded, SignIn, SignedIn, SignedOut } from "@clerk/nextjs";
+import { useEffect, type ReactElement, type ReactNode } from "react";
+import { ClerkLoaded, SignedIn, SignedOut } from "@clerk/nextjs";
 import { useConvexAuth } from "convex/react";
+import { useRouter } from "next/navigation";
 import { AuthShell } from "./AuthShell";
-import { clerkAppearance } from "./clerkAppearance";
 import { useBootstrapUser } from "@/infra/useBootstrapUser";
 
 type AuthGateProps = {
   children: ReactNode;
+};
+
+/**
+ * Redirects unauthenticated users to /sign-in instead of rendering
+ * an inline SignIn form. This prevents a redirect loop where the
+ * embedded SignIn component's fallbackRedirectUrl points back to
+ * the same page that contains the AuthGate.
+ */
+const RedirectToSignIn = (): ReactElement => {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/sign-in");
+  }, [router]);
+
+  return (
+    <AuthShell
+      title="Redirecting"
+      subtitle="Taking you to sign in..."
+    >
+      <div className="rounded-xl border border-dashed border-border bg-surface-muted px-4 py-6 text-sm text-text-muted">
+        Redirecting to sign in...
+      </div>
+    </AuthShell>
+  );
 };
 
 const AuthGateWithClerk = ({ children }: AuthGateProps): ReactElement => {
@@ -18,17 +43,7 @@ const AuthGateWithClerk = ({ children }: AuthGateProps): ReactElement => {
   return (
     <ClerkLoaded>
       <SignedOut>
-        <AuthShell
-          title="Welcome back"
-          subtitle="Niotebook alpha is invite-only. Use the email code from your invite to sign in."
-        >
-          <SignIn
-            appearance={clerkAppearance}
-            routing="hash"
-            signUpUrl="/sign-up"
-            fallbackRedirectUrl="/workspace"
-          />
-        </AuthShell>
+        <RedirectToSignIn />
       </SignedOut>
       <SignedIn>
         {isLoading || !isAuthenticated ? (
