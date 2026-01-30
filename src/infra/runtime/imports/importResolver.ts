@@ -41,11 +41,6 @@ function resolveImport(
   language: RuntimeLanguage,
   vfs: VirtualFS,
 ): ResolvedImport | null {
-  // Compute the base directory of the importing file
-  const baseDir = fromPath.includes("/")
-    ? fromPath.slice(0, fromPath.lastIndexOf("/")) || "/"
-    : "/";
-
   // Resolve the specifier to an absolute path
   const candidateBase = specifier.startsWith("/")
     ? specifier
