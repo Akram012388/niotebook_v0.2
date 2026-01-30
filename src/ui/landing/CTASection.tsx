@@ -10,7 +10,12 @@ export function CTASection(): ReactElement {
     const el = ref.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
       { threshold: 0.3 }
     );
     observer.observe(el);

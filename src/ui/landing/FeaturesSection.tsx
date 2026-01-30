@@ -92,7 +92,12 @@ function FeatureCard({ feature, index }: { feature: Feature; index: number }): R
     const el = ref.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
       { threshold: 0.2 }
     );
     observer.observe(el);
@@ -103,6 +108,11 @@ function FeatureCard({ feature, index }: { feature: Feature; index: number }): R
     <div
       ref={ref}
       className="group relative p-6 sm:p-8 rounded-xl transition-all duration-700"
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+        e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+      }}
       style={{
         background: 'var(--surface)',
         border: '1px solid var(--border)',
