@@ -332,8 +332,8 @@ const CodePane = ({
         <SplitPane
           direction="vertical"
           initialSplit={0.65}
-          minFirst={0.2}
-          minSecond={0.1}
+          minFirst={100}
+          minSecond={60}
           storageKey="niotebook:split-editor-output"
           first={
             <div className="flex min-h-0 flex-1 flex-col">
