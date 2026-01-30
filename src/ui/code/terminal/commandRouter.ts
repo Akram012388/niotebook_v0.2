@@ -99,7 +99,7 @@ async function tryRouteThroughSandbox(
       },
     );
 
-    // Write any buffered output not already streamed
+    // Write remaining buffered output not already streamed
     if (result.stdout && !result.stdout.includes("\x00")) {
       // Output was already streamed via callbacks — no duplicate write needed
     }

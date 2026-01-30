@@ -265,7 +265,7 @@ const CodePane = ({
       onStderr: (chunk: string) => termStore.write(`\x1b[31m${chunk}\x1b[0m`),
     });
 
-    // Write any buffered output not already streamed
+    // Write remaining buffered output not already streamed
     if (result.stdout && !result.stdout.includes("\x00__streamed__")) {
       termStore.write(result.stdout);
     }

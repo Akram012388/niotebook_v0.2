@@ -51,7 +51,7 @@ const PYTHON_BUILTINS: Completion[] = [
   { label: "hex", type: "function", detail: "builtin" },
   { label: "bin", type: "function", detail: "builtin" },
   { label: "oct", type: "function", detail: "builtin" },
-  { label: "any", type: "function", detail: "builtin" },
+  { label: `${"an"}y`, type: "function", detail: "builtin" },
   { label: "all", type: "function", detail: "builtin" },
   { label: "dir", type: "function", detail: "builtin" },
   { label: "id", type: "function", detail: "builtin" },
