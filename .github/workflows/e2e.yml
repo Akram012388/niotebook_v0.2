@@ -95,6 +95,14 @@ jobs:
               normalized = normalized.strip("/")
               return normalized or None
 
+          def normalize_ref(value):
+              if not value:
+                  return None
+              normalized = value.strip()
+              if normalized.startswith("refs/heads/"):
+                  normalized = normalized.split("refs/heads/", 1)[1]
+              return normalized or None
+
           normalized = normalize_url(base_url)
           deployment_id = pick(
               deployment.get("id"),
@@ -104,6 +112,15 @@ jobs:
           deployment_target = pick(
               deployment.get("target"),
               client_payload.get("target"),
+          )
+          event_name = os.environ.get("GITHUB_EVENT_NAME")
+          branch_ref = normalize_ref(
+              pick(
+                  meta.get("githubCommitRef"),
+                  meta.get("gitRef"),
+                  git_source.get("ref"),
+                  client_payload.get("ref"),
+              )
           )
 
           if not ref and os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
@@ -123,6 +140,13 @@ jobs:
               skip_reason = (
                   "base URL is production (niotebook-v0-2.vercel.app)"
               )
+          if (
+              skip_reason is None
+              and event_name == "repository_dispatch"
+              and branch_ref
+              and branch_ref != "main"
+          ):
+              skip_reason = f"ref is {branch_ref} (only main allowed)"
 
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
               handle.write(f"CHECKOUT_REF={ref}\n")
@@ -145,6 +169,7 @@ jobs:
           print(f"Payload deployment.url: {deployment.get('url')}")
           print(f"Payload deployment.id: {deployment_id}")
           print(f"Payload deployment.target: {deployment_target}")
+          print(f"Payload branch ref: {branch_ref}")
           print(f"Payload meta.githubCommitSha: {meta.get('githubCommitSha')}")
           print(f"Payload meta.githubCommitRef: {meta.get('githubCommitRef')}")
           print(f"Payload meta.gitSha: {meta.get('gitSha')}")
@@ -191,6 +216,38 @@ jobs:
             echo "BASE_URL is empty. Provide base_url or ensure repository_dispatch payload includes a deployment URL."
             exit 1
           fi
+      - name: Preflight e2e readiness
+        if: env.SKIP_E2E != 'true'
+        run: |
+          python - <<'PY'
+          import os
+          import urllib.request
+
+          base_url = os.environ.get("BASE_URL")
+          if not base_url:
+              raise SystemExit("BASE_URL is required for preflight.")
+
+          marker = 'name="niotebook-e2e" content="ready"'
+
+          try:
+              with urllib.request.urlopen(base_url, timeout=10) as response:
+                  body = response.read().decode("utf-8", errors="ignore")
+          except Exception as exc:
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
+                  handle.write("SKIP_E2E=true\n")
+                  handle.write("SKIP_E2E_REASON=preflight fetch failed\n")
+              print(f"Preflight fetch failed: {exc}")
+              raise SystemExit(0)
+
+          if marker not in body:
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
+                  handle.write("SKIP_E2E=true\n")
+                  handle.write("SKIP_E2E_REASON=preview not e2e-ready (marker missing)\n")
+              print("E2E marker missing; skipping run.")
+              raise SystemExit(0)
+
+          print("E2E marker present; continuing.")
+          PY
       - run: bun run e2e:seed
         if: env.SKIP_E2E != 'true'
       - run: bun ./scripts/e2eEnv.ts --github

@@ -27,8 +27,13 @@ type RootLayoutProps = {
 export default function RootLayout({
   children,
 }: RootLayoutProps): ReactElement {
+  const isE2ePreview = process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true";
+
   return (
     <html lang="en">
+      <head>
+        {isE2ePreview ? <meta name="niotebook-e2e" content="ready" /> : null}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
