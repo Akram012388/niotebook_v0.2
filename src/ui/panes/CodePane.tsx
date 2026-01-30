@@ -11,6 +11,7 @@ import { makeFunctionReference } from "convex/server";
 import { OutputPanel } from "../code/OutputPanel";
 import { RuntimeStatus } from "../code/RuntimeStatus";
 import { EditorSkeleton } from "../code/EditorSkeleton";
+import { SplitPane } from "../code/SplitPane";
 import { useLayoutPreset } from "../layout/LayoutPresetContext";
 import { useEditorStore } from "../code/useEditorStore";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
@@ -279,27 +280,38 @@ const CodePane = ({
           </button>
         </div>
       </header>
-      <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
-        <div className="flex min-h-0 flex-[4] flex-col">
-          <EditorArea showFileTree={showFileTree} />
-        </div>
-        <div className="flex min-h-0 flex-[1] flex-col rounded-lg border border-border bg-black text-slate-100 dark:bg-slate-50 dark:text-slate-900">
-          <div className="px-3 pt-3">
-            <RuntimeStatus
-              state={runtimeState}
-              className="text-slate-300 dark:text-slate-600"
-            />
-          </div>
-          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 pb-3 pt-2">
-            <OutputPanel output={runtimeOutput} variant="inline" />
-            {runtimeState.status === "error" ? (
-              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
-                {runtimeState.message ?? "Runtime error"}
+      <div className="flex min-h-0 flex-1 flex-col">
+        <SplitPane
+          direction="vertical"
+          initialSplit={0.65}
+          minFirst={0.2}
+          minSecond={0.1}
+          storageKey="niotebook:split-editor-output"
+          first={
+            <div className="flex min-h-0 flex-1 flex-col">
+              <EditorArea showFileTree={showFileTree} />
+            </div>
+          }
+          second={
+            <div className="flex min-h-0 flex-1 flex-col bg-black text-slate-100 dark:bg-slate-50 dark:text-slate-900">
+              <div className="px-3 pt-3">
+                <RuntimeStatus
+                  state={runtimeState}
+                  className="text-slate-300 dark:text-slate-600"
+                />
               </div>
-            ) : null}
-            <div id="niotebook-runtime-frame" className="min-h-[120px]" />
-          </div>
-        </div>
+              <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 pb-3 pt-2">
+                <OutputPanel output={runtimeOutput} variant="inline" />
+                {runtimeState.status === "error" ? (
+                  <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+                    {runtimeState.message ?? "Runtime error"}
+                  </div>
+                ) : null}
+                <div id="niotebook-runtime-frame" className="min-h-[120px]" />
+              </div>
+            </div>
+          }
+        />
       </div>
     </section>
   );
