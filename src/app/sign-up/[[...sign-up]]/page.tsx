@@ -15,7 +15,7 @@ const SignUpPage = (): ReactElement => {
         appearance={clerkAppearance}
         routing="path"
         path="/sign-up"
-        fallbackRedirectUrl="/"
+        fallbackRedirectUrl="/workspace"
         signInUrl="/sign-in"
       />
     </AuthShell>
