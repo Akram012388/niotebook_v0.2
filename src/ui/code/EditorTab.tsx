@@ -56,8 +56,8 @@ const EditorTab = ({
       tabIndex={0}
       className={`flex cursor-pointer items-center gap-1.5 border-b-2 px-3 py-1.5 text-xs transition ${
         isActive
-          ? "border-blue-500 text-foreground"
-          : "border-transparent text-text-muted hover:text-foreground"
+          ? "border-workspace-accent bg-workspace-editor text-workspace-text"
+          : "border-transparent text-workspace-text-muted hover:bg-workspace-editor hover:text-workspace-text"
       }`}
       onClick={handleClick}
       onMouseDown={handleMiddleClick}
@@ -77,7 +77,7 @@ const EditorTab = ({
       ) : null}
       <button
         type="button"
-        className="ml-0.5 flex-shrink-0 text-[10px] text-text-muted hover:text-foreground"
+        className="ml-0.5 flex-shrink-0 text-[10px] text-workspace-text-muted hover:text-workspace-text"
         onClick={handleClose}
         onKeyDown={handleCloseKeyDown}
         aria-label={`Close ${name}`}

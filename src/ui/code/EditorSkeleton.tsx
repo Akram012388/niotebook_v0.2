@@ -7,11 +7,11 @@ import type { ReactElement } from "react";
 const SKELETON_LINES = 12;
 
 const EditorSkeleton = (): ReactElement => (
-  <div className="flex flex-1 flex-col gap-1 p-4">
+  <div className="flex flex-1 flex-col gap-1 bg-workspace-editor p-4">
     {Array.from({ length: SKELETON_LINES }, (_, i) => (
       <div
         key={i}
-        className="h-4 animate-pulse rounded bg-surface-muted"
+        className="h-4 animate-pulse rounded bg-workspace-border"
         style={{ width: `${40 + ((i * 17) % 50)}%` }}
       />
     ))}

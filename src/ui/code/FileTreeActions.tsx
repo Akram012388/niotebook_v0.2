@@ -73,9 +73,7 @@ const FileTreeActions = ({
     const newName = window.prompt("Rename to:", oldName);
     if (!newName || newName === oldName) return;
     const newPath =
-      (targetPath.slice(0, targetPath.lastIndexOf("/")) || "/") +
-      "/" +
-      newName;
+      (targetPath.slice(0, targetPath.lastIndexOf("/")) || "/") + "/" + newName;
     renameNode(targetPath, newPath);
     onClose();
   }, [targetPath, renameNode, onClose]);
@@ -89,12 +87,12 @@ const FileTreeActions = ({
   }, [targetPath, deleteNode, onClose]);
 
   const itemClass =
-    "px-3 py-1.5 text-xs cursor-pointer hover:bg-surface-muted text-foreground";
+    "px-3 py-1.5 text-xs cursor-pointer hover:bg-workspace-editor text-workspace-text";
 
   return (
     <ul
       ref={menuRef}
-      className="fixed z-50 min-w-[140px] rounded-md border border-border bg-surface py-1 shadow-lg"
+      className="fixed z-50 min-w-[140px] rounded-md border border-workspace-border bg-workspace-sidebar py-1 text-workspace-text shadow-lg"
       style={{ left: x, top: y }}
       role="menu"
     >
@@ -108,7 +106,7 @@ const FileTreeActions = ({
         <>
           <li
             role="separator"
-            className="my-1 border-t border-border-muted"
+            className="my-1 border-t border-workspace-border-muted"
           />
           <li role="menuitem" className={itemClass} onClick={handleRename}>
             Rename

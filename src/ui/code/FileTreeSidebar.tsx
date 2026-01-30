@@ -26,12 +26,10 @@ const FileTreeSidebar = (): ReactElement => {
   const [collapsed, setCollapsed] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
 
-  const rootChildren = vfs
-    .readDir("/project")
-    .sort((a, b) => {
-      if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
-      return a.name.localeCompare(b.name);
-    });
+  const rootChildren = vfs.readDir("/project").sort((a, b) => {
+    if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
 
   const handleContextMenu = useCallback(
     (e: ReactMouseEvent, path: string, isDirectory: boolean) => {
@@ -41,27 +39,24 @@ const FileTreeSidebar = (): ReactElement => {
     [],
   );
 
-  const handleRootContextMenu = useCallback(
-    (e: ReactMouseEvent) => {
-      e.preventDefault();
-      setContextMenu({
-        x: e.clientX,
-        y: e.clientY,
-        path: null,
-        isDirectory: true,
-      });
-    },
-    [],
-  );
+  const handleRootContextMenu = useCallback((e: ReactMouseEvent) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      path: null,
+      isDirectory: true,
+    });
+  }, []);
 
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
 
   if (collapsed) {
     return (
-      <div className="flex w-8 flex-shrink-0 flex-col items-center border-r border-border-muted pt-2">
+      <div className="flex w-8 flex-shrink-0 flex-col items-center border-r border-workspace-border bg-workspace-sidebar pt-2 text-workspace-text">
         <button
           type="button"
-          className="text-xs text-text-muted hover:text-foreground"
+          className="text-xs text-workspace-text-muted hover:text-workspace-text"
           onClick={() => setCollapsed(false)}
           aria-label="Expand file explorer"
           title="Expand"
@@ -73,15 +68,15 @@ const FileTreeSidebar = (): ReactElement => {
   }
 
   return (
-    <div className="flex w-[200px] flex-shrink-0 flex-col border-r border-border-muted">
-      <div className="flex items-center justify-between border-b border-border-muted px-2 py-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+    <div className="flex w-[200px] flex-shrink-0 flex-col border-r border-workspace-border bg-workspace-sidebar text-workspace-text">
+      <div className="flex items-center justify-between border-b border-workspace-border-muted px-2 py-1.5">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-workspace-text-muted">
           Files
         </span>
         <div className="flex items-center gap-1">
           <button
             type="button"
-            className="text-xs text-text-muted hover:text-foreground"
+            className="text-xs text-workspace-text-muted hover:text-workspace-text"
             onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
               e.preventDefault();
               setContextMenu({
@@ -98,7 +93,7 @@ const FileTreeSidebar = (): ReactElement => {
           </button>
           <button
             type="button"
-            className="text-xs text-text-muted hover:text-foreground"
+            className="text-xs text-workspace-text-muted hover:text-workspace-text"
             onClick={() => setCollapsed(true)}
             aria-label="Collapse file explorer"
             title="Collapse"

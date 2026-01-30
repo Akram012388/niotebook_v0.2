@@ -15,10 +15,7 @@ const TabBar = (): ReactElement => {
     [setActiveFile],
   );
 
-  const handleClose = useCallback(
-    (id: string) => closeFile(id),
-    [closeFile],
-  );
+  const handleClose = useCallback((id: string) => closeFile(id), [closeFile]);
 
   if (openFiles.length === 0) return <div />;
 
@@ -26,7 +23,7 @@ const TabBar = (): ReactElement => {
     <div
       role="tablist"
       aria-label="Open files"
-      className="flex items-center overflow-x-auto border-b border-border-muted bg-surface"
+      className="flex items-center overflow-x-auto border-b border-workspace-border bg-workspace-tabbar"
     >
       {openFiles.map((file) => (
         <EditorTab

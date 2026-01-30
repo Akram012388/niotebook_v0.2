@@ -61,48 +61,48 @@ const languageLoaders: Record<RuntimeLanguage, LanguageLoader> = {
   c: () => import("@codemirror/lang-cpp").then((m) => m.cpp()),
 };
 
-async function loadLanguage(
-  lang: RuntimeLanguage,
-): Promise<LanguageSupport> {
+async function loadLanguage(lang: RuntimeLanguage): Promise<LanguageSupport> {
   return languageLoaders[lang]();
 }
 
-// ── Light theme (matches Niotebook surface colors) ────────────
+// ── Workspace theme (always dark, VS Code-like) ──────────────
 
-const niotebookLightTheme = EditorView.theme(
+const niotebookWorkspaceTheme = EditorView.theme(
   {
     "&": {
-      backgroundColor: "var(--color-surface, #ffffff)",
-      color: "var(--color-foreground, #0f172a)",
+      backgroundColor: "var(--color-workspace-editor, #0d1117)",
+      color: "var(--color-workspace-text, #e5e7eb)",
     },
     ".cm-content": {
-      caretColor: "var(--color-foreground, #0f172a)",
+      caretColor: "var(--color-workspace-text, #e5e7eb)",
       fontFamily: "var(--font-mono, ui-monospace, monospace)",
-      fontSize: "13px",
+      fontSize: "12px",
       lineHeight: "1.6",
     },
     ".cm-cursor": {
-      borderLeftColor: "var(--color-foreground, #0f172a)",
+      borderLeftColor: "var(--color-workspace-text, #e5e7eb)",
     },
     ".cm-gutters": {
-      backgroundColor: "var(--color-surface-muted, #f8fafc)",
-      color: "var(--color-text-muted, #94a3b8)",
+      backgroundColor: "var(--color-workspace-editor, #0d1117)",
+      color: "var(--color-workspace-text-muted, #9aa4b2)",
       border: "none",
     },
     ".cm-activeLineGutter": {
-      backgroundColor: "var(--color-surface-muted, #f1f5f9)",
+      backgroundColor:
+        "var(--color-workspace-accent-muted, rgba(96, 165, 250, 0.2))",
     },
     ".cm-activeLine": {
-      backgroundColor: "var(--color-surface-muted, #f8fafc)",
+      backgroundColor:
+        "var(--color-workspace-accent-muted, rgba(96, 165, 250, 0.2))",
     },
     ".cm-selectionBackground": {
-      backgroundColor: "rgba(59, 130, 246, 0.15) !important",
+      backgroundColor: "rgba(96, 165, 250, 0.25) !important",
     },
     "&.cm-focused .cm-selectionBackground": {
-      backgroundColor: "rgba(59, 130, 246, 0.2) !important",
+      backgroundColor: "rgba(96, 165, 250, 0.35) !important",
     },
   },
-  { dark: false },
+  { dark: true },
 );
 
 // ── Extension bundles ─────────────────────────────────────────
@@ -148,12 +148,15 @@ function baseExtensions(
 }
 
 /**
- * Returns the theme extension for dark or light mode.
- * Dark = oneDark, Light = niotebookLightTheme + defaultHighlightStyle.
+ * Returns the workspace theme extension.
+ * Always uses a dark, VS Code-like workspace palette.
  */
-function themeExtension(dark: boolean): import("@codemirror/state").Extension {
-  if (dark) return oneDark;
-  return [niotebookLightTheme, syntaxHighlighting(defaultHighlightStyle)];
+function themeExtension(_dark: boolean): import("@codemirror/state").Extension {
+  return [
+    oneDark,
+    niotebookWorkspaceTheme,
+    syntaxHighlighting(defaultHighlightStyle),
+  ];
 }
 
 export { baseExtensions, loadLanguage, themeExtension };

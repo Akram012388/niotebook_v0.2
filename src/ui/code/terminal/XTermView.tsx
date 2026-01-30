@@ -15,17 +15,12 @@ import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
 
 import { useTerminalStore } from "./useTerminalStore";
-import { niotebookDarkTerminal, niotebookLightTerminal } from "./terminalTheme";
+import { niotebookDarkTerminal } from "./terminalTheme";
 
 const PROMPT = "\x1b[32m$ \x1b[0m";
 
-function isDarkMode(): boolean {
-  if (typeof document === "undefined") return true;
-  return document.documentElement.classList.contains("dark");
-}
-
 function getTerminalTheme(): import("@xterm/xterm").ITheme {
-  return isDarkMode() ? niotebookDarkTerminal : niotebookLightTerminal;
+  return niotebookDarkTerminal;
 }
 
 const XTermView = (): ReactElement => {
@@ -42,7 +37,7 @@ const XTermView = (): ReactElement => {
 
     const terminal = new Terminal({
       scrollback: 1000,
-      fontSize: 13,
+      fontSize: 12,
       fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
       theme: getTerminalTheme(),
       cursorBlink: true,
@@ -65,7 +60,9 @@ const XTermView = (): ReactElement => {
 
     // Welcome message
     terminal.writeln("Niotebook Terminal v0.1");
-    terminal.writeln("Type a command: python3 main.py, node main.js, ls, cat, echo, clear");
+    terminal.writeln(
+      "Type a command: python3 main.py, node main.js, ls, cat, echo, clear",
+    );
     terminal.write(PROMPT);
 
     // Handle user input
@@ -128,15 +125,6 @@ const XTermView = (): ReactElement => {
     });
     resizeObserver.observe(container);
 
-    // Watch for theme changes on <html> element (dark class toggle)
-    const themeObserver = new MutationObserver(() => {
-      terminal.options.theme = getTerminalTheme();
-    });
-    themeObserver.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
     // Window resize → fit
     const onWindowResize = (): void => {
       try {
@@ -150,7 +138,6 @@ const XTermView = (): ReactElement => {
     return () => {
       onDataDisposable.dispose();
       resizeObserver.disconnect();
-      themeObserver.disconnect();
       window.removeEventListener("resize", onWindowResize);
       setTerminal(null);
       terminal.dispose();
@@ -159,12 +146,7 @@ const XTermView = (): ReactElement => {
     };
   }, [setTerminal]);
 
-  return (
-    <div
-      ref={containerRef}
-      className="min-h-0 flex-1 overflow-hidden"
-    />
-  );
+  return <div ref={containerRef} className="h-full w-full" />;
 };
 
 export default XTermView;

@@ -52,7 +52,7 @@ const TabbedEditor = (): ReactElement => {
 
   return (
     <div
-      className="flex min-h-0 flex-1 flex-col"
+      className="flex min-h-0 flex-1 flex-col bg-workspace-editor text-workspace-text"
       onKeyDown={handleKeyDown}
     >
       <TabBar />
@@ -62,7 +62,7 @@ const TabbedEditor = (): ReactElement => {
           onStateChange={handleStateChange}
         />
       ) : (
-        <div className="flex flex-1 items-center justify-center text-sm text-text-muted">
+        <div className="flex flex-1 items-center justify-center text-sm text-workspace-text-muted">
           Open a file from the tree to start editing
         </div>
       )}

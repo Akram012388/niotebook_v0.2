@@ -35,15 +35,12 @@ const EditorArea = dynamic(() => import("../code/EditorArea"), {
   loading: () => <EditorSkeleton />,
 });
 
-const TerminalPanel = dynamic(
-  () => import("../code/terminal/TerminalPanel"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex-1 bg-[#0f172a] animate-pulse rounded-lg" />
-    ),
-  },
-);
+const TerminalPanel = dynamic(() => import("../code/terminal/TerminalPanel"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex-1 animate-pulse rounded-lg bg-workspace-terminal" />
+  ),
+});
 
 // ── Default templates per language ────────────────────────────
 
@@ -125,7 +122,14 @@ const CodePane = ({
       initializeFromTemplate([{ path: filename, content }]);
       void openFile(`/project/${filename}`);
     }
-  }, [isLoaded, language, environment, initializeFromTemplate, initializeFromEnvironment, openFile]);
+  }, [
+    isLoaded,
+    language,
+    environment,
+    initializeFromTemplate,
+    initializeFromEnvironment,
+    openFile,
+  ]);
 
   // ── Convex snapshot integration (backward compat) ─────────
 
@@ -178,9 +182,7 @@ const CodePane = ({
       .then(() => {
         if (cancelled) return;
 
-        const warmupDuration = Math.round(
-          performance.now() - warmupStartedAt,
-        );
+        const warmupDuration = Math.round(performance.now() - warmupStartedAt);
 
         if (process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true") {
           void logEvent({
@@ -301,38 +303,12 @@ const CodePane = ({
     <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-border bg-surface">
       <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
         <div className="flex items-center gap-3">
-          <div>
-            <p className="text-sm font-semibold text-foreground">
-              Code workspace
-            </p>
-            <p className="text-xs text-text-muted">Editor + output scaffold</p>
-          </div>
+          <p className="text-sm font-semibold text-foreground">
+            Code workspace
+          </p>
           <LessonEnvBadge environment={environment} />
         </div>
-        <div className="flex items-center gap-2 text-xs">
-          {headerExtras}
-          <button
-            type="button"
-            onClick={handleRun}
-            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
-          >
-            Run
-          </button>
-          <button
-            type="button"
-            onClick={handleStop}
-            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
-          >
-            Stop
-          </button>
-          <button
-            type="button"
-            onClick={handleClear}
-            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
-          >
-            Clear
-          </button>
-        </div>
+        <div className="flex items-center gap-2 text-xs">{headerExtras}</div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col">
         <SplitPane
@@ -348,7 +324,11 @@ const CodePane = ({
           }
           second={
             <div className="flex min-h-0 flex-1 flex-col">
-              <TerminalPanel />
+              <TerminalPanel
+                onRun={handleRun}
+                onStop={handleStop}
+                onClear={handleClear}
+              />
             </div>
           }
         />

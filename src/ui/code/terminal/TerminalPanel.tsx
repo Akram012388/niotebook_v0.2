@@ -10,12 +10,25 @@ import type { ReactElement } from "react";
 import { TerminalToolbar } from "./TerminalToolbar";
 import { XTermView } from "./XTermView";
 
-const TerminalPanel = (): ReactElement => (
-  <div className="flex min-h-0 flex-1 flex-col bg-[#0f172a]">
-    <TerminalToolbar />
-    <XTermView />
+type TerminalPanelProps = {
+  onRun: () => void;
+  onStop: () => void;
+  onClear: () => void;
+};
+
+const TerminalPanel = ({
+  onRun,
+  onStop,
+  onClear,
+}: TerminalPanelProps): ReactElement => (
+  <div className="flex min-h-0 flex-1 flex-col bg-workspace-terminal text-workspace-text">
+    <TerminalToolbar onRun={onRun} onStop={onStop} onClear={onClear} />
+    <div className="min-h-0 flex-1 overflow-hidden p-4">
+      <XTermView />
+    </div>
   </div>
 );
 
 export default TerminalPanel;
 export { TerminalPanel };
+export type { TerminalPanelProps };
