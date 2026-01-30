@@ -15,7 +15,7 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 ### Core content
 
 - `courses`: sourcePlaylistId, title, description?, license, sourceUrl
-- `lessons`: courseId, videoId, title, durationSec, order, subtitlesUrl?, transcriptUrl?, transcriptDurationSec?, segmentCount?, ingestVersion?, transcriptStatus (ok|warn|missing|error)
+- `lessons`: courseId, videoId, title, durationSec, order, subtitlesUrl?, transcriptUrl?, transcriptDurationSec?, segmentCount?, ingestVersion?, transcriptStatus (ok|warn|missing|error), environmentConfig? (JSON — Tier 2 lesson environment: primaryLanguage, starterFiles, allowedLanguages)
 - `chapters`: lessonId, title, startSec, endSec
 - `transcriptSegments`: lessonId, idx, startSec, endSec, textRaw, textNormalized
 
