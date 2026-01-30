@@ -250,9 +250,11 @@ const CodePane = ({
     const termStore = useTerminalStore.getState();
     termStore.writeLn(`\x1b[90m$ run ${language}\x1b[0m`);
 
+    const vfs = useFileSystemStore.getState().vfs;
     const result = await runRuntime(language, {
       code,
       timeoutMs: RUNTIME_TIMEOUT_MS,
+      filesystem: vfs,
       onStdout: (chunk: string) => termStore.write(chunk),
       onStderr: (chunk: string) => termStore.write(`\x1b[31m${chunk}\x1b[0m`),
     });
