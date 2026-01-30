@@ -14,6 +14,7 @@ It is intended to keep local, CI, and deployment configuration consistent.
 
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk frontend key.
 - `CLERK_SECRET_KEY` - Clerk backend key for server actions.
+- `CLERK_JWT_ISSUER_DOMAIN` - Clerk issuer for Convex auth config (set in Convex env vars).
 - `NIOTEBOOK_ADMIN_EMAILS` - Comma-separated allowlist for admin users.
 
 ## Feature toggles

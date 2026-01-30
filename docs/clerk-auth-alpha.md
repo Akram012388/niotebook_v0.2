@@ -38,6 +38,7 @@ It is the execution contract for the upcoming Clerk-based auth gate.
 1. Convex dashboard → Auth → add Clerk provider.
 2. Configure issuer + JWKS from Clerk.
 3. Verify `ctx.auth.getUserIdentity()` resolves Clerk identity.
+4. Set `CLERK_JWT_ISSUER_DOMAIN` in Convex environment variables for preview-data and prod.
 
 ## Phase 2 — App Integration (Auth Gate)
 
@@ -83,6 +84,7 @@ Add to `.env.example`:
 
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=`
 - `CLERK_SECRET_KEY=`
+- `CLERK_JWT_ISSUER_DOMAIN=`
 - `NIOTEBOOK_ADMIN_EMAILS=akram012388@gmail.com,niotebook@gmail.com`
 
 Update docs:
