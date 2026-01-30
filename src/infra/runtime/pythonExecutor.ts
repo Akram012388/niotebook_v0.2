@@ -1,4 +1,3 @@
-import type { PyodideInterface } from "./imports/pythonImports";
 import { mountPythonFiles } from "./imports/pythonImports";
 import type {
   RuntimeExecutor,

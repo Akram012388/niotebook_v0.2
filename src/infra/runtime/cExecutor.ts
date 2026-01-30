@@ -1,3 +1,4 @@
+import { resolveIncludes } from "./imports/cIncludes";
 import type {
   RuntimeExecutor,
   RuntimeRunInput,
@@ -20,7 +21,16 @@ const initCExecutor = async (): Promise<RuntimeExecutor> => {
     const start = performance.now();
     await init();
 
-    const payload = input.code.trim() ? "Input received." : "No input.";
+    // Resolve #include "..." directives from VFS before compilation.
+    // This inlines user headers for the TCC-WASM fallback compiler.
+    let processedCode = input.code;
+    if (input.filesystem) {
+      const mainPath =
+        input.filesystem.getMainFilePath() ?? "/project/main.c";
+      processedCode = resolveIncludes(input.code, mainPath, input.filesystem);
+    }
+
+    const payload = processedCode.trim() ? "Input received." : "No input.";
 
     return {
       stdout: `C runtime spike placeholder. ${payload}`,
