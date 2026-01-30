@@ -49,8 +49,8 @@ export function CTASection(): ReactElement {
 
         <a
           href="/sign-in"
-          className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg"
-          style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
+          className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+          style={{ background: 'var(--accent)', color: 'var(--accent-foreground)', '--tw-ring-color': 'var(--text-muted)', '--tw-ring-offset-color': 'var(--background)' } as React.CSSProperties}
         >
           Start Learning
           <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>

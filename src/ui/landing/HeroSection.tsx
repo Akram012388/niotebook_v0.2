@@ -112,8 +112,8 @@ export function HeroSection(): ReactElement {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 sm:mb-20 animate-[fadeSlideUp_0.6s_ease-out_0.9s_both]">
           <a
             href="/sign-in"
-            className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-            style={{ background: 'var(--accent)', color: 'var(--accent-foreground)' }}
+            className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+            style={{ background: 'var(--accent)', color: 'var(--accent-foreground)', '--tw-ring-color': 'var(--text-muted)', '--tw-ring-offset-color': 'var(--background)' } as React.CSSProperties}
           >
             Start Learning
             <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
