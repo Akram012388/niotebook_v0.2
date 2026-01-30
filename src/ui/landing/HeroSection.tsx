@@ -53,7 +53,8 @@ function TypingCode(): ReactElement {
 export function HeroSection(): ReactElement {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    requestAnimationFrame(() => setMounted(true));
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
   }, []);
 
   return (
