@@ -15,7 +15,7 @@
 3. [Phase 1: Virtual Filesystem](#phase-1-virtual-filesystem)
 4. [Phase 2: File Tree + Tabbed Editor](#phase-2-file-tree--tabbed-editor)
 5. [Phase 3: xterm.js Terminal](#phase-3-xtermjs-terminal)
-6. [Phase 4: Wasmer/WASIX Integration](#phase-4-wasmerwasix-integration)
+6. [Phase 4: Wasmer/WASIX Integration ✅ COMPLETED](#phase-4-wasmerwasix-integration)
 7. [Phase 5: Cross-file Imports ✅ COMPLETED](#phase-5-cross-file-imports)
 8. [Phase 6: Lesson-aware Environment Configs ✅ COMPLETED](#phase-6-lesson-aware-environment-configs)
 9. [Phase 7: Split-pane Resizable Layout](#phase-7-split-pane-resizable-layout)
@@ -959,9 +959,33 @@ feat(terminal): add xterm.js terminal with streaming runtime output
 
 ---
 
-## Phase 4: Wasmer/WASIX Integration
+## Phase 4: Wasmer/WASIX Integration ✅ COMPLETED
 
 **Goal:** Run real commands in the browser via Wasmer/WASIX. `python3 main.py`, `ls`, `cat file.txt`, `gcc main.c -o main && ./main`. The terminal becomes a real-ish shell.
+
+### 📋 Implementation Notes (Phase 4 Completed)
+
+**SDK Research Findings (2026-01-30):**
+- **Correct package:** `@wasmer/sdk` v0.10.0 on npm
+- **API:** `init()` → `Wasmer.fromRegistry("python/python@3.12")` → `pkg.entrypoint.run({ args })` → `instance.wait()`
+- **Requires:** SharedArrayBuffer (COOP/COEP headers) — handled via iframe sandbox isolation
+- **Architecture:** Wasmer SDK is attempted first inside the sandbox iframe; if unavailable (e.g., browser incompatibility), falls back to Pyodide for Python and VFS builtins for shell commands
+- **No `@wasmer/sdk` installed as npm dependency** — it's loaded dynamically at runtime inside the sandbox. Type declarations provided via `wasmer-sdk.d.ts`.
+
+**Files created:**
+- `src/infra/runtime/wasmer/wasmerTypes.ts` — postMessage protocol types
+- `src/infra/runtime/wasmer/WasmerBridge.ts` — main app ↔ sandbox iframe bridge
+- `src/infra/runtime/wasmer/wasmerShell.ts` — command executor running inside sandbox
+- `src/infra/runtime/wasmer/vfsMount.ts` — VFS serialization for postMessage
+- `src/infra/runtime/wasmer/wasmer-sdk.d.ts` — type declarations for @wasmer/sdk
+- `src/app/editor-sandbox/page.tsx` — sandbox iframe page (client component)
+- `src/app/editor-sandbox/layout.tsx` — minimal layout, no providers
+- `next.config.ts` — COOP/COEP headers on `/editor-sandbox` route ONLY
+
+**Files modified:**
+- `src/ui/code/terminal/commandRouter.ts` — sandbox-first routing with fallback
+- `src/infra/runtime/runtimeManager.ts` — sandbox-backed execution support
+- `src/ui/code/terminal/useTerminalStore.ts` — added "shell" mode
 
 ### ⚠️ Pre-Implementation Research Step
 

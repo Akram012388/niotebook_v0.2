@@ -18,7 +18,7 @@ let wasmerReady = false;
 let pyodideInstance: unknown = null;
 
 /** In-memory file map used by both Wasmer and fallback paths. */
-let mountedFiles: Map<string, string> = new Map();
+const mountedFiles: Map<string, string> = new Map();
 
 // ── Helpers ─────────────────────────────────────────────────
 
