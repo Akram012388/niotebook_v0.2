@@ -2,6 +2,7 @@ import { initCExecutor } from "./cExecutor";
 import { initHtmlExecutor } from "./htmlExecutor";
 import { initJsExecutor } from "./jsExecutor";
 import { initPythonExecutor } from "./pythonExecutor";
+import type { VirtualFS } from "../vfs/VirtualFS";
 import type {
   RuntimeExecutor,
   RuntimeLanguage,
@@ -46,9 +47,10 @@ const loadExecutor = async (
 const runRuntime = async (
   language: RuntimeLanguage,
   input: RuntimeRunInput,
+  filesystem?: VirtualFS,
 ): Promise<RuntimeRunResult> => {
   const executor = await loadExecutor(language);
-  return executor.run(input);
+  return executor.run(filesystem ? { ...input, filesystem } : input);
 };
 
 const stopRuntime = async (language: RuntimeLanguage): Promise<void> => {

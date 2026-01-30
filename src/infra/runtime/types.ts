@@ -4,6 +4,8 @@ type RuntimeRunInput = {
   code: string;
   stdin?: string;
   timeoutMs: number;
+  /** Virtual filesystem instance for multi-file support. Optional for backward compatibility. */
+  filesystem?: import("../vfs/VirtualFS").VirtualFS;
 };
 
 type RuntimeRunResult = {
