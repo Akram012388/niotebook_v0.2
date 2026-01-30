@@ -16,7 +16,7 @@ type CodeMirrorEditorProps = {
   /** The CM6 EditorState to display. When this changes identity, the view swaps state. */
   editorState: EditorState;
   /** Called on every document or selection change with the new state. */
-  onStateChange: (state: EditorState) => void;
+  onStateChange: (state: EditorState, docChanged: boolean) => void;
 };
 
 const CodeMirrorEditor = ({
@@ -38,7 +38,7 @@ const CodeMirrorEditor = ({
       dispatch: (tr) => {
         view.update([tr]);
         if (tr.docChanged || tr.selection) {
-          onStateChangeRef.current(view.state);
+          onStateChangeRef.current(view.state, tr.docChanged);
         }
       },
     });
