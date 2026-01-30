@@ -82,7 +82,15 @@ const FileTreeSidebar = (): ReactElement => {
           <button
             type="button"
             className="text-xs text-text-muted hover:text-foreground"
-            onClick={handleRootContextMenu as unknown as () => void}
+            onClick={(e: ReactMouseEvent<HTMLButtonElement>) => {
+              e.preventDefault();
+              setContextMenu({
+                x: e.clientX,
+                y: e.clientY,
+                path: null,
+                isDirectory: true,
+              });
+            }}
             aria-label="New file or folder"
             title="New..."
           >
