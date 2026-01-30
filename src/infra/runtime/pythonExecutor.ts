@@ -1,3 +1,4 @@
+import { mountPythonFiles } from "./imports/pythonImports";
 import type {
   RuntimeExecutor,
   RuntimeRunInput,
@@ -19,6 +20,16 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
   const run = async (input: RuntimeRunInput): Promise<RuntimeRunResult> => {
     const start = performance.now();
     await init();
+
+    // Mount VFS Python files to Pyodide FS if VFS is provided.
+    // When a real Pyodide instance is available, this enables cross-file imports.
+    // Currently the executor is still a stub, so we capture the intent for when
+    // Pyodide is integrated (Phase 4+).
+    if (input.filesystem) {
+      // Pyodide integration point: once `pyodide` is loaded, call:
+      // mountPythonFiles(pyodide, input.filesystem);
+      void mountPythonFiles;
+    }
 
     const payload = input.code.trim() ? "Input received." : "No input.";
 

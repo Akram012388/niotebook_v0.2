@@ -256,6 +256,12 @@ If C fails the perf bar on real devices:
 
 That keeps the product premium even while the C pack matures.
 
+### 6.5 Tier 2 Implementation Status
+
+The code editor has been upgraded from a plain `<textarea>` to a full IDE-like experience. See `docs/code-editor-tier2-plan.md` for the complete architecture, component tree, state management design (Zustand v5 stores), VFS implementation, and execution sandbox details.
+
+Key additions: CodeMirror 6 editor with multi-language support, virtual filesystem with IndexedDB persistence, file tree sidebar, tabbed multi-file editing, xterm.js terminal with streaming output, resizable split-pane layout, lesson-aware environment configs, and Wasmer/WASIX sandbox via iframe isolation.
+
 ---
 
 ## 7) Sync model (temporal + spatial)

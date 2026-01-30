@@ -5,6 +5,7 @@ AI-native learning workspace that synchronizes Video + Code + AI.
 ## Highlights
 
 - Multi-pane workspace (video, code, assistant) with layout presets + keyboard shortcuts.
+- **Tier 2 Code Editor:** CodeMirror 6 with file tree sidebar, tabbed multi-file editing, xterm.js terminal, resizable split-pane, virtual filesystem (VFS) with IndexedDB persistence, cross-file imports (Python/C/JS), lesson-aware environment configs, Wasmer/WASIX sandbox via iframe isolation, and enhanced autocomplete.
 - Control center drawer for lectures/courses, search, share/feedback, and settings.
 - Resume-aware playback + transcript context (CS50x 2026 ingest pipeline ready).
 - Convex-backed data model for courses, lessons, chat, and resume snapshots.
@@ -44,3 +45,4 @@ AI-native learning workspace that synchronizes Video + Code + AI.
 - `docs/ui-ux-contract.md` (binding UI/UX contract)
 - `docs/ui-reference.md`
 - `docs/session-tasks.md`
+- `docs/code-editor-tier2-plan.md` (Tier 2 code editor implementation plan)

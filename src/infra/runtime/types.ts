@@ -4,6 +4,12 @@ type RuntimeRunInput = {
   code: string;
   stdin?: string;
   timeoutMs: number;
+  /** Virtual filesystem instance for multi-file support. Optional for backward compatibility. */
+  filesystem?: import("../vfs/VirtualFS").VirtualFS;
+  /** Streaming stdout callback. Called as output is produced. */
+  onStdout?: (chunk: string) => void;
+  /** Streaming stderr callback. Called as errors are produced. */
+  onStderr?: (chunk: string) => void;
 };
 
 type RuntimeRunResult = {

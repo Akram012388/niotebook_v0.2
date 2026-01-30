@@ -41,6 +41,13 @@ Define baseline failure modes, degradation paths, and security rules for v0.2.
 - User prompts are scoped to lesson/time/code; off-topic is refused.
 - Strip or neutralize jailbreak patterns before model call.
 
+### Code execution sandbox (Tier 2)
+
+- Wasmer/WASIX runs inside an isolated iframe (`/editor-sandbox`) with COOP/COEP headers. The main app never receives these headers — Clerk, Convex, and YouTube embeds are unaffected.
+- Communication between parent and sandbox iframe uses `window.postMessage()` with origin validation. Messages are typed (`SandboxMessage` / `SandboxResponse`).
+- JavaScript execution uses `Function()` constructor in a Worker (no `eval` on main thread).
+- The VFS enforces file size limits (1MB per file, 50MB total) to prevent memory exhaustion.
+
 ### Boundary validation (no any/unknown)
 
 - All external inputs are validated at the infra boundary before reaching domain logic.

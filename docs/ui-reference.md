@@ -230,3 +230,22 @@ A Phase‑1 UI scaffold is acceptable when:
 
 - If Mobbin links become paywalled or unstable, replace with new Mobbin screen links (do not paste images into repo).
 - If we later need Figma, it should be used as a _secondary_ artifact. Mobbin remains the baseline for web UI patterns in v0.2.
+
+---
+
+## Tier 2 Code Editor UI (Implemented)
+
+The code pane has been upgraded from a basic textarea to a full IDE-like workspace. See `docs/code-editor-tier2-plan.md` for the complete component tree and architecture.
+
+**Key UI components:**
+- **Editor:** CodeMirror 6 with syntax highlighting, auto-indent, bracket matching, search, and enhanced autocomplete.
+- **File tree sidebar** (200px, collapsible): recursive expand/collapse, context menu (new file, new folder, rename, delete). Hidden in triple-column layout.
+- **Tabbed editing:** TabBar with open files, dirty indicators (dot), close buttons. Single EditorView with swappable EditorState per tab.
+- **Split-pane layout:** vertical resizable divider between editor area and terminal. Drag handle, persisted split ratio.
+- **Terminal:** xterm.js with streaming output, clear/kill toolbar.
+- **Lesson environment badge:** shows active environment config in the header.
+- **Header actions:** Run (flushes dirty files to VFS, streams output), Stop (kills process), Clear (clears terminal).
+- **Virtual Filesystem (VFS):** in-memory file tree with IndexedDB persistence. Multi-file projects, cross-file imports (Python, C, JS).
+- **Desktop-only:** viewports below 1024px show a friendly message directing users to desktop.
+
+**Reference addition:** Retool Web SQL Query Editor (editor toolbar density + "run" affordance style).
