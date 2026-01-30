@@ -142,8 +142,16 @@ function FeatureCard({ feature, index }: { feature: Feature; index: number }): R
 
 export function FeaturesSection(): ReactElement {
   return (
-    <section className="relative py-24 sm:py-32 px-4 sm:px-6">
-      <div className="max-w-5xl mx-auto">
+    <section className="relative py-24 sm:py-32 px-4 sm:px-6 overflow-hidden">
+      {/* Grid pattern overlay — matching hero section */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: `linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px',
+        }}
+      />
+      <div className="relative max-w-5xl mx-auto">
         <div className="text-center mb-16 sm:mb-20">
           <p className="text-xs font-mono uppercase tracking-[0.2em] mb-4" style={{ color: 'var(--text-subtle)' }}>
             How it works
