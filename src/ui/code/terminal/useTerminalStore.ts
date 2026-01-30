@@ -108,6 +108,13 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       set({ isRunning: false, abortController: null });
       const { terminalRef } = get();
       terminalRef?.writeln("\r\n\x1b[33m^C\x1b[0m");
+
+      // TODO: JS execution via `new Function()` and Pyodide run on the main thread
+      // and cannot be truly interrupted mid-execution. The AbortController above
+      // prevents post-execution callbacks but doesn't halt the computation.
+      // For true interruptibility, JS execution should run in a Web Worker that
+      // can be `terminate()`d. Pyodide supports `pyodide.interruptBuffer` for
+      // cooperative cancellation. This is a known limitation.
     },
   }),
 );
