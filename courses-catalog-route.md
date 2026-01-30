@@ -6,7 +6,39 @@ After sign-in, users land directly on `/workspace` with no context about *what* 
 
 ## Solution
 
-Introduce a `/courses` route as an intermediary between auth and workspace. This route serves as both a course catalog and a session resume surface — always shown, Netflix-style.
+Introduce a `/courses` route as an intermediary between auth and workspace. This route serves as both a course catalog and a session resume surface — always shown, Apple TV+ style.
+
+---
+
+## Design Reference: Apple TV+ (Primary) + Netflix (Secondary)
+
+We're pivoting toward **Apple TV+** as the primary UX reference over Netflix. Apple TV+ delivers a more premium, modern feel — cleaner typography, generous whitespace, cinematic hero billboard, and a refined dark theme that feels high-end rather than cluttered. Netflix's horizontal row pattern is retained for content browsing, but the overall visual identity leans Apple TV+.
+
+### What We Steal from Apple TV+
+
+1. **Hero Billboard with Auto-Advance** — The dominant feature at the top. A large, cinematic auto-sliding carousel showcasing featured/recommended courses. Each slide fills ~60-70% of the viewport height with a stylized course thumbnail or YouTube thumbnail as background. Overlaid: course title (large, bold typography), institution tag, brief tagline, and a prominent "Start Learning" CTA button + a secondary "+" (add to list / bookmark) button. Pagination dots at the bottom. Auto-advances every 6-8 seconds with smooth crossfade transitions. Pauses on hover/touch.
+
+2. **Dark Theme, Premium Feel** — Deep dark background (#0a0a0a or similar), not pure black. Subtle gradient overlays on hero images (bottom fade to background). High contrast white text. Minimal borders — use shadow and elevation instead. Generous padding and whitespace between rows.
+
+3. **Typography Hierarchy** — Large, bold section titles (like "Continue Learning", institution names). Clean sans-serif. The hero slide title should be dramatically large — think movie poster scale. Subtle metadata text in muted gray.
+
+4. **Card Design** — Rounded corners (12-16px radius). On hover: subtle scale-up (1.03-1.05x) with smooth transition + slight shadow elevation. No harsh borders. Thumbnail-driven — the image IS the card, with a gradient overlay at the bottom for text.
+
+### What We Steal from Netflix
+
+1. **Horizontal Scrolling Rows** — Categorized content rows with horizontal scroll. Each row has a label ("Continue Learning", "Harvard CS50", etc.). Scroll via drag, arrow buttons on hover (desktop), or swipe (mobile).
+
+2. **"Continue Watching" Pattern** — The resume row concept. Most recent first, horizontal scroll. Progress indicators visible on cards.
+
+3. **Hover Expand** — On desktop, hovering a card in a row can slightly expand it and show additional metadata (lesson count, progress bar, description snippet). Not a full modal — just an enriched card state.
+
+4. **Algorithmic Row Ordering** — Rows ordered by relevance. Resume row always first (if applicable), then featured/recommended, then institution rows.
+
+### What We Do NOT Copy
+
+- Netflix's cluttered new TV UI with oversized focused items (too much screen real estate per card)
+- Auto-playing video trailers on hover (distracting for a learning platform)
+- Netflix's aggressive "match %" score (not relevant for education)
 
 ---
 
@@ -16,59 +48,91 @@ Introduce a `/courses` route as an intermediary between auth and workspace. This
 Landing (/) → Sign In (/sign-in) → Course Catalog (/courses) → Workspace (/workspace?lessonId=...)
 ```
 
-- First-time users: catalog with course cards
-- Returning users: catalog with resume row at top + full catalog below
+- First-time users: hero billboard + catalog rows
+- Returning users: hero billboard + resume row + catalog rows
 
 ---
 
-## Page Layout — Netflix Model
+## Page Layout — Top to Bottom
 
-The catalog follows the Netflix UX pattern: horizontal scrollable rows, grouped by context.
+### 1. Search Bar (Persistent Top)
 
-### Top → Bottom Order
+- Fixed or sticky at the top of the page
+- Premium design: large, centered, with subtle glass-morphism or frosted background effect
+- Placeholder: "Search courses, lectures, topics..."
+- Searches across: course titles, descriptions, lesson titles, institution names
+- Real-time filtering as user types — results replace the catalog rows with a filtered grid/list
+- Keyboard shortcut: `/` or `Cmd+K` to focus search (power user pattern)
+- When active, overlay dims the catalog beneath (Apple TV+ search pattern)
+- Clear button + escape to dismiss
 
-1. **Search bar** — premium, prominent, always visible at the top
-2. **Resume row** — horizontal carousel of courses the user has started, ordered by most recently active (left = most recent, right = oldest). Only shown if user has active sessions.
-3. **Institution/creator rows** — one row per course provider (e.g. "Harvard CS50", "MIT OpenCourseWare"), each a horizontal carousel of that provider's courses
+### 2. Hero Billboard (Auto-Sliding Carousel)
 
-### Search Bar
+The crown jewel of the page. A large cinematic auto-advancing carousel taking up the top ~60-70% of the viewport.
 
-- Prominent, high-quality search input at the top of the page
-- Searches across course titles, descriptions, lesson titles
-- Real-time filtering as user types
-- Clean, minimal design — think Netflix/Spotify search, not a basic input field
+**Per Slide:**
+- **Background:** Full-bleed course thumbnail or stylized YouTube thumbnail. Apply a cinematic gradient overlay (transparent top → dark bottom) so text is always readable.
+- **Content overlay (bottom-left):**
+  - Institution badge/tag (e.g. "Harvard CS50") — small, muted
+  - Course title — large, bold, cinematic typography
+  - One-line tagline/description
+  - CTA: "Start Learning" button (primary, prominent) + "+" bookmark button (secondary, circular)
+- **Pagination:** Dot indicators at bottom-center. Active dot is wider/highlighted (Apple TV+ style).
+- **Behavior:**
+  - Auto-advances every 6-8 seconds
+  - Smooth crossfade or slide transition (not jarring snap)
+  - Pauses on hover (desktop) or touch (mobile)
+  - Manual navigation via dots, swipe, or subtle edge arrows
+  - Loops infinitely
+- **Content source:** Curated/featured courses. At alpha launch, rotate through the CS50 courses.
 
-### Resume Row — "Continue Learning"
+**Implementation:** Use **Embla Carousel** — lightweight, dependency-free, excellent React support, built-in auto-play plugin, great swipe physics. shadcn/ui's carousel component is built on Embla too, so it's a proven choice. No need for heavy libraries like Swiper.
 
-A horizontal carousel of course cards the user has previously engaged with, sorted by `frames.updatedAt` descending (most recent first, like phone recent calls or WhatsApp message ordering).
+**Accessibility:**
+- Pause auto-advance when user interacts
+- `aria-live="polite"` on slide content for screen readers
+- Keyboard navigable (arrow keys)
+- Respect `prefers-reduced-motion` — disable auto-advance
 
-Each resume card shows:
+### 3. Resume Row — "Continue Learning"
 
-```
-[Course Thumbnail/Icon]
-[Course Title]
-Lecture [N]: [Lesson Title]
-▶ MM:SS / Total
-Last active: [relative time]
-```
+Only shown if the user has active sessions (frames in DB).
 
-- Click → `/workspace?lessonId=<lessonId>` (straight into where they left off)
-- Video timestamp displayed on the card for instant recognition
-- Horizontal scroll: drag on desktop, swipe on mobile
+- Horizontal carousel of course cards, sorted by `frames.updatedAt` descending
+- Most recent on the left, oldest on the right (WhatsApp/recent calls ordering)
+- Each card shows:
+  - Course thumbnail
+  - Course title
+  - Current lesson: "Lecture [N]: [Title]"
+  - Video timestamp: "▶ MM:SS / Total"
+  - Relative time: "Last active: 2h ago"
+  - Progress bar (thin, at bottom of card — % of course completed based on `lessonCompletions`)
+- Click → `/workspace?lessonId=<lessonId>` (instant resume)
+- Row label: "Continue Learning" with a ">" chevron (optional "See All" link if many courses)
 
-### Institution Rows — "Harvard CS50", "MIT OCW", etc.
+### 4. Institution Rows — Grouped by Provider
 
-Each course provider/institution/creator gets its own labeled row. Courses within each row are horizontally scrollable.
+One row per institution/creator. Each row is a horizontal carousel.
 
 ```
 ── Harvard CS50 ──────────────────────────────────
 [CS50x 2026] [CS50P] [CS50W] [CS50AI] [CS50 SQL] →
-
-── MIT OpenCourseWare ────────────────────────────
-[6.006] [6.042] [6.824] →
 ```
 
-This requires a **grouping field on courses** — see Schema Changes below.
+**Per Course Card (in institution rows):**
+- Course thumbnail (16:9 aspect ratio, rounded corners)
+- Course title overlay (bottom, over gradient)
+- Lesson count badge (e.g. "24 lectures")
+- Progress indicator if user has started (thin bar or ring)
+- On hover (desktop): slight scale-up + additional metadata overlay (description snippet, duration, "Continue" or "Start" CTA)
+
+**Row ordering:** Institutions with courses the user has engaged with appear first. Within an institution, started courses appear before unstarted ones.
+
+**Expand behavior:** Clicking a course card either:
+- Opens an expanded detail panel (inline, pushing content down — Netflix style), OR
+- Navigates to a course detail section/modal with full lecture list
+
+Recommendation: **Inline expansion** (Netflix-style) — click a card, it expands below the row showing the full lecture list with per-lecture details (title, duration, completion status). Click a lecture → `/workspace?lessonId=<id>`. Click elsewhere or press escape to collapse.
 
 ---
 
@@ -92,32 +156,51 @@ This requires a **grouping field on courses** — see Schema Changes below.
 ### What's Missing for Resume
 
 1. **Terminal output** — not currently persisted. Need a new field on `codeSnapshots` or a sibling table.
-2. **"All active sessions" query** — need a query that finds all of a user's frames sorted by `updatedAt` desc (currently `getLatestFrame` is scoped to a single `lessonId`). New query: `getActiveFrames` — return all user frames ordered by `updatedAt` desc, joined with lesson + course data.
+2. **"All active sessions" query** — need a query that finds all of a user's frames sorted by `updatedAt` desc, joined with lesson + course data. New query: `getActiveFrames`.
 3. **Course title resolution** — resume cards need course title, which requires joining `frames → lessons → courses`.
 
 ---
 
-## Course Cards
+## Course Cards — Design Spec
 
-Used in both the resume row and institution rows.
+### Thumbnail Strategy
+- Primary: YouTube thumbnail from the course's first lesson (already have `videoId` per lesson — construct URL: `https://img.youtube.com/vi/{videoId}/maxresdefault.jpg`)
+- Fallback: Styled placeholder with course title + institution branding
+- Aspect ratio: **16:9** for hero billboard, **16:9 or 2:3** for row cards (2:3 gives a more Apple TV+ poster feel — decide during implementation)
 
-### Default State (in institution rows)
-- Course title
-- Brief description (from `courses.description`)
-- Number of lectures
-- Progress indicator (if user has started — derived from `lessonCompletions`)
-- Institution/creator label
+### Card States
+1. **Default** — Thumbnail + title overlay + subtle gradient
+2. **Hover** (desktop) — Scale 1.03-1.05x, elevated shadow, metadata overlay appears (description, lesson count, CTA)
+3. **Active/Playing** — Progress bar visible, "Continue" label instead of "Start"
+4. **Focused** (keyboard navigation) — Visible focus ring, same enrichment as hover
 
-### Expanded State (on click/tap)
-- Full lecture list (from `lessons` table, ordered by `order`)
-- Per-lecture: title, duration, completion checkmark if applicable
-- Click any lecture → navigate to `/workspace?lessonId=<id>`
+### Card Interactions
+- **Click** → Expand inline (institution rows) or navigate to workspace (resume row)
+- **Hover** → Enriched metadata overlay (desktop only)
+- **Touch** → Tap to expand/navigate (mobile — no hover state)
 
-### Data Source
+### Animations
+- Scale transitions: `transform: scale(1.04)` with `transition: transform 200ms ease-out`
+- Shadow elevation on hover: `box-shadow` transition
+- Carousel scroll: Embla's native physics-based drag/swipe
+- Hero billboard: crossfade with `opacity` transition (400-600ms)
+- Inline expand: `max-height` + `opacity` animation (300ms ease)
+- All animations respect `prefers-reduced-motion`
 
-- `convex/content.ts → getCourses` — already returns all courses
-- `convex/content.ts → getLessonsByCourse` — already returns lessons per course
-- `convex/lessonCompletions` — already tracks completion per user per lesson
+---
+
+## Color Palette & Theme
+
+The catalog page uses a **cinematic dark theme** regardless of the app's overall theme setting. This is the "lobby" — it should feel premium and immersive.
+
+- **Background:** `#0a0a0a` (near-black, not pure black)
+- **Surface:** `#141414` (card backgrounds, elevated surfaces)
+- **Surface hover:** `#1a1a1a`
+- **Text primary:** `#ffffff`
+- **Text secondary:** `#a0a0a0`
+- **Text muted:** `#6b6b6b`
+- **Accent/CTA:** Brand color (TBD) — used for "Start Learning" buttons, progress bars
+- **Gradient overlay on thumbnails:** `linear-gradient(to top, #0a0a0a 0%, transparent 60%)`
 
 ---
 
@@ -160,37 +243,53 @@ The catalog is fully open — no locked cards, no "upgrade to access" friction.
    ```
    institution: v.optional(v.string()),       // e.g. "Harvard", "MIT"
    creator: v.optional(v.string()),           // e.g. "David J. Malan"
-   thumbnailUrl: v.optional(v.string()),      // course card image
+   thumbnailUrl: v.optional(v.string()),      // course card hero image (override auto-generated YouTube thumbnail)
+   featured: v.optional(v.boolean()),         // whether to include in hero billboard rotation
+   tagline: v.optional(v.string()),           // one-liner for hero billboard overlay
    ```
-   Institution is the primary grouping key for catalog rows. Optional so existing courses don't break — but should be populated for all seeded courses.
 
 3. **No new tables needed** — all other data already exists.
 
 ---
 
+## New Dependencies
+
+- **`embla-carousel-react`** — lightweight carousel engine (~3KB gzipped)
+- **`embla-carousel-autoplay`** — auto-advance plugin for hero billboard
+
+No other new dependencies. Animations via CSS transitions (no framer-motion needed for this scope).
+
+---
+
 ## New Convex Queries Needed
 
-1. **`getActiveFrames`** — returns all of a user's frames sorted by `updatedAt` desc, joined with lesson title, course title, and lesson duration. Powers the resume row.
+1. **`getActiveFrames`** — returns all of a user's frames sorted by `updatedAt` desc, joined with lesson title, lesson duration, course title, and course institution. Powers the resume row.
 
-2. **`getCourseProgress`** — returns completion counts per course for a user (aggregate `lessonCompletions` grouped by course).
+2. **`getCourseProgress`** — returns completion counts per course for a user (aggregate `lessonCompletions` grouped by course). Powers progress bars on cards.
 
 3. **`getCoursesGroupedByInstitution`** — returns courses grouped by `institution` field, with lesson counts per course. Powers the institution rows.
 
-4. **`searchCourses`** — text search across course titles, descriptions, and lesson titles. Powers the search bar.
+4. **`getFeaturedCourses`** — returns courses where `featured === true`, with thumbnail URLs and taglines. Powers the hero billboard.
+
+5. **`searchCourses`** — text search across course titles, descriptions, lesson titles, and institution names. Powers the search bar.
 
 ---
 
 ## Component Breakdown
 
 ```
-src/app/courses/page.tsx                — Route entry, wraps in AuthGate
-src/ui/courses/CourseCatalog.tsx        — Main catalog layout (search + rows)
-src/ui/courses/CatalogSearch.tsx        — Search bar component
-src/ui/courses/ResumeRow.tsx            — "Continue Learning" horizontal carousel
-src/ui/courses/InstitutionRow.tsx       — Per-institution horizontal carousel
-src/ui/courses/CourseCard.tsx           — Individual course card (used in all rows)
-src/ui/courses/CourseDetail.tsx         — Expanded view with lecture list
-src/ui/courses/HorizontalCarousel.tsx   — Shared horizontal scroll/swipe container
+src/app/courses/page.tsx                  — Route entry, wraps in AuthGate
+src/ui/courses/CourseCatalog.tsx          — Main catalog layout (orchestrates all sections)
+src/ui/courses/CatalogSearch.tsx          — Premium search bar with overlay results
+src/ui/courses/HeroBillboard.tsx          — Auto-sliding hero carousel (Apple TV+ style)
+src/ui/courses/HeroBillboardSlide.tsx     — Individual hero slide with thumbnail + overlay
+src/ui/courses/ResumeRow.tsx              — "Continue Learning" horizontal carousel
+src/ui/courses/InstitutionRow.tsx         — Per-institution horizontal carousel with label
+src/ui/courses/CourseCard.tsx             — Individual course card (thumbnail + overlay + hover)
+src/ui/courses/CourseCardExpanded.tsx     — Inline expanded view with lecture list
+src/ui/courses/LessonListItem.tsx         — Single lesson row in expanded view
+src/ui/courses/HorizontalCarousel.tsx     — Shared Embla-based horizontal scroll container
+src/ui/courses/ProgressBar.tsx            — Thin course progress indicator
 ```
 
 ---
@@ -204,14 +303,30 @@ Seeded courses for alpha:
 - CS50AI (Introduction to Artificial Intelligence with Python)
 - CS50 SQL (Introduction to Databases with SQL)
 
-All Harvard/CS50, so the initial catalog will have one institution row with multiple courses. Additional institutions added post-alpha.
+All Harvard/CS50, so the initial catalog will have one institution row ("Harvard CS50") with multiple courses. The hero billboard will rotate through all 5 with stylized thumbnails. Additional institutions added post-alpha.
+
+---
+
+## Performance Considerations
+
+1. **Image optimization** — Use Next.js `<Image>` with `priority` for hero billboard first slide, `loading="lazy"` for everything below the fold. YouTube thumbnails are external — configure `next.config.js` `images.remotePatterns` for `img.youtube.com`.
+
+2. **Carousel virtualization** — For rows with many courses, only render visible cards + 1-2 offscreen. Embla handles this natively with its plugin system.
+
+3. **Query efficiency** — `getActiveFrames` and `getCourseProgress` should be single round-trip queries, not N+1. Join data server-side in Convex.
+
+4. **Skeleton loading** — Show skeleton cards (shimmer/pulse) while data loads. Hero billboard shows a dark placeholder. Never show a blank page.
+
+5. **Prefetching** — When user hovers a course card, prefetch the lesson list for that course (if using inline expand). Convex's reactive queries handle this naturally.
 
 ---
 
 ## Design Principles
 
-1. **Steal from Netflix** — horizontal rows, smooth scrolling, visual cards, minimal text
-2. **Recency ordering** — most recent activity always surfaces first (resume row)
-3. **One click to resume** — returning users should be back in their workspace in a single click
-4. **Search is first-class** — prominent, fast, always accessible
-5. **Mobile-first responsive** — cards stack vertically on mobile, carousels become swipeable, resume row stays on top
+1. **Apple TV+ premium** — Cinematic, spacious, dark, elegant. Every pixel should feel intentional.
+2. **Recency ordering** — Most recent activity always surfaces first.
+3. **One click to resume** — Returning users back in workspace in a single click.
+4. **Search is first-class** — Prominent, fast, always accessible.
+5. **Content-forward** — Thumbnails and imagery do the heavy lifting, not text.
+6. **Mobile-first responsive** — Carousels become swipeable, hero billboard becomes full-width swipe, cards stack where needed.
+7. **Accessibility** — Keyboard navigable, screen reader friendly, reduced motion support, sufficient contrast ratios.
