@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState, type ReactElement } from "react";
+import { storageAdapter } from "@/infra/storageAdapter";
+
+const THEME_KEY = "niotebook.theme";
 
 type Theme = "light" | "dark";
 
@@ -12,8 +15,7 @@ function getSystemTheme(): Theme {
 }
 
 function getStoredTheme(): Theme | null {
-  if (typeof window === "undefined") return null;
-  const stored = localStorage.getItem("niotebook-theme");
+  const stored = storageAdapter.getItem(THEME_KEY);
   return stored === "light" || stored === "dark" ? stored : null;
 }
 
@@ -53,7 +55,7 @@ export function ThemeToggle(): ReactElement {
     const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
     applyTheme(next);
-    localStorage.setItem("niotebook-theme", next);
+    storageAdapter.setItem(THEME_KEY, next);
   }, [theme]);
 
   if (!mounted) return <div className="w-8 h-8" />;
