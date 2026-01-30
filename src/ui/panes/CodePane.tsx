@@ -8,16 +8,14 @@ import {
 import dynamic from "next/dynamic";
 import { useMutation } from "convex/react";
 import { makeFunctionReference } from "convex/server";
-import { OutputPanel } from "../code/OutputPanel";
-import { RuntimeStatus } from "../code/RuntimeStatus";
 import { EditorSkeleton } from "../code/EditorSkeleton";
 import { SplitPane } from "../code/SplitPane";
 import { useLayoutPreset } from "../layout/LayoutPresetContext";
 import { useEditorStore } from "../code/useEditorStore";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
+import { useTerminalStore } from "../code/terminal/useTerminalStore";
 import type { EventLogResult } from "../../domain/events";
 import type { CodeSnapshotSummary } from "../../domain/resume";
-import { toRuntimeSnapshot, type RuntimeSnapshot } from "../../domain/runtime";
 import {
   clearRuntime,
   loadExecutor,
@@ -33,6 +31,16 @@ const EditorArea = dynamic(() => import("../code/EditorArea"), {
   ssr: false,
   loading: () => <EditorSkeleton />,
 });
+
+const TerminalPanel = dynamic(
+  () => import("../code/terminal/TerminalPanel"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex-1 bg-[#0f172a] animate-pulse rounded-lg" />
+    ),
+  },
+);
 
 // ── Default templates per language ────────────────────────────
 
@@ -65,11 +73,10 @@ const CodePane = ({
 }: CodePaneProps): ReactElement => {
   // TODO: language switching will be wired to environment configs (Phase 6)
   const [language] = useState<RuntimeLanguage>("js");
-  const [runtimeState, setRuntimeState] = useState<RuntimeState>({
+  const [, setRuntimeState] = useState<RuntimeState>({
     language: "js",
     status: "idle",
   });
-  const [output, setOutput] = useState<RuntimeSnapshot | null>(null);
 
   const { activePreset } = useLayoutPreset();
   const showFileTree = activePreset !== "triple";
@@ -119,8 +126,6 @@ const CodePane = ({
   );
 
   const logEvent = useMutation(logEventRef);
-
-  const runtimeOutput = useMemo(() => output?.output ?? null, [output]);
 
   // ── Runtime warmup ────────────────────────────────────────
 
@@ -216,13 +221,25 @@ const CodePane = ({
       message: "Running...",
     });
 
+    // Stream output to terminal
+    const termStore = useTerminalStore.getState();
+    termStore.writeLn(`\x1b[90m$ run ${language}\x1b[0m`);
+
     const result = await runRuntime(language, {
       code,
       timeoutMs: RUNTIME_TIMEOUT_MS,
+      onStdout: (chunk: string) => termStore.write(chunk),
+      onStderr: (chunk: string) => termStore.write(`\x1b[31m${chunk}\x1b[0m`),
     });
 
-    const snapshot = toRuntimeSnapshot(language, result);
-    setOutput(snapshot);
+    // Write any buffered output not already streamed
+    if (result.stdout && !result.stdout.includes("\x00__streamed__")) {
+      termStore.write(result.stdout);
+    }
+    if (result.stderr && !result.stderr.includes("\x00__streamed__")) {
+      termStore.write(`\x1b[31m${result.stderr}\x1b[0m`);
+    }
+
     setRuntimeState({
       language,
       status: result.timedOut ? "error" : "ready",
@@ -235,6 +252,7 @@ const CodePane = ({
   const handleStop = useCallback((): void => {
     stopRuntime(language).catch(() => undefined);
     clearRuntime(language);
+    useTerminalStore.getState().kill();
     setRuntimeState({
       language,
       status: "ready",
@@ -243,7 +261,7 @@ const CodePane = ({
   }, [language]);
 
   const handleClear = useCallback((): void => {
-    setOutput(null);
+    useTerminalStore.getState().clear();
   }, []);
 
   return (
@@ -293,22 +311,8 @@ const CodePane = ({
             </div>
           }
           second={
-            <div className="flex min-h-0 flex-1 flex-col bg-black text-slate-100 dark:bg-slate-50 dark:text-slate-900">
-              <div className="px-3 pt-3">
-                <RuntimeStatus
-                  state={runtimeState}
-                  className="text-slate-300 dark:text-slate-600"
-                />
-              </div>
-              <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 pb-3 pt-2">
-                <OutputPanel output={runtimeOutput} variant="inline" />
-                {runtimeState.status === "error" ? (
-                  <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
-                    {runtimeState.message ?? "Runtime error"}
-                  </div>
-                ) : null}
-                <div id="niotebook-runtime-frame" className="min-h-[120px]" />
-              </div>
+            <div className="flex min-h-0 flex-1 flex-col">
+              <TerminalPanel />
             </div>
           }
         />
