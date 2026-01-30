@@ -736,7 +736,7 @@ feat(editor): add file tree sidebar and tabbed multi-file editing with CM6
 
 ---
 
-## Phase 3: xterm.js Terminal
+## Phase 3: xterm.js Terminal ✅ COMPLETED
 
 **Goal:** Real terminal UI powered by xterm.js. Receives stdout/stderr from runtime executions. Supports ANSI colors, cursor movement, scrollback. Later (Phase 4) becomes a real shell.
 
