@@ -4,7 +4,7 @@
  * It may not be installed as a dependency — the sandbox page loads it on demand.
  */
 declare module "@wasmer/sdk" {
-  /** Initialize the Wasmer runtime. Must be called once before using any other API. */
+  /** Initialize the Wasmer runtime. Must be called once before using other APIs. */
   export function init(options?: { module?: string; token?: string }): Promise<void>;
 
   export interface WasmerInstance {
