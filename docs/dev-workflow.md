@@ -60,9 +60,12 @@ follow it for layout, navigation, and interaction behavior.
 
 See `.env.example` for required variables:
 
-- `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_CONVEX_URL`
 - `CONVEX_URL`
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+- `CLERK_JWT_ISSUER_DOMAIN` (Convex deployment env)
+- `NIOTEBOOK_ADMIN_EMAILS`
 - `GEMINI_API_KEY`
 - `GROQ_API_KEY`
 - `SENTRY_DSN`

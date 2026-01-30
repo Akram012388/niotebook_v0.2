@@ -44,7 +44,11 @@ throws on production builds if the bypass is enabled without preview allowances.
 ## Invite tracking
 
 Alpha uses Clerk invitations. Store `inviteBatchId` in Clerk invitation metadata
-and sync it into the `users` table on first sign-in.
+and sync it into the `users` table on first sign-in. If the invite UI does not
+expose metadata in Dev, set it on the user profile after sign-in.
+
+For alpha, preview + prod deployments use the Clerk Dev issuer in
+`CLERK_JWT_ISSUER_DOMAIN`.
 
 ## CI requirements
 
