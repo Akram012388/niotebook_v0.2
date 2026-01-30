@@ -15,9 +15,18 @@ import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
 
 import { useTerminalStore } from "./useTerminalStore";
-import { niotebookDarkTerminal } from "./terminalTheme";
+import { niotebookDarkTerminal, niotebookLightTerminal } from "./terminalTheme";
 
 const PROMPT = "\x1b[32m$ \x1b[0m";
+
+function isDarkMode(): boolean {
+  if (typeof document === "undefined") return true;
+  return document.documentElement.classList.contains("dark");
+}
+
+function getTerminalTheme(): import("@xterm/xterm").ITheme {
+  return isDarkMode() ? niotebookDarkTerminal : niotebookLightTerminal;
+}
 
 const XTermView = (): ReactElement => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -35,7 +44,7 @@ const XTermView = (): ReactElement => {
       scrollback: 1000,
       fontSize: 13,
       fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
-      theme: niotebookDarkTerminal,
+      theme: getTerminalTheme(),
       cursorBlink: true,
       convertEol: true,
       allowProposedApi: true,
@@ -119,6 +128,15 @@ const XTermView = (): ReactElement => {
     });
     resizeObserver.observe(container);
 
+    // Watch for theme changes on <html> element (dark class toggle)
+    const themeObserver = new MutationObserver(() => {
+      terminal.options.theme = getTerminalTheme();
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
     // Window resize → fit
     const onWindowResize = (): void => {
       try {
@@ -132,6 +150,7 @@ const XTermView = (): ReactElement => {
     return () => {
       onDataDisposable.dispose();
       resizeObserver.disconnect();
+      themeObserver.disconnect();
       window.removeEventListener("resize", onWindowResize);
       setTerminal(null);
       terminal.dispose();
