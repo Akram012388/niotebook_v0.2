@@ -41,10 +41,7 @@ function resolveIncludesRecursive(
   // Mark this file as visited to prevent circular includes
   visited.add(filePath);
 
-  const parentDir =
-    filePath.slice(0, filePath.lastIndexOf("/")) || "/";
-
-  return code.replace(USER_INCLUDE_REGEX, (match, prefix: string, header: string) => {
+  return code.replace(USER_INCLUDE_REGEX, (match, _prefix: string, header: string) => {
     // Resolve relative to the including file's directory
     const resolvedPath = vfs.resolvePath(filePath, header);
 
