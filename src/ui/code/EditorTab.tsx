@@ -39,18 +39,34 @@ const EditorTab = ({
     [id, onClose],
   );
 
+  const handleCloseKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.stopPropagation();
+        onClose(id);
+      }
+    },
+    [id, onClose],
+  );
+
   return (
-    <button
-      type="button"
+    <div
       role="tab"
       aria-selected={isActive}
-      className={`flex items-center gap-1.5 border-b-2 px-3 py-1.5 text-xs transition ${
+      tabIndex={0}
+      className={`flex cursor-pointer items-center gap-1.5 border-b-2 px-3 py-1.5 text-xs transition ${
         isActive
           ? "border-blue-500 text-foreground"
           : "border-transparent text-text-muted hover:text-foreground"
       }`}
       onClick={handleClick}
       onMouseDown={handleMiddleClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onActivate(id);
+        }
+      }}
     >
       <span className="truncate max-w-[120px]">{name}</span>
       {isDirty ? (
@@ -59,16 +75,17 @@ const EditorTab = ({
           aria-label="Unsaved changes"
         />
       ) : null}
-      <span
+      <button
+        type="button"
         className="ml-0.5 flex-shrink-0 text-[10px] text-text-muted hover:text-foreground"
         onClick={handleClose}
-        role="button"
+        onKeyDown={handleCloseKeyDown}
         aria-label={`Close ${name}`}
         tabIndex={-1}
       >
         ✕
-      </span>
-    </button>
+      </button>
+    </div>
   );
 };
 
