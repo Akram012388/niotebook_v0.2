@@ -8,6 +8,7 @@
  * processes execution requests.
  */
 import type { SandboxCommand, SandboxResponse, SerializedFile } from "./wasmerTypes";
+import { runEcho, runPwd, runCatMap, runLsMap, runRmMap } from "../builtins/vfsBuiltins";
 
 // ── Runtime state ───────────────────────────────────────────
 
@@ -111,59 +112,27 @@ function runBuiltin(
 ): boolean {
   const start = performance.now();
 
+  const io = {
+    stdout: (data: string) => postToParent({ type: "stdout", id, data }),
+    stderr: (data: string) => postToParent({ type: "stderr", id, data }),
+  };
+
   switch (command) {
     case "echo": {
-      postToParent({ type: "stdout", id, data: args.join(" ") + "\n" });
-      postToParent({ type: "exit", id, code: 0, runtimeMs: performance.now() - start });
+      const code = runEcho(args, io);
+      postToParent({ type: "exit", id, code, runtimeMs: performance.now() - start });
       return true;
     }
 
     case "cat": {
-      if (args.length === 0) {
-        postToParent({ type: "stderr", id, data: "cat: missing file operand\n" });
-        postToParent({ type: "exit", id, code: 1, runtimeMs: performance.now() - start });
-        return true;
-      }
-      for (const arg of args) {
-        const resolved = arg.startsWith("/") ? arg : `/project/${arg}`;
-        const content = mountedFiles.get(resolved);
-        if (content === undefined) {
-          postToParent({ type: "stderr", id, data: `cat: ${arg}: No such file\n` });
-          postToParent({ type: "exit", id, code: 1, runtimeMs: performance.now() - start });
-          return true;
-        }
-        postToParent({ type: "stdout", id, data: content.endsWith("\n") ? content : content + "\n" });
-      }
-      postToParent({ type: "exit", id, code: 0, runtimeMs: performance.now() - start });
+      const code = runCatMap(args, mountedFiles, io);
+      postToParent({ type: "exit", id, code, runtimeMs: performance.now() - start });
       return true;
     }
 
     case "ls": {
-      const targetPath = args[0] ?? "/project";
-      const resolved = targetPath.startsWith("/") ? targetPath : `/project/${targetPath}`;
-      const prefix = resolved.endsWith("/") ? resolved : resolved + "/";
-      const entries = new Set<string>();
-
-      for (const path of mountedFiles.keys()) {
-        if (path.startsWith(prefix)) {
-          const relative = path.slice(prefix.length);
-          const topLevel = relative.split("/")[0];
-          if (topLevel) entries.add(topLevel);
-        }
-      }
-
-      if (entries.size === 0) {
-        // Check if path itself exists as a file
-        if (mountedFiles.has(resolved)) {
-          const name = resolved.split("/").pop() ?? resolved;
-          postToParent({ type: "stdout", id, data: name + "\n" });
-        }
-        // Empty directory or doesn't exist — no output either way
-      } else {
-        const sorted = Array.from(entries).sort();
-        postToParent({ type: "stdout", id, data: sorted.join("\n") + "\n" });
-      }
-      postToParent({ type: "exit", id, code: 0, runtimeMs: performance.now() - start });
+      const code = runLsMap(args, mountedFiles, io);
+      postToParent({ type: "exit", id, code, runtimeMs: performance.now() - start });
       return true;
     }
 
@@ -174,19 +143,20 @@ function runBuiltin(
     }
 
     case "rm": {
+      const code = runRmMap(args, mountedFiles);
+      // Notify parent of deleted files
       for (const arg of args) {
-        if (arg.startsWith("-")) continue; // skip flags like -r, -f
+        if (arg.startsWith("-")) continue;
         const resolved = arg.startsWith("/") ? arg : `/project/${arg}`;
-        mountedFiles.delete(resolved);
-        postToParent({ type: "fs-write", path: resolved, content: "" });
+        postToParent({ type: "fs-delete", path: resolved });
       }
-      postToParent({ type: "exit", id, code: 0, runtimeMs: performance.now() - start });
+      postToParent({ type: "exit", id, code, runtimeMs: performance.now() - start });
       return true;
     }
 
     case "pwd": {
-      postToParent({ type: "stdout", id, data: "/project\n" });
-      postToParent({ type: "exit", id, code: 0, runtimeMs: performance.now() - start });
+      const code = runPwd(io);
+      postToParent({ type: "exit", id, code, runtimeMs: performance.now() - start });
       return true;
     }
 

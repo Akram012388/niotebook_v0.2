@@ -60,6 +60,7 @@ type SandboxResponse =
   | { type: "stderr"; id: string; data: string }
   | { type: "exit"; id: string; code: number; runtimeMs: number }
   | { type: "fs-write"; path: string; content: string }
+  | { type: "fs-delete"; path: string }
   | { type: "error"; id: string; message: string };
 
 export type {
