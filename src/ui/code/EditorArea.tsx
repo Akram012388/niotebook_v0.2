@@ -34,6 +34,7 @@ const EditorArea = ({ showFileTree }: EditorAreaProps): ReactElement => {
         maxFirst={300}
         minSecond={240}
         storageKey="niotebook:split-file-tree"
+        resetOnLoad="first"
         first={
           <div className="flex min-h-0 h-full bg-workspace-sidebar">
             <FileTreeSidebar />

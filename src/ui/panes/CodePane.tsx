@@ -94,6 +94,7 @@ const CodePane = ({
 
   const { activePreset } = useLayoutPreset();
   const showFileTree = activePreset !== "triple";
+  const shouldResetSplits = activePreset !== "triple";
 
   const initializeFromTemplate = useFileSystemStore(
     (s) => s.initializeFromTemplate,
@@ -421,6 +422,7 @@ const CodePane = ({
           minFirst={100}
           minSecond={160}
           storageKey="niotebook:split-editor-output"
+          resetOnLoad={shouldResetSplits ? "second" : undefined}
           first={
             <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-editor">
               <EditorArea showFileTree={showFileTree} />

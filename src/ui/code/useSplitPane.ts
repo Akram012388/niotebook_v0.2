@@ -16,6 +16,7 @@ type UseSplitPaneOptions = {
   maxSecond?: number;
   storageKey?: string;
   containerRef?: RefObject<HTMLDivElement | null>;
+  resetOnLoad?: "first" | "second";
 };
 
 type UseSplitPaneReturn = {
@@ -85,6 +86,25 @@ function saveRatio(storageKey: string | undefined, ratio: number): void {
   }
 }
 
+function takeResetGuard(
+  storageKey: string | undefined,
+  resetOnLoad: "first" | "second" | undefined,
+): boolean {
+  if (!storageKey || !resetOnLoad || typeof window === "undefined") {
+    return false;
+  }
+  try {
+    const key = `${storageKey}:reset-on-load`;
+    if (sessionStorage.getItem(key) === "1") {
+      return false;
+    }
+    sessionStorage.setItem(key, "1");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function useSplitPane({
   direction,
   initialSplit,
@@ -94,11 +114,16 @@ function useSplitPane({
   maxSecond,
   storageKey,
   containerRef: externalContainerRef,
+  resetOnLoad,
 }: UseSplitPaneOptions): UseSplitPaneReturn {
   const [storedRatio] = useState<number | null>(() => loadRatio(storageKey));
   const storedRatioRef = useRef<number | null>(storedRatio);
   const initialSplitRef = useRef(initialSplit);
   const didApplyInitialSplitRef = useRef(false);
+  const didResetRef = useRef(false);
+  const [shouldResetOnLoad] = useState(() =>
+    takeResetGuard(storageKey, resetOnLoad),
+  );
 
   const [ratio, setRatio] = useState<number>(() => {
     if (storedRatio !== null) {
@@ -217,6 +242,31 @@ function useSplitPane({
     if (!container) return;
     const rect = container.getBoundingClientRect();
     const total = direction === "vertical" ? rect.height : rect.width;
+    if (shouldResetOnLoad && !didResetRef.current && total > 0) {
+      const targetRatio =
+        resetOnLoad === "first" ? minFirst / total : 1 - minSecond / total;
+      const clamped = clampRatio(
+        targetRatio,
+        minFirst,
+        minSecond,
+        total,
+        maxFirst,
+        maxSecond,
+      );
+      didResetRef.current = true;
+      if (clamped !== ratioRef.current) {
+        const raf = window.requestAnimationFrame(() => {
+          if (clamped === ratioRef.current) return;
+          setRatio(clamped);
+          saveRatio(storageKey, clamped);
+          window.dispatchEvent(new Event("resize"));
+        });
+        return () => {
+          window.cancelAnimationFrame(raf);
+        };
+      }
+      return;
+    }
     let baseRatio = ratioRef.current;
     if (
       !didApplyInitialSplitRef.current &&
@@ -254,6 +304,8 @@ function useSplitPane({
     maxSecond,
     storageKey,
     containerRef,
+    resetOnLoad,
+    shouldResetOnLoad,
   ]);
 
   return { ratio, isDragging, handleMouseDown, handleDoubleClick, keyStep };
