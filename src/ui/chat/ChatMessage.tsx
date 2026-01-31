@@ -1,10 +1,33 @@
-import type { ReactElement } from "react";
+import { memo, type ReactElement } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 import type { ChatMessage as ChatMessageType } from "./chatTypes";
 
 type ChatMessageProps = {
   message: ChatMessageType;
   onSeek?: (timestampSec: number) => void;
 };
+
+const remarkPlugins = [remarkGfm];
+const rehypePlugins = [rehypeHighlight];
+
+const AssistantContent = memo(function AssistantContent({
+  content,
+}: {
+  content: string;
+}) {
+  return (
+    <div className="nio-markdown w-full text-sm leading-6 text-foreground" data-testid="chat-message">
+      <ReactMarkdown
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={rehypePlugins}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
+});
 
 const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
   const isUser = message.role === "user";
@@ -35,23 +58,13 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
             />
           </div>
         ) : isUser ? (
-          <div
-            className={`max-w-[80%] rounded-xl border px-3 py-2 text-sm leading-6 ${
-              isUser
-                ? "border-border bg-surface-muted text-foreground dark:bg-surface-strong"
-                : "border-border bg-surface text-foreground"
-            }`}
-          >
+          <div className="max-w-[80%] rounded-xl border px-3 py-2 text-sm leading-6 border-border bg-surface-muted text-foreground dark:bg-surface-strong">
             <p className="whitespace-pre-wrap" data-testid="chat-message">
               {message.content}
             </p>
           </div>
         ) : (
-          <div className="w-full text-sm leading-6 text-foreground">
-            <p className="whitespace-pre-wrap" data-testid="chat-message">
-              {message.content}
-            </p>
-          </div>
+          <AssistantContent content={message.content} />
         )}
         {isUser ? (
           <button

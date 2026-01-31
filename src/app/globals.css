@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "highlight.js/styles/github-dark-dimmed.css";
 
 :root {
   --background: #f8fafc;
@@ -181,6 +182,103 @@ button:disabled {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* --- Nio markdown (assistant chat messages) --- */
+
+.nio-markdown p {
+  margin-bottom: 0.5em;
+}
+
+.nio-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.nio-markdown pre {
+  margin: 0.5em 0;
+  padding: 0.75em 1em;
+  border-radius: 0.5rem;
+  background: var(--surface-muted);
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.nio-markdown code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.nio-markdown :not(pre) > code {
+  padding: 0.15em 0.35em;
+  border-radius: 0.25rem;
+  background: var(--surface-muted);
+}
+
+.nio-markdown ul,
+.nio-markdown ol {
+  margin: 0.4em 0;
+  padding-left: 1.5em;
+}
+
+.nio-markdown li {
+  margin-bottom: 0.2em;
+}
+
+.nio-markdown blockquote {
+  margin: 0.5em 0;
+  padding-left: 1em;
+  border-left: 3px solid var(--border);
+  color: var(--text-muted);
+}
+
+.nio-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+  font-size: 0.8125rem;
+}
+
+.nio-markdown th,
+.nio-markdown td {
+  border: 1px solid var(--border);
+  padding: 0.35em 0.6em;
+  text-align: left;
+}
+
+.nio-markdown th {
+  background: var(--surface-muted);
+  font-weight: 600;
+}
+
+.nio-markdown h1,
+.nio-markdown h2,
+.nio-markdown h3,
+.nio-markdown h4 {
+  font-weight: 600;
+  margin-top: 0.75em;
+  margin-bottom: 0.25em;
+}
+
+.nio-markdown h1 { font-size: 1.25em; }
+.nio-markdown h2 { font-size: 1.125em; }
+.nio-markdown h3 { font-size: 1em; }
+
+.nio-markdown a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.nio-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0.75em 0;
+}
+
+/* highlight.js overrides for code blocks */
+.nio-markdown pre .hljs {
+  background: transparent;
+  padding: 0;
 }
 
 #niotebook-runtime-frame:empty {

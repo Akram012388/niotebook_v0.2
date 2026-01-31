@@ -14,12 +14,19 @@ import {
   Sun,
   XLogo,
   LinkedinLogo,
+  SignOut,
   UserCircle,
   X,
 } from "@phosphor-icons/react";
 import { useMemo, useState, type ReactElement, type RefObject } from "react";
 import type { CourseSummary, LessonSummary } from "../../domain/content";
 import { resolveLectureNumber } from "../../domain/lectureNumber";
+
+type UserInfo = {
+  email: string | null;
+  role: string | null;
+  inviteBatchId: string | null;
+};
 
 type ControlCenterDrawerProps = {
   isOpen: boolean;
@@ -36,6 +43,8 @@ type ControlCenterDrawerProps = {
   onFeedback: () => void;
   onSelectLesson: (lessonId: string | null) => void;
   onSelectCourse: (courseId: string | null) => void;
+  userInfo?: UserInfo;
+  onSignOut?: () => void;
 };
 
 const getLectureNumber = (lesson: LessonSummary): number | null => {
@@ -62,6 +71,8 @@ const ControlCenterDrawer = ({
   onFeedback,
   onSelectLesson,
   onSelectCourse,
+  userInfo,
+  onSignOut,
 }: ControlCenterDrawerProps): ReactElement | null => {
   const [activeTab, setActiveTab] = useState<"lectures" | "courses">(
     "lectures",
@@ -537,9 +548,38 @@ const ControlCenterDrawer = ({
                   </div>
                 </div>
               ) : (
-                <div className="flex h-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-surface-muted px-4 py-6 text-xs text-text-muted">
-                  <UserCircle size={18} weight="regular" />
-                  <div>User profile coming soon.</div>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted px-4 py-4">
+                    <UserCircle size={28} weight="regular" className="text-text-muted" />
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm font-medium text-foreground">
+                        {userInfo?.email ?? "—"}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-[0.08em] text-text-subtle">
+                        {userInfo?.role ?? "user"}
+                      </span>
+                    </div>
+                  </div>
+                  {userInfo?.inviteBatchId ? (
+                    <div className="flex flex-col gap-1">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                        Invite batch
+                      </div>
+                      <div className="rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs text-text-muted">
+                        {userInfo.inviteBatchId}
+                      </div>
+                    </div>
+                  ) : null}
+                  {onSignOut ? (
+                    <button
+                      type="button"
+                      onClick={onSignOut}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
+                    >
+                      <SignOut size={14} weight="regular" />
+                      Sign out
+                    </button>
+                  ) : null}
                 </div>
               )}
             </div>

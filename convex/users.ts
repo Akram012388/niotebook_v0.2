@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import type { GenericId } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { toDomainId } from "./idUtils";
 
 type UserRecord = {
@@ -69,4 +69,30 @@ const upsertUser = mutation({
   },
 });
 
-export { upsertUser };
+const me = query({
+  args: {},
+  handler: async (ctx): Promise<{
+    role: "admin" | "user" | "guest";
+    inviteBatchId?: string;
+  } | null> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return null;
+    }
+
+    const user = (await ctx.db
+      .query("users")
+      .withIndex("by_tokenIdentifier", (query) =>
+        query.eq("tokenIdentifier", identity.tokenIdentifier),
+      )
+      .first()) as UserRecord | null;
+
+    if (!user) {
+      return null;
+    }
+
+    return { role: user.role, inviteBatchId: user.inviteBatchId };
+  },
+});
+
+export { upsertUser, me };

@@ -1,0 +1,1 @@
+Run `git diff main...HEAD --stat` to show all changes vs main. Then run full verification (`bun run typecheck && bun run lint && bun run test`). Report merge readiness: files changed, lines added/removed, and whether all checks pass.

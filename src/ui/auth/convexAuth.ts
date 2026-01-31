@@ -11,4 +11,13 @@ const upsertUserRef = makeFunctionReference<"mutation">(
   "users:upsertUser",
 ) as UpsertUserReference;
 
-export { upsertUserRef };
+type MeReference = import("convex/server").FunctionReference<
+  "query",
+  "public",
+  Record<string, never>,
+  { role: "admin" | "user" | "guest"; inviteBatchId?: string } | null
+>;
+
+const meRef = makeFunctionReference<"query">("users:me") as MeReference;
+
+export { upsertUserRef, meRef };
