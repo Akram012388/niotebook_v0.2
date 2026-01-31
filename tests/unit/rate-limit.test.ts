@@ -5,7 +5,7 @@ import {
   INVITE_REDEEM_LIMIT,
   INVITE_REDEEM_WINDOW_MS,
   evaluateRateLimit,
-  type RateLimitRecord
+  type RateLimitRecord,
 } from "../../src/domain/rate-limits";
 
 describe("rate limit evaluation", (): void => {
@@ -20,7 +20,7 @@ describe("rate limit evaluation", (): void => {
         record,
         nowMs,
         INVITE_REDEEM_WINDOW_MS,
-        INVITE_REDEEM_LIMIT
+        INVITE_REDEEM_LIMIT,
       );
 
       record = evaluation.record;
@@ -33,7 +33,7 @@ describe("rate limit evaluation", (): void => {
       record,
       nowMs,
       INVITE_REDEEM_WINDOW_MS,
-      INVITE_REDEEM_LIMIT
+      INVITE_REDEEM_LIMIT,
     );
 
     expect(denied.decision.ok).toBe(false);
@@ -50,7 +50,7 @@ describe("rate limit evaluation", (): void => {
         record,
         nowMs,
         AI_REQUEST_WINDOW_MS,
-        AI_REQUEST_LIMIT
+        AI_REQUEST_LIMIT,
       );
 
       record = evaluation.record;
@@ -63,7 +63,7 @@ describe("rate limit evaluation", (): void => {
       record,
       nowMs,
       AI_REQUEST_WINDOW_MS,
-      AI_REQUEST_LIMIT
+      AI_REQUEST_LIMIT,
     );
 
     expect(denied.decision.ok).toBe(false);

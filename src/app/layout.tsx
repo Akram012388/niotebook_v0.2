@@ -30,7 +30,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Niotebook — Watch. Code. Learn.",
-    description: "Your CS lecture just became an IDE. Video + editor + AI in one canvas.",
+    description:
+      "Your CS lecture just became an IDE. Video + editor + AI in one canvas.",
   },
 };
 

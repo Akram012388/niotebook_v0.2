@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
 };
 
 const sentryBuildOptions = {
-  silent: true
+  silent: true,
 };
 
 export default withSentryConfig(nextConfig, sentryBuildOptions);

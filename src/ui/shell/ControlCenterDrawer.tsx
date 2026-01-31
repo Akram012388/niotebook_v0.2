@@ -664,7 +664,11 @@ const ControlCenterDrawer = ({
               ) : (
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted px-4 py-4">
-                    <UserCircle size={28} weight="regular" className="text-text-muted" />
+                    <UserCircle
+                      size={28}
+                      weight="regular"
+                      className="text-text-muted"
+                    />
                     <div className="flex flex-col gap-0.5">
                       <span className="text-sm font-medium text-foreground">
                         {userInfo?.email ?? "—"}

@@ -309,7 +309,9 @@ const getActiveUsers = query({
     await requireQueryAdmin(ctx);
 
     const cutoff = Date.now() - args.timeWindowMs;
-    const events = (await ctx.db.query("events").collect()) as unknown as EventRow[];
+    const events = (await ctx.db
+      .query("events")
+      .collect()) as unknown as EventRow[];
 
     const userIds = new Set<string>();
     for (const event of events) {
@@ -328,7 +330,9 @@ const getSessionCount = query({
     await requireQueryAdmin(ctx);
 
     const cutoff = Date.now() - args.timeWindowMs;
-    const events = (await ctx.db.query("events").collect()) as unknown as EventRow[];
+    const events = (await ctx.db
+      .query("events")
+      .collect()) as unknown as EventRow[];
 
     const sessionIds = new Set<string>();
     for (const event of events) {
@@ -398,4 +402,10 @@ const getTotalLessons = query({
   },
 });
 
-export { getActiveUsers, getSessionCount, getAiRequestCount, getEventLog, getTotalLessons };
+export {
+  getActiveUsers,
+  getSessionCount,
+  getAiRequestCount,
+  getEventLog,
+  getTotalLessons,
+};

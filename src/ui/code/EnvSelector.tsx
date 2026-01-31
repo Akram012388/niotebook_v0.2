@@ -8,7 +8,10 @@
  */
 import { useCallback, type ReactElement } from "react";
 import { ENV_PRESETS, getPreset } from "../../infra/runtime/envPresets";
-import type { EnvPresetId, LessonEnvironment } from "../../domain/lessonEnvironment";
+import type {
+  EnvPresetId,
+  LessonEnvironment,
+} from "../../domain/lessonEnvironment";
 
 type EnvSelectorProps = {
   currentPresetId: EnvPresetId;

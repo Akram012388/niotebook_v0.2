@@ -9,8 +9,18 @@ import type {
 
 const PYTHON_BUILTINS: Completion[] = [
   // Built-in functions
-  { label: "print", type: "function", detail: "builtin", info: "print(*objects, sep=' ', end='\\n')" },
-  { label: "input", type: "function", detail: "builtin", info: "input(prompt='')" },
+  {
+    label: "print",
+    type: "function",
+    detail: "builtin",
+    info: "print(*objects, sep=' ', end='\\n')",
+  },
+  {
+    label: "input",
+    type: "function",
+    detail: "builtin",
+    info: "input(prompt='')",
+  },
   { label: "len", type: "function", detail: "builtin" },
   { label: "range", type: "function", detail: "builtin" },
   { label: "int", type: "function", detail: "builtin" },
@@ -122,7 +132,9 @@ const PYTHON_STDLIB_MODULES: Completion[] = [
   { label: "copy", type: "module", detail: "stdlib" },
 ];
 
-function pythonCompletions(context: CompletionContext): CompletionResult | null {
+function pythonCompletions(
+  context: CompletionContext,
+): CompletionResult | null {
   const word = context.matchBefore(/\w+/);
   if (!word || word.from === word.to) return null;
 

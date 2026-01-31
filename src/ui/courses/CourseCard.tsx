@@ -78,7 +78,9 @@ const CourseCard = memo(function CourseCard({
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <span className="text-xs text-text-muted">{progressPct}% complete</span>
+          <span className="text-xs text-text-muted">
+            {progressPct}% complete
+          </span>
         </div>
       )}
     </Link>

@@ -12,4 +12,8 @@ const shouldFallbackForTimeout = (elapsedMs: number): boolean => {
   return elapsedMs >= AI_FALLBACK_TIMEOUT_MS;
 };
 
-export { AI_FALLBACK_TIMEOUT_MS, shouldFallbackForStatus, shouldFallbackForTimeout };
+export {
+  AI_FALLBACK_TIMEOUT_MS,
+  shouldFallbackForStatus,
+  shouldFallbackForTimeout,
+};

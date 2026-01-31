@@ -12,7 +12,11 @@ type BuiltinIO = {
 
 type VFSLike = {
   readFile: (path: string) => string | null;
-  readDir: (path: string) => ReadonlyArray<{ name: string; path: string; kind: "file" | "directory" }>;
+  readDir: (path: string) => ReadonlyArray<{
+    name: string;
+    path: string;
+    kind: "file" | "directory";
+  }>;
   stat: (path: string) => { kind: "file" | "directory" } | null;
   exists: (path: string) => boolean;
   writeFile: (path: string, content: string) => unknown;
@@ -123,7 +127,9 @@ function runCatMap(args: string[], files: MapVFS, io: BuiltinIO): number {
 
 function runLsMap(args: string[], files: MapVFS, io: BuiltinIO): number {
   const targetPath = args[0] ?? "/project";
-  const resolved = targetPath.startsWith("/") ? targetPath : `/project/${targetPath}`;
+  const resolved = targetPath.startsWith("/")
+    ? targetPath
+    : `/project/${targetPath}`;
   const prefix = resolved.endsWith("/") ? resolved : resolved + "/";
   const entries = new Set<string>();
 

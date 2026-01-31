@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AI_FALLBACK_TIMEOUT_MS,
   shouldFallbackForStatus,
-  shouldFallbackForTimeout
+  shouldFallbackForTimeout,
 } from "../../src/domain/ai-fallback";
 
 describe("ai fallback policy", (): void => {

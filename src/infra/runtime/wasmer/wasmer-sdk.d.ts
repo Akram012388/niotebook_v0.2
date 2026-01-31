@@ -5,7 +5,10 @@
  */
 declare module "@wasmer/sdk" {
   /** Initialize the Wasmer runtime. Must be called once before using other APIs. */
-  export function init(options?: { module?: string; token?: string }): Promise<void>;
+  export function init(options?: {
+    module?: string;
+    token?: string;
+  }): Promise<void>;
 
   export interface WasmerInstance {
     wait(): Promise<{ code: number; stdout: string; stderr: string }>;

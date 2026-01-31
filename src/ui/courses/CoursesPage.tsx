@@ -11,13 +11,7 @@ import { ResumeCard } from "./ResumeCard";
 import { COMING_SOON_COURSES } from "./comingSoonCourses";
 import type { CourseId } from "@/domain/ids";
 
-const CS50_TITLES = [
-  "CS50x",
-  "CS50P",
-  "CS50AI",
-  "CS50W",
-  "CS50SQL",
-];
+const CS50_TITLES = ["CS50x", "CS50P", "CS50AI", "CS50W", "CS50SQL"];
 
 function CoursesPage(): ReactElement {
   const courses = useQuery(getCoursesRef);

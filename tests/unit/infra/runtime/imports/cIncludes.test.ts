@@ -42,11 +42,7 @@ describe("resolveIncludes", () => {
       "/project/a.h": '#include "b.h"\nint a = 1;',
       "/project/b.h": '#include "a.h"\nint b = 2;',
     });
-    const result = resolveIncludes(
-      '#include "a.h"',
-      "/project/main.c",
-      vfs,
-    );
+    const result = resolveIncludes('#include "a.h"', "/project/main.c", vfs);
     expect(result).toContain("/* circular include:");
     expect(result).toContain("int a = 1");
     expect(result).toContain("int b = 2");

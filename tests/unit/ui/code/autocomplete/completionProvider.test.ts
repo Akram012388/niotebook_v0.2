@@ -5,7 +5,11 @@ import { VirtualFS } from "../../../../../src/infra/vfs/VirtualFS";
 describe("createNiotebookCompletions", () => {
   it("returns an array of completion sources", () => {
     const vfs = new VirtualFS();
-    const sources = createNiotebookCompletions("python", vfs, "/project/main.py");
+    const sources = createNiotebookCompletions(
+      "python",
+      vfs,
+      "/project/main.py",
+    );
     expect(Array.isArray(sources)).toBe(true);
     expect(sources.length).toBeGreaterThan(0);
   });
@@ -19,7 +23,11 @@ describe("createNiotebookCompletions", () => {
 
   it("all sources are functions", () => {
     const vfs = new VirtualFS();
-    const sources = createNiotebookCompletions("python", vfs, "/project/main.py");
+    const sources = createNiotebookCompletions(
+      "python",
+      vfs,
+      "/project/main.py",
+    );
     for (const source of sources) {
       expect(typeof source).toBe("function");
     }
@@ -29,7 +37,11 @@ describe("createNiotebookCompletions", () => {
     const vfs = new VirtualFS();
     const languages = ["python", "js", "c", "html"] as const;
     for (const lang of languages) {
-      const sources = createNiotebookCompletions(lang, vfs, `/project/main.${lang}`);
+      const sources = createNiotebookCompletions(
+        lang,
+        vfs,
+        `/project/main.${lang}`,
+      );
       expect(sources.length).toBeGreaterThan(0);
     }
   });

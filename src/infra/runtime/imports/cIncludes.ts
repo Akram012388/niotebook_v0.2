@@ -41,25 +41,28 @@ function resolveIncludesRecursive(
   // Mark this file as visited to prevent circular includes
   visited.add(filePath);
 
-  return code.replace(USER_INCLUDE_REGEX, (match, _prefix: string, header: string) => {
-    // Resolve relative to the including file's directory
-    const resolvedPath = vfs.resolvePath(filePath, header);
+  return code.replace(
+    USER_INCLUDE_REGEX,
+    (match, _prefix: string, header: string) => {
+      // Resolve relative to the including file's directory
+      const resolvedPath = vfs.resolvePath(filePath, header);
 
-    // Prevent circular includes
-    if (visited.has(resolvedPath)) {
-      return `/* circular include: ${header} */`;
-    }
+      // Prevent circular includes
+      if (visited.has(resolvedPath)) {
+        return `/* circular include: ${header} */`;
+      }
 
-    const content = vfs.readFile(resolvedPath);
-    if (content === null) {
-      // File not found in VFS — leave the directive as-is.
-      // It may be resolved by the compiler (e.g. a system-relative path).
-      return match;
-    }
+      const content = vfs.readFile(resolvedPath);
+      if (content === null) {
+        // File not found in VFS — leave the directive as-is.
+        // It may be resolved by the compiler (e.g. a system-relative path).
+        return match;
+      }
 
-    // Recursively resolve includes in the included file
-    return resolveIncludesRecursive(content, resolvedPath, vfs, visited);
-  });
+      // Recursively resolve includes in the included file
+      return resolveIncludesRecursive(content, resolvedPath, vfs, visited);
+    },
+  );
 }
 
 export { resolveIncludes };

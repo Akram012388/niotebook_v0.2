@@ -72,7 +72,9 @@ const upsertUser = mutation({
 
 const me = query({
   args: {},
-  handler: async (ctx): Promise<{
+  handler: async (
+    ctx,
+  ): Promise<{
     role: "admin" | "user" | "guest";
     inviteBatchId?: string;
   } | null> => {
@@ -129,10 +131,7 @@ const updateRole = mutation({
     userId: v.id("users"),
     role: v.union(v.literal("admin"), v.literal("user"), v.literal("guest")),
   },
-  handler: async (
-    ctx,
-    args,
-  ): Promise<{ ok: boolean }> => {
+  handler: async (ctx, args): Promise<{ ok: boolean }> => {
     const { requireMutationAdmin } = await import("./auth");
     await requireMutationAdmin(ctx);
 

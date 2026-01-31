@@ -30,7 +30,7 @@ const evaluateRateLimit = (
   existing: RateLimitRecord | null,
   nowMs: number,
   windowMs: number,
-  limit: number
+  limit: number,
 ): RateLimitEvaluation => {
   const isSameWindow =
     existing !== null && nowMs - existing.windowStartMs < windowMs;
@@ -41,7 +41,7 @@ const evaluateRateLimit = (
     ok: count <= limit,
     remaining: Math.max(limit - count, 0),
     resetAtMs: windowStartMs + windowMs,
-    limit
+    limit,
   };
 
   return {
@@ -49,9 +49,9 @@ const evaluateRateLimit = (
       scope,
       subject,
       windowStartMs,
-      count
+      count,
     },
-    decision
+    decision,
   };
 };
 
@@ -59,12 +59,12 @@ export type {
   RateLimitDecision,
   RateLimitEvaluation,
   RateLimitRecord,
-  RateLimitScope
+  RateLimitScope,
 };
 export {
   AI_REQUEST_LIMIT,
   AI_REQUEST_WINDOW_MS,
   INVITE_REDEEM_LIMIT,
   INVITE_REDEEM_WINDOW_MS,
-  evaluateRateLimit
+  evaluateRateLimit,
 };

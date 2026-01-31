@@ -6,7 +6,10 @@ type RuntimeStatusProps = {
   className?: string;
 };
 
-const RuntimeStatus = ({ state, className }: RuntimeStatusProps): ReactElement => {
+const RuntimeStatus = ({
+  state,
+  className,
+}: RuntimeStatusProps): ReactElement => {
   const statusColor =
     state.status === "running"
       ? "bg-blue-500"

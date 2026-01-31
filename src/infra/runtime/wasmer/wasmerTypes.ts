@@ -48,7 +48,13 @@ type SerializedFile = {
 
 /** Messages sent from main app → sandbox iframe. */
 type SandboxCommand =
-  | { type: "run"; id: string; command: string; args: string[]; files: SerializedFile[] }
+  | {
+      type: "run";
+      id: string;
+      command: string;
+      args: string[];
+      files: SerializedFile[];
+    }
   | { type: "stdin"; id: string; data: string }
   | { type: "kill"; id: string }
   | { type: "fs-sync"; files: SerializedFile[] };

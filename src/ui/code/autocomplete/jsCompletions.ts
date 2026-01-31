@@ -23,7 +23,12 @@ const JS_BUILTINS: Completion[] = [
   { label: "setInterval", type: "function", detail: "global" },
   { label: "clearTimeout", type: "function", detail: "global" },
   { label: "clearInterval", type: "function", detail: "global" },
-  { label: "fetch", type: "function", detail: "global", info: "fetch(url, options?)" },
+  {
+    label: "fetch",
+    type: "function",
+    detail: "global",
+    info: "fetch(url, options?)",
+  },
   { label: "alert", type: "function", detail: "global" },
   { label: "prompt", type: "function", detail: "global" },
   { label: "confirm", type: "function", detail: "global" },

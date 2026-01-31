@@ -3,8 +3,14 @@
 import { useMemo, useCallback, type ReactElement } from "react";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
-import { getLessonsByCourseRef, getCoursesRef } from "@/ui/content/convexContent";
-import { getCompletionsByCourseRef, markCompleteRef } from "./convexCompletions";
+import {
+  getLessonsByCourseRef,
+  getCoursesRef,
+} from "@/ui/content/convexContent";
+import {
+  getCompletionsByCourseRef,
+  markCompleteRef,
+} from "./convexCompletions";
 
 type CourseDetailPageProps = {
   courseId: string;
@@ -146,7 +152,9 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
                   )}
                 </span>
                 <div className="flex flex-col">
-                  <span className="text-sm text-foreground">{lesson.title}</span>
+                  <span className="text-sm text-foreground">
+                    {lesson.title}
+                  </span>
                   <span className="text-xs text-text-muted">
                     {formatDuration(lesson.durationSec)}
                   </span>

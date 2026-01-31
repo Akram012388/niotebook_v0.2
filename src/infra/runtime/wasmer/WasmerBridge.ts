@@ -31,7 +31,9 @@ class WasmerBridge {
   private pending: Map<string, PendingCommand> = new Map();
   private readyPromise: Promise<void> | null = null;
   private readyResolve: (() => void) | null = null;
-  private messageHandler: ((event: MessageEvent<SandboxResponse>) => void) | null = null;
+  private messageHandler:
+    | ((event: MessageEvent<SandboxResponse>) => void)
+    | null = null;
   private onFsWrite: ((path: string, content: string) => void) | null = null;
   private onFsDelete: ((path: string) => void) | null = null;
   private commandCounter = 0;

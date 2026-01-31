@@ -24,7 +24,10 @@ function serializeVFS(vfs: VirtualFS): SerializedFile[] {
  * Apply file changes from the sandbox back into VFS.
  * Called when the sandbox reports fs-write events after execution.
  */
-function applyToVFS(vfs: VirtualFS, files: ReadonlyArray<SerializedFile>): void {
+function applyToVFS(
+  vfs: VirtualFS,
+  files: ReadonlyArray<SerializedFile>,
+): void {
   for (const file of files) {
     vfs.writeFile(file.path, file.content);
   }

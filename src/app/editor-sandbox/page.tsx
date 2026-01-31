@@ -28,9 +28,8 @@ export default function EditorSandboxPage() {
 
     async function boot() {
       try {
-        const { initSandboxShell } = await import(
-          "../../infra/runtime/wasmer/wasmerShell"
-        );
+        const { initSandboxShell } =
+          await import("../../infra/runtime/wasmer/wasmerShell");
         await initSandboxShell();
         setStatus("ready");
       } catch (err) {

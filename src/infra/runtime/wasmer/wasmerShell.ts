@@ -7,8 +7,18 @@
  * This module is the iframe's "brain" — it initializes the runtime and
  * processes execution requests.
  */
-import type { SandboxCommand, SandboxResponse, SerializedFile } from "./wasmerTypes";
-import { runEcho, runPwd, runCatMap, runLsMap, runRmMap } from "../builtins/vfsBuiltins";
+import type {
+  SandboxCommand,
+  SandboxResponse,
+  SerializedFile,
+} from "./wasmerTypes";
+import {
+  runEcho,
+  runPwd,
+  runCatMap,
+  runLsMap,
+  runRmMap,
+} from "../builtins/vfsBuiltins";
 
 // ── Runtime state ───────────────────────────────────────────
 
@@ -69,8 +79,17 @@ async function runWithWasmer(
 
     const packageName = packageMap[command];
     if (!packageName) {
-      postToParent({ type: "error", id, message: `No Wasmer package for: ${command}` });
-      postToParent({ type: "exit", id, code: 127, runtimeMs: performance.now() - start });
+      postToParent({
+        type: "error",
+        id,
+        message: `No Wasmer package for: ${command}`,
+      });
+      postToParent({
+        type: "exit",
+        id,
+        code: 127,
+        runtimeMs: performance.now() - start,
+      });
       return;
     }
 
@@ -84,11 +103,21 @@ async function runWithWasmer(
     if (result.stderr) {
       postToParent({ type: "stderr", id, data: result.stderr });
     }
-    postToParent({ type: "exit", id, code: result.code, runtimeMs: performance.now() - start });
+    postToParent({
+      type: "exit",
+      id,
+      code: result.code,
+      runtimeMs: performance.now() - start,
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     postToParent({ type: "error", id, message: msg });
-    postToParent({ type: "exit", id, code: 1, runtimeMs: performance.now() - start });
+    postToParent({
+      type: "exit",
+      id,
+      code: 1,
+      runtimeMs: performance.now() - start,
+    });
   }
 }
 
@@ -97,19 +126,15 @@ async function runWithWasmer(
 async function loadPyodide(): Promise<unknown> {
   if (pyodideInstance) return pyodideInstance;
   // Pyodide is loaded from CDN via script tag in the sandbox page
-  const pyodideModule = (globalThis as Record<string, unknown>)["loadPyodide"] as
-    | (() => Promise<unknown>)
-    | undefined;
+  const pyodideModule = (globalThis as Record<string, unknown>)[
+    "loadPyodide"
+  ] as (() => Promise<unknown>) | undefined;
   if (!pyodideModule) return null;
   pyodideInstance = await pyodideModule();
   return pyodideInstance;
 }
 
-function runBuiltin(
-  id: string,
-  command: string,
-  args: string[],
-): boolean {
+function runBuiltin(id: string, command: string, args: string[]): boolean {
   const start = performance.now();
 
   const io = {
@@ -120,25 +145,45 @@ function runBuiltin(
   switch (command) {
     case "echo": {
       const code = runEcho(args, io);
-      postToParent({ type: "exit", id, code, runtimeMs: performance.now() - start });
+      postToParent({
+        type: "exit",
+        id,
+        code,
+        runtimeMs: performance.now() - start,
+      });
       return true;
     }
 
     case "cat": {
       const code = runCatMap(args, mountedFiles, io);
-      postToParent({ type: "exit", id, code, runtimeMs: performance.now() - start });
+      postToParent({
+        type: "exit",
+        id,
+        code,
+        runtimeMs: performance.now() - start,
+      });
       return true;
     }
 
     case "ls": {
       const code = runLsMap(args, mountedFiles, io);
-      postToParent({ type: "exit", id, code, runtimeMs: performance.now() - start });
+      postToParent({
+        type: "exit",
+        id,
+        code,
+        runtimeMs: performance.now() - start,
+      });
       return true;
     }
 
     case "mkdir": {
       // No-op in flat file map, but acknowledge
-      postToParent({ type: "exit", id, code: 0, runtimeMs: performance.now() - start });
+      postToParent({
+        type: "exit",
+        id,
+        code: 0,
+        runtimeMs: performance.now() - start,
+      });
       return true;
     }
 
@@ -150,18 +195,33 @@ function runBuiltin(
         const resolved = arg.startsWith("/") ? arg : `/project/${arg}`;
         postToParent({ type: "fs-delete", path: resolved });
       }
-      postToParent({ type: "exit", id, code, runtimeMs: performance.now() - start });
+      postToParent({
+        type: "exit",
+        id,
+        code,
+        runtimeMs: performance.now() - start,
+      });
       return true;
     }
 
     case "pwd": {
       const code = runPwd(io);
-      postToParent({ type: "exit", id, code, runtimeMs: performance.now() - start });
+      postToParent({
+        type: "exit",
+        id,
+        code,
+        runtimeMs: performance.now() - start,
+      });
       return true;
     }
 
     case "clear": {
-      postToParent({ type: "exit", id, code: 0, runtimeMs: performance.now() - start });
+      postToParent({
+        type: "exit",
+        id,
+        code: 0,
+        runtimeMs: performance.now() - start,
+      });
       return true;
     }
 
@@ -175,8 +235,17 @@ async function runFallbackPython(id: string, args: string[]): Promise<void> {
   try {
     const pyodide = await loadPyodide();
     if (!pyodide) {
-      postToParent({ type: "error", id, message: "Pyodide not available in sandbox" });
-      postToParent({ type: "exit", id, code: 1, runtimeMs: performance.now() - start });
+      postToParent({
+        type: "error",
+        id,
+        message: "Pyodide not available in sandbox",
+      });
+      postToParent({
+        type: "exit",
+        id,
+        code: 1,
+        runtimeMs: performance.now() - start,
+      });
       return;
     }
 
@@ -190,7 +259,9 @@ async function runFallbackPython(id: string, args: string[]): Promise<void> {
     // Mount files into Pyodide FS
     for (const [path, content] of mountedFiles) {
       if (path.endsWith(".py")) {
-        const pyPath = path.startsWith("/project") ? path.slice("/project".length) : path;
+        const pyPath = path.startsWith("/project")
+          ? path.slice("/project".length)
+          : path;
         try {
           py.FS.writeFile(pyPath, content);
         } catch {
@@ -205,11 +276,22 @@ async function runFallbackPython(id: string, args: string[]): Promise<void> {
       code = args[1];
     } else {
       const filePath = args[0] ?? "";
-      const resolved = filePath.startsWith("/") ? filePath : `/project/${filePath}`;
+      const resolved = filePath.startsWith("/")
+        ? filePath
+        : `/project/${filePath}`;
       const fileContent = mountedFiles.get(resolved);
       if (!fileContent) {
-        postToParent({ type: "stderr", id, data: `python3: can't open file '${filePath}'\n` });
-        postToParent({ type: "exit", id, code: 1, runtimeMs: performance.now() - start });
+        postToParent({
+          type: "stderr",
+          id,
+          data: `python3: can't open file '${filePath}'\n`,
+        });
+        postToParent({
+          type: "exit",
+          id,
+          code: 1,
+          runtimeMs: performance.now() - start,
+        });
         return;
       }
       code = fileContent;
@@ -248,7 +330,12 @@ __result_err = __stderr.getvalue()
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     postToParent({ type: "error", id, message: msg });
-    postToParent({ type: "exit", id, code: 1, runtimeMs: performance.now() - start });
+    postToParent({
+      type: "exit",
+      id,
+      code: 1,
+      runtimeMs: performance.now() - start,
+    });
   }
 }
 

@@ -10,8 +10,12 @@ import {
 function makeIO() {
   const result = { stdout: "", stderr: "" };
   const io = {
-    stdout: (d: string) => { result.stdout += d; },
-    stderr: (d: string) => { result.stderr += d; },
+    stdout: (d: string) => {
+      result.stdout += d;
+    },
+    stderr: (d: string) => {
+      result.stderr += d;
+    },
   };
   return { io, result };
 }

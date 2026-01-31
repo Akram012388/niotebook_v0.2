@@ -238,10 +238,7 @@ const getCompletionCountsByCourses = query({
   args: {
     courseIds: v.array(v.id("courses")),
   },
-  handler: async (
-    ctx,
-    args,
-  ): Promise<Record<string, number>> => {
+  handler: async (ctx, args): Promise<Record<string, number>> => {
     const user = await requireQueryUser(ctx);
     const counts: Record<string, number> = {};
 

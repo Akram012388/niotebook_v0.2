@@ -9,8 +9,18 @@ import type {
 
 const C_STDLIB: Completion[] = [
   // stdio.h
-  { label: "printf", type: "function", detail: "stdio.h", info: "int printf(const char *format, ...)" },
-  { label: "scanf", type: "function", detail: "stdio.h", info: "int scanf(const char *format, ...)" },
+  {
+    label: "printf",
+    type: "function",
+    detail: "stdio.h",
+    info: "int printf(const char *format, ...)",
+  },
+  {
+    label: "scanf",
+    type: "function",
+    detail: "stdio.h",
+    info: "int scanf(const char *format, ...)",
+  },
   { label: "fprintf", type: "function", detail: "stdio.h" },
   { label: "fscanf", type: "function", detail: "stdio.h" },
   { label: "sprintf", type: "function", detail: "stdio.h" },
@@ -107,12 +117,42 @@ const C_STDLIB: Completion[] = [
 
 /** CS50 library completions (common in intro CS courses). */
 const CS50_LIBRARY: Completion[] = [
-  { label: "get_string", type: "function", detail: "cs50.h", info: "string get_string(const char *prompt, ...)" },
-  { label: "get_int", type: "function", detail: "cs50.h", info: "int get_int(const char *prompt, ...)" },
-  { label: "get_float", type: "function", detail: "cs50.h", info: "float get_float(const char *prompt, ...)" },
-  { label: "get_char", type: "function", detail: "cs50.h", info: "char get_char(const char *prompt, ...)" },
-  { label: "get_long", type: "function", detail: "cs50.h", info: "long get_long(const char *prompt, ...)" },
-  { label: "string", type: "type", detail: "cs50.h", info: "typedef char *string" },
+  {
+    label: "get_string",
+    type: "function",
+    detail: "cs50.h",
+    info: "string get_string(const char *prompt, ...)",
+  },
+  {
+    label: "get_int",
+    type: "function",
+    detail: "cs50.h",
+    info: "int get_int(const char *prompt, ...)",
+  },
+  {
+    label: "get_float",
+    type: "function",
+    detail: "cs50.h",
+    info: "float get_float(const char *prompt, ...)",
+  },
+  {
+    label: "get_char",
+    type: "function",
+    detail: "cs50.h",
+    info: "char get_char(const char *prompt, ...)",
+  },
+  {
+    label: "get_long",
+    type: "function",
+    detail: "cs50.h",
+    info: "long get_long(const char *prompt, ...)",
+  },
+  {
+    label: "string",
+    type: "type",
+    detail: "cs50.h",
+    info: "typedef char *string",
+  },
 ];
 
 /** Common #include headers. */

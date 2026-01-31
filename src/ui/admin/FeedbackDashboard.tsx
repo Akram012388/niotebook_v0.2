@@ -112,10 +112,7 @@ const FeedbackDashboard = (): ReactElement => {
             <tbody>
               {filtered === undefined ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-8 text-center text-muted"
-                  >
+                  <td colSpan={6} className="px-4 py-8 text-center text-muted">
                     Loading...
                   </td>
                 </tr>

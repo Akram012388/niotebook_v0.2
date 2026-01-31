@@ -260,9 +260,15 @@ button:disabled {
   margin-bottom: 0.25em;
 }
 
-.nio-markdown h1 { font-size: 1.25em; }
-.nio-markdown h2 { font-size: 1.125em; }
-.nio-markdown h3 { font-size: 1em; }
+.nio-markdown h1 {
+  font-size: 1.25em;
+}
+.nio-markdown h2 {
+  font-size: 1.125em;
+}
+.nio-markdown h3 {
+  font-size: 1em;
+}
 
 .nio-markdown a {
   text-decoration: underline;

@@ -18,7 +18,10 @@ const AssistantContent = memo(function AssistantContent({
   content: string;
 }) {
   return (
-    <div className="nio-markdown w-full text-sm leading-6 text-foreground" data-testid="chat-message">
+    <div
+      className="nio-markdown w-full text-sm leading-6 text-foreground"
+      data-testid="chat-message"
+    >
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
         rehypePlugins={rehypePlugins}

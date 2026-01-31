@@ -12,9 +12,7 @@ test.describe("Workspace", () => {
     await expect(page.locator("main")).toBeVisible({ timeout: 15000 });
   });
 
-  test("workspace without lessonId redirects to /courses", async ({
-    page,
-  }) => {
+  test("workspace without lessonId redirects to /courses", async ({ page }) => {
     await page.goto("/workspace");
     // Should redirect away from bare /workspace (to /courses per B4)
     await page.waitForURL(/\/(courses|workspace|sign-in)/, { timeout: 10000 });

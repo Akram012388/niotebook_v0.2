@@ -4,18 +4,23 @@ import { VirtualFS } from "../../../../../src/infra/vfs/VirtualFS";
 
 function makeVFS(): VirtualFS {
   const vfs = new VirtualFS();
-  vfs.writeFile("/project/main.py", 'import utils\nutils.greet()');
+  vfs.writeFile("/project/main.py", "import utils\nutils.greet()");
   vfs.writeFile("/project/utils.py", 'def greet(): print("hi")');
-  vfs.writeFile("/project/lib/helpers.js", 'export const x = 1;');
+  vfs.writeFile("/project/lib/helpers.js", "export const x = 1;");
   vfs.writeFile("/project/lib/index.js", 'export * from "./helpers";');
-  vfs.writeFile("/project/include/header.h", '#pragma once');
+  vfs.writeFile("/project/include/header.h", "#pragma once");
   return vfs;
 }
 
 describe("resolveImport", () => {
   it("resolves exact path", () => {
     const vfs = makeVFS();
-    const result = resolveImport("./utils.py", "/project/main.py", "python", vfs);
+    const result = resolveImport(
+      "./utils.py",
+      "/project/main.py",
+      "python",
+      vfs,
+    );
     expect(result).not.toBeNull();
     expect(result!.resolvedPath).toBe("/project/utils.py");
   });
@@ -29,7 +34,12 @@ describe("resolveImport", () => {
 
   it("resolves with extension inference (JS)", () => {
     const vfs = makeVFS();
-    const result = resolveImport("./lib/helpers", "/project/main.js", "js", vfs);
+    const result = resolveImport(
+      "./lib/helpers",
+      "/project/main.js",
+      "js",
+      vfs,
+    );
     expect(result).not.toBeNull();
     expect(result!.resolvedPath).toBe("/project/lib/helpers.js");
   });
@@ -43,14 +53,24 @@ describe("resolveImport", () => {
 
   it("resolves absolute paths", () => {
     const vfs = makeVFS();
-    const result = resolveImport("/project/utils.py", "/project/main.py", "python", vfs);
+    const result = resolveImport(
+      "/project/utils.py",
+      "/project/main.py",
+      "python",
+      vfs,
+    );
     expect(result).not.toBeNull();
     expect(result!.resolvedPath).toBe("/project/utils.py");
   });
 
   it("returns null for non-existent file", () => {
     const vfs = makeVFS();
-    const result = resolveImport("./nonexistent", "/project/main.py", "python", vfs);
+    const result = resolveImport(
+      "./nonexistent",
+      "/project/main.py",
+      "python",
+      vfs,
+    );
     expect(result).toBeNull();
   });
 

@@ -127,19 +127,13 @@ const AnalyticsDashboard = (): ReactElement => {
             <tbody>
               {eventLog === undefined ? (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-4 py-8 text-center text-muted"
-                  >
+                  <td colSpan={4} className="px-4 py-8 text-center text-muted">
                     Loading...
                   </td>
                 </tr>
               ) : eventLog.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-4 py-8 text-center text-muted"
-                  >
+                  <td colSpan={4} className="px-4 py-8 text-center text-muted">
                     No events recorded yet.
                   </td>
                 </tr>

@@ -234,9 +234,7 @@ const listAll = query({
   > => {
     await requireQueryAdmin(ctx);
 
-    const invites = (await ctx.db
-      .query("invites")
-      .collect()) as InviteRecord[];
+    const invites = (await ctx.db.query("invites").collect()) as InviteRecord[];
 
     const nowMs = Date.now();
 
@@ -244,7 +242,10 @@ const listAll = query({
       .map((invite) => {
         const summary = toInviteSummary(invite);
         const status = resolveInviteStatus(
-          { ...summary, expiresAt: invite.expiresAt ?? invite.createdAt + INVITE_TTL_MS },
+          {
+            ...summary,
+            expiresAt: invite.expiresAt ?? invite.createdAt + INVITE_TTL_MS,
+          },
           nowMs,
         );
         return {
@@ -272,10 +273,7 @@ const generate = mutation({
     inviteBatchId: v.string(),
     role: v.optional(v.union(v.literal("user"), v.literal("admin"))),
   },
-  handler: async (
-    ctx,
-    args,
-  ): Promise<string[]> => {
+  handler: async (ctx, args): Promise<string[]> => {
     const admin = await requireMutationAdmin(ctx);
 
     const codes: string[] = [];
@@ -317,4 +315,11 @@ const revoke = mutation({
   },
 });
 
-export { getInviteByCode, generate, listAll, redeemInvite, revoke, upsertInvite };
+export {
+  getInviteByCode,
+  generate,
+  listAll,
+  redeemInvite,
+  revoke,
+  upsertInvite,
+};
