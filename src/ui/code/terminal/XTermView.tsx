@@ -71,10 +71,29 @@ const XTermView = ({ hint }: XTermViewProps): ReactElement => {
     fitAddonRef.current = fitAddon;
     setTerminal(terminal);
 
+    const safeFit = (): void => {
+      const currentTerminal = terminalRef.current;
+      const currentFit = fitAddonRef.current;
+      const currentContainer = containerRef.current;
+      if (!currentTerminal || !currentFit || !currentContainer) return;
+      if (!currentTerminal.element) return;
+      const rect = currentContainer.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      try {
+        currentFit.fit();
+      } catch {
+        return;
+      }
+    };
+
     // Welcome message
-    terminal.writeln("Niotebook Terminal v0.1");
-    terminal.writeln(hintRef.current || DEFAULT_HINT);
-    terminal.write(PROMPT);
+    try {
+      terminal.writeln("Niotebook Terminal v0.1");
+      terminal.writeln(hintRef.current || DEFAULT_HINT);
+      terminal.write(PROMPT);
+    } catch {
+      // Ignore write errors when terminal is not ready
+    }
     initializedRef.current = true;
 
     // Handle user input
@@ -129,23 +148,19 @@ const XTermView = ({ hint }: XTermViewProps): ReactElement => {
 
     // ResizeObserver → fit
     const resizeObserver = new ResizeObserver(() => {
-      try {
-        fitAddon.fit();
-      } catch {
-        // Terminal may be disposed
-      }
+      safeFit();
     });
     resizeObserver.observe(container);
 
     // Window resize → fit
     const onWindowResize = (): void => {
-      try {
-        fitAddon.fit();
-      } catch {
-        // Terminal may be disposed
-      }
+      safeFit();
     };
     window.addEventListener("resize", onWindowResize);
+
+    requestAnimationFrame(() => {
+      safeFit();
+    });
 
     return () => {
       onDataDisposable.dispose();
@@ -161,13 +176,17 @@ const XTermView = ({ hint }: XTermViewProps): ReactElement => {
   useEffect(() => {
     const terminal = terminalRef.current;
     if (!initializedRef.current || !terminal) return;
+    if (!terminal.element) return;
     if (!hint) return;
     if (isRunning) return;
     if (inputBufferRef.current.length > 0) return;
-
-    terminal.write("\r\n");
-    terminal.writeln(hint);
-    terminal.write(PROMPT);
+    try {
+      terminal.write("\r\n");
+      terminal.writeln(hint);
+      terminal.write(PROMPT);
+    } catch {
+      return;
+    }
   }, [hint, isRunning]);
 
   return <div ref={containerRef} className="h-full w-full" />;
