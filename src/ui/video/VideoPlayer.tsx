@@ -32,6 +32,12 @@ type VideoPlayerProps = {
 
 const SAMPLE_INTERVAL_SEC = 3;
 
+/** Module-level cache so remounts (e.g. layout switch) resume from last position. */
+const playbackCache = new Map<
+  string,
+  { timeSec: number; playing: boolean }
+>();
+
 const VideoPlayer = ({
   videoId,
   initialTimeSec = null,
@@ -49,6 +55,7 @@ const VideoPlayer = ({
   const lastSampleRef = useRef<number | null>(null);
   const didApplyInitialSeekRef = useRef(false);
   const [playState, setPlayState] = useState<VideoPlaybackState>("paused");
+  const playStateRef = useRef<VideoPlaybackState>("paused");
   const [statusMessage, setStatusMessage] = useState<string>(
     "Initializing player...",
   );
@@ -149,7 +156,19 @@ const VideoPlayer = ({
             onReady: (event) => {
               playerRef.current = event.target;
               setStatusMessage("Ready");
-              if (typeof initialTimeRef.current === "number") {
+              const cached = playbackCache.get(videoId);
+              if (cached) {
+                playbackCache.delete(videoId);
+                didApplyInitialSeekRef.current = true;
+                const nextSec = clampVideoTime(cached.timeSec);
+                event.target.seekTo(nextSec, true);
+                if (cached.playing) {
+                  event.target.playVideo();
+                }
+                lastSampleRef.current = null;
+                updateCurrentTimeRef.current(nextSec);
+                onSeekRef.current?.(nextSec);
+              } else if (typeof initialTimeRef.current === "number") {
                 applyInitialSeek(initialTimeRef.current);
               }
             },
@@ -157,18 +176,29 @@ const VideoPlayer = ({
               const state = api.PlayerState;
               if (event.data === state.PLAYING) {
                 setPlayState("playing");
+                playStateRef.current = "playing";
               }
               if (event.data === state.PAUSED) {
                 setPlayState("paused");
+                playStateRef.current = "paused";
                 const nextTime = event.target.getCurrentTime();
                 updateCurrentTimeRef.current(nextTime);
                 onSeekRef.current?.(nextTime);
+                playbackCache.set(videoId, {
+                  timeSec: nextTime,
+                  playing: false,
+                });
               }
               if (event.data === state.ENDED) {
                 setPlayState("paused");
+                playStateRef.current = "paused";
                 const nextTime = event.target.getCurrentTime();
                 updateCurrentTimeRef.current(nextTime);
                 onSeekRef.current?.(nextTime);
+                playbackCache.set(videoId, {
+                  timeSec: nextTime,
+                  playing: false,
+                });
               }
             },
           },
@@ -188,7 +218,18 @@ const VideoPlayer = ({
 
     return () => {
       cancelled = true;
-      playerRef.current?.destroy();
+      const player = playerRef.current;
+      if (player && typeof player.getCurrentTime === "function") {
+        try {
+          playbackCache.set(videoId, {
+            timeSec: player.getCurrentTime(),
+            playing: playStateRef.current === "playing",
+          });
+        } catch {
+          /* player already disposed */
+        }
+      }
+      player?.destroy();
       playerRef.current = null;
     };
   }, [applyInitialSeek, videoId]);
@@ -226,11 +267,13 @@ const VideoPlayer = ({
         return;
       }
 
-      updateCurrentTime(clampVideoTime(player.getCurrentTime()));
+      const t = clampVideoTime(player.getCurrentTime());
+      updateCurrentTime(t);
+      playbackCache.set(videoId, { timeSec: t, playing: true });
     }, 1000);
 
     return () => window.clearInterval(interval);
-  }, [playState, updateCurrentTime]);
+  }, [playState, updateCurrentTime, videoId]);
 
   const handlePlay = useCallback((): void => {
     const player = playerRef.current;
