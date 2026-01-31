@@ -165,4 +165,121 @@ const getCompletionsByCourse = query({
   },
 });
 
-export { getCompletionsByCourse, setLessonCompleted };
+const markComplete = mutation({
+  args: {
+    lessonId: v.id("lessons"),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<ReturnType<typeof resolveLessonCompletionSummary>> => {
+    const user = await requireMutationUser(ctx);
+    const existing = (await ctx.db
+      .query("lessonCompletions")
+      .withIndex("by_userId_lessonId", (query) => {
+        const typedQuery =
+          query as unknown as import("convex/server").IndexRangeBuilder<
+            LessonCompletionRecord,
+            LessonCompletionIndexFields
+          >;
+
+        return typedQuery
+          .eq("userId", toGenericId(user.id))
+          .eq("lessonId", args.lessonId);
+      })
+      .first()) as LessonCompletionRecord | null;
+
+    if (existing) {
+      return resolveLessonCompletionSummary(
+        toDomainId(existing._id as GenericId<"lessonCompletions">),
+        {
+          userId: toDomainId(toGenericId(user.id)),
+          lessonId: toDomainId(args.lessonId),
+          completionMethod: existing.completionMethod,
+          completionPct: existing.completionPct,
+        },
+        existing.completedAt,
+      );
+    }
+
+    const completedAt = Date.now();
+    const completionId = await ctx.db.insert("lessonCompletions", {
+      userId: toGenericId(user.id),
+      lessonId: args.lessonId,
+      completionMethod: "video",
+      completionPct: 100,
+      completedAt,
+    });
+
+    await logEventInternal(ctx, {
+      eventType: "lesson_completed",
+      lessonId: args.lessonId,
+      metadata: {
+        lessonId: args.lessonId,
+        completionPct: 100,
+      },
+      userId: toGenericId(user.id),
+    });
+
+    return resolveLessonCompletionSummary(
+      toDomainId(completionId as GenericId<"lessonCompletions">),
+      {
+        userId: toDomainId(toGenericId(user.id)),
+        lessonId: toDomainId(args.lessonId),
+        completionMethod: "video",
+        completionPct: 100,
+      },
+      completedAt,
+    );
+  },
+});
+
+const getCompletionCountsByCourses = query({
+  args: {
+    courseIds: v.array(v.id("courses")),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<Record<string, number>> => {
+    const user = await requireQueryUser(ctx);
+    const counts: Record<string, number> = {};
+
+    for (const courseId of args.courseIds) {
+      const lessons = await ctx.db
+        .query("lessons")
+        .withIndex("by_courseId", (q) => q.eq("courseId", courseId))
+        .collect();
+
+      let count = 0;
+      for (const lesson of lessons) {
+        const completion = (await ctx.db
+          .query("lessonCompletions")
+          .withIndex("by_userId_lessonId", (q) => {
+            const typed =
+              q as unknown as import("convex/server").IndexRangeBuilder<
+                LessonCompletionRecord,
+                LessonCompletionIndexFields
+              >;
+            return typed
+              .eq("userId", toGenericId(user.id))
+              .eq("lessonId", lesson._id);
+          })
+          .first()) as LessonCompletionRecord | null;
+
+        if (completion) count++;
+      }
+
+      counts[courseId as string] = count;
+    }
+
+    return counts;
+  },
+});
+
+export {
+  getCompletionCountsByCourses,
+  getCompletionsByCourse,
+  markComplete,
+  setLessonCompleted,
+};

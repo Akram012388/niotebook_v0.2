@@ -24,8 +24,8 @@ describe("lessonEnvironment", () => {
       }
     });
 
-    it("has exactly 7 presets", () => {
-      expect(VALID_PRESET_IDS.size).toBe(7);
+    it("has exactly 8 presets", () => {
+      expect(VALID_PRESET_IDS.size).toBe(8);
     });
   });
 
