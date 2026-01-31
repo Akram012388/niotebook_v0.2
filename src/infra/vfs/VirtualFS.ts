@@ -11,6 +11,9 @@ const EXTENSION_LANGUAGE_MAP: Record<string, RuntimeLanguage> = {
   ".css": "css",
   ".c": "c",
   ".h": "c",
+  ".sql": "sql",
+  ".r": "r",
+  ".R": "r",
 };
 
 /**

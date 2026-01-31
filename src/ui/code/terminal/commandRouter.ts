@@ -58,6 +58,8 @@ const LANGUAGE_MAP: Record<string, RuntimeLanguage> = {
   python: "python",
   node: "js",
   gcc: "c",
+  sqlite3: "sql",
+  Rscript: "r",
 };
 
 /** Commands that the sandbox bridge can handle. */

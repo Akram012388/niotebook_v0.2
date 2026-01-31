@@ -22,9 +22,11 @@ const LANGUAGE_LABELS: Record<RuntimeLanguage, string> = {
   c: "C",
   html: "HTML",
   css: "CSS",
+  sql: "SQL",
+  r: "R",
 };
 
-const LANGUAGE_ORDER: RuntimeLanguage[] = ["js", "python", "c", "html", "css"];
+const LANGUAGE_ORDER: RuntimeLanguage[] = ["js", "python", "c", "html", "css", "sql", "r"];
 
 const LanguageSelect = ({
   value,

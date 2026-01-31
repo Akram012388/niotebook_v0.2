@@ -24,6 +24,8 @@ const EXTENSION_CANDIDATES: Record<RuntimeLanguage, readonly string[]> = {
   c: [".c", ".h"],
   html: [".html", ".htm"],
   css: [".css"],
+  sql: [".sql"],
+  r: [".r", ".R"],
 };
 
 /**

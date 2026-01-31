@@ -60,6 +60,11 @@ const languageLoaders: Record<RuntimeLanguage, LanguageLoader> = {
     ),
   c: () => import("@codemirror/lang-cpp").then((m) => m.cpp()),
   css: () => import("@codemirror/lang-css").then((m) => m.css()),
+  sql: () =>
+    import("@codemirror/lang-sql").then((m) =>
+      m.sql({ dialect: m.SQLite }),
+    ),
+  r: () => import("codemirror-lang-r").then((m) => m.r()),
 };
 
 async function loadLanguage(lang: RuntimeLanguage): Promise<LanguageSupport> {

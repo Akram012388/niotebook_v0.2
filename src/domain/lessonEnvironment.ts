@@ -16,6 +16,7 @@ type EnvPresetId =
   | "cs50w-html"
   | "cs50ai-python"
   | "cs50sql-sql"
+  | "cs50r"
   | "sandbox";
 
 // ── Starter file ──────────────────────────────────────────────
@@ -65,6 +66,7 @@ const VALID_PRESET_IDS: ReadonlySet<string> = new Set<EnvPresetId>([
   "cs50w-html",
   "cs50ai-python",
   "cs50sql-sql",
+  "cs50r",
   "sandbox",
 ]);
 
