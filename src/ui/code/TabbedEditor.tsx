@@ -52,7 +52,7 @@ const TabbedEditor = (): ReactElement => {
 
   return (
     <div
-      className="flex min-h-0 flex-1 flex-col bg-workspace-editor text-workspace-text"
+      className="flex min-h-0 h-full flex-1 flex-col bg-workspace-editor text-workspace-text"
       onKeyDown={handleKeyDown}
     >
       <TabBar />

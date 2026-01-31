@@ -97,7 +97,8 @@ const VideoPlayer = ({
   }, [initialTimeSec]);
 
   const applyInitialSeek = useCallback((nextTime: number): void => {
-    if (!playerRef.current) {
+    const player = playerRef.current;
+    if (!player || typeof player.seekTo !== "function") {
       return;
     }
 
@@ -106,7 +107,7 @@ const VideoPlayer = ({
     }
 
     const nextSec = clampVideoTime(nextTime);
-    playerRef.current.seekTo(nextSec, true);
+    player.seekTo(nextSec, true);
     lastSampleRef.current = null;
     updateCurrentTimeRef.current(nextSec);
     onSeekRef.current?.(nextSec);
@@ -203,12 +204,13 @@ const VideoPlayer = ({
       return;
     }
 
-    if (!playerRef.current) {
+    const player = playerRef.current;
+    if (!player || typeof player.seekTo !== "function") {
       return;
     }
 
     const nextTime = clampVideoTime(seekToSec);
-    playerRef.current.seekTo(nextTime, true);
+    player.seekTo(nextTime, true);
     lastSampleRef.current = null;
     onSeekRef.current?.(nextTime);
   }, [seekToSec, seekToken]);
@@ -220,7 +222,7 @@ const VideoPlayer = ({
 
     const interval = window.setInterval(() => {
       const player = playerRef.current;
-      if (!player) {
+      if (!player || typeof player.getCurrentTime !== "function") {
         return;
       }
 
@@ -231,26 +233,42 @@ const VideoPlayer = ({
   }, [playState, updateCurrentTime]);
 
   const handlePlay = useCallback((): void => {
-    playerRef.current?.playVideo();
-    const nextTime = playerRef.current?.getCurrentTime() ?? currentTimeSec;
+    const player = playerRef.current;
+    if (!player || typeof player.playVideo !== "function") {
+      return;
+    }
+    player.playVideo();
+    const nextTime =
+      typeof player.getCurrentTime === "function"
+        ? player.getCurrentTime()
+        : currentTimeSec;
     updateCurrentTime(clampVideoTime(nextTime));
   }, [currentTimeSec, updateCurrentTime]);
 
   const handlePause = useCallback((): void => {
-    playerRef.current?.pauseVideo();
-    const nextTime = playerRef.current?.getCurrentTime() ?? currentTimeSec;
+    const player = playerRef.current;
+    if (!player || typeof player.pauseVideo !== "function") {
+      return;
+    }
+    player.pauseVideo();
+    const nextTime =
+      typeof player.getCurrentTime === "function"
+        ? player.getCurrentTime()
+        : currentTimeSec;
     updateCurrentTime(clampVideoTime(nextTime));
   }, [currentTimeSec, updateCurrentTime]);
 
   const handleSeekDelta = useCallback(
     (delta: number): void => {
       const player = playerRef.current;
-      if (!player) {
+      if (!player || typeof player.getCurrentTime !== "function") {
         return;
       }
 
       const next = clampVideoTime(player.getCurrentTime() + delta);
-      player.seekTo(next, true);
+      if (typeof player.seekTo === "function") {
+        player.seekTo(next, true);
+      }
       updateCurrentTime(next);
       onSeek?.(next);
     },

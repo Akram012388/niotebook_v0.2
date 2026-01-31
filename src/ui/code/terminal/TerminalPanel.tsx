@@ -25,7 +25,7 @@ const TerminalPanel = ({
   isRunning,
   hint,
 }: TerminalPanelProps): ReactElement => (
-  <div className="flex min-h-0 flex-1 flex-col bg-workspace-terminal text-workspace-text">
+  <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-terminal text-workspace-text">
     <TerminalToolbar
       onRun={onRun}
       onStop={onStop}

@@ -209,7 +209,9 @@ const XTermView = ({ hint }: XTermViewProps): ReactElement => {
     }
   }, [hint, isRunning]);
 
-  return <div ref={containerRef} className="h-full w-full" />;
+  return (
+    <div ref={containerRef} className="h-full w-full bg-workspace-terminal" />
+  );
 };
 
 export default XTermView;

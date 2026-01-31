@@ -424,12 +424,12 @@ const CodePane = ({
           minSecond={60}
           storageKey="niotebook:split-editor-output"
           first={
-            <div className="flex min-h-0 flex-1 flex-col">
+            <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-editor">
               <EditorArea showFileTree={showFileTree} />
             </div>
           }
           second={
-            <div className="flex min-h-0 flex-1 flex-col">
+            <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-terminal">
               <TerminalPanel
                 onRun={handleRun}
                 onStop={handleStop}

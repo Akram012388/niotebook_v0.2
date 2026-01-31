@@ -19,14 +19,14 @@ type EditorAreaProps = {
 const EditorArea = ({ showFileTree }: EditorAreaProps): ReactElement => {
   if (!showFileTree) {
     return (
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 h-full flex-1 bg-workspace-editor">
         <TabbedEditor />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-0 flex-1">
+    <div className="flex min-h-0 h-full flex-1 bg-workspace-editor">
       <SplitPane
         direction="horizontal"
         initialSplit={0.22}
@@ -34,8 +34,16 @@ const EditorArea = ({ showFileTree }: EditorAreaProps): ReactElement => {
         maxFirst={360}
         minSecond={240}
         storageKey="niotebook:split-file-tree"
-        first={<FileTreeSidebar />}
-        second={<TabbedEditor />}
+        first={
+          <div className="flex min-h-0 h-full bg-workspace-sidebar">
+            <FileTreeSidebar />
+          </div>
+        }
+        second={
+          <div className="flex min-h-0 h-full bg-workspace-editor">
+            <TabbedEditor />
+          </div>
+        }
       />
     </div>
   );

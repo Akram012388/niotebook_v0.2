@@ -73,12 +73,19 @@ const niotebookWorkspaceTheme = EditorView.theme(
     "&": {
       backgroundColor: "var(--color-workspace-editor, #0d1117)",
       color: "var(--color-workspace-text, #e5e7eb)",
+      height: "100%",
+    },
+    ".cm-scroller": {
+      backgroundColor: "var(--color-workspace-editor, #0d1117)",
+      height: "100%",
+      minHeight: "100%",
     },
     ".cm-content": {
       caretColor: "var(--color-workspace-text, #e5e7eb)",
       fontFamily: "var(--font-mono, ui-monospace, monospace)",
       fontSize: "12px",
       lineHeight: "1.6",
+      minHeight: "100%",
     },
     ".cm-cursor": {
       borderLeftColor: "var(--color-workspace-text, #e5e7eb)",
@@ -87,6 +94,7 @@ const niotebookWorkspaceTheme = EditorView.theme(
       backgroundColor: "var(--color-workspace-editor, #0d1117)",
       color: "var(--color-workspace-text-muted, #9aa4b2)",
       border: "none",
+      minHeight: "100%",
     },
     ".cm-activeLineGutter": {
       backgroundColor:
