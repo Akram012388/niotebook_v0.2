@@ -1,12 +1,14 @@
 "use client";
 
-import { type ReactElement } from "react";
+import { useMemo, type ReactElement } from "react";
 import { useQuery } from "convex/react";
 import { getCoursesRef } from "@/ui/content/convexContent";
 import { getResumeDataRef } from "./convexResume";
+import { getCompletionCountsByCourseRef } from "./convexCompletions";
 import { CourseCard } from "./CourseCard";
 import { CourseCarousel } from "./CourseCarousel";
 import { ResumeCard } from "./ResumeCard";
+import { COMING_SOON_COURSES } from "./comingSoonCourses";
 import type { CourseId } from "@/domain/ids";
 
 const CS50_TITLES = [
@@ -17,19 +19,22 @@ const CS50_TITLES = [
   "CS50SQL",
 ];
 
-const COMING_SOON = [
-  { title: "MIT 6.006", provider: "MIT OpenCourseWare" },
-  { title: "Stanford CS106A", provider: "Stanford" },
-  { title: "Google IT Cert", provider: "Google" },
-  { title: "Meta Frontend Dev", provider: "Meta" },
-];
-
 function CoursesPage(): ReactElement {
   const courses = useQuery(getCoursesRef);
   const resumeData = useQuery(getResumeDataRef);
 
   const cs50Courses = (courses ?? []).filter((c) =>
     CS50_TITLES.some((t) => c.title.includes(t)),
+  );
+
+  const courseIds = useMemo(
+    () => cs50Courses.map((c) => c.id as string),
+    [cs50Courses],
+  );
+
+  const completionCounts = useQuery(
+    getCompletionCountsByCourseRef,
+    courseIds.length > 0 ? { courseIds } : "skip",
   );
 
   const hasResume = resumeData && resumeData.length > 0;
@@ -59,6 +64,7 @@ function CoursesPage(): ReactElement {
                 title={course.title}
                 provider="Harvard"
                 lessonCount={0}
+                completedCount={completionCounts?.[course.id as string] ?? 0}
                 variant="active"
               />
             ))
@@ -69,13 +75,14 @@ function CoursesPage(): ReactElement {
                 title={course.title}
                 provider="Harvard"
                 lessonCount={0}
+                completedCount={completionCounts?.[course.id as string] ?? 0}
                 variant="active"
               />
             ))}
       </CourseCarousel>
 
       <CourseCarousel title="Coming Soon">
-        {COMING_SOON.map((item) => (
+        {COMING_SOON_COURSES.map((item) => (
           <CourseCard
             key={item.title}
             id={"" as CourseId}

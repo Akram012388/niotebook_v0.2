@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, type ReactElement } from "react";
+import { useMemo, useCallback, type ReactElement } from "react";
 import Link from "next/link";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { getLessonsByCourseRef, getCoursesRef } from "@/ui/content/convexContent";
-import { getCompletionsByCourseRef } from "./convexCompletions";
+import { getCompletionsByCourseRef, markCompleteRef } from "./convexCompletions";
 
 type CourseDetailPageProps = {
   courseId: string;
@@ -20,6 +20,14 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
   const courses = useQuery(getCoursesRef);
   const lessons = useQuery(getLessonsByCourseRef, { courseId });
   const completions = useQuery(getCompletionsByCourseRef, { courseId });
+  const markComplete = useMutation(markCompleteRef);
+
+  const handleMarkComplete = useCallback(
+    (lessonId: string) => {
+      void markComplete({ lessonId });
+    },
+    [markComplete],
+  );
 
   const course = useMemo(
     () => (courses ?? []).find((c) => (c.id as string) === courseId),
@@ -144,12 +152,23 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
                   </span>
                 </div>
               </div>
-              <Link
-                href={`/workspace?lessonId=${lesson.id as string}`}
-                className="hidden rounded-md bg-surface-muted px-3 py-1 text-xs text-text-muted transition hover:bg-accent hover:text-accent-foreground lg:inline-block"
-              >
-                {isCompleted ? "Review" : "Start"}
-              </Link>
+              <div className="hidden items-center gap-2 lg:flex">
+                {!isCompleted && (
+                  <button
+                    type="button"
+                    onClick={() => handleMarkComplete(lesson.id as string)}
+                    className="rounded-md bg-surface-muted px-3 py-1 text-xs text-text-muted transition hover:bg-accent hover:text-accent-foreground"
+                  >
+                    Mark Complete
+                  </button>
+                )}
+                <Link
+                  href={`/workspace?lessonId=${lesson.id as string}`}
+                  className="rounded-md bg-surface-muted px-3 py-1 text-xs text-text-muted transition hover:bg-accent hover:text-accent-foreground"
+                >
+                  {isCompleted ? "Review" : "Start"}
+                </Link>
+              </div>
             </div>
           );
         })}
