@@ -59,6 +59,7 @@ const languageLoaders: Record<RuntimeLanguage, LanguageLoader> = {
       m.html({ matchClosingTags: true, autoCloseTags: true }),
     ),
   c: () => import("@codemirror/lang-cpp").then((m) => m.cpp()),
+  css: () => import("@codemirror/lang-css").then((m) => m.css()),
 };
 
 async function loadLanguage(lang: RuntimeLanguage): Promise<LanguageSupport> {

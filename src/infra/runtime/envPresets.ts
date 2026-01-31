@@ -1,7 +1,10 @@
 /**
  * Built-in environment presets for CS50 courses and sandbox mode.
  */
-import type { EnvPresetId, LessonEnvironment } from "../../domain/lessonEnvironment";
+import type {
+  EnvPresetId,
+  LessonEnvironment,
+} from "../../domain/lessonEnvironment";
 
 const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
   "cs50x-c": {
@@ -71,7 +74,7 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     id: "cs50w-js",
     name: "CS50W · JavaScript",
     primaryLanguage: "js",
-    allowedLanguages: ["js", "html"],
+    allowedLanguages: ["js", "html", "css"],
     starterFiles: [
       {
         path: "/project/index.html",
@@ -97,12 +100,12 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     id: "cs50w-html",
     name: "CS50W · HTML",
     primaryLanguage: "html",
-    allowedLanguages: ["html", "js"],
+    allowedLanguages: ["html", "css", "js"],
     starterFiles: [
       {
         path: "/project/index.html",
         content:
-          '<!DOCTYPE html>\n<html>\n<head>\n  <title>CS50W</title>\n  <style>\n    body { font-family: sans-serif; }\n  </style>\n</head>\n<body>\n  <h1>Hello, CS50W</h1>\n</body>\n</html>',
+          "<!DOCTYPE html>\n<html>\n<head>\n  <title>CS50W</title>\n  <style>\n    body { font-family: sans-serif; }\n  </style>\n</head>\n<body>\n  <h1>Hello, CS50W</h1>\n</body>\n</html>",
         readonly: false,
       },
     ],
@@ -122,7 +125,8 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     starterFiles: [
       {
         path: "/project/main.py",
-        content: '"""CS50 AI — Problem Set"""\n\n\ndef main():\n    print("Hello, CS50AI")\n\n\nif __name__ == "__main__":\n    main()\n',
+        content:
+          '"""CS50 AI — Problem Set"""\n\n\ndef main():\n    print("Hello, CS50AI")\n\n\nif __name__ == "__main__":\n    main()\n',
         readonly: false,
       },
     ],
@@ -141,7 +145,7 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     id: "sandbox",
     name: "Sandbox",
     primaryLanguage: "js",
-    allowedLanguages: ["js", "python", "html", "c"],
+    allowedLanguages: ["js", "python", "c", "html", "css"],
     starterFiles: [
       {
         path: "/project/main.js",

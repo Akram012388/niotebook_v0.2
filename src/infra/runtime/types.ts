@@ -1,4 +1,4 @@
-type RuntimeLanguage = "js" | "python" | "html" | "c";
+type RuntimeLanguage = "js" | "python" | "html" | "c" | "css";
 
 type RuntimeRunInput = {
   code: string;

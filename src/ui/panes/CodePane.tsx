@@ -14,6 +14,7 @@ import { useLayoutPreset } from "../layout/LayoutPresetContext";
 import { useEditorStore } from "../code/useEditorStore";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
 import { useTerminalStore } from "../code/terminal/useTerminalStore";
+import { LanguageSelect } from "../code/LanguageSelect";
 import type { EventLogResult } from "../../domain/events";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 import {
@@ -26,7 +27,6 @@ import type { RuntimeLanguage, RuntimeState } from "../../infra/runtime/types";
 import { RUNTIME_TIMEOUT_MS } from "../../infra/runtime/runtimeConstants";
 import type { LessonEnvironment } from "../../domain/lessonEnvironment";
 import { getPresetOrDefault } from "../../infra/runtime/envPresets";
-import { LessonEnvBadge } from "../code/LessonEnvBadge";
 
 // ── SSR-safe dynamic import of EditorArea ─────────────────────
 
@@ -49,6 +49,7 @@ const DEFAULT_CODE_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
   python: "print('Hello, CS50')",
   html: "<h1>Hello, CS50</h1>",
   c: '#include <stdio.h>\n\nint main(void) {\n  printf("Hello, CS50\\n");\n  return 0;\n}\n',
+  css: "body {\n  font-family: system-ui, sans-serif;\n}\n",
 };
 
 const EXTENSION_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
@@ -56,6 +57,7 @@ const EXTENSION_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
   python: "main.py",
   html: "index.html",
   c: "main.c",
+  css: "styles.css",
 };
 
 // ── Component ─────────────────────────────────────────────────
@@ -82,7 +84,9 @@ const CodePane = ({
     [environmentConfig, environmentPresetId],
   );
 
-  const [language] = useState<RuntimeLanguage>(environment.primaryLanguage);
+  const [language, setLanguage] = useState<RuntimeLanguage>(
+    environment.primaryLanguage,
+  );
   const [, setRuntimeState] = useState<RuntimeState>({
     language: "js",
     status: "idle",
@@ -97,9 +101,30 @@ const CodePane = ({
   const initializeFromEnvironment = useFileSystemStore(
     (s) => s.initializeFromEnvironment,
   );
+  const createFile = useFileSystemStore((s) => s.createFile);
+  const setMainFile = useFileSystemStore((s) => s.setMainFile);
+  const vfs = useFileSystemStore((s) => s.vfs);
+  const projectRoot = useFileSystemStore((s) => s.projectRoot);
   const isLoaded = useFileSystemStore((s) => s.isLoaded);
   const getMainFileContent = useFileSystemStore((s) => s.getMainFileContent);
+  const mainFilePath = useFileSystemStore((s) => s.mainFilePath);
+  const files = useFileSystemStore((s) => s.files);
   const openFile = useEditorStore((s) => s.openFile);
+
+  const allowedLanguages = useMemo(() => {
+    const candidates =
+      environment.allowedLanguages.length > 0
+        ? environment.allowedLanguages
+        : [environment.primaryLanguage];
+    return Array.from(new Set(candidates));
+  }, [environment.allowedLanguages, environment.primaryLanguage]);
+
+  const activeLanguage = useMemo(() => {
+    if (allowedLanguages.includes(language)) {
+      return language;
+    }
+    return environment.primaryLanguage;
+  }, [allowedLanguages, environment.primaryLanguage, language]);
 
   // ── Initialize VFS on mount ───────────────────────────────
 
@@ -117,18 +142,56 @@ const CodePane = ({
         : `/project/${firstFile.path}`;
       void openFile(firstPath);
     } else {
-      const filename = EXTENSION_BY_LANGUAGE[language];
-      const content = DEFAULT_CODE_BY_LANGUAGE[language];
+      const filename = EXTENSION_BY_LANGUAGE[activeLanguage];
+      const content = DEFAULT_CODE_BY_LANGUAGE[activeLanguage];
       initializeFromTemplate([{ path: filename, content }]);
       void openFile(`/project/${filename}`);
     }
   }, [
     isLoaded,
-    language,
+    activeLanguage,
     environment,
     initializeFromTemplate,
     initializeFromEnvironment,
     openFile,
+  ]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const { files: currentFiles, mainFilePath: currentMainFilePath } =
+      useFileSystemStore.getState();
+
+    const matchingMain = currentFiles.find(
+      (file) =>
+        file.path === currentMainFilePath && file.language === activeLanguage,
+    );
+    const matchingFile = currentFiles.find(
+      (file) => file.language === activeLanguage,
+    );
+
+    let nextPath = matchingMain?.path ?? matchingFile?.path;
+    if (!nextPath) {
+      const filename = EXTENSION_BY_LANGUAGE[activeLanguage];
+      nextPath = filename.startsWith("/")
+        ? filename
+        : `${projectRoot}/${filename}`;
+
+      if (!vfs.exists(nextPath)) {
+        createFile(nextPath, DEFAULT_CODE_BY_LANGUAGE[activeLanguage]);
+      }
+    }
+
+    setMainFile(nextPath);
+    void openFile(nextPath);
+  }, [
+    activeLanguage,
+    createFile,
+    isLoaded,
+    openFile,
+    projectRoot,
+    setMainFile,
+    vfs,
   ]);
 
   // ── Convex snapshot integration (backward compat) ─────────
@@ -164,7 +227,7 @@ const CodePane = ({
 
     const timeout = window.setTimeout(() => {
       setRuntimeState({
-        language,
+        language: activeLanguage,
         status: "warming",
         message: "Preparing runtime...",
       });
@@ -174,11 +237,11 @@ const CodePane = ({
       void logEvent({
         eventType: "runtime_warmup_start",
         lessonId,
-        metadata: { language, durationMs: 0 },
+        metadata: { language: activeLanguage, durationMs: 0 },
       });
     }
 
-    loadExecutor(language)
+    loadExecutor(activeLanguage)
       .then(() => {
         if (cancelled) return;
 
@@ -188,20 +251,20 @@ const CodePane = ({
           void logEvent({
             eventType: "runtime_warmup_end",
             lessonId,
-            metadata: { language, durationMs: warmupDuration },
+            metadata: { language: activeLanguage, durationMs: warmupDuration },
           });
         }
 
         setRuntimeState({
-          language,
+          language: activeLanguage,
           status: "ready",
-          message: `${language.toUpperCase()} runtime ready`,
+          message: `${activeLanguage.toUpperCase()} runtime ready`,
         });
       })
       .catch(() => {
         if (cancelled) return;
         setRuntimeState({
-          language,
+          language: activeLanguage,
           status: "error",
           message: "Runtime failed to load",
         });
@@ -211,12 +274,10 @@ const CodePane = ({
       cancelled = true;
       window.clearTimeout(timeout);
     };
-  }, [language, lessonId, logEvent]);
+  }, [activeLanguage, lessonId, logEvent]);
 
   // ── Snapshot callback — reactive to VFS main file changes ──
 
-  const mainFilePath = useFileSystemStore((s) => s.mainFilePath);
-  const files = useFileSystemStore((s) => s.files);
   // Derive main file content reactively so onSnapshot fires when it changes
   const mainFileContent = useMemo(() => {
     // Subscribe to files list so this recalculates when VFS mutates
@@ -232,12 +293,12 @@ const CodePane = ({
       id: "local-snapshot" as CodeSnapshotSummary["id"],
       userId: "local-user" as CodeSnapshotSummary["userId"],
       lessonId: lessonId as CodeSnapshotSummary["lessonId"],
-      language,
+      language: activeLanguage,
       code: mainFileContent,
       codeHash: "",
       updatedAt: Date.now(),
     });
-  }, [mainFileContent, mainFilePath, language, lessonId, onSnapshot]);
+  }, [mainFileContent, mainFilePath, activeLanguage, lessonId, onSnapshot]);
 
   // ── Handlers ──────────────────────────────────────────────
 
@@ -249,17 +310,17 @@ const CodePane = ({
     if (!code) return;
 
     setRuntimeState({
-      language,
+      language: activeLanguage,
       status: "running",
       message: "Running...",
     });
 
     // Stream output to terminal
     const termStore = useTerminalStore.getState();
-    termStore.writeLn(`\x1b[90m$ run ${language}\x1b[0m`);
+    termStore.writeLn(`\x1b[90m$ run ${activeLanguage}\x1b[0m`);
 
     const vfs = useFileSystemStore.getState().vfs;
-    const result = await runRuntime(language, {
+    const result = await runRuntime(activeLanguage, {
       code,
       timeoutMs: RUNTIME_TIMEOUT_MS,
       filesystem: vfs,
@@ -276,28 +337,36 @@ const CodePane = ({
     }
 
     setRuntimeState({
-      language,
+      language: activeLanguage,
       status: result.timedOut ? "error" : "ready",
       message: result.timedOut
         ? "Runtime timed out"
-        : `${language.toUpperCase()} runtime ready`,
+        : `${activeLanguage.toUpperCase()} runtime ready`,
     });
-  }, [language, getMainFileContent]);
+  }, [activeLanguage, getMainFileContent]);
 
   const handleStop = useCallback((): void => {
-    stopRuntime(language).catch(() => undefined);
-    clearRuntime(language);
+    stopRuntime(activeLanguage).catch(() => undefined);
+    clearRuntime(activeLanguage);
     useTerminalStore.getState().kill();
     setRuntimeState({
-      language,
+      language: activeLanguage,
       status: "ready",
-      message: `${language.toUpperCase()} runtime ready`,
+      message: `${activeLanguage.toUpperCase()} runtime ready`,
     });
-  }, [language]);
+  }, [activeLanguage]);
 
   const handleClear = useCallback((): void => {
     useTerminalStore.getState().clear();
   }, []);
+
+  const handleLanguageChange = useCallback(
+    (nextLanguage: RuntimeLanguage): void => {
+      if (!allowedLanguages.includes(nextLanguage)) return;
+      setLanguage(nextLanguage);
+    },
+    [allowedLanguages],
+  );
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-border bg-surface">
@@ -306,9 +375,15 @@ const CodePane = ({
           <p className="text-sm font-semibold text-foreground">
             Code workspace
           </p>
-          <LessonEnvBadge environment={environment} />
         </div>
-        <div className="flex items-center gap-2 text-xs">{headerExtras}</div>
+        <div className="flex items-center gap-3 text-xs">
+          <LanguageSelect
+            value={activeLanguage}
+            options={allowedLanguages}
+            onChange={handleLanguageChange}
+          />
+          {headerExtras}
+        </div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col">
         <SplitPane

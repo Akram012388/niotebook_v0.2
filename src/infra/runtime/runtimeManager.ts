@@ -1,4 +1,5 @@
 import { initCExecutor } from "./cExecutor";
+import { initCssExecutor } from "./cssExecutor";
 import { initHtmlExecutor } from "./htmlExecutor";
 import { initJsExecutor } from "./jsExecutor";
 import { initPythonExecutor } from "./pythonExecutor";
@@ -41,6 +42,9 @@ const loadExecutor = async (
       break;
     case "html":
       executor = await initHtmlExecutor();
+      break;
+    case "css":
+      executor = await initCssExecutor();
       break;
     case "python":
       executor = await initPythonExecutor();
@@ -123,4 +127,11 @@ const clearRuntime = (language: RuntimeLanguage): void => {
   }
 };
 
-export { clearRuntime, isSandboxEnabled, loadExecutor, runRuntime, setSandboxEnabled, stopRuntime };
+export {
+  clearRuntime,
+  isSandboxEnabled,
+  loadExecutor,
+  runRuntime,
+  setSandboxEnabled,
+  stopRuntime,
+};

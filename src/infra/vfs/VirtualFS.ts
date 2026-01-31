@@ -8,6 +8,7 @@ const EXTENSION_LANGUAGE_MAP: Record<string, RuntimeLanguage> = {
   ".py": "python",
   ".html": "html",
   ".htm": "html",
+  ".css": "css",
   ".c": "c",
   ".h": "c",
 };
