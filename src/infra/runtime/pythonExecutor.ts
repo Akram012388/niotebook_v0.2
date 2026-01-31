@@ -1,4 +1,5 @@
 import { mountPythonFiles } from "./imports/pythonImports";
+import { RUNTIME_TIMEOUT_MS } from "./runtimeConstants";
 import type {
   RuntimePackage,
   RuntimeExecutor,
@@ -107,50 +108,101 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
   const run = async (input: RuntimeRunInput): Promise<RuntimeRunResult> => {
     const start = performance.now();
     await init();
+    const timeoutMs = input.timeoutMs ?? RUNTIME_TIMEOUT_MS;
+    let suppressOutput = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    const pyodide = await loadPyodideInstance();
-
-    if (input.filesystem) {
-      mountPythonFiles(pyodide, input.filesystem);
-    }
-
-    await ensurePythonPackages(pyodide, input.packages);
-
-    if (!pyodide.runPythonAsync) {
-      throw new Error("Pyodide async runtime unavailable");
-    }
-
-    const captureCode = `
-import sys, io
-__stdout = io.StringIO()
-__stderr = io.StringIO()
-sys.stdout = __stdout
-sys.stderr = __stderr
-try:
-    exec(${JSON.stringify(input.code)})
-except Exception as e:
-    print(str(e), file=sys.stderr)
-finally:
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stderr__
-__result_out = __stdout.getvalue()
-__result_err = __stderr.getvalue()
-`;
-
-    await pyodide.runPythonAsync(captureCode);
-    const stdout = String(pyodide.runPython("__result_out") ?? "");
-    const stderr = String(pyodide.runPython("__result_err") ?? "");
-
-    if (stdout) input.onStdout?.(stdout);
-    if (stderr) input.onStderr?.(stderr);
-
-    return {
-      stdout,
-      stderr,
-      exitCode: stderr ? 1 : 0,
-      runtimeMs: Math.round(performance.now() - start),
-      timedOut: false,
+    const safeStdout = (chunk: string): void => {
+      if (!suppressOutput) {
+        input.onStdout?.(chunk);
+      }
     };
+
+    const safeStderr = (chunk: string): void => {
+      if (!suppressOutput) {
+        input.onStderr?.(chunk);
+      }
+    };
+
+    const runPromise = (async (): Promise<RuntimeRunResult> => {
+      try {
+        const pyodide = await loadPyodideInstance();
+
+        if (input.filesystem) {
+          mountPythonFiles(pyodide, input.filesystem);
+        }
+
+        await ensurePythonPackages(pyodide, input.packages);
+
+        if (!pyodide.runPythonAsync) {
+          throw new Error("Pyodide async runtime unavailable");
+        }
+
+        const captureCode = `
+ import sys, io
+ __stdout = io.StringIO()
+ __stderr = io.StringIO()
+ sys.stdout = __stdout
+ sys.stderr = __stderr
+ try:
+     exec(${JSON.stringify(input.code)})
+ except Exception as e:
+     print(str(e), file=sys.stderr)
+ finally:
+     sys.stdout = sys.__stdout__
+     sys.stderr = sys.__stderr__
+ __result_out = __stdout.getvalue()
+ __result_err = __stderr.getvalue()
+ `;
+
+        await pyodide.runPythonAsync(captureCode);
+        const stdout = String(pyodide.runPython("__result_out") ?? "");
+        const stderr = String(pyodide.runPython("__result_err") ?? "");
+
+        if (stdout) safeStdout(stdout);
+        if (stderr) safeStderr(stderr);
+
+        return {
+          stdout,
+          stderr,
+          exitCode: stderr ? 1 : 0,
+          runtimeMs: Math.round(performance.now() - start),
+          timedOut: false,
+        };
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : String(error ?? "");
+        safeStderr(`${message}\n`);
+        return {
+          stdout: "",
+          stderr: message,
+          exitCode: 1,
+          runtimeMs: Math.round(performance.now() - start),
+          timedOut: false,
+        };
+      }
+    })();
+
+    const timeoutPromise = new Promise<RuntimeRunResult>((resolve) => {
+      timeoutId = setTimeout(() => {
+        suppressOutput = true;
+        const message = "Python runtime timed out";
+        input.onStderr?.(`${message}\n`);
+        resolve({
+          stdout: "",
+          stderr: message,
+          exitCode: 1,
+          runtimeMs: Math.round(performance.now() - start),
+          timedOut: true,
+        });
+      }, timeoutMs);
+    });
+
+    const result = await Promise.race([runPromise, timeoutPromise]);
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+    return result;
   };
 
   const stop = (): void => {

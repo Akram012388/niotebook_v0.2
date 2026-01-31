@@ -94,7 +94,7 @@ const CodePane = ({
 
   const { activePreset } = useLayoutPreset();
   const showFileTree = activePreset !== "triple";
-  const shouldResetSplits = activePreset !== "triple";
+  const shouldResetSplits = true;
   const fileTreeLayoutKey = activePreset === "single" ? "single" : "split";
 
   const initializeFromTemplate = useFileSystemStore(
@@ -343,31 +343,42 @@ const CodePane = ({
         .join("\n");
     };
 
-    const result = await runRuntime(activeLanguage, {
-      code,
-      timeoutMs: RUNTIME_TIMEOUT_MS,
-      filesystem: vfs,
-      packages: environment.packages,
-      onStdout: (chunk: string) => termStore.write(chunk),
-      onStderr: (chunk: string) => termStore.write(formatErrorChunk(chunk)),
-    });
+    try {
+      const result = await runRuntime(activeLanguage, {
+        code,
+        timeoutMs: RUNTIME_TIMEOUT_MS,
+        filesystem: vfs,
+        packages: environment.packages,
+        onStdout: (chunk: string) => termStore.write(chunk),
+        onStderr: (chunk: string) => termStore.write(formatErrorChunk(chunk)),
+      });
 
-    // Write remaining buffered output not already streamed
-    if (result.stdout && !result.stdout.includes("\x00__streamed__")) {
-      termStore.write(result.stdout);
-    }
-    if (result.stderr && !result.stderr.includes("\x00__streamed__")) {
-      termStore.write(formatErrorChunk(result.stderr));
-    }
+      // Write remaining buffered output not already streamed
+      if (result.stdout && !result.stdout.includes("\x00__streamed__")) {
+        termStore.write(result.stdout);
+      }
+      if (result.stderr && !result.stderr.includes("\x00__streamed__")) {
+        termStore.write(formatErrorChunk(result.stderr));
+      }
 
-    setRuntimeState({
-      language: activeLanguage,
-      status: result.timedOut ? "error" : "ready",
-      message: result.timedOut
-        ? "Runtime timed out"
-        : `${activeLanguage.toUpperCase()} runtime ready`,
-    });
-    termStore.writePrompt();
+      setRuntimeState({
+        language: activeLanguage,
+        status: result.timedOut ? "error" : "ready",
+        message: result.timedOut
+          ? "Runtime timed out"
+          : `${activeLanguage.toUpperCase()} runtime ready`,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Runtime failed";
+      termStore.write(formatErrorChunk(`${message}\n`));
+      setRuntimeState({
+        language: activeLanguage,
+        status: "error",
+        message: "Runtime failed",
+      });
+    } finally {
+      termStore.writePrompt();
+    }
   };
 
   const handleStop = useCallback((): void => {
@@ -421,7 +432,7 @@ const CodePane = ({
           direction="vertical"
           initialSplit={0.65}
           minFirst={100}
-          minSecond={160}
+          minSecond={128}
           storageKey="niotebook:split-editor-output"
           resetOnLoad={shouldResetSplits ? "second" : undefined}
           first={
