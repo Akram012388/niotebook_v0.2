@@ -11,7 +11,7 @@ const WorkspaceShell = (): ReactElement => {
       </div>
       <div className="flex h-full min-h-0 items-center justify-center bg-background px-6 text-center lg:hidden">
         <p className="text-sm font-medium text-text-muted">
-          niotebook is best experinced on desktop
+          niotebook is best experienced on desktop
         </p>
       </div>
     </div>

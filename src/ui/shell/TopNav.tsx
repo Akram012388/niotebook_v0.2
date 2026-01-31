@@ -11,7 +11,9 @@ import {
 import { SidebarSimple } from "@phosphor-icons/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
+import { useUser, useClerk } from "@clerk/nextjs";
 import { storageAdapter } from "../../infra/storageAdapter";
+import { meRef } from "../auth/convexAuth";
 import type { CourseSummary, LessonSummary } from "../../domain/content";
 import {
   getCoursesRef,
@@ -30,6 +32,9 @@ const TopNav = (): ReactElement => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { user: clerkUser } = useUser();
+  const { signOut } = useClerk();
+  const meData = useQuery(meRef);
   const [theme, setTheme] = useState<ThemeMode>(() => {
     const stored = storageAdapter.getItem(STORAGE_KEY);
     return stored === "dark" ? "dark" : "light";
@@ -292,6 +297,12 @@ const TopNav = (): ReactElement => {
         onFeedback={handleFeedback}
         onSelectLesson={handleSelectLesson}
         onSelectCourse={handleSelectCourse}
+        userInfo={{
+          email: clerkUser?.primaryEmailAddress?.emailAddress ?? null,
+          role: meData?.role ?? null,
+          inviteBatchId: meData?.inviteBatchId ?? null,
+        }}
+        onSignOut={() => void signOut()}
       />
     </header>
   );
