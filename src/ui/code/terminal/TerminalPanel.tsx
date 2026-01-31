@@ -15,6 +15,7 @@ type TerminalPanelProps = {
   onStop: () => void;
   onClear: () => void;
   isRunning: boolean;
+  actionsDisabled: boolean;
 };
 
 const TerminalPanel = ({
@@ -22,6 +23,7 @@ const TerminalPanel = ({
   onStop,
   onClear,
   isRunning,
+  actionsDisabled,
 }: TerminalPanelProps): ReactElement => (
   <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-terminal text-workspace-text">
     <TerminalToolbar
@@ -29,6 +31,7 @@ const TerminalPanel = ({
       onStop={onStop}
       onClear={onClear}
       isRunning={isRunning}
+      actionsDisabled={actionsDisabled}
     />
     <div
       id="niotebook-runtime-frame"

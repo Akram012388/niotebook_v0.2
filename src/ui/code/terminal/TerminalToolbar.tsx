@@ -10,6 +10,7 @@ type TerminalToolbarProps = {
   onStop: () => void;
   onClear: () => void;
   isRunning: boolean;
+  actionsDisabled: boolean;
 };
 
 const TerminalToolbar = ({
@@ -17,6 +18,7 @@ const TerminalToolbar = ({
   onStop,
   onClear,
   isRunning,
+  actionsDisabled,
 }: TerminalToolbarProps): ReactElement => (
   <div className="flex items-center justify-between border-b border-workspace-border px-4 py-2">
     <span className="text-xs font-medium text-workspace-text-muted">
@@ -26,9 +28,9 @@ const TerminalToolbar = ({
       <button
         type="button"
         onClick={onRun}
-        disabled={isRunning}
+        disabled={isRunning || actionsDisabled}
         className={`transition ${
-          isRunning
+          isRunning || actionsDisabled
             ? "cursor-not-allowed text-workspace-text-muted/40"
             : "text-workspace-text-muted hover:text-workspace-text"
         }`}
@@ -39,9 +41,9 @@ const TerminalToolbar = ({
       <button
         type="button"
         onClick={onStop}
-        disabled={!isRunning}
+        disabled={!isRunning || actionsDisabled}
         className={`transition ${
-          isRunning
+          isRunning && !actionsDisabled
             ? "text-workspace-text hover:text-workspace-accent"
             : "cursor-not-allowed text-workspace-text-muted/40"
         }`}
@@ -52,7 +54,12 @@ const TerminalToolbar = ({
       <button
         type="button"
         onClick={onClear}
-        className="text-workspace-text-muted transition hover:text-workspace-text"
+        disabled={actionsDisabled}
+        className={`transition ${
+          actionsDisabled
+            ? "cursor-not-allowed text-workspace-text-muted/40"
+            : "text-workspace-text-muted hover:text-workspace-text"
+        }`}
         aria-label="Clear terminal"
       >
         Clear

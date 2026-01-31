@@ -23,12 +23,28 @@ type TerminalStoreActions = {
   setTerminal: (t: Terminal | null) => void;
   write: (data: string) => void;
   writeLn: (data: string) => void;
-  clear: () => void;
+  writePrompt: () => void;
+  clear: (options?: { withPrompt?: boolean }) => void;
   setInputHandler: (handler: ((data: string) => void) | null) => void;
   runCommand: (cmd: string) => Promise<void>;
   kill: () => void;
   setRunning: (running: boolean) => void;
   setAbortController: (ac: AbortController | null) => void;
+};
+
+let lastOutputEndedWithNewline = true;
+let hasOutputSincePrompt = false;
+
+const updateOutputTracking = (data: string): void => {
+  if (!data) return;
+  hasOutputSincePrompt = true;
+  const endsWithNewline = /\r?\n$/.test(data);
+  lastOutputEndedWithNewline = endsWithNewline;
+};
+
+const markPromptWritten = (): void => {
+  hasOutputSincePrompt = false;
+  lastOutputEndedWithNewline = false;
 };
 
 const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
@@ -49,6 +65,7 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       if (!terminalRef.element) return;
       try {
         terminalRef.write(data);
+        updateOutputTracking(data);
       } catch {
         return;
       }
@@ -60,12 +77,31 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       if (!terminalRef.element) return;
       try {
         terminalRef.writeln(data);
+        updateOutputTracking(`${data}\n`);
       } catch {
         return;
       }
     },
 
-    clear: () => {
+    writePrompt: () => {
+      const { terminalRef } = get();
+      if (!terminalRef) return;
+      if (!terminalRef.element) return;
+      try {
+        if (!hasOutputSincePrompt && !lastOutputEndedWithNewline) {
+          return;
+        }
+        if (hasOutputSincePrompt && !lastOutputEndedWithNewline) {
+          terminalRef.write("\r\n");
+        }
+        terminalRef.write(TERMINAL_PROMPT);
+        markPromptWritten();
+      } catch {
+        return;
+      }
+    },
+
+    clear: (options) => {
       const { terminalRef } = get();
       if (!terminalRef) return;
       try {
@@ -73,7 +109,11 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       } catch {
         return;
       }
-      get().write(TERMINAL_PROMPT);
+      hasOutputSincePrompt = false;
+      lastOutputEndedWithNewline = true;
+      if (options?.withPrompt) {
+        get().writePrompt();
+      }
     },
 
     setInputHandler: (handler) => {

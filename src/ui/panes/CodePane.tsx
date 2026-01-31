@@ -14,7 +14,6 @@ import { useLayoutPreset } from "../layout/LayoutPresetContext";
 import { useEditorStore } from "../code/useEditorStore";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
 import { useTerminalStore } from "../code/terminal/useTerminalStore";
-import { TERMINAL_PROMPT } from "../code/terminal/terminalPrompt";
 import { LanguageSelect } from "../code/LanguageSelect";
 import type { EventLogResult } from "../../domain/events";
 import type { CodeSnapshotSummary } from "../../domain/resume";
@@ -127,6 +126,9 @@ const CodePane = ({
     }
     return environment.primaryLanguage;
   }, [allowedLanguages, environment.primaryLanguage, language]);
+
+  const terminalActionsDisabled =
+    activeLanguage === "html" || activeLanguage === "css";
 
   // ── Initialize VFS on mount ───────────────────────────────
 
@@ -305,6 +307,9 @@ const CodePane = ({
   // ── Handlers ──────────────────────────────────────────────
 
   const handleRun = async (): Promise<void> => {
+    if (terminalActionsDisabled) {
+      return;
+    }
     // Flush dirty files to VFS before running
     useEditorStore.getState().saveAll();
 
@@ -360,10 +365,13 @@ const CodePane = ({
         ? "Runtime timed out"
         : `${activeLanguage.toUpperCase()} runtime ready`,
     });
-    termStore.write(TERMINAL_PROMPT);
+    termStore.writePrompt();
   };
 
   const handleStop = useCallback((): void => {
+    if (terminalActionsDisabled) {
+      return;
+    }
     stopRuntime(activeLanguage).catch(() => undefined);
     clearRuntime(activeLanguage);
     useTerminalStore.getState().kill();
@@ -372,11 +380,14 @@ const CodePane = ({
       status: "ready",
       message: `${activeLanguage.toUpperCase()} runtime ready`,
     });
-  }, [activeLanguage]);
+  }, [activeLanguage, terminalActionsDisabled]);
 
   const handleClear = useCallback((): void => {
-    useTerminalStore.getState().clear();
-  }, []);
+    if (terminalActionsDisabled) {
+      return;
+    }
+    useTerminalStore.getState().clear({ withPrompt: true });
+  }, [terminalActionsDisabled]);
 
   const handleLanguageChange = useCallback(
     (nextLanguage: RuntimeLanguage): void => {
@@ -424,6 +435,7 @@ const CodePane = ({
                 isRunning={
                   runtimeState.status === "running" || terminalIsRunning
                 }
+                actionsDisabled={terminalActionsDisabled}
               />
             </div>
           }

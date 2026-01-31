@@ -139,7 +139,7 @@ async function routeCommand(
   // ── Builtins (always local, no sandbox needed) ────────────
 
   if (executable === "clear") {
-    terminal.clear();
+    terminal.clear({ withPrompt: false });
     return 0;
   }
 

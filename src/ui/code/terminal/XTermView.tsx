@@ -14,11 +14,8 @@ import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
 
-import { TERMINAL_PROMPT } from "./terminalPrompt";
 import { useTerminalStore } from "./useTerminalStore";
 import { niotebookDarkTerminal } from "./terminalTheme";
-
-const PROMPT = TERMINAL_PROMPT;
 
 function getTerminalTheme(): import("@xterm/xterm").ITheme {
   return niotebookDarkTerminal;
@@ -32,6 +29,7 @@ const XTermView = (): ReactElement => {
   const promptPendingRef = useRef(false);
 
   const setTerminal = useTerminalStore((s) => s.setTerminal);
+  const writePrompt = useTerminalStore((s) => s.writePrompt);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -86,11 +84,7 @@ const XTermView = (): ReactElement => {
         fitAddonRef.current = fitAddon;
         setTerminal(terminal);
 
-        try {
-          terminal.write(PROMPT);
-        } catch {
-          // Ignore write errors when terminal is not ready
-        }
+        writePrompt();
 
         // Handle user input
         onDataDisposable = terminal.onData((data) => {
@@ -109,7 +103,7 @@ const XTermView = (): ReactElement => {
 
           if (data === "\r" || data === "\n") {
             // Enter — execute command
-            terminal.writeln("");
+            store.writeLn("");
             const cmd = inputBufferRef.current.trim();
             inputBufferRef.current = "";
             promptPendingRef.current = true;
@@ -117,12 +111,12 @@ const XTermView = (): ReactElement => {
             if (cmd.length > 0) {
               void store.runCommand(cmd).then(() => {
                 if (!promptPendingRef.current) return;
-                terminal.write(PROMPT);
+                store.writePrompt();
                 promptPendingRef.current = false;
               });
             } else {
               if (!promptPendingRef.current) return;
-              terminal.write(PROMPT);
+              store.writePrompt();
               promptPendingRef.current = false;
             }
           } else if (code === 127 || data === "\b") {
@@ -137,8 +131,8 @@ const XTermView = (): ReactElement => {
               store.kill();
             } else {
               inputBufferRef.current = "";
-              terminal.writeln("^C");
-              terminal.write(PROMPT);
+              store.writeLn("^C");
+              store.writePrompt();
             }
           } else if (code >= 32) {
             // Printable characters
@@ -177,7 +171,7 @@ const XTermView = (): ReactElement => {
       terminalRef.current = null;
       fitAddonRef.current = null;
     };
-  }, [setTerminal]);
+  }, [setTerminal, writePrompt]);
 
   return (
     <div ref={containerRef} className="h-full w-full bg-workspace-terminal" />

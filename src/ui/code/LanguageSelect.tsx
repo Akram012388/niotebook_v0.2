@@ -58,7 +58,7 @@ const LanguageSelect = ({
       if (
         event.key === "Enter" ||
         event.key === " " ||
-        event.key === "ArrowDown"
+        event.key === "ArrowLeft"
       ) {
         event.preventDefault();
         setIsOpen(true);
@@ -67,8 +67,15 @@ const LanguageSelect = ({
     [],
   );
 
+  const availableOptions = useMemo(
+    () => orderedOptions.filter((language) => language !== value),
+    [orderedOptions, value],
+  );
+  const hasOptions = availableOptions.length > 0;
+  const isExpanded = isOpen && hasOptions;
+
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isExpanded) return;
 
     const handleClick = (event: MouseEvent): void => {
       if (
@@ -91,53 +98,43 @@ const LanguageSelect = ({
       document.removeEventListener("mousedown", handleClick);
       document.removeEventListener("keydown", handleKey);
     };
-  }, [isOpen]);
+  }, [isExpanded]);
 
   return (
     <div ref={containerRef} className="relative text-xs">
-      <button
-        type="button"
-        onClick={handleToggle}
-        onKeyDown={handleButtonKeyDown}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        className="flex items-center gap-2 rounded-full border border-workspace-border bg-workspace-tabbar px-3 py-1 text-workspace-text transition hover:bg-workspace-editor focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-workspace-accent"
-      >
-        <span className="text-[11px] font-semibold tracking-wide">
-          {LANGUAGE_LABELS[value]}
-        </span>
-        <span className="text-[10px] text-workspace-text-muted">▾</span>
-      </button>
-      {isOpen ? (
+      <div className="flex items-center rounded-full border border-border bg-surface-muted p-1">
         <div
-          role="listbox"
+          className={`flex items-center gap-1 overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform,margin] duration-200 ease-out ${
+            isExpanded
+              ? "mr-1 max-w-[240px] opacity-100 translate-x-0"
+              : "mr-0 max-w-0 opacity-0 translate-x-2"
+          }`}
+          role="menu"
           aria-label="Select language"
-          className="absolute right-0 z-20 mt-2 w-36 rounded-md border border-workspace-border bg-workspace-sidebar p-1 shadow-lg"
         >
-          {orderedOptions.map((language) => {
-            const isActive = language === value;
-            return (
-              <button
-                key={language}
-                type="button"
-                role="option"
-                aria-selected={isActive}
-                onClick={() => handleSelect(language)}
-                className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-xs transition ${
-                  isActive
-                    ? "bg-workspace-editor text-workspace-text"
-                    : "text-workspace-text-muted hover:bg-workspace-editor hover:text-workspace-text"
-                }`}
-              >
-                <span className="font-medium">{LANGUAGE_LABELS[language]}</span>
-                {isActive ? (
-                  <span className="text-[10px] text-workspace-accent">●</span>
-                ) : null}
-              </button>
-            );
-          })}
+          {availableOptions.map((language) => (
+            <button
+              key={language}
+              type="button"
+              role="menuitem"
+              onClick={() => handleSelect(language)}
+              className="rounded-full px-2 py-1 text-[11px] text-text-muted transition hover:bg-surface hover:text-foreground"
+            >
+              {LANGUAGE_LABELS[language]}
+            </button>
+          ))}
         </div>
-      ) : null}
+        <button
+          type="button"
+          onClick={hasOptions ? handleToggle : undefined}
+          onKeyDown={hasOptions ? handleButtonKeyDown : undefined}
+          aria-haspopup="menu"
+          aria-expanded={isExpanded}
+          className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition hover:bg-surface"
+        >
+          {LANGUAGE_LABELS[value]}
+        </button>
+      </div>
     </div>
   );
 };
