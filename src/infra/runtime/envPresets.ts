@@ -141,6 +141,27 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     },
   },
 
+  "cs50sql-sql": {
+    id: "cs50sql-sql",
+    name: "CS50SQL · SQL",
+    primaryLanguage: "python",
+    allowedLanguages: ["python"],
+    starterFiles: [
+      {
+        path: "/project/queries.py",
+        content:
+          '"""CS50 SQL — Practice Queries"""\n\nimport cs50\n\ndb = cs50.SQL("sqlite:///example.db")\nrows = db.execute("SELECT * FROM sqlite_master")\nfor row in rows:\n    print(row)\n',
+        readonly: false,
+      },
+    ],
+    packages: [{ language: "python", name: "cs50" }],
+    runtimeSettings: {
+      timeoutMs: 10_000,
+      maxOutputBytes: 1_048_576,
+      stdinEnabled: true,
+    },
+  },
+
   sandbox: {
     id: "sandbox",
     name: "Sandbox",

@@ -364,9 +364,161 @@ const finalizeTranscriptIngest = mutation({
   },
 });
 
+const environmentConfigValidator = v.optional(
+  v.object({
+    presetId: v.optional(v.string()),
+    primaryLanguage: v.string(),
+    allowedLanguages: v.array(v.string()),
+    starterFiles: v.optional(
+      v.array(
+        v.object({
+          path: v.string(),
+          content: v.string(),
+          readonly: v.boolean(),
+        }),
+      ),
+    ),
+    packages: v.optional(
+      v.array(
+        v.object({
+          language: v.string(),
+          name: v.string(),
+          version: v.optional(v.string()),
+        }),
+      ),
+    ),
+    runtimeSettings: v.optional(
+      v.object({
+        timeoutMs: v.optional(v.number()),
+        maxOutputBytes: v.optional(v.number()),
+        stdinEnabled: v.optional(v.boolean()),
+        compilerFlags: v.optional(v.array(v.string())),
+      }),
+    ),
+  }),
+);
+
+const ingestCourse = mutation({
+  args: {
+    course: v.object({
+      sourcePlaylistId: v.string(),
+      title: v.string(),
+      description: v.optional(v.string()),
+      license: v.string(),
+      sourceUrl: v.string(),
+      youtubePlaylistUrl: v.optional(v.string()),
+    }),
+    ingestToken: v.optional(v.string()),
+    lessons: v.array(
+      v.object({
+        order: v.number(),
+        title: v.string(),
+        videoId: v.string(),
+        durationSec: v.number(),
+        subtitlesUrl: v.optional(v.string()),
+        transcriptUrl: v.optional(v.string()),
+        transcriptDurationSec: v.optional(v.number()),
+        segmentCount: v.optional(v.number()),
+        ingestVersion: v.number(),
+        transcriptStatus: transcriptStatusValidator,
+        environmentConfig: environmentConfigValidator,
+      }),
+    ),
+  },
+  handler: async (ctx, args): Promise<LessonIngestMeta[]> => {
+    await ensureIngestAllowed(ctx, args.ingestToken);
+
+    const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
+    const existingCourse = courses.find(
+      (course) => course.sourcePlaylistId === args.course.sourcePlaylistId,
+    );
+
+    const coursePayload = {
+      sourcePlaylistId: args.course.sourcePlaylistId,
+      title: args.course.title,
+      description: args.course.description,
+      license: args.course.license,
+      sourceUrl: args.course.sourceUrl,
+      youtubePlaylistUrl: args.course.youtubePlaylistUrl,
+    };
+
+    const courseId = existingCourse
+      ? existingCourse._id
+      : await ctx.db.insert("courses", coursePayload);
+
+    if (existingCourse) {
+      await ctx.db.patch(existingCourse._id, coursePayload);
+    }
+
+    const lessons = (await ctx.db
+      .query("lessons")
+      .withIndex("by_courseId", (query) => query.eq("courseId", courseId))
+      .collect()) as LessonRecord[];
+
+    const lessonByOrder = new Map<number, LessonRecord>();
+
+    for (const lesson of lessons) {
+      lessonByOrder.set(lesson.order, lesson);
+    }
+
+    const ingestMeta: LessonIngestMeta[] = [];
+
+    for (const lesson of args.lessons) {
+      const existingLesson = lessonByOrder.get(lesson.order) ?? null;
+
+      const lessonPayload = {
+        courseId,
+        videoId: lesson.videoId,
+        title: lesson.title,
+        durationSec: lesson.durationSec,
+        order: lesson.order,
+        subtitlesUrl: lesson.subtitlesUrl,
+        transcriptUrl: lesson.transcriptUrl,
+        transcriptStatus:
+          existingLesson?.transcriptStatus ?? lesson.transcriptStatus,
+        transcriptDurationSec: existingLesson?.transcriptDurationSec,
+        segmentCount: existingLesson?.segmentCount,
+        ingestVersion: existingLesson?.ingestVersion,
+        environmentConfig: lesson.environmentConfig,
+      };
+
+      const lessonId = existingLesson
+        ? existingLesson._id
+        : await ctx.db.insert("lessons", lessonPayload);
+
+      if (existingLesson) {
+        await ctx.db.patch(existingLesson._id, lessonPayload);
+      }
+
+      let shouldReplaceSegments =
+        !existingLesson ||
+        existingLesson.ingestVersion !== lesson.ingestVersion;
+
+      if (!shouldReplaceSegments && existingLesson) {
+        const expectedCount = lesson.segmentCount ?? 0;
+        const maxIdx = await getTranscriptMaxIdx(ctx, existingLesson._id);
+        if (expectedCount === 0) {
+          shouldReplaceSegments = maxIdx !== null;
+        } else if (maxIdx === null || maxIdx + 1 !== expectedCount) {
+          shouldReplaceSegments = true;
+        }
+      }
+
+      ingestMeta.push({
+        lessonId,
+        order: lesson.order,
+        shouldReplaceSegments,
+      });
+    }
+
+    return ingestMeta;
+  },
+});
+
 export {
   clearTranscriptSegmentsBatch,
   finalizeTranscriptIngest,
+  ingestCourse,
   ingestCs50x2026,
   ingestTranscriptSegmentsBatch,
 };
