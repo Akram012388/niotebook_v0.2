@@ -18,18 +18,31 @@ import { useTerminalStore } from "./useTerminalStore";
 import { niotebookDarkTerminal } from "./terminalTheme";
 
 const PROMPT = "\x1b[32m$ \x1b[0m";
+const DEFAULT_HINT =
+  "Type a command: python3 main.py, node main.js, ls, cat, echo, clear";
 
 function getTerminalTheme(): import("@xterm/xterm").ITheme {
   return niotebookDarkTerminal;
 }
 
-const XTermView = (): ReactElement => {
+type XTermViewProps = {
+  hint: string;
+};
+
+const XTermView = ({ hint }: XTermViewProps): ReactElement => {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const inputBufferRef = useRef("");
+  const hintRef = useRef(hint);
+  const initializedRef = useRef(false);
 
   const setTerminal = useTerminalStore((s) => s.setTerminal);
+  const isRunning = useTerminalStore((s) => s.isRunning);
+
+  useEffect(() => {
+    hintRef.current = hint;
+  }, [hint]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -60,10 +73,9 @@ const XTermView = (): ReactElement => {
 
     // Welcome message
     terminal.writeln("Niotebook Terminal v0.1");
-    terminal.writeln(
-      "Type a command: python3 main.py, node main.js, ls, cat, echo, clear",
-    );
+    terminal.writeln(hintRef.current || DEFAULT_HINT);
     terminal.write(PROMPT);
+    initializedRef.current = true;
 
     // Handle user input
     const onDataDisposable = terminal.onData((data) => {
@@ -146,8 +158,21 @@ const XTermView = (): ReactElement => {
     };
   }, [setTerminal]);
 
+  useEffect(() => {
+    const terminal = terminalRef.current;
+    if (!initializedRef.current || !terminal) return;
+    if (!hint) return;
+    if (isRunning) return;
+    if (inputBufferRef.current.length > 0) return;
+
+    terminal.write("\r\n");
+    terminal.writeln(hint);
+    terminal.write(PROMPT);
+  }, [hint, isRunning]);
+
   return <div ref={containerRef} className="h-full w-full" />;
 };
 
 export default XTermView;
 export { XTermView };
+export type { XTermViewProps };

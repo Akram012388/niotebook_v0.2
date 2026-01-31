@@ -11,6 +11,18 @@ const EXTERNAL_CDN_BASE = "https://esm.sh/";
 
 const REQUIRE_REGEX = /require\(\s*['"]([^'"]+)['"]\s*\)/g;
 const DYNAMIC_IMPORT_REGEX = /import\(\s*['"]([^'"]+)['"]\s*\)/g;
+const EXTERNAL_IMPORT_HELPER = `
+(function() {
+  if (typeof globalThis === "undefined") return;
+  globalThis.__importExternal = function(specifier) {
+    var externals = globalThis.__external_modules || {};
+    if (externals[specifier]) {
+      return Promise.resolve(externals[specifier]);
+    }
+    return import(specifier);
+  };
+})();
+`;
 
 function isExternalSpecifier(specifier: string): boolean {
   if (specifier.startsWith(".")) return false;
@@ -44,6 +56,19 @@ function collectExternalSpecifiers(code: string, into: Set<string>): void {
       into.add(spec);
     }
   }
+}
+
+function rewriteExternalImports(
+  code: string,
+  externalSpecifiers: Set<string>,
+): string {
+  if (externalSpecifiers.size === 0) return code;
+  return code.replace(DYNAMIC_IMPORT_REGEX, (match, specifier: string) => {
+    if (!externalSpecifiers.has(specifier)) {
+      return match;
+    }
+    return `globalThis.__importExternal(${JSON.stringify(specifier)})`;
+  });
 }
 
 function resolveExternalModules(
@@ -93,6 +118,13 @@ const initJsExecutor = async (): Promise<RuntimeExecutor> => {
     }
 
     const externalModules = resolveExternalModules(code, input.filesystem);
+    const externalSpecifiers = new Set(
+      externalModules.map((module) => module.specifier),
+    );
+    code = `${EXTERNAL_IMPORT_HELPER}\n${rewriteExternalImports(
+      code,
+      externalSpecifiers,
+    )}`;
 
     // Run in a sandboxed iframe for DOM isolation
     const result = await runInSandboxedIframe(

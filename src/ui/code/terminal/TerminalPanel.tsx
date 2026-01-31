@@ -15,6 +15,7 @@ type TerminalPanelProps = {
   onStop: () => void;
   onClear: () => void;
   isRunning: boolean;
+  hint: string;
 };
 
 const TerminalPanel = ({
@@ -22,6 +23,7 @@ const TerminalPanel = ({
   onStop,
   onClear,
   isRunning,
+  hint,
 }: TerminalPanelProps): ReactElement => (
   <div className="flex min-h-0 flex-1 flex-col bg-workspace-terminal text-workspace-text">
     <TerminalToolbar
@@ -35,7 +37,7 @@ const TerminalPanel = ({
       className="h-48 border-b border-workspace-border bg-workspace-editor"
     />
     <div className="min-h-0 flex-1 overflow-hidden p-4">
-      <XTermView />
+      <XTermView hint={hint} />
     </div>
   </div>
 );

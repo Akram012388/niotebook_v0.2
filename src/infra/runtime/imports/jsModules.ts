@@ -12,9 +12,26 @@ function buildJsFileMap(vfs: VirtualFS): Record<string, string> {
   ];
   const map: Record<string, string> = {};
   for (const file of jsFiles) {
-    map[file.path] = file.content;
+    map[file.path] = rewriteExternalImports(file.content);
   }
   return map;
+}
+
+const DYNAMIC_IMPORT_REGEX = /import\(\s*['"]([^'"]+)['"]\s*\)/g;
+
+function isExternalSpecifier(specifier: string): boolean {
+  if (specifier.startsWith(".")) return false;
+  if (specifier.startsWith("/")) return false;
+  return true;
+}
+
+function rewriteExternalImports(code: string): string {
+  return code.replace(DYNAMIC_IMPORT_REGEX, (match, specifier: string) => {
+    if (!isExternalSpecifier(specifier)) {
+      return match;
+    }
+    return `globalThis.__importExternal(${JSON.stringify(specifier)})`;
+  });
 }
 
 /**

@@ -383,6 +383,22 @@ const CodePane = ({
     [allowedLanguages],
   );
 
+  const terminalHint = useMemo(() => {
+    switch (activeLanguage) {
+      case "python":
+        return "Type a command: python3 main.py, ls, cat, echo, clear";
+      case "c":
+        return "Type a command: gcc main.c, ls, cat, echo, clear";
+      case "html":
+        return "Preview HTML with Run. Commands: ls, cat, echo, clear";
+      case "css":
+        return "CSS previews via HTML. Commands: ls, cat, echo, clear";
+      case "js":
+      default:
+        return "Type a command: node main.js, ls, cat, echo, clear";
+    }
+  }, [activeLanguage]);
+
   return (
     <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-border bg-surface">
       <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
@@ -421,6 +437,7 @@ const CodePane = ({
                 isRunning={
                   runtimeState.status === "running" || terminalIsRunning
                 }
+                hint={terminalHint}
               />
             </div>
           }
