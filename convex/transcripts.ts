@@ -7,7 +7,6 @@ import {
   type TranscriptSegment,
   type TranscriptWindowSegment,
 } from "../src/domain/transcript";
-import { requireQueryWorkspaceUser } from "./auth";
 import { toDomainId } from "./idUtils";
 
 type TranscriptSegmentRecord = {
@@ -40,12 +39,6 @@ const getTranscriptWindow = query({
     endSec: v.number(),
   },
   handler: async (ctx, args): Promise<TranscriptWindowSegment[]> => {
-    try {
-      await requireQueryWorkspaceUser(ctx);
-    } catch {
-      return [];
-    }
-
     const lowerBound = Math.max(0, args.startSec - TRANSCRIPT_START_PAD_SEC);
 
     const segments = (await ctx.db

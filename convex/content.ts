@@ -8,7 +8,7 @@ import {
   type LessonSummary,
   type TranscriptStatus,
 } from "../src/domain/content";
-import { requireMutationAdmin, requireQueryWorkspaceUser } from "./auth";
+import { requireMutationAdmin } from "./auth";
 import { toDomainId } from "./idUtils";
 
 type CourseRecord = {
@@ -95,12 +95,6 @@ const getLesson = query({
     lessonId: v.id("lessons"),
   },
   handler: async (ctx, args): Promise<LessonSummary | null> => {
-    try {
-      await requireQueryWorkspaceUser(ctx);
-    } catch {
-      return null;
-    }
-
     const lesson = (await ctx.db.get(args.lessonId)) as LessonRecord | null;
 
     if (!lesson) {
