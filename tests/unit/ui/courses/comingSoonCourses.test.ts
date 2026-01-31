@@ -27,7 +27,7 @@ describe("COMING_SOON_COURSES", () => {
 
   it("contains known courses", () => {
     const titles = COMING_SOON_COURSES.map((c) => c.title);
-    expect(titles).toContain("MIT 6.006");
-    expect(titles).toContain("Stanford CS106A");
+    expect(titles).toContain("6.006: Introduction to Algorithms");
+    expect(titles).toContain("CS106A: Programming Methodology");
   });
 });

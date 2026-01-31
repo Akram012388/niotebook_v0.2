@@ -80,7 +80,12 @@ const getChatThread = query({
     lessonId: v.id("lessons"),
   },
   handler: async (ctx, args): Promise<ChatThreadSummary | null> => {
-    const user = await requireQueryUser(ctx);
+    let user;
+    try {
+      user = await requireQueryUser(ctx);
+    } catch {
+      return null;
+    }
 
     const thread = (await ctx.db
       .query("chatThreads")
@@ -129,7 +134,12 @@ const getChatMessages = query({
     cursor: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<ChatMessagePage> => {
-    const user = await requireQueryUser(ctx);
+    let user;
+    try {
+      user = await requireQueryUser(ctx);
+    } catch {
+      return { messages: [], nextCursor: null };
+    }
     const thread = (await ctx.db.get(args.threadId)) as ChatThreadRecord | null;
 
     if (!thread || thread.userId !== toGenericId(user.id)) {

@@ -155,7 +155,7 @@ describe("CourseCard", () => {
         }),
       );
       const wrapper = container.firstElementChild;
-      expect(wrapper?.className).toContain("opacity-50");
+      expect(wrapper?.className).toContain("opacity-70");
     });
   });
 });

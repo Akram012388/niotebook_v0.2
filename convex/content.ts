@@ -8,7 +8,7 @@ import {
   type LessonSummary,
   type TranscriptStatus,
 } from "../src/domain/content";
-import { requireMutationAdmin, requireQueryWorkspaceUser } from "./auth";
+import { requireMutationAdmin } from "./auth";
 import { toDomainId } from "./idUtils";
 
 type CourseRecord = {
@@ -68,8 +68,6 @@ const toLessonSummary = (lesson: LessonRecord): LessonSummary => {
 const getCourses = query({
   args: {},
   handler: async (ctx): Promise<CourseSummary[]> => {
-    await requireQueryWorkspaceUser(ctx);
-
     const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
     return orderCoursesByTitle(courses.map(toCourseSummary));
   },
@@ -80,8 +78,6 @@ const getLessonsByCourse = query({
     courseId: v.id("courses"),
   },
   handler: async (ctx, args): Promise<LessonSummary[]> => {
-    await requireQueryWorkspaceUser(ctx);
-
     const lessons = (await ctx.db
       .query("lessons")
       .withIndex("by_courseId", (query) => query.eq("courseId", args.courseId))
@@ -99,8 +95,6 @@ const getLesson = query({
     lessonId: v.id("lessons"),
   },
   handler: async (ctx, args): Promise<LessonSummary | null> => {
-    await requireQueryWorkspaceUser(ctx);
-
     const lesson = (await ctx.db.get(args.lessonId)) as LessonRecord | null;
 
     if (!lesson) {
