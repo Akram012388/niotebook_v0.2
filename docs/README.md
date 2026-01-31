@@ -10,6 +10,8 @@ Quick entry points for Niotebook v0.2 documentation.
 - `docs/env-requirements.md`
 - `docs/dev-workflow.md`
 - `docs/clerk-auth-alpha.md`
+- `docs/code-editor-tier2-plan.md`
+- `docs/ui-reference.md`
 
 ## Architecture Decisions
 

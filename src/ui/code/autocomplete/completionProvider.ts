@@ -19,6 +19,7 @@ const LANGUAGE_COMPLETIONS: Record<RuntimeLanguage, CompletionSource> = {
   c: cCompletions,
   js: jsCompletions,
   html: () => null, // No special HTML completions yet
+  css: () => null,
 };
 
 /**
@@ -39,7 +40,13 @@ function createNiotebookCompletions(
 
   // VFS-aware completions — reads VFS lazily from the store at query time
   // to avoid stale closures when files change after editor state creation.
-  sources.push(createVfsCompletionSource(language, () => useFileSystemStore.getState().vfs, currentPath));
+  sources.push(
+    createVfsCompletionSource(
+      language,
+      () => useFileSystemStore.getState().vfs,
+      currentPath,
+    ),
+  );
 
   // Language-specific builtins
   const langSource = LANGUAGE_COMPLETIONS[language];

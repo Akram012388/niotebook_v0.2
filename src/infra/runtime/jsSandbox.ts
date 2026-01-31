@@ -24,11 +24,18 @@ type SandboxMessage =
   | { type: "done" }
   | { type: "error"; message: string };
 
+type ExternalModuleRef = {
+  specifier: string;
+  url: string;
+};
+
 const SANDBOX_HTML = `<!DOCTYPE html><html><head><script>
 "use strict";
 window.addEventListener("message", function(e) {
   if (!e.data || e.data.type !== "exec") return;
   var code = e.data.code;
+  var externalModules = e.data.externalModules || [];
+  var __external_modules = {};
   var origLog = console.log;
   var origErr = console.error;
   var origWarn = console.warn;
@@ -41,17 +48,39 @@ window.addEventListener("message", function(e) {
     parent.postMessage({ type: "stderr", data: line }, "*");
   };
   console.warn = console.error;
-  try {
-    var fn = new Function(code);
-    fn();
-    parent.postMessage({ type: "done" }, "*");
-  } catch (err) {
-    parent.postMessage({ type: "error", message: err instanceof Error ? err.message : String(err) }, "*");
-  } finally {
-    console.log = origLog;
-    console.error = origErr;
-    console.warn = origWarn;
+  function runCode() {
+    try {
+      globalThis.__external_modules = __external_modules;
+      var fn = new Function(code);
+      var result = fn();
+      if (result && typeof result.then === "function") {
+        result.then(function() {
+          parent.postMessage({ type: "done" }, "*");
+        }).catch(function(err) {
+          parent.postMessage({ type: "error", message: err instanceof Error ? err.message : String(err) }, "*");
+        });
+      } else {
+        parent.postMessage({ type: "done" }, "*");
+      }
+    } catch (err) {
+      parent.postMessage({ type: "error", message: err instanceof Error ? err.message : String(err) }, "*");
+    } finally {
+      console.log = origLog;
+      console.error = origErr;
+      console.warn = origWarn;
+    }
   }
+  if (externalModules.length === 0) {
+    runCode();
+    return;
+  }
+  Promise.all(externalModules.map(function(mod) {
+    return import(mod.url).then(function(result) {
+      __external_modules[mod.specifier] = result;
+    });
+  })).then(runCode).catch(function(err) {
+    parent.postMessage({ type: "error", message: err instanceof Error ? err.message : String(err) }, "*");
+  });
 });
 parent.postMessage({ type: "ready" }, "*");
 <\/script></head><body></body></html>`;
@@ -61,6 +90,7 @@ function runInSandboxedIframe(
   timeoutMs: number,
   onStdout?: (chunk: string) => void,
   onStderr?: (chunk: string) => void,
+  externalModules: ExternalModuleRef[] = [],
 ): Promise<SandboxResult> {
   return new Promise<SandboxResult>((resolve) => {
     let stdout = "";
@@ -98,7 +128,10 @@ function runInSandboxedIframe(
 
       switch (msg.type) {
         case "ready":
-          iframe.contentWindow?.postMessage({ type: "exec", code }, "*");
+          iframe.contentWindow?.postMessage(
+            { type: "exec", code, externalModules },
+            "*",
+          );
           break;
         case "stdout":
           stdout += msg.data;
@@ -125,4 +158,4 @@ function runInSandboxedIframe(
 }
 
 export { runInSandboxedIframe };
-export type { SandboxResult };
+export type { ExternalModuleRef, SandboxResult };

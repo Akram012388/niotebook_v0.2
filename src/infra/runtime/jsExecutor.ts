@@ -1,5 +1,5 @@
 import { makeRequireShim } from "./imports/jsModules";
-import { runInSandboxedIframe } from "./jsSandbox";
+import { runInSandboxedIframe, type ExternalModuleRef } from "./jsSandbox";
 import type {
   RuntimeExecutor,
   RuntimeRunInput,
@@ -7,6 +7,96 @@ import type {
 } from "./types";
 
 const DEFAULT_TIMEOUT_MS = 5_000;
+const EXTERNAL_CDN_BASE = "https://esm.sh/";
+
+const REQUIRE_REGEX = /require\(\s*['"]([^'"]+)['"]\s*\)/g;
+const DYNAMIC_IMPORT_REGEX = /import\(\s*['"]([^'"]+)['"]\s*\)/g;
+const EXTERNAL_IMPORT_HELPER = `
+(function() {
+  if (typeof globalThis === "undefined") return;
+  globalThis.__importExternal = function(specifier) {
+    var externals = globalThis.__external_modules || {};
+    if (externals[specifier]) {
+      return Promise.resolve(externals[specifier]);
+    }
+    if (specifier.startsWith("http://") || specifier.startsWith("https://") || specifier.startsWith("data:")) {
+      return import(specifier);
+    }
+    return import("${EXTERNAL_CDN_BASE}" + specifier);
+  };
+})();
+`;
+
+function isExternalSpecifier(specifier: string): boolean {
+  if (specifier.startsWith(".")) return false;
+  if (specifier.startsWith("/")) return false;
+  if (specifier.startsWith("http://") || specifier.startsWith("https://")) {
+    return true;
+  }
+  if (specifier.startsWith("data:")) return true;
+  return true;
+}
+
+function resolveExternalUrl(specifier: string): string {
+  if (specifier.startsWith("http://") || specifier.startsWith("https://")) {
+    return specifier;
+  }
+  if (specifier.startsWith("data:")) return specifier;
+  return `${EXTERNAL_CDN_BASE}${specifier}`;
+}
+
+function collectExternalSpecifiers(code: string, into: Set<string>): void {
+  let match: RegExpExecArray | null;
+  while ((match = REQUIRE_REGEX.exec(code)) !== null) {
+    const spec = match[1];
+    if (spec && isExternalSpecifier(spec)) {
+      into.add(spec);
+    }
+  }
+  while ((match = DYNAMIC_IMPORT_REGEX.exec(code)) !== null) {
+    const spec = match[1];
+    if (spec && isExternalSpecifier(spec)) {
+      into.add(spec);
+    }
+  }
+}
+
+function rewriteExternalImports(
+  code: string,
+  externalSpecifiers: Set<string>,
+): string {
+  if (externalSpecifiers.size === 0) return code;
+  return code.replace(DYNAMIC_IMPORT_REGEX, (match, specifier: string) => {
+    if (!externalSpecifiers.has(specifier)) {
+      return match;
+    }
+    return `globalThis.__importExternal(${JSON.stringify(specifier)})`;
+  });
+}
+
+function resolveExternalModules(
+  code: string,
+  filesystem?: import("../vfs/VirtualFS").VirtualFS,
+): ExternalModuleRef[] {
+  const specifiers = new Set<string>();
+  collectExternalSpecifiers(code, specifiers);
+
+  if (filesystem) {
+    const jsFiles = [
+      ...filesystem.glob("**/*.js"),
+      ...filesystem.glob("**/*.mjs"),
+      ...filesystem.glob("**/*.cjs"),
+    ];
+    for (const file of jsFiles) {
+      collectExternalSpecifiers(file.content, specifiers);
+    }
+  }
+
+  return Array.from(specifiers).map((specifier) => ({
+    specifier,
+    url: resolveExternalUrl(specifier),
+  }));
+}
 
 const initJsExecutor = async (): Promise<RuntimeExecutor> => {
   let aborted = false;
@@ -23,13 +113,21 @@ const initJsExecutor = async (): Promise<RuntimeExecutor> => {
     // Prepend require() shim if VFS is provided (enables cross-file imports)
     let code = input.code;
     if (input.filesystem) {
-      const mainPath =
-        input.filesystem.getMainFilePath() ?? "/project/main.js";
+      const mainPath = input.filesystem.getMainFilePath() ?? "/project/main.js";
       const shim = makeRequireShim(mainPath, input.filesystem);
       if (shim) {
         code = shim + "\n" + code;
       }
     }
+
+    const externalModules = resolveExternalModules(code, input.filesystem);
+    const externalSpecifiers = new Set(
+      externalModules.map((module) => module.specifier),
+    );
+    code = `${EXTERNAL_IMPORT_HELPER}\n${rewriteExternalImports(
+      code,
+      externalSpecifiers,
+    )}`;
 
     // Run in a sandboxed iframe for DOM isolation
     const result = await runInSandboxedIframe(
@@ -37,6 +135,7 @@ const initJsExecutor = async (): Promise<RuntimeExecutor> => {
       timeoutMs,
       input.onStdout,
       input.onStderr,
+      externalModules,
     );
 
     const runtimeMs = Math.round(performance.now() - start);

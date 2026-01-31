@@ -1,9 +1,96 @@
 import { mountPythonFiles } from "./imports/pythonImports";
 import type {
+  RuntimePackage,
   RuntimeExecutor,
   RuntimeRunInput,
   RuntimeRunResult,
 } from "./types";
+
+type PyodideInstance = {
+  FS: {
+    writeFile: (path: string, content: string) => void;
+    mkdirTree: (path: string) => void;
+  };
+  runPython: (code: string) => unknown;
+  runPythonAsync?: (code: string) => Promise<unknown>;
+  loadPackage?: (packages: string | string[]) => Promise<void>;
+};
+
+type LoadPyodide = (options?: {
+  indexURL?: string;
+}) => Promise<PyodideInstance>;
+
+const PYODIDE_INDEX_URL = "https://cdn.jsdelivr.net/pyodide/v0.27.0/full/";
+const PYODIDE_SCRIPT_URL = `${PYODIDE_INDEX_URL}pyodide.js`;
+
+let pyodidePromise: Promise<PyodideInstance> | null = null;
+const installedPackages = new Set<string>();
+
+const loadPyodideInstance = async (): Promise<PyodideInstance> => {
+  if (pyodidePromise) return pyodidePromise;
+
+  pyodidePromise = new Promise<PyodideInstance>((resolve, reject) => {
+    const globalLoad = (globalThis as { loadPyodide?: LoadPyodide })
+      .loadPyodide;
+    if (globalLoad) {
+      void globalLoad({ indexURL: PYODIDE_INDEX_URL })
+        .then(resolve)
+        .catch(reject);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = PYODIDE_SCRIPT_URL;
+    script.async = true;
+    script.onload = () => {
+      const loader = (globalThis as { loadPyodide?: LoadPyodide }).loadPyodide;
+      if (!loader) {
+        reject(new Error("Pyodide loader unavailable"));
+        return;
+      }
+      void loader({ indexURL: PYODIDE_INDEX_URL }).then(resolve).catch(reject);
+    };
+    script.onerror = () => reject(new Error("Failed to load Pyodide"));
+    document.head.appendChild(script);
+  });
+
+  return pyodidePromise;
+};
+
+const getPythonPackages = (packages?: RuntimePackage[]): string[] => {
+  if (!packages) return [];
+  return packages
+    .filter((pkg) => pkg.language === "python")
+    .map((pkg) => (pkg.version ? `${pkg.name}==${pkg.version}` : pkg.name));
+};
+
+const ensurePythonPackages = async (
+  pyodide: PyodideInstance,
+  packages?: RuntimePackage[],
+): Promise<void> => {
+  const requested = getPythonPackages(packages).filter(
+    (name) => !installedPackages.has(name),
+  );
+  if (requested.length === 0) return;
+
+  if (pyodide.loadPackage) {
+    await pyodide.loadPackage("micropip");
+  }
+
+  if (!pyodide.runPythonAsync) {
+    throw new Error("Pyodide async runtime unavailable");
+  }
+
+  const installCode = `
+import micropip
+await micropip.install(${JSON.stringify(requested)})
+`;
+
+  await pyodide.runPythonAsync(installCode);
+  for (const pkg of requested) {
+    installedPackages.add(pkg);
+  }
+};
 
 const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
   let isReady = false;
@@ -21,22 +108,46 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
     const start = performance.now();
     await init();
 
-    // Mount VFS Python files to Pyodide FS if VFS is provided.
-    // When a real Pyodide instance is available, this enables cross-file imports.
-    // Currently the executor is still a stub, so we capture the intent for when
-    // Pyodide is integrated (Phase 4+).
+    const pyodide = await loadPyodideInstance();
+
     if (input.filesystem) {
-      // Pyodide integration point: once `pyodide` is loaded, call:
-      // mountPythonFiles(pyodide, input.filesystem);
-      void mountPythonFiles;
+      mountPythonFiles(pyodide, input.filesystem);
     }
 
-    const payload = input.code.trim() ? "Input received." : "No input.";
+    await ensurePythonPackages(pyodide, input.packages);
+
+    if (!pyodide.runPythonAsync) {
+      throw new Error("Pyodide async runtime unavailable");
+    }
+
+    const captureCode = `
+import sys, io
+__stdout = io.StringIO()
+__stderr = io.StringIO()
+sys.stdout = __stdout
+sys.stderr = __stderr
+try:
+    exec(${JSON.stringify(input.code)})
+except Exception as e:
+    print(str(e), file=sys.stderr)
+finally:
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
+__result_out = __stdout.getvalue()
+__result_err = __stderr.getvalue()
+`;
+
+    await pyodide.runPythonAsync(captureCode);
+    const stdout = String(pyodide.runPython("__result_out") ?? "");
+    const stderr = String(pyodide.runPython("__result_err") ?? "");
+
+    if (stdout) input.onStdout?.(stdout);
+    if (stderr) input.onStderr?.(stderr);
 
     return {
-      stdout: `Python runtime stubbed. ${payload}`,
-      stderr: "",
-      exitCode: 0,
+      stdout,
+      stderr,
+      exitCode: stderr ? 1 : 0,
       runtimeMs: Math.round(performance.now() - start),
       timedOut: false,
     };

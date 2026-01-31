@@ -21,6 +21,7 @@ const IMPORT_TRIGGERS: Record<RuntimeLanguage, RegExp> = {
   js: /(?:import\s.*from\s+['"]|require\s*\(\s*['"])([^'"]*?)$/,
   c: /#include\s+"([^"]*?)$/,
   html: /(?:src|href)\s*=\s*['"]([^'"]*?)$/,
+  css: /@import\s+(?:url\()?['"]([^'"]*?)$/,
 };
 
 function getImportCompletions(
@@ -59,7 +60,10 @@ function getImportCompletions(
       }
 
       // For C, suggest relative path from current file
-      if (language === "c" && (f.path.endsWith(".h") || f.path.endsWith(".c"))) {
+      if (
+        language === "c" &&
+        (f.path.endsWith(".h") || f.path.endsWith(".c"))
+      ) {
         const relativePath = computeRelativePath(currentDir, f.path);
         return {
           label: relativePath,
@@ -89,8 +93,10 @@ function getImportCompletions(
         detail: f.path,
       };
     })
-    .filter((opt) =>
-      partial.length === 0 || opt.label.toLowerCase().startsWith(partial.toLowerCase()),
+    .filter(
+      (opt) =>
+        partial.length === 0 ||
+        opt.label.toLowerCase().startsWith(partial.toLowerCase()),
     );
 
   if (options.length === 0) return null;
@@ -112,7 +118,8 @@ function computeRelativePath(fromDir: string, toPath: string): string {
 
   const ups = fromParts.length - common;
   const rest = toParts.slice(common);
-  const prefix = ups > 0 ? Array.from({ length: ups }, () => "..").join("/") : ".";
+  const prefix =
+    ups > 0 ? Array.from({ length: ups }, () => "..").join("/") : ".";
   return `${prefix}/${rest.join("/")}`;
 }
 
@@ -123,7 +130,10 @@ type SymbolPatternFactory = {
   type: Completion["type"];
 };
 
-const SYMBOL_PATTERN_FACTORIES: Record<RuntimeLanguage, SymbolPatternFactory[]> = {
+const SYMBOL_PATTERN_FACTORIES: Record<
+  RuntimeLanguage,
+  SymbolPatternFactory[]
+> = {
   python: [
     { makeRegex: () => /^def\s+(\w+)/gm, type: "function" },
     { makeRegex: () => /^class\s+(\w+)/gm, type: "class" },
@@ -133,12 +143,15 @@ const SYMBOL_PATTERN_FACTORIES: Record<RuntimeLanguage, SymbolPatternFactory[]> 
     { makeRegex: () => /(?:^|\n)function\s+(\w+)/g, type: "function" },
     { makeRegex: () => /(?:^|\n)(?:const|let|var)\s+(\w+)/g, type: "variable" },
     { makeRegex: () => /(?:^|\n)class\s+(\w+)/g, type: "class" },
-    { makeRegex: () => /(?:^|\n)export\s+(?:default\s+)?(?:function|class|const|let|var)\s+(\w+)/g, type: "function" },
+    {
+      makeRegex: () =>
+        /(?:^|\n)export\s+(?:default\s+)?(?:function|class|const|let|var)\s+(\w+)/g,
+      type: "function",
+    },
   ],
-  c: [
-    { makeRegex: () => /\w+\s+(\w+)\s*\(/gm, type: "function" },
-  ],
+  c: [{ makeRegex: () => /\w+\s+(\w+)\s*\(/gm, type: "function" }],
   html: [],
+  css: [],
 };
 
 function getCrossFileSymbolCompletions(
@@ -197,7 +210,12 @@ function createVfsCompletionSource(
     const vfs = getVfs();
 
     // Try import completions first
-    const importResult = getImportCompletions(context, language, vfs, currentPath);
+    const importResult = getImportCompletions(
+      context,
+      language,
+      vfs,
+      currentPath,
+    );
     if (importResult) return importResult;
 
     // Then cross-file symbols

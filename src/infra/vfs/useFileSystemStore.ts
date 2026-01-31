@@ -11,10 +11,7 @@ import { create } from "zustand";
 
 import { VirtualFS } from "./VirtualFS";
 import type { VFSSnapshotNode } from "./VirtualFS";
-import {
-  loadProject,
-  saveProject,
-} from "./indexedDbBackend";
+import { loadProject, saveProject } from "./indexedDbBackend";
 import type { VFSDirectory, VFSFile, VFSNode } from "./types";
 import type { LessonEnvironment } from "../../domain/lessonEnvironment";
 
@@ -43,6 +40,7 @@ type FileSystemActions = {
   initializeFromTemplate: (files: TemplateFile[]) => void;
   initializeFromEnvironment: (env: LessonEnvironment) => void;
   getMainFileContent: () => string;
+  setMainFile: (path: string) => void;
   refreshDerivedState: () => void;
 };
 
@@ -198,6 +196,12 @@ const useFileSystemStore = create<FileSystemState & FileSystemActions>()(
     getMainFileContent: () => {
       const { vfs } = get();
       return vfs.getMainFileContent();
+    },
+
+    setMainFile: (path) => {
+      const { vfs } = get();
+      vfs.setMainFile(path);
+      set({ mainFilePath: path });
     },
 
     refreshDerivedState: () => {

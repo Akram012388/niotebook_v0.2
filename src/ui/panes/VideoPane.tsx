@@ -179,7 +179,6 @@ const VideoPane = ({
       <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
         <div>
           <p className="text-sm font-semibold text-foreground">Lesson video</p>
-          <p className="text-xs text-text-muted">Player scaffold</p>
         </div>
         <div className="flex items-center gap-2">
           {headerExtras}

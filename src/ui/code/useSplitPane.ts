@@ -1,16 +1,21 @@
 /**
  * useSplitPane — hook for split-pane drag state, ratio, and localStorage persistence.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 type UseSplitPaneOptions = {
   direction: "horizontal" | "vertical";
   initialSplit: number;
   /** Minimum size for the first pane in pixels. */
   minFirst: number;
+  /** Maximum size for the first pane in pixels (optional). */
+  maxFirst?: number;
   /** Minimum size for the second pane in pixels. */
   minSecond: number;
+  /** Maximum size for the second pane in pixels (optional). */
+  maxSecond?: number;
   storageKey?: string;
+  containerRef?: RefObject<HTMLDivElement | null>;
 };
 
 type UseSplitPaneReturn = {
@@ -30,11 +35,30 @@ function clampRatio(
   minFirstPx: number,
   minSecondPx: number,
   containerSize?: number,
+  maxFirstPx?: number,
+  maxSecondPx?: number,
 ): number {
   if (containerSize && containerSize > 0) {
     const minFirstRatio = minFirstPx / containerSize;
     const minSecondRatio = minSecondPx / containerSize;
-    return Math.min(Math.max(ratio, minFirstRatio), 1 - minSecondRatio);
+    let lowerBound = minFirstRatio;
+    let upperBound = 1 - minSecondRatio;
+
+    if (typeof maxFirstPx === "number") {
+      const maxFirstRatio = maxFirstPx / containerSize;
+      upperBound = Math.min(upperBound, maxFirstRatio);
+    }
+
+    if (typeof maxSecondPx === "number") {
+      const maxSecondRatio = maxSecondPx / containerSize;
+      lowerBound = Math.max(lowerBound, 1 - maxSecondRatio);
+    }
+
+    if (lowerBound > upperBound) {
+      return Math.min(Math.max(ratio, 0.05), 0.95);
+    }
+
+    return Math.min(Math.max(ratio, lowerBound), upperBound);
   }
   // Fallback: treat as small ratios to avoid locking panes
   return Math.min(Math.max(ratio, 0.05), 0.95);
@@ -65,88 +89,172 @@ function useSplitPane({
   direction,
   initialSplit,
   minFirst,
+  maxFirst,
   minSecond,
+  maxSecond,
   storageKey,
+  containerRef: externalContainerRef,
 }: UseSplitPaneOptions): UseSplitPaneReturn {
+  const [storedRatio] = useState<number | null>(() => loadRatio(storageKey));
+  const storedRatioRef = useRef<number | null>(storedRatio);
+  const initialSplitRef = useRef(initialSplit);
+  const didApplyInitialSplitRef = useRef(false);
+
   const [ratio, setRatio] = useState<number>(() => {
-    const stored = loadRatio(storageKey);
-    // On initial render we don't have container size, so trust the stored/initial value
-    return stored ?? initialSplit;
+    if (storedRatio !== null) {
+      return storedRatio;
+    }
+    if (initialSplit > 1) {
+      return 0.2;
+    }
+    return initialSplit;
   });
 
   const [isDragging, setIsDragging] = useState(false);
-  const containerRef = useRef<HTMLElement | null>(null);
+  const internalContainerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = externalContainerRef ?? internalContainerRef;
+  const hasExternalRef = Boolean(externalContainerRef);
   const ratioRef = useRef(ratio);
 
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      setIsDragging(true);
+  const handleMouseDown = (e: React.MouseEvent): void => {
+    e.preventDefault();
+    setIsDragging(true);
 
-      // Find the container (parent of the divider)
-      const container = (e.currentTarget as HTMLElement).parentElement;
-      if (!container) return;
-      containerRef.current = container;
+    // Find the container (parent of the divider)
+    const container =
+      containerRef.current ?? (e.currentTarget as HTMLElement).parentElement;
+    if (!container) return;
+    if (!hasExternalRef && !internalContainerRef.current) {
+      internalContainerRef.current = container as HTMLDivElement;
+    }
 
-      const isVertical = direction === "vertical";
+    const isVertical = direction === "vertical";
 
-      const onMouseMove = (moveEvent: MouseEvent): void => {
-        const rect = container.getBoundingClientRect();
-        const total = isVertical ? rect.height : rect.width;
-        if (total === 0) return;
+    const onMouseMove = (moveEvent: MouseEvent): void => {
+      const rect = container.getBoundingClientRect();
+      const total = isVertical ? rect.height : rect.width;
+      if (total === 0) return;
 
-        const offset = isVertical
-          ? moveEvent.clientY - rect.top
-          : moveEvent.clientX - rect.left;
+      const offset = isVertical
+        ? moveEvent.clientY - rect.top
+        : moveEvent.clientX - rect.left;
 
-        const newRatio = clampRatio(offset / total, minFirst, minSecond, total);
-        setRatio(newRatio);
-      };
+      const newRatio = clampRatio(
+        offset / total,
+        minFirst,
+        minSecond,
+        total,
+        maxFirst,
+        maxSecond,
+      );
+      setRatio(newRatio);
+    };
 
-      const onMouseUp = (): void => {
-        setIsDragging(false);
-        saveRatio(storageKey, ratioRef.current);
-        // Dispatch resize so xterm fitAddon and CM6 reflow
-        window.dispatchEvent(new Event("resize"));
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
-      };
+    const onMouseUp = (): void => {
+      setIsDragging(false);
+      saveRatio(storageKey, ratioRef.current);
+      // Dispatch resize so xterm fitAddon and CM6 reflow
+      window.dispatchEvent(new Event("resize"));
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
 
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
-    },
-    [direction, minFirst, minSecond, storageKey],
-  );
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  };
 
-  const handleDoubleClick = useCallback(() => {
+  const handleDoubleClick = (): void => {
     const container = containerRef.current;
     const total = container
-      ? (direction === "vertical" ? container.getBoundingClientRect().height : container.getBoundingClientRect().width)
+      ? direction === "vertical"
+        ? container.getBoundingClientRect().height
+        : container.getBoundingClientRect().width
       : undefined;
-    const clamped = clampRatio(initialSplit, minFirst, minSecond, total);
+    const baseRatio =
+      initialSplitRef.current > 1 && total
+        ? initialSplitRef.current / total
+        : initialSplitRef.current;
+    const clamped = clampRatio(
+      baseRatio,
+      minFirst,
+      minSecond,
+      total,
+      maxFirst,
+      maxSecond,
+    );
     setRatio(clamped);
     saveRatio(storageKey, clamped);
     window.dispatchEvent(new Event("resize"));
-  }, [direction, initialSplit, minFirst, minSecond, storageKey]);
+  };
 
-  const keyStep = useCallback(
-    (delta: number) => {
-      const container = containerRef.current;
-      const total = container
-        ? (direction === "vertical" ? container.getBoundingClientRect().height : container.getBoundingClientRect().width)
-        : undefined;
-      const newRatio = clampRatio(ratioRef.current + delta, minFirst, minSecond, total);
-      setRatio(newRatio);
-      saveRatio(storageKey, newRatio);
-      window.dispatchEvent(new Event("resize"));
-    },
-    [direction, minFirst, minSecond, storageKey],
-  );
+  const keyStep = (delta: number): void => {
+    const container = containerRef.current;
+    const total = container
+      ? direction === "vertical"
+        ? container.getBoundingClientRect().height
+        : container.getBoundingClientRect().width
+      : undefined;
+    const newRatio = clampRatio(
+      ratioRef.current + delta,
+      minFirst,
+      minSecond,
+      total,
+      maxFirst,
+      maxSecond,
+    );
+    setRatio(newRatio);
+    saveRatio(storageKey, newRatio);
+    window.dispatchEvent(new Event("resize"));
+  };
 
   // Sync localStorage when ratio changes from external sources
   useEffect(() => {
     ratioRef.current = ratio;
   }, [ratio]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const total = direction === "vertical" ? rect.height : rect.width;
+    let baseRatio = ratioRef.current;
+    if (
+      !didApplyInitialSplitRef.current &&
+      storedRatioRef.current === null &&
+      initialSplitRef.current > 1 &&
+      total > 0
+    ) {
+      baseRatio = initialSplitRef.current / total;
+      didApplyInitialSplitRef.current = true;
+    }
+    const clamped = clampRatio(
+      baseRatio,
+      minFirst,
+      minSecond,
+      total,
+      maxFirst,
+      maxSecond,
+    );
+    if (clamped !== ratioRef.current) {
+      const raf = window.requestAnimationFrame(() => {
+        if (clamped === ratioRef.current) return;
+        setRatio(clamped);
+        saveRatio(storageKey, clamped);
+        window.dispatchEvent(new Event("resize"));
+      });
+      return () => {
+        window.cancelAnimationFrame(raf);
+      };
+    }
+  }, [
+    direction,
+    minFirst,
+    minSecond,
+    maxFirst,
+    maxSecond,
+    storageKey,
+    containerRef,
+  ]);
 
   return { ratio, isDragging, handleMouseDown, handleDoubleClick, keyStep };
 }

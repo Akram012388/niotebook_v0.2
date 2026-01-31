@@ -66,7 +66,7 @@ const CodeMirrorEditor = ({
   return (
     <div
       ref={containerRef}
-      className="min-h-0 flex-1 overflow-hidden"
+      className="min-h-0 h-full flex-1 overflow-hidden bg-workspace-editor"
       role="tabpanel"
       aria-label="Code editor"
       onKeyDown={(e) => {

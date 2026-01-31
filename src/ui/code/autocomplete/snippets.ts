@@ -32,7 +32,9 @@ const PYTHON_SNIPPETS: Completion[] = [
     label: "class",
     type: "keyword",
     detail: "class definition",
-    apply: snippet("class ${Name}:\n\tdef __init__(self${, params}):\n\t\t${pass}"),
+    apply: snippet(
+      "class ${Name}:\n\tdef __init__(self${, params}):\n\t\t${pass}",
+    ),
   },
   {
     label: "if",
@@ -56,7 +58,9 @@ const PYTHON_SNIPPETS: Completion[] = [
     label: "try",
     type: "keyword",
     detail: "try/except block",
-    apply: snippet("try:\n\t${body}\nexcept ${Exception} as ${e}:\n\t${handler}"),
+    apply: snippet(
+      "try:\n\t${body}\nexcept ${Exception} as ${e}:\n\t${handler}",
+    ),
   },
   {
     label: "with",
@@ -97,7 +101,9 @@ const C_SNIPPETS: Completion[] = [
     label: "mainargs",
     type: "keyword",
     detail: "main with args",
-    apply: snippet("int main(int argc, char *argv[])\n{\n\t${}\n\treturn 0;\n}"),
+    apply: snippet(
+      "int main(int argc, char *argv[])\n{\n\t${}\n\treturn 0;\n}",
+    ),
   },
   {
     label: "for",
@@ -157,7 +163,9 @@ const C_SNIPPETS: Completion[] = [
     label: "switch",
     type: "keyword",
     detail: "switch statement",
-    apply: snippet("switch (${expression})\n{\n\tcase ${value}:\n\t\t${}\n\t\tbreak;\n\tdefault:\n\t\t${}\n}"),
+    apply: snippet(
+      "switch (${expression})\n{\n\tcase ${value}:\n\t\t${}\n\t\tbreak;\n\tdefault:\n\t\t${}\n}",
+    ),
   },
 ];
 
@@ -222,19 +230,25 @@ const JS_SNIPPETS: Completion[] = [
     label: "fetch",
     type: "function",
     detail: "fetch request",
-    apply: snippet('const ${response} = await fetch("${url}");\nconst ${data} = await ${response}.json();'),
+    apply: snippet(
+      'const ${response} = await fetch("${url}");\nconst ${data} = await ${response}.json();',
+    ),
   },
   {
     label: "try",
     type: "keyword",
     detail: "try/catch block",
-    apply: snippet("try {\n\t${}\n} catch (${error}) {\n\t${console.error(error);}\n}"),
+    apply: snippet(
+      "try {\n\t${}\n} catch (${error}) {\n\t${console.error(error);}\n}",
+    ),
   },
   {
     label: "class",
     type: "keyword",
     detail: "class declaration",
-    apply: snippet("class ${Name} {\n\tconstructor(${params}) {\n\t\t${}\n\t}\n}"),
+    apply: snippet(
+      "class ${Name} {\n\tconstructor(${params}) {\n\t\t${}\n\t}\n}",
+    ),
   },
   {
     label: "async",
@@ -269,6 +283,7 @@ const SNIPPETS_BY_LANGUAGE: Record<RuntimeLanguage, Completion[]> = {
   c: C_SNIPPETS,
   js: JS_SNIPPETS,
   html: [], // HTML snippets could be added later
+  css: [],
 };
 
 function createSnippetCompletionSource(language: RuntimeLanguage) {

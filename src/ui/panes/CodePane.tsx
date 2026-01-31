@@ -14,6 +14,7 @@ import { useLayoutPreset } from "../layout/LayoutPresetContext";
 import { useEditorStore } from "../code/useEditorStore";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
 import { useTerminalStore } from "../code/terminal/useTerminalStore";
+import { LanguageSelect } from "../code/LanguageSelect";
 import type { EventLogResult } from "../../domain/events";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 import {
@@ -26,7 +27,6 @@ import type { RuntimeLanguage, RuntimeState } from "../../infra/runtime/types";
 import { RUNTIME_TIMEOUT_MS } from "../../infra/runtime/runtimeConstants";
 import type { LessonEnvironment } from "../../domain/lessonEnvironment";
 import { getPresetOrDefault } from "../../infra/runtime/envPresets";
-import { LessonEnvBadge } from "../code/LessonEnvBadge";
 
 // ── SSR-safe dynamic import of EditorArea ─────────────────────
 
@@ -35,15 +35,12 @@ const EditorArea = dynamic(() => import("../code/EditorArea"), {
   loading: () => <EditorSkeleton />,
 });
 
-const TerminalPanel = dynamic(
-  () => import("../code/terminal/TerminalPanel"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex-1 bg-[#0f172a] animate-pulse rounded-lg" />
-    ),
-  },
-);
+const TerminalPanel = dynamic(() => import("../code/terminal/TerminalPanel"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex-1 animate-pulse rounded-lg bg-workspace-terminal" />
+  ),
+});
 
 // ── Default templates per language ────────────────────────────
 
@@ -52,6 +49,7 @@ const DEFAULT_CODE_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
   python: "print('Hello, CS50')",
   html: "<h1>Hello, CS50</h1>",
   c: '#include <stdio.h>\n\nint main(void) {\n  printf("Hello, CS50\\n");\n  return 0;\n}\n',
+  css: "body {\n  font-family: system-ui, sans-serif;\n}\n",
 };
 
 const EXTENSION_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
@@ -59,6 +57,7 @@ const EXTENSION_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
   python: "main.py",
   html: "index.html",
   c: "main.c",
+  css: "styles.css",
 };
 
 // ── Component ─────────────────────────────────────────────────
@@ -85,8 +84,10 @@ const CodePane = ({
     [environmentConfig, environmentPresetId],
   );
 
-  const [language] = useState<RuntimeLanguage>(environment.primaryLanguage);
-  const [, setRuntimeState] = useState<RuntimeState>({
+  const [language, setLanguage] = useState<RuntimeLanguage>(
+    environment.primaryLanguage,
+  );
+  const [runtimeState, setRuntimeState] = useState<RuntimeState>({
     language: "js",
     status: "idle",
   });
@@ -100,9 +101,34 @@ const CodePane = ({
   const initializeFromEnvironment = useFileSystemStore(
     (s) => s.initializeFromEnvironment,
   );
+  const createFile = useFileSystemStore((s) => s.createFile);
+  const setMainFile = useFileSystemStore((s) => s.setMainFile);
+  const vfs = useFileSystemStore((s) => s.vfs);
+  const projectRoot = useFileSystemStore((s) => s.projectRoot);
   const isLoaded = useFileSystemStore((s) => s.isLoaded);
   const getMainFileContent = useFileSystemStore((s) => s.getMainFileContent);
+  const mainFilePath = useFileSystemStore((s) => s.mainFilePath);
+  const files = useFileSystemStore((s) => s.files);
   const openFile = useEditorStore((s) => s.openFile);
+  const terminalIsRunning = useTerminalStore((s) => s.isRunning);
+
+  const allowedLanguages = useMemo(() => {
+    const candidates =
+      environment.allowedLanguages.length > 0
+        ? environment.allowedLanguages
+        : [environment.primaryLanguage];
+    return Array.from(new Set(candidates));
+  }, [environment.allowedLanguages, environment.primaryLanguage]);
+
+  const activeLanguage = useMemo(() => {
+    if (allowedLanguages.includes(language)) {
+      return language;
+    }
+    return environment.primaryLanguage;
+  }, [allowedLanguages, environment.primaryLanguage, language]);
+
+  const terminalActionsDisabled =
+    activeLanguage === "html" || activeLanguage === "css";
 
   // ── Initialize VFS on mount ───────────────────────────────
 
@@ -120,12 +146,57 @@ const CodePane = ({
         : `/project/${firstFile.path}`;
       void openFile(firstPath);
     } else {
-      const filename = EXTENSION_BY_LANGUAGE[language];
-      const content = DEFAULT_CODE_BY_LANGUAGE[language];
+      const filename = EXTENSION_BY_LANGUAGE[activeLanguage];
+      const content = DEFAULT_CODE_BY_LANGUAGE[activeLanguage];
       initializeFromTemplate([{ path: filename, content }]);
       void openFile(`/project/${filename}`);
     }
-  }, [isLoaded, language, environment, initializeFromTemplate, initializeFromEnvironment, openFile]);
+  }, [
+    isLoaded,
+    activeLanguage,
+    environment,
+    initializeFromTemplate,
+    initializeFromEnvironment,
+    openFile,
+  ]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const { files: currentFiles, mainFilePath: currentMainFilePath } =
+      useFileSystemStore.getState();
+
+    const matchingMain = currentFiles.find(
+      (file) =>
+        file.path === currentMainFilePath && file.language === activeLanguage,
+    );
+    const matchingFile = currentFiles.find(
+      (file) => file.language === activeLanguage,
+    );
+
+    let nextPath = matchingMain?.path ?? matchingFile?.path;
+    if (!nextPath) {
+      const filename = EXTENSION_BY_LANGUAGE[activeLanguage];
+      nextPath = filename.startsWith("/")
+        ? filename
+        : `${projectRoot}/${filename}`;
+
+      if (!vfs.exists(nextPath)) {
+        createFile(nextPath, DEFAULT_CODE_BY_LANGUAGE[activeLanguage]);
+      }
+    }
+
+    setMainFile(nextPath);
+    void openFile(nextPath);
+  }, [
+    activeLanguage,
+    createFile,
+    isLoaded,
+    openFile,
+    projectRoot,
+    setMainFile,
+    vfs,
+  ]);
 
   // ── Convex snapshot integration (backward compat) ─────────
 
@@ -160,7 +231,7 @@ const CodePane = ({
 
     const timeout = window.setTimeout(() => {
       setRuntimeState({
-        language,
+        language: activeLanguage,
         status: "warming",
         message: "Preparing runtime...",
       });
@@ -170,36 +241,34 @@ const CodePane = ({
       void logEvent({
         eventType: "runtime_warmup_start",
         lessonId,
-        metadata: { language, durationMs: 0 },
+        metadata: { language: activeLanguage, durationMs: 0 },
       });
     }
 
-    loadExecutor(language)
+    loadExecutor(activeLanguage)
       .then(() => {
         if (cancelled) return;
 
-        const warmupDuration = Math.round(
-          performance.now() - warmupStartedAt,
-        );
+        const warmupDuration = Math.round(performance.now() - warmupStartedAt);
 
         if (process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true") {
           void logEvent({
             eventType: "runtime_warmup_end",
             lessonId,
-            metadata: { language, durationMs: warmupDuration },
+            metadata: { language: activeLanguage, durationMs: warmupDuration },
           });
         }
 
         setRuntimeState({
-          language,
+          language: activeLanguage,
           status: "ready",
-          message: `${language.toUpperCase()} runtime ready`,
+          message: `${activeLanguage.toUpperCase()} runtime ready`,
         });
       })
       .catch(() => {
         if (cancelled) return;
         setRuntimeState({
-          language,
+          language: activeLanguage,
           status: "error",
           message: "Runtime failed to load",
         });
@@ -209,12 +278,10 @@ const CodePane = ({
       cancelled = true;
       window.clearTimeout(timeout);
     };
-  }, [language, lessonId, logEvent]);
+  }, [activeLanguage, lessonId, logEvent]);
 
   // ── Snapshot callback — reactive to VFS main file changes ──
 
-  const mainFilePath = useFileSystemStore((s) => s.mainFilePath);
-  const files = useFileSystemStore((s) => s.files);
   // Derive main file content reactively so onSnapshot fires when it changes
   const mainFileContent = useMemo(() => {
     // Subscribe to files list so this recalculates when VFS mutates
@@ -230,16 +297,19 @@ const CodePane = ({
       id: "local-snapshot" as CodeSnapshotSummary["id"],
       userId: "local-user" as CodeSnapshotSummary["userId"],
       lessonId: lessonId as CodeSnapshotSummary["lessonId"],
-      language,
+      language: activeLanguage,
       code: mainFileContent,
       codeHash: "",
       updatedAt: Date.now(),
     });
-  }, [mainFileContent, mainFilePath, language, lessonId, onSnapshot]);
+  }, [mainFileContent, mainFilePath, activeLanguage, lessonId, onSnapshot]);
 
   // ── Handlers ──────────────────────────────────────────────
 
-  const handleRun = useCallback(async (): Promise<void> => {
+  const handleRun = async (): Promise<void> => {
+    if (terminalActionsDisabled) {
+      return;
+    }
     // Flush dirty files to VFS before running
     useEditorStore.getState().saveAll();
 
@@ -247,22 +317,37 @@ const CodePane = ({
     if (!code) return;
 
     setRuntimeState({
-      language,
+      language: activeLanguage,
       status: "running",
       message: "Running...",
     });
 
     // Stream output to terminal
     const termStore = useTerminalStore.getState();
-    termStore.writeLn(`\x1b[90m$ run ${language}\x1b[0m`);
+    termStore.write("\x1b[2K\r");
+    termStore.writeLn(`\x1b[90m$ run ${activeLanguage}\x1b[0m`);
 
     const vfs = useFileSystemStore.getState().vfs;
-    const result = await runRuntime(language, {
+    const formatErrorChunk = (chunk: string): string => {
+      const prefix = "\x1b[31m[err]\x1b[0m ";
+      const lines = chunk.split("\n");
+      return lines
+        .map((line, index) => {
+          if (line.length === 0 && index === lines.length - 1) {
+            return "";
+          }
+          return prefix + line;
+        })
+        .join("\n");
+    };
+
+    const result = await runRuntime(activeLanguage, {
       code,
       timeoutMs: RUNTIME_TIMEOUT_MS,
       filesystem: vfs,
+      packages: environment.packages,
       onStdout: (chunk: string) => termStore.write(chunk),
-      onStderr: (chunk: string) => termStore.write(`\x1b[31m${chunk}\x1b[0m`),
+      onStderr: (chunk: string) => termStore.write(formatErrorChunk(chunk)),
     });
 
     // Write remaining buffered output not already streamed
@@ -270,68 +355,63 @@ const CodePane = ({
       termStore.write(result.stdout);
     }
     if (result.stderr && !result.stderr.includes("\x00__streamed__")) {
-      termStore.write(`\x1b[31m${result.stderr}\x1b[0m`);
+      termStore.write(formatErrorChunk(result.stderr));
     }
 
     setRuntimeState({
-      language,
+      language: activeLanguage,
       status: result.timedOut ? "error" : "ready",
       message: result.timedOut
         ? "Runtime timed out"
-        : `${language.toUpperCase()} runtime ready`,
+        : `${activeLanguage.toUpperCase()} runtime ready`,
     });
-  }, [language, getMainFileContent]);
+    termStore.writePrompt();
+  };
 
   const handleStop = useCallback((): void => {
-    stopRuntime(language).catch(() => undefined);
-    clearRuntime(language);
+    if (terminalActionsDisabled) {
+      return;
+    }
+    stopRuntime(activeLanguage).catch(() => undefined);
+    clearRuntime(activeLanguage);
     useTerminalStore.getState().kill();
     setRuntimeState({
-      language,
+      language: activeLanguage,
       status: "ready",
-      message: `${language.toUpperCase()} runtime ready`,
+      message: `${activeLanguage.toUpperCase()} runtime ready`,
     });
-  }, [language]);
+  }, [activeLanguage, terminalActionsDisabled]);
 
   const handleClear = useCallback((): void => {
-    useTerminalStore.getState().clear();
-  }, []);
+    if (terminalActionsDisabled) {
+      return;
+    }
+    useTerminalStore.getState().clear({ withPrompt: true });
+  }, [terminalActionsDisabled]);
+
+  const handleLanguageChange = useCallback(
+    (nextLanguage: RuntimeLanguage): void => {
+      if (!allowedLanguages.includes(nextLanguage)) return;
+      setLanguage(nextLanguage);
+    },
+    [allowedLanguages],
+  );
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-border bg-surface">
       <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
         <div className="flex items-center gap-3">
-          <div>
-            <p className="text-sm font-semibold text-foreground">
-              Code workspace
-            </p>
-            <p className="text-xs text-text-muted">Editor + output scaffold</p>
-          </div>
-          <LessonEnvBadge environment={environment} />
+          <p className="text-sm font-semibold text-foreground">
+            Code workspace
+          </p>
         </div>
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-3 text-xs">
+          <LanguageSelect
+            value={activeLanguage}
+            options={allowedLanguages}
+            onChange={handleLanguageChange}
+          />
           {headerExtras}
-          <button
-            type="button"
-            onClick={handleRun}
-            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
-          >
-            Run
-          </button>
-          <button
-            type="button"
-            onClick={handleStop}
-            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
-          >
-            Stop
-          </button>
-          <button
-            type="button"
-            onClick={handleClear}
-            className="rounded-full border border-border px-3 py-1 text-text-muted transition hover:bg-surface-muted hover:text-foreground"
-          >
-            Clear
-          </button>
         </div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col">
@@ -339,16 +419,24 @@ const CodePane = ({
           direction="vertical"
           initialSplit={0.65}
           minFirst={100}
-          minSecond={60}
+          minSecond={160}
           storageKey="niotebook:split-editor-output"
           first={
-            <div className="flex min-h-0 flex-1 flex-col">
+            <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-editor">
               <EditorArea showFileTree={showFileTree} />
             </div>
           }
           second={
-            <div className="flex min-h-0 flex-1 flex-col">
-              <TerminalPanel />
+            <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-terminal">
+              <TerminalPanel
+                onRun={handleRun}
+                onStop={handleStop}
+                onClear={handleClear}
+                isRunning={
+                  runtimeState.status === "running" || terminalIsRunning
+                }
+                actionsDisabled={terminalActionsDisabled}
+              />
             </div>
           }
         />

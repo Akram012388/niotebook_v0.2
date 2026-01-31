@@ -1,41 +1,72 @@
 "use client";
 
 /**
- * TerminalToolbar — clear and kill buttons for the terminal panel.
+ * TerminalToolbar — run, stop, and clear actions for the terminal panel.
  */
 import type { ReactElement } from "react";
-import { useTerminalStore } from "./useTerminalStore";
 
-const TerminalToolbar = (): ReactElement => {
-  const clear = useTerminalStore((s) => s.clear);
-  const kill = useTerminalStore((s) => s.kill);
-  const isRunning = useTerminalStore((s) => s.isRunning);
-
-  return (
-    <div className="flex items-center justify-between border-b border-border px-3 py-1">
-      <span className="text-xs font-medium text-text-muted">Terminal</span>
-      <div className="flex items-center gap-1">
-        {isRunning ? (
-          <button
-            type="button"
-            onClick={kill}
-            className="rounded px-2 py-0.5 text-xs text-red-400 transition hover:bg-red-500/10"
-            aria-label="Kill running process"
-          >
-            Kill
-          </button>
-        ) : null}
-        <button
-          type="button"
-          onClick={clear}
-          className="rounded px-2 py-0.5 text-xs text-text-muted transition hover:bg-surface-muted hover:text-foreground"
-          aria-label="Clear terminal"
-        >
-          Clear
-        </button>
-      </div>
-    </div>
-  );
+type TerminalToolbarProps = {
+  onRun: () => void;
+  onStop: () => void;
+  onClear: () => void;
+  isRunning: boolean;
+  actionsDisabled: boolean;
 };
 
+const TerminalToolbar = ({
+  onRun,
+  onStop,
+  onClear,
+  isRunning,
+  actionsDisabled,
+}: TerminalToolbarProps): ReactElement => (
+  <div className="flex items-center justify-between border-b border-workspace-border px-4 py-2">
+    <span className="text-xs font-medium text-workspace-text-muted">
+      Terminal
+    </span>
+    <div className="flex items-center gap-3 text-xs">
+      <button
+        type="button"
+        onClick={onRun}
+        disabled={isRunning || actionsDisabled}
+        className={`transition ${
+          isRunning || actionsDisabled
+            ? "cursor-not-allowed text-workspace-text-muted/40"
+            : "text-workspace-text-muted hover:text-workspace-text"
+        }`}
+        aria-label="Run code"
+      >
+        Run
+      </button>
+      <button
+        type="button"
+        onClick={onStop}
+        disabled={!isRunning || actionsDisabled}
+        className={`transition ${
+          isRunning && !actionsDisabled
+            ? "text-workspace-text hover:text-workspace-accent"
+            : "cursor-not-allowed text-workspace-text-muted/40"
+        }`}
+        aria-label="Stop running code"
+      >
+        Stop
+      </button>
+      <button
+        type="button"
+        onClick={onClear}
+        disabled={actionsDisabled}
+        className={`transition ${
+          actionsDisabled
+            ? "cursor-not-allowed text-workspace-text-muted/40"
+            : "text-workspace-text-muted hover:text-workspace-text"
+        }`}
+        aria-label="Clear terminal"
+      >
+        Clear
+      </button>
+    </div>
+  </div>
+);
+
 export { TerminalToolbar };
+export type { TerminalToolbarProps };

@@ -8,7 +8,7 @@ type LanguageTabsProps = {
   allowedLanguages?: RuntimeLanguage[];
 };
 
-const ALL_LANGUAGES: RuntimeLanguage[] = ["js", "python", "html", "c"];
+const ALL_LANGUAGES: RuntimeLanguage[] = ["js", "python", "c", "html", "css"];
 
 const LanguageTabs = ({
   active,

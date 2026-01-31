@@ -10,12 +10,39 @@ import type { ReactElement } from "react";
 import { TerminalToolbar } from "./TerminalToolbar";
 import { XTermView } from "./XTermView";
 
-const TerminalPanel = (): ReactElement => (
-  <div className="flex min-h-0 flex-1 flex-col bg-[#0f172a]">
-    <TerminalToolbar />
-    <XTermView />
+type TerminalPanelProps = {
+  onRun: () => void;
+  onStop: () => void;
+  onClear: () => void;
+  isRunning: boolean;
+  actionsDisabled: boolean;
+};
+
+const TerminalPanel = ({
+  onRun,
+  onStop,
+  onClear,
+  isRunning,
+  actionsDisabled,
+}: TerminalPanelProps): ReactElement => (
+  <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-terminal text-workspace-text">
+    <TerminalToolbar
+      onRun={onRun}
+      onStop={onStop}
+      onClear={onClear}
+      isRunning={isRunning}
+      actionsDisabled={actionsDisabled}
+    />
+    <div
+      id="niotebook-runtime-frame"
+      className="h-48 border-b border-workspace-border bg-workspace-editor"
+    />
+    <div className="min-h-0 flex-1 overflow-hidden p-4">
+      <XTermView />
+    </div>
   </div>
 );
 
 export default TerminalPanel;
 export { TerminalPanel };
+export type { TerminalPanelProps };

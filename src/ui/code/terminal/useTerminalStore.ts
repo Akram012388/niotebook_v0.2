@@ -5,6 +5,7 @@
  * output writing, and command execution lifecycle.
  */
 import { create } from "zustand";
+import { TERMINAL_PROMPT } from "./terminalPrompt";
 import type { Terminal } from "@xterm/xterm";
 
 type ShellMode = "command" | "interactive" | "shell";
@@ -22,12 +23,28 @@ type TerminalStoreActions = {
   setTerminal: (t: Terminal | null) => void;
   write: (data: string) => void;
   writeLn: (data: string) => void;
-  clear: () => void;
+  writePrompt: () => void;
+  clear: (options?: { withPrompt?: boolean }) => void;
   setInputHandler: (handler: ((data: string) => void) | null) => void;
   runCommand: (cmd: string) => Promise<void>;
   kill: () => void;
   setRunning: (running: boolean) => void;
   setAbortController: (ac: AbortController | null) => void;
+};
+
+let lastOutputEndedWithNewline = true;
+let hasOutputSincePrompt = false;
+
+const updateOutputTracking = (data: string): void => {
+  if (!data) return;
+  hasOutputSincePrompt = true;
+  const endsWithNewline = /\r?\n$/.test(data);
+  lastOutputEndedWithNewline = endsWithNewline;
+};
+
+const markPromptWritten = (): void => {
+  hasOutputSincePrompt = false;
+  lastOutputEndedWithNewline = false;
 };
 
 const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
@@ -44,17 +61,57 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
 
     write: (data) => {
       const { terminalRef } = get();
-      terminalRef?.write(data);
+      if (!terminalRef) return;
+      if (!terminalRef.element) return;
+      try {
+        terminalRef.write(data);
+        updateOutputTracking(data);
+      } catch {
+        return;
+      }
     },
 
     writeLn: (data) => {
       const { terminalRef } = get();
-      terminalRef?.writeln(data);
+      if (!terminalRef) return;
+      if (!terminalRef.element) return;
+      try {
+        terminalRef.writeln(data);
+        updateOutputTracking(`${data}\n`);
+      } catch {
+        return;
+      }
     },
 
-    clear: () => {
+    writePrompt: () => {
       const { terminalRef } = get();
-      terminalRef?.clear();
+      if (!terminalRef) return;
+      if (!terminalRef.element) return;
+      try {
+        if (hasOutputSincePrompt && !lastOutputEndedWithNewline) {
+          terminalRef.write("\r\n");
+        }
+        terminalRef.write("\x1b[2K\r");
+        terminalRef.write(TERMINAL_PROMPT);
+        markPromptWritten();
+      } catch {
+        return;
+      }
+    },
+
+    clear: (options) => {
+      const { terminalRef } = get();
+      if (!terminalRef) return;
+      try {
+        terminalRef.clear();
+      } catch {
+        return;
+      }
+      hasOutputSincePrompt = false;
+      lastOutputEndedWithNewline = true;
+      if (options?.withPrompt) {
+        get().writePrompt();
+      }
     },
 
     setInputHandler: (handler) => {
@@ -82,18 +139,15 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
 
       try {
         const exitCode = await routeCommand(parsed, get());
-        if (!ac.signal.aborted) {
-          const { terminalRef } = get();
-          if (exitCode !== 0) {
-            terminalRef?.writeln(
-              `\x1b[31mProcess exited with code ${String(exitCode)}\x1b[0m`,
-            );
-          }
+        if (!ac.signal.aborted && exitCode !== 0) {
+          get().writeLn(
+            `\x1b[31mProcess exited with code ${String(exitCode)}\x1b[0m`,
+          );
         }
       } catch (err) {
         if (!ac.signal.aborted) {
           const msg = err instanceof Error ? err.message : "Unknown error";
-          get().terminalRef?.writeln(`\x1b[31mError: ${msg}\x1b[0m`);
+          get().writeLn(`\x1b[31mError: ${msg}\x1b[0m`);
         }
       } finally {
         set({ isRunning: false, abortController: null });
@@ -106,8 +160,7 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
         abortController.abort();
       }
       set({ isRunning: false, abortController: null });
-      const { terminalRef } = get();
-      terminalRef?.writeln("\r\n\x1b[33m^C\x1b[0m");
+      get().writeLn("\r\n\x1b[33m^C\x1b[0m");
 
       // TODO: JS execution via `new Function()` and Pyodide run on the main thread
       // and cannot be truly interrupted mid-execution. The AbortController above

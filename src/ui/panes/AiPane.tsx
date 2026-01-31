@@ -127,7 +127,6 @@ const AiPane = ({
       <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
         <div>
           <p className="text-sm font-semibold text-foreground">Assistant</p>
-          <p className="text-xs text-text-muted">Stay synced to this lesson</p>
         </div>
         <div className="flex items-center gap-2">
           {headerExtras}

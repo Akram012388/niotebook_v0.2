@@ -1,4 +1,10 @@
-type RuntimeLanguage = "js" | "python" | "html" | "c";
+type RuntimeLanguage = "js" | "python" | "html" | "c" | "css";
+
+type RuntimePackage = {
+  language: RuntimeLanguage;
+  name: string;
+  version?: string;
+};
 
 type RuntimeRunInput = {
   code: string;
@@ -6,6 +12,8 @@ type RuntimeRunInput = {
   timeoutMs: number;
   /** Virtual filesystem instance for multi-file support. Optional for backward compatibility. */
   filesystem?: import("../vfs/VirtualFS").VirtualFS;
+  /** Optional packages to preinstall for the runtime. */
+  packages?: RuntimePackage[];
   /** Streaming stdout callback. Called as output is produced. */
   onStdout?: (chunk: string) => void;
   /** Streaming stderr callback. Called as errors are produced. */
@@ -37,6 +45,7 @@ type RuntimeState = {
 export type {
   RuntimeExecutor,
   RuntimeLanguage,
+  RuntimePackage,
   RuntimeRunInput,
   RuntimeRunResult,
   RuntimeState,

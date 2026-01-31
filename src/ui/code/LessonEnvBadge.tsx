@@ -15,11 +15,10 @@ const LANGUAGE_LABELS: Record<string, string> = {
   python: "Python",
   html: "HTML",
   c: "C",
+  css: "CSS",
 };
 
-const LessonEnvBadge = ({
-  environment,
-}: LessonEnvBadgeProps): ReactElement => {
+const LessonEnvBadge = ({ environment }: LessonEnvBadgeProps): ReactElement => {
   const langLabel =
     LANGUAGE_LABELS[environment.primaryLanguage] ??
     environment.primaryLanguage.toUpperCase();

@@ -10,7 +10,11 @@ import { EditorState } from "@codemirror/state";
 
 import type { RuntimeLanguage } from "../../infra/runtime/types";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
-import { baseExtensions, loadLanguage, themeExtension } from "./codemirrorSetup";
+import {
+  baseExtensions,
+  loadLanguage,
+  themeExtension,
+} from "./codemirrorSetup";
 import { createNiotebookCompletions } from "./autocomplete/completionProvider";
 
 // ── Types ───────────────────────────────────────────────────
@@ -48,11 +52,6 @@ function basename(path: string): string {
   return last === -1 ? path : path.slice(last + 1);
 }
 
-function isDarkMode(): boolean {
-  if (typeof document === "undefined") return true;
-  return document.documentElement.classList.contains("dark");
-}
-
 async function createEditorState(
   content: string,
   language: RuntimeLanguage | null,
@@ -65,10 +64,7 @@ async function createEditorState(
       ? createNiotebookCompletions(language, vfs, filePath)
       : undefined;
 
-  const extensions = [
-    ...baseExtensions(completionSources),
-    themeExtension(isDarkMode()),
-  ];
+  const extensions = [...baseExtensions(completionSources), themeExtension()];
 
   if (language) {
     const langSupport = await loadLanguage(language);
@@ -86,45 +82,60 @@ const useEditorStore = create<EditorStoreState & EditorStoreActions>()(
     activeFileId: null,
 
     openFile: async (path) => {
+      const normalizedPath = path.startsWith("/") ? path : `/project/${path}`;
       const { openFiles } = get();
 
       // Already open — just activate
-      const existing = openFiles.find((f) => f.id === path);
+      const existing = openFiles.find((f) => f.id === normalizedPath);
       if (existing) {
-        set({ activeFileId: path });
+        set({ activeFileId: normalizedPath });
         return;
       }
 
       // Read content from VFS
       const vfs = useFileSystemStore.getState().vfs;
-      const content = vfs.readFile(path) ?? "";
-      const language = vfs.inferLanguage(basename(path));
-      const editorState = await createEditorState(content, language, path);
+      const content = vfs.readFile(normalizedPath) ?? "";
+      const language = vfs.inferLanguage(basename(normalizedPath));
+      const editorState = await createEditorState(
+        content,
+        language,
+        normalizedPath,
+      );
+
+      const alreadyOpen = get().openFiles.find((f) => f.id === normalizedPath);
+      if (alreadyOpen) {
+        set({ activeFileId: normalizedPath });
+        return;
+      }
 
       const file: OpenFile = {
-        id: path,
-        path,
-        name: basename(path),
+        id: normalizedPath,
+        path: normalizedPath,
+        name: basename(normalizedPath),
         language,
         editorState,
         isDirty: false,
       };
 
+      const nextOpenFiles = get().openFiles.filter(
+        (f) => f.id !== normalizedPath,
+      );
       set({
-        openFiles: [...get().openFiles, file],
-        activeFileId: path,
+        openFiles: [...nextOpenFiles, file],
+        activeFileId: normalizedPath,
       });
     },
 
     closeFile: (path) => {
+      const normalizedPath = path.startsWith("/") ? path : `/project/${path}`;
       const { openFiles, activeFileId } = get();
-      const idx = openFiles.findIndex((f) => f.id === path);
+      const idx = openFiles.findIndex((f) => f.id === normalizedPath);
       if (idx === -1) return;
 
-      const next = openFiles.filter((f) => f.id !== path);
+      const next = openFiles.filter((f) => f.id !== normalizedPath);
       let nextActive = activeFileId;
 
-      if (activeFileId === path) {
+      if (activeFileId === normalizedPath) {
         // Activate adjacent tab or null
         if (next.length === 0) {
           nextActive = null;
@@ -139,35 +150,39 @@ const useEditorStore = create<EditorStoreState & EditorStoreActions>()(
     },
 
     setActiveFile: (path) => {
-      set({ activeFileId: path });
+      const normalizedPath = path.startsWith("/") ? path : `/project/${path}`;
+      set({ activeFileId: normalizedPath });
     },
 
     updateEditorState: (path, state) => {
+      const normalizedPath = path.startsWith("/") ? path : `/project/${path}`;
       set({
         openFiles: get().openFiles.map((f) =>
-          f.id === path ? { ...f, editorState: state } : f,
+          f.id === normalizedPath ? { ...f, editorState: state } : f,
         ),
       });
     },
 
     markDirty: (path, dirty) => {
+      const normalizedPath = path.startsWith("/") ? path : `/project/${path}`;
       set({
         openFiles: get().openFiles.map((f) =>
-          f.id === path ? { ...f, isDirty: dirty } : f,
+          f.id === normalizedPath ? { ...f, isDirty: dirty } : f,
         ),
       });
     },
 
     saveFile: (path) => {
-      const file = get().openFiles.find((f) => f.id === path);
+      const normalizedPath = path.startsWith("/") ? path : `/project/${path}`;
+      const file = get().openFiles.find((f) => f.id === normalizedPath);
       if (!file) return;
 
       const content = file.editorState.doc.toString();
-      useFileSystemStore.getState().updateFile(path, content);
+      useFileSystemStore.getState().updateFile(normalizedPath, content);
 
       set({
         openFiles: get().openFiles.map((f) =>
-          f.id === path ? { ...f, isDirty: false } : f,
+          f.id === normalizedPath ? { ...f, isDirty: false } : f,
         ),
       });
     },

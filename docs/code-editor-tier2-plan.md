@@ -1,25 +1,141 @@
-# Tier 2 Code Editor — Implementation Plan
+# Tier 2 Code Editor — Implementation Plan (Base + Fix/Polish)
 
-> **Status:** IMPLEMENTED  
-> **Author:** Jarvis (AI)  
-> **Date:** 2026-01-30  
-> **Branch:** `jarvis/code-editor-tier2`  
-> **Total Estimated Effort:** ~120–150 hours
+> **Status:** IN PROGRESS (Fix/Polish)  
+> **Base Tier 2:** IMPLEMENTED (historical phases retained below)  
+> **Author:** Jarvis (AI), updated by OpenCode  
+> **Date:** 2026-01-31  
+> **Branch:** `fix/code-editor`  
+> **Estimated Effort (Fix/Polish):** ~24–40 hours (TBD)  
+> **Estimated Effort (Base Tier 2):** ~120–150 hours (historical)
 
 ---
 
 ## Table of Contents
 
-1. [Viewport Policy](#viewport-policy)
-2. [Architecture Overview](#architecture-overview)
-3. [Phase 1: Virtual Filesystem](#phase-1-virtual-filesystem)
-4. [Phase 2: File Tree + Tabbed Editor](#phase-2-file-tree--tabbed-editor)
-5. [Phase 3: xterm.js Terminal](#phase-3-xtermjs-terminal)
-6. [Phase 4: Wasmer/WASIX Integration ✅ COMPLETED](#phase-4-wasmerwasix-integration)
-7. [Phase 5: Cross-file Imports ✅ COMPLETED](#phase-5-cross-file-imports)
-8. [Phase 6: Lesson-aware Environment Configs ✅ COMPLETED](#phase-6-lesson-aware-environment-configs)
-9. [Phase 7: Split-pane Resizable Layout](#phase-7-split-pane-resizable-layout)
-10. [Phase 8: Enhanced Autocomplete ✅ COMPLETED](#phase-8-enhanced-autocomplete)
+1. [Tier 2.1 Code Editor Fix/Polish Execution Plan](#tier-21-code-editor-fixpolish-execution-plan)
+2. [Viewport Policy](#viewport-policy)
+3. [Architecture Overview](#architecture-overview)
+4. [Phase 1: Virtual Filesystem](#phase-1-virtual-filesystem)
+5. [Phase 2: File Tree + Tabbed Editor](#phase-2-file-tree--tabbed-editor)
+6. [Phase 3: xterm.js Terminal](#phase-3-xtermjs-terminal)
+7. [Phase 4: Wasmer/WASIX Integration ✅ COMPLETED](#phase-4-wasmerwasix-integration)
+8. [Phase 5: Cross-file Imports ✅ COMPLETED](#phase-5-cross-file-imports)
+9. [Phase 6: Lesson-aware Environment Configs ✅ COMPLETED](#phase-6-lesson-aware-environment-configs)
+10. [Phase 7: Split-pane Resizable Layout](#phase-7-split-pane-resizable-layout)
+11. [Phase 8: Enhanced Autocomplete ✅ COMPLETED](#phase-8-enhanced-autocomplete)
+
+---
+
+## Tier 2.1 Code Editor Fix/Polish Execution Plan
+
+### Scope and decisions (locked for this pass)
+
+- Languages: JS, Python, C, HTML, CSS. Cross-file imports and external dependency imports must work and remain consistent.
+- Language selector: right-aligned pill matching the V/C/A control style; inline slide-out options expand left, active language excluded, closes on selection/outside click/Esc.
+- Tree divider: draggable between file tree and editor; default width 180px, resizable range 180–300px; persisted per user (localStorage).
+- Terminal: 16px inner padding, font size -1px; actions in terminal header as text controls (Run/Stop/Clear); disabled for HTML/CSS; prompt-only UI with single `$`.
+- Terminal height: minimum ~160px (>=5 lines visible); max and default unchanged.
+- Pane headers: title left, actions right, consistent padding; remove subtitles in Video, Code, AI panes.
+- Color: VS Code-like near-black background for file tree, editor, and terminal, with subtle panel deltas.
+- Output: stdout/stderr merged with subtle prefixes; stream-safe output with no duplicate prints.
+
+### Execution loop (required)
+
+1. Implement tasks in order within each phase.
+2. Self-verify each task (manual checks + targeted runtime run).
+3. Stage, commit, and push after each task.
+4. Mark the task complete and move to the next.
+5. After all tasks in a phase, run a master check for that phase.
+6. If the master check requires changes, stage/commit/push those fixes.
+7. Repeat for the next phase.
+
+### Phase 1: Workspace visual system + headers
+
+Tasks
+
+- Add code-workspace color tokens (always dark) and apply to file tree, editor, terminal, tab bar, and split dividers.
+- Remove subtitles in `VideoPane`, `CodePane`, `AiPane` headers; standardize header layout and padding.
+- Remove Run/Stop/Clear from Code header; move to `TerminalToolbar` as text actions (Run, Stop, Clear).
+- Add terminal inner padding (16px) and reduce editor + terminal font size by 1px.
+- Update CodeMirror theme to match workspace tokens (near-black, readable contrast).
+
+Master check
+
+- Verify header alignment consistency across Video | Code | AI panes.
+- Confirm dark workspace panels always render in both light and dark themes.
+- Confirm padding and font size changes are visible and consistent.
+
+### Phase 2: File tree divider + resize persistence
+
+Tasks
+
+- Insert a draggable vertical divider between file tree and editor.
+- Default file tree width at 180px; allow resize between 180–300px; persist per user (localStorage).
+- Ensure divider works in 1-col and 2-col layouts; hide tree in 3-col layout.
+- Ensure divider is keyboard-accessible and reflows CM6/xterm on resize.
+
+Master check
+
+- Drag limits respected (180–300px); width persists after reload.
+- Divider visible and aligned in both layouts.
+
+### Phase 3: Language selector + environment sync
+
+Tasks
+
+- Build right-aligned pill selector aligned to V/C/A style with inline slide-out options (no dropdown).
+- Add `css` to `RuntimeLanguage`, VFS inference, file icons, and CodeMirror language loading.
+- Update sandbox env preset to allow JS, Python, C, HTML, CSS; update language labels.
+- Implement language switching: set main file path, open/create defaults, update runtime warmup.
+- Replace “Sandbox JS” with the selected language label only.
+
+Master check
+
+- Switching languages updates editor content and tabs without errors.
+- Default files are created and `mainFilePath` stays in sync.
+
+### Phase 4: Runtime output correctness + preview support
+
+Tasks
+
+- Fix duplicate stdout/stderr by preventing post-run reprints when streaming is enabled.
+- Merge stdout/stderr in terminal with subtle prefixes for errors.
+- Align Run/Stop/Clear with active language and terminal state; disable for HTML/CSS.
+- Enforce prompt-only terminal UI (single `$`, no banner); ensure prompt restored after clear.
+- Ensure HTML preview has a real mount container (`#niotebook-runtime-frame`).
+
+Master check
+
+- Running JS prints once; stderr does not duplicate.
+- Prompt is single `$` with no banner; Run/Stop/Clear disabled for HTML/CSS.
+- HTML preview renders, and terminal remains responsive.
+
+### Phase 5: Cross-file imports + external dependencies
+
+Tasks
+
+- JS: keep VFS `require()` shim and add external dependency resolution (CDN/import map strategy).
+- HTML/CSS: resolve local `script`/`link` from VFS and allow external URLs.
+- Python: mount VFS files for imports; support external packages listed in environment config.
+- C: ensure VFS `#include` resolution and C output parsing (printf/puts extraction) is consistent; Wasmer clang remains a future upgrade.
+
+Master check
+
+- Cross-file imports work for JS, Python, C, HTML/CSS.
+- External deps load consistently across languages.
+
+### Phase 6: QA + release readiness
+
+Tasks
+
+- Verify 1-col, 2-col, 3-col layouts for divider, headers, and dark workspace.
+- Validate keyboard accessibility for divider and language selector.
+- Confirm terminal padding, font sizing, prompt behavior, and min height.
+- Capture known follow-ups as a punch list.
+
+Master check
+
+- Full run-through passes; no regression in editor/terminal behavior.
 
 ---
 
@@ -27,21 +143,22 @@
 
 **Niotebook is desktop-only for the code editor.**
 
-| Viewport | Min Width | Support Level |
-|----------|-----------|---------------|
-| Laptop | 1024px | ✅ Full support |
-| Desktop | 1280px | ✅ Full support |
-| XL Desktop | 1536px+ | ✅ Full support |
-| Tablet / iPad | < 1024px | ❌ Not supported for editor |
-| Mobile | < 768px | ❌ Not supported for editor |
+| Viewport      | Min Width | Support Level               |
+| ------------- | --------- | --------------------------- |
+| Laptop        | 1024px    | ✅ Full support             |
+| Desktop       | 1280px    | ✅ Full support             |
+| XL Desktop    | 1536px+   | ✅ Full support             |
+| Tablet / iPad | < 1024px  | ❌ Not supported for editor |
+| Mobile        | < 768px   | ❌ Not supported for editor |
 
-**Viewports below 1024px** render a friendly message: *"Niotebook is best experienced on desktop. Please switch to a laptop or desktop browser for the full coding experience."*
+**Viewports below 1024px** render a friendly message: _"Niotebook is best experienced on desktop. Please switch to a laptop or desktop browser for the full coding experience."_
 
 **Exceptions:** The landing page, signup, and login flows work on all viewports.
 
 **What this means for implementation:**
+
 - NO touch event handling for split-pane drag — mouse only
-- NO mobile-responsive file tree — fixed 200px sidebar
+- NO mobile-responsive file tree — resizable 180–300px (default 180px)
 - NO mobile considerations in any phase
 - NO `@media (max-width: ...)` breakpoints for editor components
 - NO virtual keyboard handling for xterm.js or CodeMirror
@@ -52,14 +169,14 @@
 
 All Tier 2 dependencies are **MIT-licensed open-source** with **zero infrastructure cost**. Everything runs client-side in the browser:
 
-| Dependency | License | Cost | Notes |
-|-----------|---------|------|-------|
-| Zustand | MIT | $0 | Client-side state management |
-| idb | ISC | $0 | IndexedDB wrapper |
-| @xterm/xterm + addons | MIT | $0 | Terminal UI, no server |
-| CodeMirror 6 | MIT | $0 | **NOT yet installed** — must be added from scratch |
-| Pyodide | MPL-2.0 | $0 | Python WASM, loaded from CDN |
-| Wasmer JS SDK | MIT | $0 | WASM runtime, client-side |
+| Dependency            | License | Cost | Notes                        |
+| --------------------- | ------- | ---- | ---------------------------- |
+| Zustand               | MIT     | $0   | Client-side state management |
+| idb                   | ISC     | $0   | IndexedDB wrapper            |
+| @xterm/xterm + addons | MIT     | $0   | Terminal UI, no server       |
+| CodeMirror 6          | MIT     | $0   | Installed and in use         |
+| Pyodide               | MPL-2.0 | $0   | Python WASM, loaded from CDN |
+| Wasmer JS SDK         | MIT     | $0   | WASM runtime, client-side    |
 
 No backend servers, no paid APIs, no SaaS dependencies. The only "infrastructure" is the user's browser and the existing Convex backend (already provisioned).
 
@@ -69,9 +186,9 @@ No backend servers, no paid APIs, no SaaS dependencies. The only "infrastructure
 
 ### Current State
 
-The editor is a **plain `<textarea>`** in `CodeEditor.tsx`. There is **no CodeMirror 6 component** — no `@codemirror/*` packages exist in `package.json`. Execution goes through `runtimeManager.ts` which dispatches to per-language stubs (`jsExecutor.ts`, `pythonExecutor.ts`, `cExecutor.ts`, `htmlExecutor.ts`). Output is rendered in `OutputPanel.tsx` as plain text. There is no filesystem, no terminal, no multi-file support, and Python/C runtimes are stubs.
+The workspace already includes CM6, VFS, a tabbed editor, file tree, and an xterm terminal. A Wasmer bridge exists for sandbox commands, while CodePane run paths still rely on direct executors for some languages. The remaining gaps for this fix/polish pass are UI polish and behavioral consistency: file tree width defaults, terminal prompt handling, HTML/CSS action disabling, C runtime placeholder behavior, and consistent dark workspace surfaces.
 
-Code persistence uses a Convex `resume:upsertCodeSnapshot` mutation storing a single `{ lessonId, language, code }` tuple per snapshot.
+Code persistence uses Convex snapshots for the main file plus IndexedDB for VFS state; compatibility must be preserved.
 
 ### Target State
 
@@ -129,7 +246,7 @@ import { CodeMirrorEditor } from "./CodeMirrorEditor";
 
 ```
 CodePane
-├── CodePaneHeader          (run/stop/clear + env indicator)
+├── CodePaneHeader          (language selector pill + layout extras)
 ├── SplitPane               (horizontal resizable divider)
 │   ├── EditorArea
 │   │   ├── FileTreeSidebar
@@ -140,10 +257,9 @@ CodePane
 │   │       │   └── EditorTab (per open file)
 │   │       └── CodeMirrorEditor (NEW — built from scratch)
 │   └── TerminalPanel
-│       ├── TerminalToolbar  (clear, kill)
+│       ├── TerminalToolbar  (run, stop, clear)
 │       └── XTermView        (xterm.js instance)
 ├── RuntimeStatus           (existing, enhanced)
-└── LessonEnvBadge          (shows active environment config)
 ```
 
 ### Data Flow
@@ -169,6 +285,7 @@ RuntimeManager (enhanced)
 Currently all state lives in React `useState` within `CodePane.tsx` and `CodeEditor.tsx`. The Tier 2 architecture introduces **Zustand** for cross-component state that the file tree, tabs, editor, and terminal all need to share.
 
 **Three stores:**
+
 1. **`useFileSystemStore`** — file tree, CRUD operations, active project
 2. **`useEditorStore`** — open tabs, active tab, dirty flags, CM6 EditorState per tab
 3. **`useTerminalStore`** — terminal output buffer, running process, shell reference
@@ -181,24 +298,24 @@ Currently all state lives in React `useState` within `CodePane.tsx` and `CodeEdi
 
 ### Files to Create
 
-| Path | Purpose |
-|------|---------|
-| `src/infra/vfs/VirtualFS.ts` | Core filesystem class — in-memory tree + CRUD API |
-| `src/infra/vfs/types.ts` | `VFSNode`, `VFSFile`, `VFSDirectory`, `VFSEvent` types |
-| `src/infra/vfs/indexedDbBackend.ts` | IndexedDB persistence (save/load entire tree) |
-| `src/infra/vfs/useFileSystemStore.ts` | Zustand store wrapping VirtualFS for React |
-| `src/infra/vfs/__tests__/VirtualFS.test.ts` | Unit tests for CRUD, path resolution, events |
+| Path                                        | Purpose                                                |
+| ------------------------------------------- | ------------------------------------------------------ |
+| `src/infra/vfs/VirtualFS.ts`                | Core filesystem class — in-memory tree + CRUD API      |
+| `src/infra/vfs/types.ts`                    | `VFSNode`, `VFSFile`, `VFSDirectory`, `VFSEvent` types |
+| `src/infra/vfs/indexedDbBackend.ts`         | IndexedDB persistence (save/load entire tree)          |
+| `src/infra/vfs/useFileSystemStore.ts`       | Zustand store wrapping VirtualFS for React             |
+| `src/infra/vfs/__tests__/VirtualFS.test.ts` | Unit tests for CRUD, path resolution, events           |
 
 ### Files to Modify
 
-| Path | Change |
-|------|--------|
-| `package.json` | Add `zustand@^5.0.0`, `idb@^8.0.1` |
-| `src/infra/runtime/runtimeManager.ts` | Accept `VirtualFS` instance, pass to executors |
-| `src/infra/runtime/types.ts` | Add `filesystem?: VirtualFS` to `RuntimeRunInput` |
-| `src/infra/runtime/pythonExecutor.ts` | Read files from VFS for Pyodide FS mounting |
-| `src/infra/runtime/jsExecutor.ts` | Read files from VFS for `require()` shim |
-| `src/infra/runtime/cExecutor.ts` | Read files from VFS for multi-file compilation |
+| Path                                  | Change                                            |
+| ------------------------------------- | ------------------------------------------------- |
+| `package.json`                        | Add `zustand@^5.0.0`, `idb@^8.0.1`                |
+| `src/infra/runtime/runtimeManager.ts` | Accept `VirtualFS` instance, pass to executors    |
+| `src/infra/runtime/types.ts`          | Add `filesystem?: VirtualFS` to `RuntimeRunInput` |
+| `src/infra/runtime/pythonExecutor.ts` | Read files from VFS for Pyodide FS mounting       |
+| `src/infra/runtime/jsExecutor.ts`     | Read files from VFS for `require()` shim          |
+| `src/infra/runtime/cExecutor.ts`      | Read files from VFS for multi-file compilation    |
 
 ### Key Interfaces
 
@@ -210,9 +327,9 @@ type VFSNodeKind = "file" | "directory";
 type VFSFile = {
   kind: "file";
   name: string;
-  path: string;           // absolute, e.g. "/project/main.py"
+  path: string; // absolute, e.g. "/project/main.py"
   content: string;
-  language: RuntimeLanguage | null;  // inferred from extension
+  language: RuntimeLanguage | null; // inferred from extension
   createdAt: number;
   updatedAt: number;
 };
@@ -251,7 +368,7 @@ class VirtualFS {
   delete(path: string): void;
 
   // Bulk
-  snapshot(): VFSNode;             // serialize entire tree
+  snapshot(): VFSNode; // serialize entire tree
   restore(snapshot: VFSNode): void; // hydrate from IndexedDB
 
   // Events
@@ -262,7 +379,7 @@ class VirtualFS {
   resolvePath(base: string, relative: string): string;
 
   // Backward compatibility (for existing snapshot integration)
-  getMainFileContent(): string;    // returns primary file content
+  getMainFileContent(): string; // returns primary file content
   setMainFile(path: string): void; // designates the "main" file
 }
 ```
@@ -278,11 +395,11 @@ import { create } from "zustand";
 // Zustand v5 pattern — no set function wrapper
 type FileSystemState = {
   vfs: VirtualFS;
-  projectRoot: string;          // e.g. "/project"
-  files: VFSFile[];             // flat list, derived from tree
+  projectRoot: string; // e.g. "/project"
+  files: VFSFile[]; // flat list, derived from tree
   directories: VFSDirectory[];
   isLoaded: boolean;
-  mainFilePath: string | null;  // for backward compat with snapshot system
+  mainFilePath: string | null; // for backward compat with snapshot system
 };
 
 type FileSystemActions = {
@@ -294,7 +411,7 @@ type FileSystemActions = {
   loadFromIndexedDB: (lessonId: string) => Promise<void>;
   persistToIndexedDB: (lessonId: string) => Promise<void>;
   initializeFromTemplate: (template: LessonTemplate) => void;
-  getMainFileContent: () => string;  // backward compat
+  getMainFileContent: () => string; // backward compat
 };
 
 const useFileSystemStore = create<FileSystemState & FileSystemActions>()(
@@ -317,7 +434,7 @@ const useFileSystemStore = create<FileSystemState & FileSystemActions>()(
       if (!mainFilePath) return "";
       return vfs.readFile(mainFilePath) ?? "";
     },
-  })
+  }),
 );
 ```
 
@@ -326,6 +443,7 @@ const useFileSystemStore = create<FileSystemState & FileSystemActions>()(
 The current `CodeEditor.tsx` persists code via Convex `resume:upsertCodeSnapshot` — a single `{ lessonId, language, code }` tuple. The VFS introduces multi-file state in IndexedDB. These systems must coexist:
 
 **Migration strategy:**
+
 1. **VFS exposes `getMainFileContent()`** — returns the primary file's content. This lets existing `onSnapshot` callbacks in `CodePane` continue working unchanged.
 2. **Load order:** IndexedDB first → Convex snapshot fallback → lesson template fallback.
 3. **The existing `onSnapshot` callback** in CodePane reads from VFS's main file, NOT from a separate code string.
@@ -349,6 +467,7 @@ useEffect(() => {
 **VFS is the single source of truth.** All other stores are derived views.
 
 **Sync order:**
+
 1. VFS holds the canonical file content
 2. Editor reads from VFS when a file is opened (`openFile` → `vfs.readFile()`)
 3. Editor writes to VFS on save (explicit `Ctrl+S` or auto-save debounced **500ms**)
@@ -356,6 +475,7 @@ useEffect(() => {
 5. Never read stale state — before `runCommand()`, flush all dirty editor states to VFS
 
 **Cross-store sync via Zustand subscriptions:**
+
 ```typescript
 // In useEditorStore — subscribe to VFS changes
 const unsubscribe = useFileSystemStore.subscribe(
@@ -363,11 +483,12 @@ const unsubscribe = useFileSystemStore.subscribe(
   (files) => {
     // Update open tabs if underlying files changed
     // (e.g., terminal wrote to a file)
-  }
+  },
 );
 ```
 
 **Auto-save flow:**
+
 ```
 User types → CM6 onChange → debounce 500ms → editorStore.saveFile(path) → vfs.writeFile(path)
 ```
@@ -381,17 +502,24 @@ IndexedDB may be unavailable (private browsing, corporate policy, Safari quirks)
 
 async function saveProject(key: string, root: VFSNode): Promise<void> {
   try {
-    const db = await openDB(DB_NAME, DB_VERSION, { /* ... */ });
+    const db = await openDB(DB_NAME, DB_VERSION, {
+      /* ... */
+    });
     await db.put(STORE_NAME, JSON.stringify(root), key);
   } catch (error) {
-    console.warn("[VFS] IndexedDB write failed, running in-memory only:", error);
+    console.warn(
+      "[VFS] IndexedDB write failed, running in-memory only:",
+      error,
+    );
     // VFS continues working — just no persistence across reloads
   }
 }
 
 async function loadProject(key: string): Promise<VFSNode | null> {
   try {
-    const db = await openDB(DB_NAME, DB_VERSION, { /* ... */ });
+    const db = await openDB(DB_NAME, DB_VERSION, {
+      /* ... */
+    });
     const data = await db.get(STORE_NAME, key);
     return data ? JSON.parse(data as string) : null;
   } catch (error) {
@@ -401,7 +529,7 @@ async function loadProject(key: string): Promise<VFSNode | null> {
 }
 ```
 
-**If IndexedDB is blocked:** Show a subtle warning banner: *"Your browser is blocking local storage. Files won't persist across reloads."* VFS works purely in-memory — it's a nice-to-have, not a requirement.
+**If IndexedDB is blocked:** Show a subtle warning banner: _"Your browser is blocking local storage. Files won't persist across reloads."_ VFS works purely in-memory — it's a nice-to-have, not a requirement.
 
 ### IndexedDB Schema
 
@@ -429,6 +557,7 @@ bun add zustand@^5.0.0 idb@^8.0.1
 ### Estimated Effort: **16 hours**
 
 ### Commit Message
+
 ```
 feat(vfs): add virtual filesystem with IndexedDB persistence
 
@@ -447,13 +576,9 @@ feat(vfs): add virtual filesystem with IndexedDB persistence
 
 **Goal:** Sidebar file explorer + tabbed multi-document editing with CodeMirror 6 (built from scratch). Each tab has its own CM6 `EditorState`. Switching tabs is instant (no re-parse).
 
-### ⚠️ Critical: CodeMirror 6 Does NOT Exist Yet
+### Note: CodeMirror 6 status
 
-The current codebase has **NO CodeMirror** — `CodeEditor.tsx` is a plain `<textarea>`. There are **zero** `@codemirror/*` packages in `package.json`. This phase must install and set up CM6 from scratch.
-
-**What exists:** `CodeEditor.tsx` with a `<textarea>` element, `onChange` handler updating React state, and Convex snapshot persistence.
-
-**What must happen:** Complete replacement of the textarea with a CM6 `EditorView`. This is NOT a refactor — it's a ground-up build.
+CodeMirror 6 was not installed when the original Tier 2 plan was drafted. It is now implemented; this note is retained for historical context.
 
 ### Dependencies to Install
 
@@ -461,7 +586,7 @@ The current codebase has **NO CodeMirror** — `CodeEditor.tsx` is a plain `<tex
 # Core CM6 packages — ALL required
 bun add @codemirror/state @codemirror/view @codemirror/language @codemirror/commands \
        @codemirror/autocomplete @codemirror/search @codemirror/lint \
-       @codemirror/lang-javascript @codemirror/lang-python @codemirror/lang-html \
+       @codemirror/lang-javascript @codemirror/lang-python @codemirror/lang-html @codemirror/lang-css \
        @codemirror/lang-cpp
 ```
 
@@ -502,18 +627,21 @@ CM6 is ~200KB gzipped. It must NEVER be in the initial page bundle:
 
 ```typescript
 // Language modes loaded on demand — not upfront
-const languageLoaders: Record<RuntimeLanguage, () => Promise<LanguageSupport>> = {
-  js: () => import("@codemirror/lang-javascript").then(m => m.javascript()),
-  python: () => import("@codemirror/lang-python").then(m => m.python()),
-  html: () => import("@codemirror/lang-html").then(m => m.html()),
-  c: () => import("@codemirror/lang-cpp").then(m => m.cpp()),  // lang-cpp, NOT lang-c
-};
+const languageLoaders: Record<RuntimeLanguage, () => Promise<LanguageSupport>> =
+  {
+    js: () => import("@codemirror/lang-javascript").then((m) => m.javascript()),
+    python: () => import("@codemirror/lang-python").then((m) => m.python()),
+    html: () => import("@codemirror/lang-html").then((m) => m.html()),
+    css: () => import("@codemirror/lang-css").then((m) => m.css()),
+    c: () => import("@codemirror/lang-cpp").then((m) => m.cpp()), // lang-cpp, NOT lang-c
+  };
 
 // Load language mode only when file is opened
 const langSupport = await languageLoaders[language]();
 ```
 
 **Loading skeleton component:**
+
 ```typescript
 function EditorSkeleton() {
   return (
@@ -529,28 +657,28 @@ function EditorSkeleton() {
 
 ### Files to Create
 
-| Path | Purpose |
-|------|---------|
-| `src/ui/code/FileTreeSidebar.tsx` | File tree panel with expand/collapse |
-| `src/ui/code/FileTreeNode.tsx` | Recursive tree node (file or directory) |
-| `src/ui/code/FileTreeActions.tsx` | Context menu: new file, new folder, rename, delete |
-| `src/ui/code/TabBar.tsx` | Horizontal tab strip with close buttons |
-| `src/ui/code/EditorTab.tsx` | Individual tab component (name, dirty dot, close) |
-| `src/ui/code/TabbedEditor.tsx` | Manages multiple CM6 EditorStates, shows active |
-| `src/ui/code/EditorArea.tsx` | Composed: FileTreeSidebar + TabbedEditor |
-| `src/ui/code/useEditorStore.ts` | Zustand store for open tabs, active file, dirty state |
+| Path                               | Purpose                                               |
+| ---------------------------------- | ----------------------------------------------------- |
+| `src/ui/code/FileTreeSidebar.tsx`  | File tree panel with expand/collapse                  |
+| `src/ui/code/FileTreeNode.tsx`     | Recursive tree node (file or directory)               |
+| `src/ui/code/FileTreeActions.tsx`  | Context menu: new file, new folder, rename, delete    |
+| `src/ui/code/TabBar.tsx`           | Horizontal tab strip with close buttons               |
+| `src/ui/code/EditorTab.tsx`        | Individual tab component (name, dirty dot, close)     |
+| `src/ui/code/TabbedEditor.tsx`     | Manages multiple CM6 EditorStates, shows active       |
+| `src/ui/code/EditorArea.tsx`       | Composed: FileTreeSidebar + TabbedEditor              |
+| `src/ui/code/useEditorStore.ts`    | Zustand store for open tabs, active file, dirty state |
 | `src/ui/code/CodeMirrorEditor.tsx` | **NEW** — CM6 EditorView wrapper (does not exist yet) |
-| `src/ui/code/codemirrorSetup.ts` | **NEW** — CM6 extensions, keymaps, theme config |
-| `src/ui/code/EditorSkeleton.tsx` | **NEW** — loading placeholder while CM6 loads |
+| `src/ui/code/codemirrorSetup.ts`   | **NEW** — CM6 extensions, keymaps, theme config       |
+| `src/ui/code/EditorSkeleton.tsx`   | **NEW** — loading placeholder while CM6 loads         |
 
 ### Files to Modify
 
-| Path | Change |
-|------|--------|
-| `src/ui/code/CodeEditor.tsx` | **COMPLETE REPLACEMENT** — currently a `<textarea>`. Replace entirely with CM6-based editor using `useEditorStore` + `useFileSystemStore`. This is not a refactor — the textarea must be removed. |
-| `src/ui/panes/CodePane.tsx` | Replace single `CodeEditor` with `EditorArea` + `TerminalPanel` (Phase 3) |
-| `src/ui/code/LanguageTabs.tsx` | Deprecate or repurpose as environment selector (Phase 6) |
-| `package.json` | Add all `@codemirror/*` packages listed above |
+| Path                             | Change                                                                                                                                                                                            |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/ui/code/CodeEditor.tsx`     | **COMPLETE REPLACEMENT** — currently a `<textarea>`. Replace entirely with CM6-based editor using `useEditorStore` + `useFileSystemStore`. This is not a refactor — the textarea must be removed. |
+| `src/ui/panes/CodePane.tsx`      | Replace single `CodeEditor` with `EditorArea` + `TerminalPanel` (Phase 3)                                                                                                                         |
+| `src/ui/code/LanguageSelect.tsx` | Language selector pill (Phase 3)                                                                                                                                                                  |
+| `package.json`                   | Add all `@codemirror/*` packages listed above                                                                                                                                                     |
 
 ### Key Interfaces
 
@@ -560,11 +688,11 @@ import { create } from "zustand";
 import type { EditorState } from "@codemirror/state";
 
 type OpenFile = {
-  id: string;               // VFS path as unique key
+  id: string; // VFS path as unique key
   path: string;
   name: string;
   language: RuntimeLanguage | null;
-  editorState: EditorState;  // CM6 state (preserves cursor, undo, etc.)
+  editorState: EditorState; // CM6 state (preserves cursor, undo, etc.)
   isDirty: boolean;
 };
 
@@ -573,12 +701,12 @@ type EditorStoreState = {
   activeFileId: string | null;
 
   // Actions
-  openFile: (path: string) => void;          // creates EditorState if new
+  openFile: (path: string) => void; // creates EditorState if new
   closeFile: (path: string) => void;
   setActiveFile: (path: string) => void;
   updateEditorState: (path: string, state: EditorState) => void;
   markDirty: (path: string, dirty: boolean) => void;
-  saveFile: (path: string) => void;          // writes back to VFS
+  saveFile: (path: string) => void; // writes back to VFS
   saveAll: () => void;
   closeAll: () => void;
 };
@@ -588,15 +716,15 @@ type EditorStoreState = {
 
 Define clear ownership of keyboard shortcuts to avoid conflicts between CM6, the browser, and other panes:
 
-| Shortcut | Owner | Behavior |
-|----------|-------|----------|
-| `Tab` / `Shift+Tab` | CM6 editor (when focused) | Indent / dedent |
-| `Ctrl+S` / `Cmd+S` | CM6 editor (when focused) | Save to VFS, `preventDefault()` to block browser save dialog |
-| `Ctrl+Z` / `Cmd+Z` | CM6 editor (when focused) | Undo |
-| `Ctrl+Shift+Z` / `Cmd+Shift+Z` | CM6 editor (when focused) | Redo |
-| `Ctrl+/` / `Cmd+/` | CM6 editor (when focused) | Toggle line comment |
-| `Ctrl+D` / `Cmd+D` | CM6 editor (when focused) | Select next occurrence |
-| `Escape` | Active pane | Unfocus current pane |
+| Shortcut                       | Owner                     | Behavior                                                     |
+| ------------------------------ | ------------------------- | ------------------------------------------------------------ |
+| `Tab` / `Shift+Tab`            | CM6 editor (when focused) | Indent / dedent                                              |
+| `Ctrl+S` / `Cmd+S`             | CM6 editor (when focused) | Save to VFS, `preventDefault()` to block browser save dialog |
+| `Ctrl+Z` / `Cmd+Z`             | CM6 editor (when focused) | Undo                                                         |
+| `Ctrl+Shift+Z` / `Cmd+Shift+Z` | CM6 editor (when focused) | Redo                                                         |
+| `Ctrl+/` / `Cmd+/`             | CM6 editor (when focused) | Toggle line comment                                          |
+| `Ctrl+D` / `Cmd+D`             | CM6 editor (when focused) | Select next occurrence                                       |
+| `Escape`                       | Active pane               | Unfocus current pane                                         |
 
 **Focus isolation:** Each pane (editor, terminal) uses `event.stopPropagation()` for keyboard events it handles. The focused pane gets keyboard priority. Use a `data-focused-pane` attribute to track which pane is active.
 
@@ -620,15 +748,15 @@ const niotebookKeymap = keymap.of([
 
 All custom widgets must have proper ARIA roles:
 
-| Component | ARIA Role | Attributes |
-|-----------|-----------|------------|
-| `FileTreeSidebar` container | `role="tree"` | `aria-label="File explorer"` |
-| `FileTreeNode` (file) | `role="treeitem"` | `aria-selected`, `tabindex` |
-| `FileTreeNode` (directory) | `role="treeitem"` | `aria-expanded="true/false"` |
-| `TabBar` | `role="tablist"` | `aria-label="Open files"` |
-| `EditorTab` | `role="tab"` | `aria-selected="true/false"`, `aria-controls` |
-| `TabbedEditor` panel | `role="tabpanel"` | `aria-labelledby` (matching tab id) |
-| Split divider (Phase 7) | `role="separator"` | `aria-orientation="horizontal"`, `aria-valuenow` |
+| Component                   | ARIA Role          | Attributes                                       |
+| --------------------------- | ------------------ | ------------------------------------------------ |
+| `FileTreeSidebar` container | `role="tree"`      | `aria-label="File explorer"`                     |
+| `FileTreeNode` (file)       | `role="treeitem"`  | `aria-selected`, `tabindex`                      |
+| `FileTreeNode` (directory)  | `role="treeitem"`  | `aria-expanded="true/false"`                     |
+| `TabBar`                    | `role="tablist"`   | `aria-label="Open files"`                        |
+| `EditorTab`                 | `role="tab"`       | `aria-selected="true/false"`, `aria-controls`    |
+| `TabbedEditor` panel        | `role="tabpanel"`  | `aria-labelledby` (matching tab id)              |
+| Split divider (Phase 7)     | `role="separator"` | `aria-orientation="horizontal"`, `aria-valuenow` |
 
 ```typescript
 // FileTreeNode.tsx example
@@ -646,7 +774,7 @@ All custom widgets must have proper ARIA roles:
 
 ```
 EditorArea
-├── FileTreeSidebar (width: 200px, collapsible) [role="tree"]
+├── FileTreeSidebar (default 180px, resizable 180–300px) [role="tree"]
 │   ├── div.header ("Files" + collapse toggle + "+" button)
 │   └── div.tree (scrollable)
 │       └── FileTreeNode (recursive) [role="treeitem"]
@@ -679,10 +807,10 @@ Both the editor and terminal must scroll **internally** without causing the pare
 
 `FileTreeSidebar` is **conditionally rendered** based on the active `LayoutPreset` from `useLayoutPreset()` context:
 
-| Layout Preset | File Tree | Rationale |
-|--------------|-----------|-----------|
-| `"single"` (1-pane) | ✅ Shown | Full-width view has room for sidebar |
-| `"split"` (2-pane) | ✅ Shown | Code pane is wide enough |
+| Layout Preset       | File Tree | Rationale                                   |
+| ------------------- | --------- | ------------------------------------------- |
+| `"single"` (1-pane) | ✅ Shown  | Full-width view has room for sidebar        |
+| `"split"` (2-pane)  | ✅ Shown  | Code pane is wide enough                    |
 | `"triple"` (3-pane) | ❌ Hidden | Code pane is narrow; just editor + terminal |
 
 `EditorArea` accepts `showFileTree: boolean` prop:
@@ -717,6 +845,7 @@ EditorView.updateListener.of((update) => {
 ### Estimated Effort: **20 hours**
 
 ### Commit Message
+
 ```
 feat(editor): add file tree sidebar and tabbed multi-file editing with CM6
 
@@ -738,7 +867,7 @@ feat(editor): add file tree sidebar and tabbed multi-file editing with CM6
 
 ## Phase 3: xterm.js Terminal ✅ COMPLETED
 
-**Goal:** Real terminal UI powered by xterm.js. Receives stdout/stderr from runtime executions. Supports ANSI colors, cursor movement, scrollback. Later (Phase 4) becomes a real shell.
+**Goal:** Real terminal UI powered by xterm.js. Receives stdout/stderr from runtime executions. Supports ANSI colors, cursor movement, scrollback. Prompt-only UI (single `$`, no banner). Later (Phase 4) becomes a real shell.
 
 ### SSR Safety — MANDATORY
 
@@ -786,25 +915,26 @@ function TerminalSkeleton() {
 
 ### Files to Create
 
-| Path | Purpose |
-|------|---------|
-| `src/ui/code/terminal/XTermView.tsx` | React wrapper around xterm.js Terminal |
-| `src/ui/code/terminal/TerminalToolbar.tsx` | Clear, kill, font size controls |
-| `src/ui/code/terminal/TerminalPanel.tsx` | Composed: toolbar + XTermView |
-| `src/ui/code/terminal/useTerminalStore.ts` | Zustand store for terminal state |
-| `src/ui/code/terminal/terminalTheme.ts` | Niotebook light/dark themes for xterm |
-| `src/ui/code/terminal/commandRouter.ts` | Routes typed commands to executors or shell |
-| `src/ui/code/terminal/TerminalSkeleton.tsx` | Loading placeholder |
+| Path                                        | Purpose                                     |
+| ------------------------------------------- | ------------------------------------------- |
+| `src/ui/code/terminal/XTermView.tsx`        | React wrapper around xterm.js Terminal      |
+| `src/ui/code/terminal/TerminalToolbar.tsx`  | Run/Stop/Clear text controls                |
+| `src/ui/code/terminal/TerminalPanel.tsx`    | Composed: toolbar + XTermView               |
+| `src/ui/code/terminal/useTerminalStore.ts`  | Zustand store for terminal state            |
+| `src/ui/code/terminal/terminalTheme.ts`     | Niotebook light/dark themes for xterm       |
+| `src/ui/code/terminal/terminalPrompt.ts`    | Prompt constant and helpers                 |
+| `src/ui/code/terminal/commandRouter.ts`     | Routes typed commands to executors or shell |
+| `src/ui/code/terminal/TerminalSkeleton.tsx` | Loading placeholder                         |
 
 ### Files to Modify
 
-| Path | Change |
-|------|--------|
-| `src/ui/panes/CodePane.tsx` | Replace `OutputPanel` with `TerminalPanel` (dynamically imported) |
-| `src/ui/code/OutputPanel.tsx` | Deprecate (keep for fallback/legacy) |
-| `src/infra/runtime/runtimeManager.ts` | Add `runWithTerminal()` that streams output to terminal |
-| `src/infra/runtime/types.ts` | Add `onStdout`, `onStderr` callbacks to `RuntimeRunInput` |
-| `package.json` | Add `@xterm/xterm@^5.5.0`, `@xterm/addon-fit@^0.10.0`, `@xterm/addon-web-links@^0.11.0` |
+| Path                                  | Change                                                                                  |
+| ------------------------------------- | --------------------------------------------------------------------------------------- |
+| `src/ui/panes/CodePane.tsx`           | Replace `OutputPanel` with `TerminalPanel` (dynamically imported)                       |
+| `src/ui/code/OutputPanel.tsx`         | Deprecate (keep for fallback/legacy)                                                    |
+| `src/infra/runtime/runtimeManager.ts` | Stream output via `runRuntime` callbacks (`onStdout`, `onStderr`)                       |
+| `src/infra/runtime/types.ts`          | Add `onStdout`, `onStderr` callbacks to `RuntimeRunInput`                               |
+| `package.json`                        | Add `@xterm/xterm@^5.5.0`, `@xterm/addon-fit@^0.10.0`, `@xterm/addon-web-links@^0.11.0` |
 
 ### Key Interfaces
 
@@ -812,16 +942,17 @@ function TerminalSkeleton() {
 // src/ui/code/terminal/useTerminalStore.ts
 type TerminalStoreState = {
   isRunning: boolean;
-  shellMode: "command" | "interactive";  // Phase 4 adds "shell"
+  shellMode: "command" | "interactive"; // Phase 4 adds "shell"
 
   // Terminal instance ref (set by XTermView on mount)
   terminalRef: Terminal | null;
   setTerminal: (t: Terminal | null) => void;
 
   // Output
-  write: (data: string) => void;       // write to terminal
-  writeLn: (data: string) => void;     // write + newline
-  clear: () => void;
+  write: (data: string) => void; // write to terminal
+  writeLn: (data: string) => void; // write + newline
+  writePrompt: () => void; // write a single $ prompt
+  clear: (options?: { withPrompt?: boolean }) => void;
 
   // Input
   onInput: ((data: string) => void) | null;
@@ -838,7 +969,7 @@ type TerminalStoreState = {
 // Parses user input in the terminal and routes to the right executor
 
 type ParsedCommand = {
-  executable: string;     // "python3", "node", "gcc", "cat", "ls"
+  executable: string; // "python3", "node", "gcc", "cat", "ls"
   args: string[];
   raw: string;
 };
@@ -861,7 +992,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 
 // Single Terminal instance, fitted to container
-// Reads theme from document.documentElement[data-theme]
+// Uses workspace dark theme
 // onData → routes to commandRouter or sends to running process stdin
 // ResizeObserver → fitAddon.fit()
 ```
@@ -872,7 +1003,7 @@ xterm.js manages its own scrollback buffer internally. Configure via the `scroll
 
 ```typescript
 const terminal = new Terminal({
-  scrollback: 1000,  // lines of scrollback history
+  scrollback: 1000, // lines of scrollback history
   // ...other options
 });
 ```
@@ -916,6 +1047,8 @@ export const niotebookLightTerminal: ITheme = {
 };
 ```
 
+Note: the current implementation always uses the dark terminal theme for the code workspace.
+
 ### Streaming Runtime Output
 
 The current `RuntimeRunResult` returns stdout/stderr as complete strings. For terminal support, we add streaming callbacks:
@@ -944,11 +1077,12 @@ bun add @xterm/xterm@^5.5.0 @xterm/addon-fit@^0.10.0 @xterm/addon-web-links@^0.1
 ### Estimated Effort: **16 hours**
 
 ### Commit Message
+
 ```
 feat(terminal): add xterm.js terminal with streaming runtime output
 
 - XTermView React component wrapping xterm.js Terminal (dynamic import, SSR-safe)
-- TerminalPanel with toolbar (clear, kill) + loading skeleton
+- TerminalPanel with toolbar (run/stop/clear) + loading skeleton
 - Zustand useTerminalStore for terminal state management
 - commandRouter for parsing and dispatching terminal commands
 - Streaming stdout/stderr callbacks in RuntimeRunInput
@@ -961,11 +1095,12 @@ feat(terminal): add xterm.js terminal with streaming runtime output
 
 ## Phase 4: Wasmer/WASIX Integration ✅ COMPLETED
 
-**Goal:** Run real commands in the browser via Wasmer/WASIX. `python3 main.py`, `ls`, `cat file.txt`, `gcc main.c -o main && ./main`. The terminal becomes a real-ish shell.
+**Goal:** Run real commands in the browser via Wasmer/WASIX. `python3 main.py`, `ls`, `cat file.txt`. C compilation is a planned upgrade; current C runs use a placeholder runner. The terminal becomes a real-ish shell.
 
 ### 📋 Implementation Notes (Phase 4 Completed)
 
 **SDK Research Findings (2026-01-30):**
+
 - **Correct package:** `@wasmer/sdk` v0.10.0 on npm
 - **API:** `init()` → `Wasmer.fromRegistry("python/python@3.12")` → `pkg.entrypoint.run({ args })` → `instance.wait()`
 - **Requires:** SharedArrayBuffer (COOP/COEP headers) — handled via iframe sandbox isolation
@@ -973,6 +1108,7 @@ feat(terminal): add xterm.js terminal with streaming runtime output
 - **No `@wasmer/sdk` installed as npm dependency** — it's loaded dynamically at runtime inside the sandbox. Type declarations provided via `wasmer-sdk.d.ts`.
 
 **Files created:**
+
 - `src/infra/runtime/wasmer/wasmerTypes.ts` — postMessage protocol types
 - `src/infra/runtime/wasmer/WasmerBridge.ts` — main app ↔ sandbox iframe bridge
 - `src/infra/runtime/wasmer/wasmerShell.ts` — command executor running inside sandbox
@@ -983,6 +1119,7 @@ feat(terminal): add xterm.js terminal with streaming runtime output
 - `next.config.ts` — COOP/COEP headers on `/editor-sandbox` route ONLY
 
 **Files modified:**
+
 - `src/ui/code/terminal/commandRouter.ts` — sandbox-first routing with fallback
 - `src/infra/runtime/runtimeManager.ts` — sandbox-backed execution support
 - `src/ui/code/terminal/useTerminalStore.ts` — added "shell" mode
@@ -1010,7 +1147,9 @@ Wasmer SDK accesses browser APIs. It **MUST** be dynamically imported:
 ```typescript
 // Wasmer is loaded lazily, only when shell mode is activated
 const loadWasmerShell = async () => {
-  const { init, runWasix } = await import(/* webpackChunkName: "wasmer" */ "wasmer");
+  const { init, runWasix } = await import(
+    /* webpackChunkName: "wasmer" */ "wasmer"
+  );
   await init();
   return { runWasix };
 };
@@ -1019,6 +1158,7 @@ const loadWasmerShell = async () => {
 ### 🚨 COOP/COEP: Iframe Isolation Architecture
 
 **DO NOT add COOP/COEP headers to the main Next.js app.** This will break:
+
 - **Clerk** authentication popups (OAuth new-window flow)
 - **Convex** WebSocket connections (loaded from `convex.cloud`)
 - **YouTube embeds** in lesson video panes
@@ -1080,7 +1220,11 @@ const nextConfig: NextConfig = {
 ```typescript
 // src/ui/code/terminal/WasmerBridge.ts — postMessage communication
 type SandboxMessage =
-  | { type: "run"; command: string; files: Array<{ path: string; content: string }> }
+  | {
+      type: "run";
+      command: string;
+      files: Array<{ path: string; content: string }>;
+    }
   | { type: "stdin"; data: string }
   | { type: "kill" }
   | { type: "fs-sync"; files: Array<{ path: string; content: string }> };
@@ -1102,28 +1246,28 @@ type SandboxResponse =
 
 ### Files to Create
 
-| Path | Purpose |
-|------|---------|
-| `src/app/editor-sandbox/page.tsx` | Isolated iframe page with COOP/COEP headers |
-| `src/infra/runtime/wasmer/wasmerShell.ts` | Initialize Wasmer runtime, mount VFS, expose shell |
-| `src/infra/runtime/wasmer/wasmerPython.ts` | CPython WASI package config + execution |
-| `src/infra/runtime/wasmer/wasmerClang.ts` | Clang WASI package config for C compilation |
+| Path                                          | Purpose                                                |
+| --------------------------------------------- | ------------------------------------------------------ |
+| `src/app/editor-sandbox/page.tsx`             | Isolated iframe page with COOP/COEP headers            |
+| `src/infra/runtime/wasmer/wasmerShell.ts`     | Initialize Wasmer runtime, mount VFS, expose shell     |
+| `src/infra/runtime/wasmer/wasmerPython.ts`    | CPython WASI package config + execution                |
+| `src/infra/runtime/wasmer/wasmerClang.ts`     | Clang WASI package config for C compilation (planned)  |
 | `src/infra/runtime/wasmer/wasmerCoreutils.ts` | `ls`, `cat`, `echo`, `mkdir`, `rm` via WASIX coreutils |
-| `src/infra/runtime/wasmer/wasmerTypes.ts` | Types for Wasmer integration |
-| `src/infra/runtime/wasmer/vfsMount.ts` | Sync VirtualFS ↔ WASI filesystem |
-| `src/ui/code/terminal/WasmerBridge.ts` | postMessage communication with sandbox iframe |
+| `src/infra/runtime/wasmer/wasmerTypes.ts`     | Types for Wasmer integration                           |
+| `src/infra/runtime/wasmer/vfsMount.ts`        | Sync VirtualFS ↔ WASI filesystem                       |
+| `src/ui/code/terminal/WasmerBridge.ts`        | postMessage communication with sandbox iframe          |
 
 ### Files to Modify
 
-| Path | Change |
-|------|--------|
-| `src/infra/runtime/runtimeManager.ts` | Add Wasmer-backed executors as primary, existing as fallback |
-| `src/infra/runtime/pythonExecutor.ts` | Replace stub with real Pyodide OR Wasmer CPython |
-| `src/infra/runtime/cExecutor.ts` | Replace stub with Wasmer Clang |
-| `src/ui/code/terminal/commandRouter.ts` | Route shell commands to Wasmer coreutils via iframe bridge |
-| `src/ui/code/terminal/useTerminalStore.ts` | Add `shellMode: "shell"` for interactive WASIX shell |
-| `next.config.ts` | Add COOP/COEP headers **ONLY on `/editor-sandbox` route** |
-| `package.json` | Add Wasmer JS SDK (exact package TBD — see research step above) |
+| Path                                       | Change                                                          |
+| ------------------------------------------ | --------------------------------------------------------------- |
+| `src/infra/runtime/runtimeManager.ts`      | Add Wasmer-backed executors as primary, existing as fallback    |
+| `src/infra/runtime/pythonExecutor.ts`      | Replace stub with real Pyodide OR Wasmer CPython                |
+| `src/infra/runtime/cExecutor.ts`           | Replace placeholder with Wasmer Clang (planned)                 |
+| `src/ui/code/terminal/commandRouter.ts`    | Route shell commands to Wasmer coreutils via iframe bridge      |
+| `src/ui/code/terminal/useTerminalStore.ts` | Add `shellMode: "shell"` for interactive WASIX shell            |
+| `next.config.ts`                           | Add COOP/COEP headers **ONLY on `/editor-sandbox` route**       |
+| `package.json`                             | Add Wasmer JS SDK (exact package TBD — see research step above) |
 
 ### Wasmer Architecture
 
@@ -1142,18 +1286,7 @@ wasmerPython.ts
   ├── Streams stderr → postMessage → parent → terminalStore.write() (red)
   └── Returns exit code → postMessage → parent
 
-User types: gcc main.c -o main && ./main
-  ↓
-commandRouter.ts → detects "gcc", then "./main"
-  ↓
-WasmerBridge.ts → postMessage to iframe
-  ↓ (inside iframe)
-wasmerClang.ts
-  ├── Loads Clang WASI package
-  ├── Mounts VFS
-  ├── Compiles: gcc /project/main.c -o /project/main
-  ├── Writes binary back to VFS (via postMessage fs-write)
-  └── Runs: /project/main → streams output
+Planned C workflow (future): gcc main.c -o main && ./main via Wasmer clang
 ```
 
 ### Key Interfaces
@@ -1161,9 +1294,9 @@ wasmerClang.ts
 ```typescript
 // src/infra/runtime/wasmer/wasmerTypes.ts
 type WasmerPackage = {
-  name: string;              // e.g. "python/python", "syrusakbary/clang"
+  name: string; // e.g. "python/python", "syrusakbary/clang"
   version: string;
-  entrypoint: string;        // e.g. "python3", "clang"
+  entrypoint: string; // e.g. "python3", "clang"
   preloaded: boolean;
 };
 
@@ -1197,9 +1330,10 @@ function syncWasiToVFS(wasiFs: WasiFileSystem, vfs: VirtualFS): void;
 ### Fallback Strategy
 
 If Wasmer fails to load (browser incompatibility, missing SharedArrayBuffer):
+
 1. Fall back to **Pyodide** for Python (already mature, battle-tested)
-2. Fall back to **TCC-WASM** for C
-3. Fall back to **native JS `Function()`** for JavaScript (current approach)
+2. Fall back to **C placeholder runner** (printf/puts extraction)
+3. Fall back to **sandboxed JS runtime** (`Function()` in iframe)
 4. Show banner: "Limited mode — some commands unavailable"
 
 ### Dependencies to Install
@@ -1213,6 +1347,7 @@ bun add wasmer@latest   # placeholder — verify correct package name first
 ### Estimated Effort: **24 hours** (includes 4–8 hours research/prototyping)
 
 ### Commit Message
+
 ```
 feat(wasmer): integrate Wasmer/WASIX for real shell commands via iframe isolation
 
@@ -1223,7 +1358,7 @@ feat(wasmer): integrate Wasmer/WASIX for real shell commands via iframe isolatio
 - Clang via WASI for real C compilation
 - Coreutils (ls, cat, echo, mkdir, rm) via WASIX
 - VFS ↔ WASI filesystem sync layer
-- Fallback to Pyodide/TCC-WASM when Wasmer unavailable
+- Fallback to Pyodide + C placeholder runner when Wasmer unavailable
 - Safari 16.4+ compatible via iframe isolation approach
 ```
 
@@ -1235,32 +1370,32 @@ feat(wasmer): integrate Wasmer/WASIX for real shell commands via iframe isolatio
 
 ### Files to Create
 
-| Path | Purpose |
-|------|---------|
-| `src/infra/runtime/imports/pythonImports.ts` | Python module resolution: maps VFS paths to Pyodide/WASI FS |
-| `src/infra/runtime/imports/cIncludes.ts` | C `#include` resolution: injects headers from VFS |
-| `src/infra/runtime/imports/jsModules.ts` | JS `require()`/`import` shimming within VFS |
-| `src/infra/runtime/imports/importResolver.ts` | Common resolution logic: relative paths, extensions |
+| Path                                          | Purpose                                                     |
+| --------------------------------------------- | ----------------------------------------------------------- |
+| `src/infra/runtime/imports/pythonImports.ts`  | Python module resolution: maps VFS paths to Pyodide/WASI FS |
+| `src/infra/runtime/imports/cIncludes.ts`      | C `#include` resolution: injects headers from VFS           |
+| `src/infra/runtime/imports/jsModules.ts`      | JS `require()`/`import` shimming within VFS                 |
+| `src/infra/runtime/imports/importResolver.ts` | Common resolution logic: relative paths, extensions         |
 
 ### Files to Modify
 
-| Path | Change |
-|------|--------|
-| `src/infra/runtime/pythonExecutor.ts` | Before execution, mount all `.py` files to Pyodide FS |
-| `src/infra/runtime/cExecutor.ts` | Before compilation, resolve all `#include "..."` from VFS |
-| `src/infra/runtime/jsExecutor.ts` | Inject `require()` shim that reads from VFS |
-| `src/infra/runtime/wasmer/wasmerPython.ts` | Ensure WASI FS has all project files mounted |
-| `src/infra/runtime/wasmer/wasmerClang.ts` | Ensure WASI FS has all project files mounted |
+| Path                                       | Change                                                    |
+| ------------------------------------------ | --------------------------------------------------------- |
+| `src/infra/runtime/pythonExecutor.ts`      | Before execution, mount all `.py` files to Pyodide FS     |
+| `src/infra/runtime/cExecutor.ts`           | Before compilation, resolve all `#include "..."` from VFS |
+| `src/infra/runtime/jsExecutor.ts`          | Inject `require()` shim that reads from VFS               |
+| `src/infra/runtime/wasmer/wasmerPython.ts` | Ensure WASI FS has all project files mounted              |
+| `src/infra/runtime/wasmer/wasmerClang.ts`  | Ensure WASI FS has all project files mounted              |
 
 ### Key Interfaces
 
 ```typescript
 // src/infra/runtime/imports/importResolver.ts
 type ResolvedImport = {
-  sourcePath: string;       // file doing the importing
-  importSpecifier: string;  // what they wrote: "utils", "./lib", "helpers.h"
-  resolvedPath: string;     // VFS path: "/project/utils.py"
-  content: string;          // file content
+  sourcePath: string; // file doing the importing
+  importSpecifier: string; // what they wrote: "utils", "./lib", "helpers.h"
+  resolvedPath: string; // VFS path: "/project/utils.py"
+  content: string; // file content
 };
 
 function resolveImport(
@@ -1281,7 +1416,10 @@ function resolveImport(
 // 2. Add project root to sys.path
 // 3. Imports "just work" — Python's import system finds the files
 
-async function mountPythonFiles(pyodide: PyodideInterface, vfs: VirtualFS): Promise<void> {
+async function mountPythonFiles(
+  pyodide: PyodideInterface,
+  vfs: VirtualFS,
+): Promise<void> {
   const pythonFiles = vfs.glob("**/*.py");
   for (const file of pythonFiles) {
     pyodide.FS.writeFile(file.path, file.content);
@@ -1298,13 +1436,16 @@ async function mountPythonFiles(pyodide: PyodideInterface, vfs: VirtualFS): Prom
 ```typescript
 // src/infra/runtime/imports/cIncludes.ts
 
-// For TCC-WASM (fallback):
+// For C placeholder runner (printf/puts extraction):
 // 1. Scan code for #include "..." (not <...> — those are stdlib)
 // 2. Resolve each to a VFS path
 // 3. Prepend the header content to the compilation unit
-// (TCC-WASM doesn't have a real FS, so we inline everything)
 
-function resolveIncludes(code: string, filePath: string, vfs: VirtualFS): string {
+function resolveIncludes(
+  code: string,
+  filePath: string,
+  vfs: VirtualFS,
+): string {
   return code.replace(/#include\s+"([^"]+)"/g, (match, header) => {
     const resolved = vfs.readFile(resolvePath(filePath, header));
     if (resolved) return resolved;
@@ -1320,11 +1461,15 @@ function resolveIncludes(code: string, filePath: string, vfs: VirtualFS): string
 ```typescript
 // src/infra/runtime/imports/jsModules.ts
 
-// Inject a require() shim before user code:
+// Inject a require() shim before user code and resolve external deps via CDN:
 function makeRequireShim(mainPath: string, vfs: VirtualFS): string {
   return `
     const __vfs_files = ${JSON.stringify(vfsToMap(vfs))};
+    globalThis.__external_modules = globalThis.__external_modules || {};
     function require(specifier) {
+      if (globalThis.__external_modules[specifier]) {
+        return globalThis.__external_modules[specifier];
+      }
       const resolved = __resolveModule(specifier, "${mainPath}");
       if (!__vfs_files[resolved]) throw new Error("Cannot find module: " + specifier);
       const module = { exports: {} };
@@ -1339,12 +1484,13 @@ function makeRequireShim(mainPath: string, vfs: VirtualFS): string {
 ### Estimated Effort: **12 hours**
 
 ### Commit Message
+
 ```
 feat(imports): enable cross-file imports for Python, C, and JS
 
 - Python: mount all .py files to Pyodide FS + sys.path
-- C: resolve #include "..." from VFS, inline for TCC fallback
-- JS: require() shim reading from VFS
+- C: resolve #include "..." from VFS for placeholder runner
+- JS: require() shim reading from VFS + external deps via CDN
 - Common importResolver with relative path + extension resolution
 - Works with both Wasmer (native FS) and fallback executors
 ```
@@ -1363,36 +1509,38 @@ The `environmentConfig` field on the `lessons` table **MUST** be optional (`v.op
 // convex/schema.ts
 lessons: defineTable({
   // ... existing fields ...
-  environmentConfig: v.optional(v.object({
-    presetId: v.optional(v.string()),
-    primaryLanguage: v.string(),
-    allowedLanguages: v.array(v.string()),
-    // ... other fields
-  })),
-})
+  environmentConfig: v.optional(
+    v.object({
+      presetId: v.optional(v.string()),
+      primaryLanguage: v.string(),
+      allowedLanguages: v.array(v.string()),
+      // ... other fields
+    }),
+  ),
+});
 ```
 
 **Deployment order:** Deploy schema change BEFORE deploying UI that reads it. Default to `"sandbox"` preset when `environmentConfig` is null/undefined.
 
 ### Files to Create
 
-| Path | Purpose |
-|------|---------|
-| `src/domain/lessonEnvironment.ts` | Pure types + validation for lesson env configs |
+| Path                              | Purpose                                                       |
+| --------------------------------- | ------------------------------------------------------------- |
+| `src/domain/lessonEnvironment.ts` | Pure types + validation for lesson env configs                |
 | `src/infra/runtime/envPresets.ts` | Built-in presets: "cs50x-c", "cs50p-python", "cs50w-js", etc. |
-| `src/ui/code/LessonEnvBadge.tsx` | Shows active environment (e.g. "CS50x · C") |
-| `src/ui/code/EnvSelector.tsx` | Override selector (for admin/debug) |
-| `convex/schema.ts` (extend) | Add `environmentConfig` field to `lessons` table |
-| `convex/lessons.ts` (extend) | Query to fetch lesson environment config |
+| `src/ui/code/LessonEnvBadge.tsx`  | Optional environment badge (not shown in header by default)   |
+| `src/ui/code/EnvSelector.tsx`     | Override selector (for admin/debug)                           |
+| `convex/schema.ts` (extend)       | Add `environmentConfig` field to `lessons` table              |
+| `convex/lessons.ts` (extend)      | Query to fetch lesson environment config                      |
 
 ### Files to Modify
 
-| Path | Change |
-|------|--------|
-| `src/ui/panes/CodePane.tsx` | Read lesson env config, initialize VFS with template files |
-| `src/infra/vfs/useFileSystemStore.ts` | `initializeFromTemplate()` populates VFS from config |
+| Path                                  | Change                                                          |
+| ------------------------------------- | --------------------------------------------------------------- |
+| `src/ui/panes/CodePane.tsx`           | Read lesson env config, initialize VFS with template files      |
+| `src/infra/vfs/useFileSystemStore.ts` | `initializeFromTemplate()` populates VFS from config            |
 | `src/infra/runtime/runtimeManager.ts` | Load executor based on env config language (not user selection) |
-| `src/ui/code/LanguageTabs.tsx` | Only show languages allowed by env config |
+| `src/ui/code/LanguageSelect.tsx`      | Only show languages allowed by env config                       |
 
 ### Key Interfaces
 
@@ -1401,7 +1549,7 @@ lessons: defineTable({
 
 type LessonEnvironment = {
   id: string;
-  name: string;                          // "CS50x Week 1 — C"
+  name: string; // "CS50x Week 1 — C"
   primaryLanguage: RuntimeLanguage;
   allowedLanguages: RuntimeLanguage[];
   starterFiles: StarterFile[];
@@ -1410,22 +1558,22 @@ type LessonEnvironment = {
 };
 
 type StarterFile = {
-  path: string;          // e.g. "/project/mario.c"
+  path: string; // e.g. "/project/mario.c"
   content: string;
-  readonly: boolean;     // some files shouldn't be editable (e.g. test harness)
+  readonly: boolean; // some files shouldn't be editable (e.g. test harness)
 };
 
 type PackageConfig = {
   language: RuntimeLanguage;
-  name: string;           // e.g. "cs50" (Python), "cs50.h" (C)
+  name: string; // e.g. "cs50" (Python), "cs50.h" (C)
   version?: string;
 };
 
 type RuntimeSettings = {
-  timeoutMs: number;              // default 5000, can be increased for heavy programs
-  maxOutputBytes: number;         // prevent infinite output
-  stdinEnabled: boolean;          // some lessons need input
-  compilerFlags?: string[];       // e.g. ["-lcs50"] for CS50 C library
+  timeoutMs: number; // default 5000, can be increased for heavy programs
+  maxOutputBytes: number; // prevent infinite output
+  stdinEnabled: boolean; // some lessons need input
+  compilerFlags?: string[]; // e.g. ["-lcs50"] for CS50 C library
 };
 
 // Presets
@@ -1436,7 +1584,7 @@ type EnvPresetId =
   | "cs50w-js"
   | "cs50w-html"
   | "cs50ai-python"
-  | "sandbox";         // free-form, all languages
+  | "sandbox"; // free-form, all languages
 ```
 
 ```typescript
@@ -1449,11 +1597,14 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     primaryLanguage: "c",
     allowedLanguages: ["c"],
     starterFiles: [
-      { path: "/project/hello.c", content: '#include <stdio.h>\n\nint main(void)\n{\n    printf("hello, world\\n");\n}\n', readonly: false },
+      {
+        path: "/project/hello.c",
+        content:
+          '#include <stdio.h>\n\nint main(void)\n{\n    printf("hello, world\\n");\n}\n',
+        readonly: false,
+      },
     ],
-    packages: [
-      { language: "c", name: "cs50.h" },
-    ],
+    packages: [{ language: "c", name: "cs50.h" }],
     runtimeSettings: {
       timeoutMs: 10_000,
       maxOutputBytes: 1_048_576,
@@ -1467,11 +1618,14 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     primaryLanguage: "python",
     allowedLanguages: ["python"],
     starterFiles: [
-      { path: "/project/hello.py", content: 'name = input("What is your name? ")\nprint(f"hello, {name}")\n', readonly: false },
+      {
+        path: "/project/hello.py",
+        content:
+          'name = input("What is your name? ")\nprint(f"hello, {name}")\n',
+        readonly: false,
+      },
     ],
-    packages: [
-      { language: "python", name: "cs50" },
-    ],
+    packages: [{ language: "python", name: "cs50" }],
     runtimeSettings: {
       timeoutMs: 10_000,
       maxOutputBytes: 1_048_576,
@@ -1484,8 +1638,17 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     primaryLanguage: "js",
     allowedLanguages: ["js", "html"],
     starterFiles: [
-      { path: "/project/index.html", content: '<!DOCTYPE html>\n<html>\n<head><title>CS50W</title></head>\n<body>\n  <h1>Hello, CS50W</h1>\n  <script src="app.js"></script>\n</body>\n</html>', readonly: false },
-      { path: "/project/app.js", content: 'console.log("Hello from CS50W");\n', readonly: false },
+      {
+        path: "/project/index.html",
+        content:
+          '<!DOCTYPE html>\n<html>\n<head><title>CS50W</title></head>\n<body>\n  <h1>Hello, CS50W</h1>\n  <script src="app.js"></script>\n</body>\n</html>',
+        readonly: false,
+      },
+      {
+        path: "/project/app.js",
+        content: 'console.log("Hello from CS50W");\n',
+        readonly: false,
+      },
     ],
     packages: [],
     runtimeSettings: {
@@ -1495,13 +1658,17 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     },
   },
   // ... more presets
-  "sandbox": {
+  sandbox: {
     id: "sandbox",
     name: "Sandbox",
     primaryLanguage: "js",
-    allowedLanguages: ["js", "python", "html", "c"],
+    allowedLanguages: ["js", "python", "html", "css", "c"],
     starterFiles: [
-      { path: "/project/main.js", content: 'console.log("Hello, Niotebook");\n', readonly: false },
+      {
+        path: "/project/main.js",
+        content: 'console.log("Hello, Niotebook");\n',
+        readonly: false,
+      },
     ],
     packages: [],
     runtimeSettings: {
@@ -1516,12 +1683,13 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
 ### Estimated Effort: **10 hours**
 
 ### Commit Message
+
 ```
 feat(env): add lesson-aware environment configs with presets
 
 - LessonEnvironment type with starter files, packages, runtime settings
 - Built-in presets: cs50x-c, cs50p-python, cs50w-js, cs50ai-python, sandbox
-- LessonEnvBadge component showing active environment
+- Lesson environment config support; badge is optional and not shown in the code header by default
 - VFS auto-populates from lesson template on first load
 - Language tabs filtered by environment allowedLanguages
 - Convex schema extended with optional environmentConfig on lessons table
@@ -1535,17 +1703,17 @@ feat(env): add lesson-aware environment configs with presets
 
 ### Files to Create
 
-| Path | Purpose |
-|------|---------|
-| `src/ui/code/SplitPane.tsx` | Generic resizable split container (vertical or horizontal) |
-| `src/ui/code/SplitDivider.tsx` | Draggable divider with grip handle |
-| `src/ui/code/useSplitPane.ts` | Hook: drag state, min/max sizes, localStorage persistence |
+| Path                           | Purpose                                                    |
+| ------------------------------ | ---------------------------------------------------------- |
+| `src/ui/code/SplitPane.tsx`    | Generic resizable split container (vertical or horizontal) |
+| `src/ui/code/SplitDivider.tsx` | Draggable divider with grip handle                         |
+| `src/ui/code/useSplitPane.ts`  | Hook: drag state, min/max sizes, localStorage persistence  |
 
 ### Files to Modify
 
-| Path | Change |
-|------|--------|
-| `src/ui/panes/CodePane.tsx` | Wrap EditorArea + TerminalPanel in `SplitPane` |
+| Path                           | Change                                           |
+| ------------------------------ | ------------------------------------------------ |
+| `src/ui/panes/CodePane.tsx`    | Wrap EditorArea + TerminalPanel in `SplitPane`   |
 | `src/ui/layout/layoutTypes.ts` | Add split-pane size preferences to layout config |
 
 ### Key Interfaces
@@ -1554,10 +1722,10 @@ feat(env): add lesson-aware environment configs with presets
 // src/ui/code/SplitPane.tsx
 type SplitPaneProps = {
   direction: "horizontal" | "vertical";
-  initialSplit: number;       // 0–1, e.g. 0.65 = editor gets 65%
-  minFirst: number;           // min pixels for first pane
-  minSecond: number;          // min pixels for second pane
-  storageKey?: string;        // localStorage key for persistence
+  initialSplit: number; // 0–1, e.g. 0.65 = editor gets 65%
+  minFirst: number; // min pixels for first pane
+  minSecond: number; // min pixels for second pane
+  storageKey?: string; // localStorage key for persistence
   first: ReactNode;
   second: ReactNode;
 };
@@ -1570,8 +1738,8 @@ type SplitPaneState = {
   isDragging: boolean;
   containerRef: RefObject<HTMLDivElement>;
 
-  startDrag: (e: MouseEvent) => void;  // mouse only — desktop-only app
-  resetSplit: () => void;              // double-click divider → reset to default
+  startDrag: (e: MouseEvent) => void; // mouse only — desktop-only app
+  resetSplit: () => void; // double-click divider → reset to default
 };
 ```
 
@@ -1635,6 +1803,7 @@ The split divider must be keyboard-accessible:
 ### Estimated Effort: **8 hours**
 
 ### Commit Message
+
 ```
 feat(layout): add resizable split-pane layout for editor + terminal
 
@@ -1656,28 +1825,32 @@ feat(layout): add resizable split-pane layout for editor + terminal
 
 ### Files to Create
 
-| Path | Purpose |
-|------|---------|
-| `src/ui/code/autocomplete/vfsCompletions.ts` | Completions from VFS: filenames for imports, symbols from other files |
-| `src/ui/code/autocomplete/pythonCompletions.ts` | Python builtins, stdlib modules, Pyodide-available packages |
-| `src/ui/code/autocomplete/cCompletions.ts` | C stdlib functions, CS50 library functions |
-| `src/ui/code/autocomplete/jsCompletions.ts` | JS/DOM builtins, Node.js-like APIs available in sandbox |
-| `src/ui/code/autocomplete/snippets.ts` | Language-specific snippets (for loop, function def, etc.) |
-| `src/ui/code/autocomplete/completionProvider.ts` | Unified provider that merges all sources |
+| Path                                             | Purpose                                                               |
+| ------------------------------------------------ | --------------------------------------------------------------------- |
+| `src/ui/code/autocomplete/vfsCompletions.ts`     | Completions from VFS: filenames for imports, symbols from other files |
+| `src/ui/code/autocomplete/pythonCompletions.ts`  | Python builtins, stdlib modules, Pyodide-available packages           |
+| `src/ui/code/autocomplete/cCompletions.ts`       | C stdlib functions, CS50 library functions                            |
+| `src/ui/code/autocomplete/jsCompletions.ts`      | JS/DOM builtins, Node.js-like APIs available in sandbox               |
+| `src/ui/code/autocomplete/snippets.ts`           | Language-specific snippets (for loop, function def, etc.)             |
+| `src/ui/code/autocomplete/completionProvider.ts` | Unified provider that merges all sources                              |
 
 ### Files to Modify
 
-| Path | Change |
-|------|--------|
-| `src/ui/code/codemirrorSetup.ts` | Replace default `autocompletion()` with custom provider |
-| `src/ui/code/CodeMirrorEditor.tsx` | Wire completion provider with VFS access |
-| `package.json` | No new deps — uses CM6 `@codemirror/autocomplete` (installed in Phase 2) |
+| Path                               | Change                                                                   |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| `src/ui/code/codemirrorSetup.ts`   | Replace default `autocompletion()` with custom provider                  |
+| `src/ui/code/CodeMirrorEditor.tsx` | Wire completion provider with VFS access                                 |
+| `package.json`                     | No new deps — uses CM6 `@codemirror/autocomplete` (installed in Phase 2) |
 
 ### Key Interfaces
 
 ```typescript
 // src/ui/code/autocomplete/completionProvider.ts
-import type { CompletionSource, CompletionContext, Completion } from "@codemirror/autocomplete";
+import type {
+  CompletionSource,
+  CompletionContext,
+  Completion,
+} from "@codemirror/autocomplete";
 
 // Master completion source that delegates to language-specific + VFS sources
 function createNiotebookCompletions(
@@ -1717,31 +1890,73 @@ type CompletionProvider = {
 // src/ui/code/autocomplete/snippets.ts
 
 const pythonSnippets: Completion[] = [
-  { label: "def", detail: "function", apply: "def ${name}(${params}):\n    ${body}" },
-  { label: "for", detail: "for loop", apply: "for ${item} in ${iterable}:\n    ${body}" },
-  { label: "class", detail: "class def", apply: "class ${Name}:\n    def __init__(self):\n        ${pass}" },
+  {
+    label: "def",
+    detail: "function",
+    apply: "def ${name}(${params}):\n    ${body}",
+  },
+  {
+    label: "for",
+    detail: "for loop",
+    apply: "for ${item} in ${iterable}:\n    ${body}",
+  },
+  {
+    label: "class",
+    detail: "class def",
+    apply: "class ${Name}:\n    def __init__(self):\n        ${pass}",
+  },
   { label: "if", detail: "if block", apply: "if ${condition}:\n    ${body}" },
-  { label: "main", detail: "main guard", apply: 'if __name__ == "__main__":\n    main()' },
+  {
+    label: "main",
+    detail: "main guard",
+    apply: 'if __name__ == "__main__":\n    main()',
+  },
 ];
 
 const cSnippets: Completion[] = [
-  { label: "main", detail: "main function", apply: "int main(void)\n{\n    ${body}\n    return 0;\n}" },
-  { label: "for", detail: "for loop", apply: "for (int ${i} = 0; ${i} < ${n}; ${i}++)\n{\n    ${body}\n}" },
-  { label: "printf", detail: "print", apply: 'printf("${format}\\n"${, args});' },
-  { label: "include", detail: "#include", apply: '#include <${header}.h>' },
+  {
+    label: "main",
+    detail: "main function",
+    apply: "int main(void)\n{\n    ${body}\n    return 0;\n}",
+  },
+  {
+    label: "for",
+    detail: "for loop",
+    apply: "for (int ${i} = 0; ${i} < ${n}; ${i}++)\n{\n    ${body}\n}",
+  },
+  {
+    label: "printf",
+    detail: "print",
+    apply: 'printf("${format}\\n"${, args});',
+  },
+  { label: "include", detail: "#include", apply: "#include <${header}.h>" },
 ];
 
 const jsSnippets: Completion[] = [
-  { label: "fn", detail: "arrow function", apply: "const ${name} = (${params}) => {\n  ${body}\n};" },
-  { label: "for", detail: "for loop", apply: "for (let ${i} = 0; ${i} < ${n}; ${i}++) {\n  ${body}\n}" },
+  {
+    label: "fn",
+    detail: "arrow function",
+    apply: "const ${name} = (${params}) => {\n  ${body}\n};",
+  },
+  {
+    label: "for",
+    detail: "for loop",
+    apply: "for (let ${i} = 0; ${i} < ${n}; ${i}++) {\n  ${body}\n}",
+  },
   { label: "log", detail: "console.log", apply: "console.log(${value});" },
-  { label: "fetch", detail: "fetch request", apply: "const response = await fetch('${url}');\nconst data = await response.json();" },
+  {
+    label: "fetch",
+    detail: "fetch request",
+    apply:
+      "const response = await fetch('${url}');\nconst data = await response.json();",
+  },
 ];
 ```
 
 ### Estimated Effort: **12 hours**
 
 ### Commit Message
+
 ```
 feat(autocomplete): enhanced context-aware completions
 
@@ -1757,23 +1972,24 @@ feat(autocomplete): enhanced context-aware completions
 
 ## Summary
 
-| Phase | Feature | New Files | Effort (hrs) | Dependencies |
-|-------|---------|-----------|-------------|-------------|
-| 1 | Virtual Filesystem | 5 | 16 | zustand, idb |
-| 2 | File Tree + Tabs + CM6 | 11 | 20 | @codemirror/* (10 packages) |
-| 3 | xterm.js Terminal | 7 | 16 | @xterm/xterm, @xterm/addon-fit, @xterm/addon-web-links |
-| 4 | Wasmer/WASIX | 8 | 24 | wasmer JS SDK (TBD — research required) |
-| 5 | Cross-file Imports | 4 | 12 | — |
-| 6 | Lesson-aware Envs | 4+ | 10 | — |
-| 7 | Split-pane Layout | 3 | 8 | — |
-| 8 | Enhanced Autocomplete | 6 | 12 | — |
-| **Total** | | **48** | **118** | |
+| Phase     | Feature                | New Files | Effort (hrs) | Dependencies                                           |
+| --------- | ---------------------- | --------- | ------------ | ------------------------------------------------------ |
+| 1         | Virtual Filesystem     | 5         | 16           | zustand, idb                                           |
+| 2         | File Tree + Tabs + CM6 | 11        | 20           | @codemirror/\* (10 packages)                           |
+| 3         | xterm.js Terminal      | 7         | 16           | @xterm/xterm, @xterm/addon-fit, @xterm/addon-web-links |
+| 4         | Wasmer/WASIX           | 8         | 24           | wasmer JS SDK (TBD — research required)                |
+| 5         | Cross-file Imports     | 4         | 12           | —                                                      |
+| 6         | Lesson-aware Envs      | 4+        | 10           | —                                                      |
+| 7         | Split-pane Layout      | 3         | 8            | —                                                      |
+| 8         | Enhanced Autocomplete  | 6         | 12           | —                                                      |
+| **Total** |                        | **48**    | **118**      |                                                        |
 
 ### Recommended Build Order
 
 Phases 1 → 2 → 7 → 3 → 5 → 6 → 4 → 8
 
 **Rationale:**
+
 - **Phase 1 (VFS)** is foundational — everything depends on it
 - **Phase 2 (File Tree + Tabs + CM6)** gives immediate visible value AND installs CM6 (prerequisite for everything)
 - **Phase 7 (Split-pane)** is low-risk and needed before terminal
@@ -1785,16 +2001,16 @@ Phases 1 → 2 → 7 → 3 → 5 → 6 → 4 → 8
 
 ### Risk Register
 
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Wasmer JS SDK instability / wrong package | Phase 4 blocked | Pre-implementation research step; Pyodide + TCC-WASM fallback |
-| COOP/COEP breaks Clerk/Convex/YouTube | Auth + video broken | Iframe isolation — main app NEVER gets COOP/COEP |
-| SSR crash from browser-only libraries | Build fails | ALL CM6/xterm/Wasmer behind `next/dynamic({ ssr: false })` |
-| xterm.js bundle size (~130KB) | Slow initial load | Dynamic import, lazy load on first terminal reveal |
-| CM6 bundle size (~200KB) | Slow initial load | Dynamic import, per-language lazy loading |
-| IndexedDB unavailable | VFS data loss | Graceful fallback to in-memory + warning banner |
-| CM6 EditorState memory | Memory bloat with many tabs | Limit to 10 open tabs, evict LRU states |
-| Safari WASM memory limit (2GB) | Large programs crash | Conservative memory limits, test early |
+| Risk                                      | Impact                      | Mitigation                                                         |
+| ----------------------------------------- | --------------------------- | ------------------------------------------------------------------ |
+| Wasmer JS SDK instability / wrong package | Phase 4 blocked             | Pre-implementation research step; Pyodide + C placeholder fallback |
+| COOP/COEP breaks Clerk/Convex/YouTube     | Auth + video broken         | Iframe isolation — main app NEVER gets COOP/COEP                   |
+| SSR crash from browser-only libraries     | Build fails                 | ALL CM6/xterm/Wasmer behind `next/dynamic({ ssr: false })`         |
+| xterm.js bundle size (~130KB)             | Slow initial load           | Dynamic import, lazy load on first terminal reveal                 |
+| CM6 bundle size (~200KB)                  | Slow initial load           | Dynamic import, per-language lazy loading                          |
+| IndexedDB unavailable                     | VFS data loss               | Graceful fallback to in-memory + warning banner                    |
+| CM6 EditorState memory                    | Memory bloat with many tabs | Limit to 10 open tabs, evict LRU states                            |
+| Safari WASM memory limit (2GB)            | Large programs crash        | Conservative memory limits, test early                             |
 
 ### Browser Requirements
 
@@ -1820,38 +2036,40 @@ All issues have been fixed with atomic commits on the `jarvis/code-editor-tier2`
 ### Issues Found & Fixed
 
 #### Critical (0 remaining)
+
 - All critical issues (C1–C4) resolved in prior commits.
 
 #### High (0 remaining)
+
 - All high issues (H5–H8) resolved in prior commits.
 
 #### Medium (9 fixed)
 
-| ID | Issue | Fix |
-|----|-------|-----|
-| M5 | TabbedEditor O(n) toString comparison per keystroke | Use CM6 `docChanged` flag from transaction |
-| M6 | Stale VFS completions closure | Lazy-read VFS from Zustand store at query time |
-| M7 | FileTreeSidebar type cast hack (`as unknown as () => void`) | Inline proper click handler with correct typing |
-| M8 | handleRun doesn't pass VFS to runtime | Pass `filesystem: vfs` to `runRuntime` input |
-| M9 | JS executor has no sandbox | Sandboxed iframe execution with blob URL + timeout |
-| M10 | Duplicated VFS builtins in commandRouter & wasmerShell | Extracted shared `vfsBuiltins.ts` module |
-| M11 | No auto-persist to IndexedDB | Debounced (500ms) auto-persist on VFS mutations |
-| M12 | Regex statefulness bug in autocomplete | Fresh regex instances per call via factory pattern |
-| M13 | Terminal always dark theme | Read app theme, MutationObserver for theme changes |
+| ID  | Issue                                                       | Fix                                                |
+| --- | ----------------------------------------------------------- | -------------------------------------------------- |
+| M5  | TabbedEditor O(n) toString comparison per keystroke         | Use CM6 `docChanged` flag from transaction         |
+| M6  | Stale VFS completions closure                               | Lazy-read VFS from Zustand store at query time     |
+| M7  | FileTreeSidebar type cast hack (`as unknown as () => void`) | Inline proper click handler with correct typing    |
+| M8  | handleRun doesn't pass VFS to runtime                       | Pass `filesystem: vfs` to `runRuntime` input       |
+| M9  | JS executor has no sandbox                                  | Sandboxed iframe execution with blob URL + timeout |
+| M10 | Duplicated VFS builtins in commandRouter & wasmerShell      | Extracted shared `vfsBuiltins.ts` module           |
+| M11 | No auto-persist to IndexedDB                                | Debounced (500ms) auto-persist on VFS mutations    |
+| M12 | Regex statefulness bug in autocomplete                      | Fresh regex instances per call via factory pattern |
+| M13 | Terminal always dark theme                                  | Read app theme, MutationObserver for theme changes |
 
 #### Low (9 fixed)
 
-| ID | Issue | Fix |
-|----|-------|-----|
-| L14 | SplitPane min values naming inconsistency | Pixel-based min constraints with container-aware clamping |
-| L15 | Nested interactive elements in EditorTab | `div[role=tab]` + separate `<button>` for close |
-| L16 | wasmerShell rm sends wrong signal | `fs-delete` message type + WasmerBridge handler |
-| L17 | Missing EnvSelector.tsx | Created dev-only dropdown for preset switching |
-| L18 | No VFS file size limits | MAX_FILE_SIZE (1MB) + MAX_TOTAL_SIZE (50MB) checks |
-| L19 | kill() can't interrupt running execution | Documented limitation, TODO for Web Worker migration |
-| L20 | No test for cs50x-python preset | Full validation test suite for all 7 presets (28 tests) |
-| L21 | Missing test coverage | Tests for commandRouter, importResolver, completionProvider |
-| L22 | onSnapshot fires stale on mount | Reactive VFS subscription via Zustand selectors |
+| ID  | Issue                                     | Fix                                                         |
+| --- | ----------------------------------------- | ----------------------------------------------------------- |
+| L14 | SplitPane min values naming inconsistency | Pixel-based min constraints with container-aware clamping   |
+| L15 | Nested interactive elements in EditorTab  | `div[role=tab]` + separate `<button>` for close             |
+| L16 | wasmerShell rm sends wrong signal         | `fs-delete` message type + WasmerBridge handler             |
+| L17 | Missing EnvSelector.tsx                   | Created dev-only selector for preset switching              |
+| L18 | No VFS file size limits                   | MAX_FILE_SIZE (1MB) + MAX_TOTAL_SIZE (50MB) checks          |
+| L19 | kill() can't interrupt running execution  | Documented limitation, TODO for Web Worker migration        |
+| L20 | No test for cs50x-python preset           | Full validation test suite for all 7 presets (28 tests)     |
+| L21 | Missing test coverage                     | Tests for commandRouter, importResolver, completionProvider |
+| L22 | onSnapshot fires stale on mount           | Reactive VFS subscription via Zustand selectors             |
 
 ### Post-Fix Verification
 

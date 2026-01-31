@@ -59,7 +59,7 @@ const FileTreeNode = ({
     ? expanded
       ? "📂"
       : "📁"
-    : FILE_ICONS[node.kind === "file" ? (node.language ?? "") : ""] ?? "📄";
+    : (FILE_ICONS[node.kind === "file" ? (node.language ?? "") : ""] ?? "📄");
 
   const children =
     isDirectory && node.kind === "directory"
@@ -81,8 +81,8 @@ const FileTreeNode = ({
         type="button"
         className={`flex w-full items-center gap-1.5 rounded px-1.5 py-0.5 text-left text-xs ${
           isActive
-            ? "bg-surface-muted font-medium text-foreground"
-            : "text-text-muted hover:bg-surface-muted hover:text-foreground"
+            ? "bg-workspace-editor font-medium text-workspace-text"
+            : "text-workspace-text-muted hover:bg-workspace-editor hover:text-workspace-text"
         }`}
         style={{ paddingLeft: `${depth * 12 + 4}px` }}
         onClick={handleClick}

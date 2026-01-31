@@ -64,8 +64,8 @@ const SplitDivider = ({
       onKeyDown={handleKeyDown}
       className={`
         relative flex items-center justify-center
-        ${isVertical ? "h-1 cursor-row-resize border-t border-border" : "w-1 cursor-col-resize border-l border-border"}
-        bg-surface transition-colors hover:bg-accent/30 focus-visible:bg-accent/40
+        ${isVertical ? "h-1 cursor-row-resize border-t border-workspace-border" : "w-1 cursor-col-resize border-l border-workspace-border"}
+        bg-workspace-editor transition-colors hover:bg-workspace-accent-muted focus-visible:bg-workspace-accent-muted
         focus-visible:outline-none
       `}
     >
@@ -73,9 +73,9 @@ const SplitDivider = ({
       <div
         className={`flex gap-px opacity-40 ${isVertical ? "flex-row" : "flex-col"}`}
       >
-        <span className="block h-0.5 w-0.5 rounded-full bg-text-muted" />
-        <span className="block h-0.5 w-0.5 rounded-full bg-text-muted" />
-        <span className="block h-0.5 w-0.5 rounded-full bg-text-muted" />
+        <span className="block h-0.5 w-0.5 rounded-full bg-workspace-text-muted" />
+        <span className="block h-0.5 w-0.5 rounded-full bg-workspace-text-muted" />
+        <span className="block h-0.5 w-0.5 rounded-full bg-workspace-text-muted" />
       </div>
     </div>
   );
