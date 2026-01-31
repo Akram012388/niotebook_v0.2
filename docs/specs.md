@@ -78,8 +78,13 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 ### 4.1 Onboarding
 
 1. Receive Clerk invite email
-2. Sign in with email code
-3. Land in “Course picker” → choose course → choose lesson → start
+2. Sign in with email code (sign-in page with terminal boot sequence animation)
+3. Redirect to `/courses` route (Apple TV+/Netflix-style carousel):
+   - **Continue Learning** row (returning users): resume card with course, lecture, timestamp, progress
+   - **Harvard CS50 Library** row: CS50x 2026, CS50P, CS50AI, CS50W, CS50SQL
+   - **Coming Soon** row: greyed-out hardcoded cards (MIT, Stanford, Google, etc.)
+4. Click course → course detail page (`/courses/[courseId]`) with progress bar, lecture list, resume button
+5. Click lecture → `/workspace?lessonId=X` → start
 
 ### 4.2 Learning loop
 
@@ -140,10 +145,14 @@ Layouts are user-selectable per session and persisted.
   - building AI context safely
   - e2e assertions
 
-### 5.5 Admin cockpit (analytics)
+### 5.5 Admin console (`/admin`)
 
-- Admin-only route with ChatGPT-level polish and minimal chrome.
-- Dashboard includes KPI cards; invite management is handled in Clerk for alpha (admin panel integration deferred).
+- Admin-only route within the same app, gated by admin role check.
+- Sidebar nav: Dashboard, Users, Invites, Feedback, Events.
+- **Invite management:** Generate codes (single/batch), track status (active/used/expired), revoke active invites.
+- **User management:** List users (email, role, joined, last active), change roles, view activity.
+- **Feedback dashboard:** List submissions (rating, category, notes, user, timestamp), filter/sort.
+- **Analytics dashboard:** KPI cards, event log viewer with filters.
 - Filters: time range (UTC), course, lesson, cohort (inviteBatchId).
 - KPI cards:
   - invite redemption %
@@ -348,6 +357,13 @@ Output:
 
 - Next.js Route Handler streams tokens to client.
 - Store final assistant message via Convex mutation once complete.
+- Chat responses rendered as formatted markdown (code blocks with syntax highlighting, inline code, lists, bold/italic).
+
+### 8.5a Learning Pulse
+
+- Visible context strip in chat pane header: `Lecture N · MM:SS · filename (status)`.
+- Context builder enriched with file name, language, and last run error output.
+- Nio prompt updated to reference visible context for more natural responses.
 
 ### 8.5 Token budget + fallback
 
@@ -464,9 +480,9 @@ Suggested layout:
 
 Infer these and the spec becomes implementation-ready:
 
-1. **First few courses to ship in alpha:** CS50x (latest 2026), CS50P, CS50W, CS50AI with Python.
+1. **First few courses to ship in alpha:** CS50x (latest 2026), CS50P, CS50W, CS50AI, CS50SQL.
 2. **Lesson granularity:** playlist = course, video = lesson, chapters = timestamped segments.
-3. **Invite admin UX:** alpha uses Clerk dashboard for invites; admin console invite management (via Clerk Admin API) is deferred. Roles remain: admin (admin console access), user (workspace), guest (landing + auth only).
+3. **Invite admin UX:** admin console at `/admin` with invite management (generate, track, revoke), user management, feedback dashboard, and analytics. Roles remain: admin (admin console access), user (workspace + courses), guest (landing + auth only).
 
 With these pointers also produce directives for:
 

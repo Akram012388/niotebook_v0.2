@@ -8,8 +8,9 @@ Scope: UI structure + interaction behavior (not visual polish)
 
 - Minimal, hacker/IDE feel with tight density and sharp geometry.
 - Interface feels alive via iconography, hover/active/focus states, and subtle motion.
-- Default workflow: Start -> 2-col (Video | Chat).
-- Course/lecture selection is decluttered into a right-side drawer.
+- Default workflow: Sign in → courses route (carousel) → course detail → workspace (2-col Video | Chat).
+- Courses route acts as the user's library: Apple TV+/Netflix-style carousel with resume, CS50 library, and coming-soon rows.
+- Course/lecture selection also available in workspace right-side drawer for quick switching.
 
 ## Non-goals (for now)
 
@@ -121,6 +122,44 @@ Color policy:
 - Avoid demo links; prefer the lecture "Video -> YouTube" entry.
 - Production ingest blocked by default unless `NIOTEBOOK_ALLOW_PROD_INGEST=true`.
 
+## Courses Route (`/courses`)
+
+- Apple TV+/Netflix-style carousel, accessible on all viewports.
+- Mobile/tablet: browse-only (course cards, descriptions, progress). No video playback, no workspace access.
+- Desktop: browse + "Enter Workspace" / "Resume" buttons.
+- Rows:
+  1. **Continue Learning** (returning users): resume card with course, lecture, timestamp, progress bar.
+  2. **Harvard CS50 Library**: horizontal scroll row of course cards (CS50x, CS50P, CS50AI, CS50W, CS50SQL).
+  3. **Coming Soon**: greyed-out hardcoded cards (MIT, Stanford, Google, Meta, etc.).
+- Course cards: minimalist, title, provider badge, lecture count, progress bar. Hover: scale + shadow. Auto-sliding carousel (CSS scroll-snap).
+- Click card → `/courses/[courseId]` detail page.
+
+## Course Detail Page (`/courses/[courseId]`)
+
+- Course header: title, description, provider, license, source URL.
+- Progress bar: X/Y lectures completed.
+- Lecture list: ordered, title, duration, completion status (checkmark or empty).
+- "Resume" button at top → last active lecture + timestamp.
+- Per-lecture "Start" → `/workspace?lessonId=X`.
+
+## Sign-In Page
+
+- Clerk card left-aligned (existing).
+- Right side: terminal boot sequence animation (monospace, typing effect).
+- Lines: `> initializing learning environment...`, `> loading CS50 runtime...`, `> ready.`
+
+## Chat Pane — Learning Pulse Context Strip
+
+- Header strip showing: `Lecture N · MM:SS · filename (modified)`.
+- Updates in real-time as video plays and code changes.
+- Subtle, non-intrusive; communicates AI context transparency.
+
+## Viewport Policy
+
+- `/` (landing), `/sign-in`, `/sign-up`, `/courses`: all viewports. Mobile browse-only on courses (no video).
+- `/workspace`: desktop only (≥1024px). Mobile/tablet shows friendly message.
+- `/admin`: desktop only.
+
 ## Acceptance Checklist (Phase 3 UX Stabilization)
 
 Must pass in local dev + Vercel preview + Vercel prod:
@@ -131,3 +170,9 @@ Must pass in local dev + Vercel preview + Vercel prod:
 - Video loads and plays a real CS50 lecture (no "video unavailable").
 - No player reinitialization/jank due to persistence updates.
 - Hover/focus states present and consistent.
+- Courses route carousel renders correctly on desktop and mobile.
+- Course detail page shows progress and lecture list.
+- Sign-in page boot sequence animation renders alongside Clerk card.
+- Learning Pulse context strip visible in chat pane header.
+- Share and feedback actions in control center are functional.
+- Admin console accessible only to admin role.
