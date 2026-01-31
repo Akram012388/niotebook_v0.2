@@ -62,6 +62,16 @@ function makeRequireShim(mainPath: string, vfs: VirtualFS): string {
   var __extensions = [".js", ".mjs", ".cjs"];
   ${RESOLVE_FN}
   function require(specifier) {
+    if (typeof globalThis !== "undefined") {
+      var externals = globalThis.__external_modules || {};
+      if (externals[specifier]) {
+        var extMod = externals[specifier];
+        if (extMod && typeof extMod === "object" && "default" in extMod) {
+          return extMod.default || extMod;
+        }
+        return extMod;
+      }
+    }
     var resolved = __resolveModule(specifier, ${JSON.stringify(mainPath)});
     // Try exact path, then with extensions
     var found = null;

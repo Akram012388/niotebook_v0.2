@@ -303,7 +303,7 @@ const CodePane = ({
 
   // ── Handlers ──────────────────────────────────────────────
 
-  const handleRun = useCallback(async (): Promise<void> => {
+  const handleRun = async (): Promise<void> => {
     // Flush dirty files to VFS before running
     useEditorStore.getState().saveAll();
 
@@ -338,6 +338,7 @@ const CodePane = ({
       code,
       timeoutMs: RUNTIME_TIMEOUT_MS,
       filesystem: vfs,
+      packages: environment.packages,
       onStdout: (chunk: string) => termStore.write(chunk),
       onStderr: (chunk: string) => termStore.write(formatErrorChunk(chunk)),
     });
@@ -357,7 +358,7 @@ const CodePane = ({
         ? "Runtime timed out"
         : `${activeLanguage.toUpperCase()} runtime ready`,
     });
-  }, [activeLanguage, getMainFileContent]);
+  };
 
   const handleStop = useCallback((): void => {
     stopRuntime(activeLanguage).catch(() => undefined);

@@ -15,6 +15,8 @@ type PyodideFS = {
 type PyodideInterface = {
   FS: PyodideFS;
   runPython: (code: string) => unknown;
+  runPythonAsync?: (code: string) => Promise<unknown>;
+  loadPackage?: (packages: string | string[]) => Promise<void>;
 };
 
 /** The project root path used inside Pyodide's virtual FS. */
@@ -40,17 +42,24 @@ function mountPythonFiles(pyodide: PyodideInterface, vfs: VirtualFS): void {
   const createdDirs = new Set<string>();
 
   for (const file of pythonFiles) {
-    // Ensure parent directory exists
-    const parentDir = file.path.slice(0, file.path.lastIndexOf("/")) || "/";
-    const pyodidePath = PYODIDE_PROJECT_ROOT + parentDir;
+    const normalized = file.path.startsWith(PYODIDE_PROJECT_ROOT)
+      ? file.path.slice(PYODIDE_PROJECT_ROOT.length)
+      : file.path;
+    const relativePath = normalized.startsWith("/")
+      ? normalized
+      : `/${normalized}`;
+    const pyodidePath = `${PYODIDE_PROJECT_ROOT}${relativePath}`;
+    const parentDir =
+      pyodidePath.slice(0, pyodidePath.lastIndexOf("/")) ||
+      PYODIDE_PROJECT_ROOT;
 
-    if (!createdDirs.has(pyodidePath)) {
-      pyodide.FS.mkdirTree(pyodidePath);
-      createdDirs.add(pyodidePath);
+    if (!createdDirs.has(parentDir)) {
+      pyodide.FS.mkdirTree(parentDir);
+      createdDirs.add(parentDir);
     }
 
     // Write the file into Pyodide's FS
-    pyodide.FS.writeFile(PYODIDE_PROJECT_ROOT + file.path, file.content);
+    pyodide.FS.writeFile(pyodidePath, file.content);
   }
 
   // Add project root to sys.path so imports resolve
