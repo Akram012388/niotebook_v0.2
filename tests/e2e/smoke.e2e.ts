@@ -3,8 +3,8 @@ import { writeFileSync } from "node:fs";
 
 const lessonId = process.env.NEXT_PUBLIC_DEFAULT_LESSON_ID;
 const lessonPath = lessonId
-  ? `/?lessonId=${encodeURIComponent(lessonId)}`
-  : "/";
+  ? `/workspace?lessonId=${encodeURIComponent(lessonId)}`
+  : "/workspace";
 
 const captureDiagnostics = async (page: Page): Promise<void> => {
   const snapshot = {
