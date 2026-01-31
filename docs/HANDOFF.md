@@ -1,111 +1,145 @@
-# Session Handoff — Phase 1 → Phase 2
+# Session Handoff — Phases 1–4 Complete
 
-This file captures context for the next Claude Code session to pick up where Phase 1 left off.
+This file captures context for the next Claude Code session.
 
-## What Was Completed (Phase 1)
+## What Has Been Implemented
 
-**Branch:** `fix/core-polish` (merged to `main` via PR)
+All 20 GitHub issues (#31–#50) are closed. 151 unit tests pass, typecheck and lint clean.
 
-### A6: Fix Known UI Issues
-- Fixed typo "experinced" → "experienced" in `src/ui/layout/WorkspaceShell.tsx:14`
-- Wired User panel in `src/ui/shell/ControlCenterDrawer.tsx` — shows email, role, invite batch, sign-out button
-- Added `me` query to `convex/users.ts` (returns current user's role + inviteBatchId)
-- Added `meRef` function reference in `src/ui/auth/convexAuth.ts`
-- Connected via Clerk's `useUser`/`useClerk` in `src/ui/shell/TopNav.tsx`
+### Phase 1 — Foundations (PR #51)
+Branch: `fix/core-polish` → merged to `main`
 
-### A1: AI Chat Streaming + Markdown Rendering
-- Installed `react-markdown@10`, `remark-gfm@4`, `rehype-highlight@7`
-- Updated `src/ui/chat/ChatMessage.tsx` — assistant messages render as markdown (code blocks with syntax highlighting, tables, lists, blockquotes)
-- Added `highlight.js/styles/github-dark-dimmed.css` import in `src/app/globals.css`
-- Added `.nio-markdown` CSS styles for all markdown elements
-- Wrapped assistant content in `React.memo` to prevent re-renders during streaming
+| Issue | Title | What was done |
+|-------|-------|---------------|
+| #31 | A1: AI Chat Streaming + Markdown | react-markdown + rehype-highlight in ChatMessage.tsx, `.nio-markdown` CSS |
+| #32 | A2: Terminal Runtime Correctness | Verified JS/Python/HTML/CSS executors, C static analysis documented, 10 runtime tests |
+| #36 | A6: UI Fixes | Typo fix in WorkspaceShell, User panel in ControlCenterDrawer, `me` query in convex/users.ts |
 
-### A2: Terminal Runtime Correctness
-- Verified all executors work: JS (iframe sandbox), Python (Pyodide), HTML (iframe), CSS (no-op)
-- C executor is static analysis only (regex-extracts printf/puts) — documented limitation, real compilation deferred to Wasmer Phase 4
-- Added 6 tests: `tests/unit/infra/runtime/cExecutor.test.ts`
-- Added 4 tests: `tests/unit/infra/runtime/imports/cIncludes.test.ts`
-- All 126 tests pass, typecheck clean, lint clean
+### Phase 2 — Core Loop (PRs #52, #53, #54)
+3 parallel worktrees merged in order A → B → C.
 
-## Infrastructure Already Set Up
+| PR | Branch | Issues | What was done |
+|----|--------|--------|---------------|
+| #52 | `fix/core-polish-phase2` | #33, #34, #35 | A3: Context strip in AiPane + enriched nioContextBuilder/nioPrompt. A4: feedback table + submit mutation + share/clipboard wiring + event logging. A5: BootSequence terminal animation on sign-in page |
+| #53 | `feat/courses-route` | #37, #38, #39, #41 | B1: `/courses` route with 3 carousel rows. B2: `/courses/[courseId]` detail page. B3: CourseCard + CourseCarousel. B5: Resume query + ResumeCard |
+| #54 | `feat/admin-console` | #42–#46 | C1: `/admin` route + sidebar + AdminGuard. C2: Invite management. C3: User management. C4: Feedback dashboard. C5: Analytics dashboard (KPI cards + event log) |
+
+### Phase 3 — Content & Routing (PR #55)
+Branch: `feat/content-expansion` → merged to `main`
+
+| Issue | Title | What was done |
+|-------|-------|---------------|
+| #47 | D1: Ingest CS50 Library | New `cs50sql-sql` preset, `ingestCourse` mutation, `scripts/ingest-cs50-courses.ts` with all 5 CS50 courses |
+| #48 | D2: Progress Tracking UI | `markComplete` mutation, `getCompletionCountsByCourses` query, real progress in CourseCard + "Mark Complete" button in detail page |
+| #49 | D3: Coming Soon Cards | Extracted to `src/ui/courses/comingSoonCourses.ts` (6 entries: MIT, Stanford, Google, Meta, freeCodeCamp, Khan Academy) |
+| #40 | B4: Update Routing | `fallbackRedirectUrl` → `/courses` in sign-in/sign-up, workspace redirects to `/courses` if no `lessonId` |
+
+### Phase 4 — Testing (PR #56)
+Branch: `test/e2e-alpha` → merged to `main`
+
+| Issue | Title | What was done |
+|-------|-------|---------------|
+| #50 | E1: E2E Test Suite | 4 Playwright test files (auth, courses, workspace, admin) — 9 active, 10 skipped pending infrastructure |
+| — | E2: Unit Test Gaps | 22 new tests (129 → 151): CourseCard, comingSoonCourses, BootSequence, nioContextBuilder fileName/lastError. Bug fix: lastError was computed but not appended in nioContextBuilder.ts |
+
+## Current State of Main
+
+```
+Commit: latest on main (all PRs squash-merged)
+Tests: 151 unit tests passing (29 files)
+E2E: 9 active + 10 skipped (need seeded Convex data + admin role setup)
+Typecheck: clean
+Lint: clean
+```
+
+### Key Files Added/Modified Across All Phases
+
+**New routes:**
+- `src/app/courses/page.tsx` + `layout.tsx` — Course catalog
+- `src/app/courses/[courseId]/page.tsx` — Course detail
+- `src/app/admin/layout.tsx` + `page.tsx` — Admin dashboard
+- `src/app/admin/{users,invites,feedback,analytics}/page.tsx` — Admin sub-pages
+
+**New UI components:**
+- `src/ui/courses/` — CoursesPage, CourseDetailPage, CourseCard, CourseCarousel, ResumeCard, comingSoonCourses.ts, convexResume.ts, convexCompletions.ts
+- `src/ui/admin/` — AdminLayout, AdminGuard, InviteManagement, UserManagement, FeedbackDashboard, AnalyticsDashboard
+- `src/ui/auth/BootSequence.tsx` — Terminal typing animation
+
+**Convex backend extensions:**
+- `convex/feedback.ts` — submit (user) + listAll (admin)
+- `convex/invites.ts` — listAll, generate, revoke (admin)
+- `convex/users.ts` — listAll, updateRole (admin)
+- `convex/ops.ts` — getActiveUsers, getSessionCount, getAiRequestCount, getEventLog, getTotalLessons (admin)
+- `convex/resume.ts` — getResumeData (last active lesson per course)
+- `convex/lessonCompletions.ts` — markComplete, getCompletionCountsByCourses, getCompletionsByCourse
+- `convex/ingest.ts` — ingestCourse mutation
+- `convex/schema.ts` — added `feedback` table
+
+**Domain/infra:**
+- `src/domain/nioContextBuilder.ts` — fileName + lastError fields (bug fix: lastError now appended to output)
+- `src/domain/nioPrompt.ts` — references file name, modification hash, last error
+- `src/domain/lessonEnvironment.ts` — added `cs50sql-sql` preset
+- `scripts/ingest-cs50-courses.ts` — Ingest payloads for all 5 CS50 courses
+
+**Tests:**
+- `tests/e2e/{auth,courses,workspace,admin}.e2e.ts` — E2E suite
+- `tests/unit/ui/courses/{courseCard,comingSoonCourses}.test.ts`
+- `tests/unit/ui/auth/bootSequence.test.ts`
+- Extended `tests/unit/nio-context-builder.test.ts`
+
+**Dev deps added:** jsdom, @testing-library/react, @testing-library/jest-dom
+
+## Infrastructure
 
 ### Claude Code Config (`.claude/`)
 - **Permissions:** `Bash(*)`, `Read(*)`, `Write(*)` in `.claude/settings.local.json`
 - **Hooks:** Auto-typecheck on `.ts`/`.tsx` edits (PostToolUse hook)
-- **Slash commands:** `/verify`, `/merge-check`, `/deploy-preview`, `/ws-status` in `.claude/commands/`
+- **Slash commands:** `/verify`, `/merge-check`, `/deploy-preview`, `/ws-status`
 
 ### MCP Servers
 - **Convex MCP** — connected (`.mcp.json`)
 - **Playwright MCP** — connected (`.mcp.json`)
-- **GitHub MCP** — not needed, `gh` CLI is authenticated and sufficient
+- **GitHub** — `gh` CLI authenticated
 
-### GitHub Issues (20 total, #31–#50)
-Labels: `ws-a`, `ws-b`, `ws-c`, `ws-d`, `ws-e`, `phase-1`–`phase-4`
-
-| # | Title | Labels | Status |
-|---|-------|--------|--------|
-| 31 | A1: AI Chat Streaming + Markdown Rendering | ws-a, phase-1 | Close after merge |
-| 32 | A2: Terminal Runtime Correctness | ws-a, phase-1 | Close after merge |
-| 33 | A3: Learning Pulse: Context Strip + Smarter Nio | ws-a, phase-2 | Open |
-| 34 | A4: Share & Feedback Wiring | ws-a, phase-2 | Open |
-| 35 | A5: Sign-In Page Terminal Aesthetic | ws-a, phase-2 | Open |
-| 36 | A6: Fix Known UI Issues | ws-a, phase-1 | Close after merge |
-| 37 | B1: Courses Route (/courses) | ws-b, phase-2 | Open |
-| 38 | B2: Course Detail Page | ws-b, phase-2 | Open |
-| 39 | B3: Course Card Component | ws-b, phase-2 | Open |
-| 40 | B4: Update User Journey Routing | ws-b, phase-3 | Open |
-| 41 | B5: Resume Experience | ws-b, phase-2 | Open |
-| 42 | C1: Admin Route & Layout | ws-c, phase-2 | Open |
-| 43 | C2: Invite Management | ws-c, phase-2 | Open |
-| 44 | C3: User Management | ws-c, phase-2 | Open |
-| 45 | C4: Feedback Dashboard | ws-c, phase-2 | Open |
-| 46 | C5: Analytics Dashboard | ws-c, phase-2 | Open |
-| 47 | D1: Ingest CS50 Course Library | ws-d, phase-3 | Open |
-| 48 | D2: Progress Tracking UI | ws-d, phase-3 | Open |
-| 49 | D3: Hardcoded Coming Soon Cards | ws-d, phase-3 | Open |
-| 50 | E1: E2E Test Suite | ws-e, phase-4 | Open |
-
-## What Comes Next (Phase 2)
+## What Comes Next
 
 **Reference:** `docs/plan.md` — full workstream details
 
-### Setup Steps for Phase 2
-1. Close issues #31, #32, #36 (Phase 1 items)
-2. Create 3 git worktrees from `main`:
-   ```bash
-   git worktree add ../niotebook-ws-a fix/core-polish-phase2   # A3, A4, A5
-   git worktree add ../niotebook-ws-b feat/courses-route        # B1–B5
-   git worktree add ../niotebook-ws-c feat/admin-console         # C1–C5
-   ```
-3. Run `bun install` in each worktree
-4. Write per-worktree CLAUDE.md files (templates in `docs/plan.md` → Step 7)
-5. Launch tmux 4-pane layout (orchestrator + 3 workers)
-6. Write orchestrator CLAUDE.md for main repo
+### Immediate Next Steps
 
-### Parallel Workstreams
-- **WS-A** (A3, A4, A5): Polish — context strip, share/feedback, sign-in terminal
-- **WS-B** (B1–B5): Courses route — entirely new files, no overlap
-- **WS-C** (C1–C5): Admin console — entirely new files, no overlap
+1. **Run the CS50 ingest script** — `scripts/ingest-cs50-courses.ts` has payloads for all 5 courses but they may not be seeded into the Convex dev deployment yet. Run against your dev deployment to populate course/lesson data.
 
-### Merge Order (Phase 3)
-A → B → C → D1/D2/D3 → B4 (routing update)
+2. **Activate skipped E2E tests** — 10 tests are skipped pending:
+   - Seeded Convex data (courses, lessons) in the E2E environment
+   - Admin role user for admin page tests
+   - Wire up `.e2e-seed.json` or `scripts/e2eSeed.ts` with real course data
 
-## Key Files Modified in Phase 1
+3. **Visual QA & polish** — All features are wired but haven't been visually reviewed in-browser:
+   - `/courses` carousel layout, responsive behavior
+   - `/courses/[courseId]` detail page, progress bars
+   - `/admin` dashboard, tables, KPI cards
+   - Sign-in BootSequence animation
+   - Context strip in AiPane
+   - Share/feedback flow in ControlCenterDrawer
 
-| File | Change |
-|------|--------|
-| `convex/users.ts` | Added `me` query |
-| `src/ui/auth/convexAuth.ts` | Added `meRef` |
-| `src/ui/chat/ChatMessage.tsx` | Markdown rendering for assistant messages |
-| `src/app/globals.css` | highlight.js import + `.nio-markdown` styles |
-| `src/ui/layout/WorkspaceShell.tsx` | Typo fix |
-| `src/ui/shell/ControlCenterDrawer.tsx` | User panel with email/role/signout |
-| `src/ui/shell/TopNav.tsx` | Clerk user data + `meRef` query |
-| `package.json` | react-markdown, remark-gfm, rehype-highlight |
+4. **Deploy preview** — Push to trigger Vercel preview, manually test key flows
+
+5. **Content verification** — After ingest, verify:
+   - All 5 CS50 courses appear in `/courses`
+   - Lessons load correctly in `/workspace?lessonId=X`
+   - Environment presets match (C for early CS50x, Python for later weeks, etc.)
+
+### Future Work (beyond alpha roadmap)
+- Wasmer C compilation (currently static analysis only)
+- Auto-completion trigger (video >90% → lesson complete)
+- Collaborative features
+- Mobile workspace support
+- Landing page demo video
 
 ## Verification Commands
 ```bash
 bun run typecheck   # TypeScript strict
 bun run lint        # ESLint + Prettier
-bun run test        # 126 unit tests
+bun run test        # 151 unit tests
+bun run test:e2e    # E2E (needs dev server + seeded data)
 ```
