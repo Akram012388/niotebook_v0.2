@@ -6,12 +6,13 @@ import { makeFunctionReference } from "convex/server";
 import type { FunctionReference } from "convex/server";
 
 type FeedbackEntry = {
-  id: string;
-  userId?: string;
-  lessonId?: string;
-  surface: string;
+  _id: string;
+  _creationTime: number;
+  userId: string;
+  category: string;
   rating: number;
-  textLength: number;
+  notes?: string;
+  lessonId?: string;
   createdAt: number;
 };
 
@@ -50,12 +51,12 @@ const FeedbackDashboard = (): ReactElement => {
 
   const feedback = useQuery(listAllRef);
 
-  const surfaces = feedback
-    ? [...new Set(feedback.map((f) => f.surface))]
+  const categories = feedback
+    ? [...new Set(feedback.map((f) => f.category))]
     : [];
 
   const filtered = feedback?.filter(
-    (f) => surfaceFilter === "all" || f.surface === surfaceFilter,
+    (f) => surfaceFilter === "all" || f.category === surfaceFilter,
   );
 
   return (
@@ -67,8 +68,8 @@ const FeedbackDashboard = (): ReactElement => {
           onChange={(e) => setSurfaceFilter(e.target.value)}
           className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-foreground"
         >
-          <option value="all">All surfaces</option>
-          {surfaces.map((s) => (
+          <option value="all">All categories</option>
+          {categories.map((s) => (
             <option key={s} value={s}>
               {s}
             </option>
@@ -92,13 +93,13 @@ const FeedbackDashboard = (): ReactElement => {
                   User
                 </th>
                 <th className="px-4 py-2 text-left font-medium text-muted">
-                  Surface
+                  Category
                 </th>
                 <th className="px-4 py-2 text-left font-medium text-muted">
                   Rating
                 </th>
                 <th className="px-4 py-2 text-left font-medium text-muted">
-                  Text Length
+                  Notes
                 </th>
                 <th className="px-4 py-2 text-left font-medium text-muted">
                   Lesson
@@ -121,20 +122,20 @@ const FeedbackDashboard = (): ReactElement => {
               ) : (
                 filtered.map((entry) => (
                   <tr
-                    key={entry.id}
+                    key={entry._id}
                     className="border-b border-border last:border-0"
                   >
                     <td className="px-4 py-2 font-mono text-xs text-foreground">
-                      {entry.userId ?? "—"}
+                      {entry.userId}
                     </td>
                     <td className="px-4 py-2 text-foreground">
-                      {entry.surface}
+                      {entry.category}
                     </td>
                     <td className="px-4 py-2">
                       <RatingStars rating={entry.rating} />
                     </td>
                     <td className="px-4 py-2 text-muted">
-                      {entry.textLength} chars
+                      {entry.notes ?? "—"}
                     </td>
                     <td className="px-4 py-2 font-mono text-xs text-muted">
                       {entry.lessonId ?? "—"}
