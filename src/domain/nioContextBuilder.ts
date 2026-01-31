@@ -265,6 +265,7 @@ const buildNioContext = (
     transcriptText,
     code: input.code,
     codeText,
+    lastError: input.lastError,
   });
 
   const messages: NioContextMessage[] = [

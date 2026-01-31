@@ -77,6 +77,55 @@ describe("nio context builder", (): void => {
     }
   });
 
+  it("includes fileName in code label when provided", (): void => {
+    const result = buildNioContext({
+      ...baseInput,
+      code: {
+        language: "python",
+        code: "print('hi')",
+        codeHash: "abc",
+        fileName: "main.py",
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.contextText).toContain("main.py");
+      expect(result.contextText).toContain("Code (python • main.py • abc)");
+    }
+  });
+
+  it("omits fileName from code label when not provided", (): void => {
+    const result = buildNioContext(baseInput);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.contextText).toContain("Code (js • hash-1)");
+    }
+  });
+
+  it("includes lastError in context when provided", (): void => {
+    const result = buildNioContext({
+      ...baseInput,
+      lastError: "ReferenceError: x is not defined",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.contextText).toContain("Last run error:");
+      expect(result.contextText).toContain("ReferenceError: x is not defined");
+    }
+  });
+
+  it("omits lastError section when not provided", (): void => {
+    const result = buildNioContext(baseInput);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.contextText).not.toContain("Last run error:");
+    }
+  });
+
   it("trims code after transcript when still over budget", (): void => {
     const codeText = `CODE_START ${"c".repeat(15000)} CODE_END`;
     const input: NioContextBuildInput = {
