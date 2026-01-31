@@ -20,8 +20,7 @@ test.describe("Workspace", () => {
     await page.waitForURL(/\/(courses|workspace|sign-in)/, { timeout: 10000 });
   });
 
-  test.skip("layout preset toggle works", async ({ page }) => {
-    // Requires lessonId and seeded lesson to test layout presets
+  test("layout preset toggle works", async ({ page }) => {
     test.skip(!lessonPath, "No NEXT_PUBLIC_DEFAULT_LESSON_ID configured");
     await page.goto(lessonPath!);
     await expect(page.locator("main")).toBeVisible({ timeout: 15000 });
@@ -30,8 +29,7 @@ test.describe("Workspace", () => {
     await expect(toggles.first()).toBeVisible({ timeout: 5000 });
   });
 
-  test.skip("code editor accepts input", async ({ page }) => {
-    // Requires a running workspace with code editor pane
+  test("code editor accepts input", async ({ page }) => {
     test.skip(!lessonPath, "No NEXT_PUBLIC_DEFAULT_LESSON_ID configured");
     await page.goto(lessonPath!);
     await expect(page.locator("main")).toBeVisible({ timeout: 15000 });
@@ -40,8 +38,7 @@ test.describe("Workspace", () => {
     await expect(editor).toBeVisible({ timeout: 10000 });
   });
 
-  test.skip("terminal output works after running code", async ({ page }) => {
-    // Requires workspace with code editor + terminal, and ability to run code
+  test("terminal output works after running code", async ({ page }) => {
     test.skip(!lessonPath, "No NEXT_PUBLIC_DEFAULT_LESSON_ID configured");
     await page.goto(lessonPath!);
     await expect(page.locator("main")).toBeVisible({ timeout: 15000 });

@@ -18,18 +18,12 @@ test.describe("Auth flow", () => {
     expect(hasBoot || hasClerk || true).toBe(true);
   });
 
-  test("dev auth bypass redirects to /courses", async ({ page }) => {
-    // With NIOTEBOOK_DEV_AUTH_BYPASS=true (set in playwright.config.ts),
-    // navigating to the app should bypass Clerk and land on /courses
-    await page.goto("/");
-    await page.waitForURL(/\/(courses|workspace|sign-in)/, { timeout: 10000 });
-    // B4 changed default redirect to /courses
-    const url = page.url();
-    expect(
-      url.includes("/courses") ||
-        url.includes("/workspace") ||
-        url.includes("/sign-in"),
-    ).toBe(true);
+  test("dev auth bypass allows access to /courses", async ({ page }) => {
+    // With E2E preview mode, navigating to /courses should load without redirect
+    await page.goto("/courses");
+    await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
+    // Should stay on /courses (not redirect to sign-in)
+    expect(page.url()).toContain("/courses");
   });
 
   test("unauthenticated access to /workspace redirects", async ({ page }) => {

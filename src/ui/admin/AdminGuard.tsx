@@ -10,8 +10,13 @@ type AdminGuardProps = {
 };
 
 const AdminGuard = ({ children }: AdminGuardProps): ReactElement => {
+  const isE2ePreview = process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true";
   const me = useQuery(meRef);
   const router = useRouter();
+
+  if (isE2ePreview) {
+    return <>{children}</>;
+  }
 
   if (me === undefined) {
     return (

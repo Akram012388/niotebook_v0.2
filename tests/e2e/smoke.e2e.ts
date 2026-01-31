@@ -20,6 +20,7 @@ const captureDiagnostics = async (page: Page): Promise<void> => {
   });
 };
 test("workspace shell renders", async ({ page }): Promise<void> => {
+  test.skip(!lessonId, "No NEXT_PUBLIC_DEFAULT_LESSON_ID configured");
   await page.goto(lessonPath);
 
   try {

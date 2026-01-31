@@ -19,9 +19,11 @@ import type * as ingest from "../ingest.js";
 import type * as invites from "../invites.js";
 import type * as lessonCompletions from "../lessonCompletions.js";
 import type * as maintenance from "../maintenance.js";
+import type * as ops from "../ops.js";
 import type * as rateLimits from "../rateLimits.js";
 import type * as resume from "../resume.js";
 import type * as transcripts from "../transcripts.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -41,9 +43,11 @@ declare const fullApi: ApiFromModules<{
   invites: typeof invites;
   lessonCompletions: typeof lessonCompletions;
   maintenance: typeof maintenance;
+  ops: typeof ops;
   rateLimits: typeof rateLimits;
   resume: typeof resume;
   transcripts: typeof transcripts;
+  users: typeof users;
 }>;
 
 /**

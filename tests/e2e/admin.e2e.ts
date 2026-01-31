@@ -3,19 +3,18 @@ import { expect, test } from "@playwright/test";
 test.describe("Admin console", () => {
   test("admin page loads", async ({ page }) => {
     await page.goto("/admin");
-    // With dev auth bypass, this may load or redirect depending on role
+    // With E2E preview mode, AdminGuard is bypassed
     await page.waitForURL(/\/(admin|courses|sign-in)/, { timeout: 10000 });
   });
 
   test.skip("non-admin is redirected away from /admin", async ({ page }) => {
-    // Requires ability to set non-admin role in dev auth bypass
+    // Cannot test without a non-admin user; keep skipped
     await page.goto("/admin");
     await page.waitForURL(/\/(courses|sign-in)/, { timeout: 10000 });
     expect(page.url()).not.toContain("/admin");
   });
 
-  test.skip("admin sidebar navigation works", async ({ page }) => {
-    // Requires admin role via dev auth bypass
+  test("admin sidebar navigation works", async ({ page }) => {
     await page.goto("/admin");
     await expect(page.locator("main")).toBeVisible({ timeout: 15000 });
 
@@ -27,12 +26,13 @@ test.describe("Admin console", () => {
       "Feedback",
       "Analytics",
     ]) {
-      await expect(page.getByText(label)).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText(label).first()).toBeVisible({
+        timeout: 5000,
+      });
     }
   });
 
-  test.skip("admin pages render without errors", async ({ page }) => {
-    // Requires admin role + seeded data
+  test("admin pages render without errors", async ({ page }) => {
     const pages = [
       "/admin",
       "/admin/users",
