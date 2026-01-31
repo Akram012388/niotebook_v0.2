@@ -48,28 +48,8 @@ const XTermView = ({ hint }: XTermViewProps): ReactElement => {
     const container = containerRef.current;
     if (!container) return;
 
-    const terminal = new Terminal({
-      scrollback: 1000,
-      fontSize: 12,
-      fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
-      theme: getTerminalTheme(),
-      cursorBlink: true,
-      convertEol: true,
-      allowProposedApi: true,
-    });
-
-    const fitAddon = new FitAddon();
-    const webLinksAddon = new WebLinksAddon();
-
-    terminal.loadAddon(fitAddon);
-    terminal.loadAddon(webLinksAddon);
-
-    terminal.open(container);
-    fitAddon.fit();
-
-    terminalRef.current = terminal;
-    fitAddonRef.current = fitAddon;
-    setTerminal(terminal);
+    let disposed = false;
+    let onDataDisposable: { dispose: () => void } | null = null;
 
     const safeFit = (): void => {
       const currentTerminal = terminalRef.current;
@@ -86,90 +66,126 @@ const XTermView = ({ hint }: XTermViewProps): ReactElement => {
       }
     };
 
-    // Welcome message
-    try {
-      terminal.writeln("Niotebook Terminal v0.1");
-      terminal.writeln(hintRef.current || DEFAULT_HINT);
-      terminal.write(PROMPT);
-    } catch {
-      // Ignore write errors when terminal is not ready
-    }
-    initializedRef.current = true;
+    const ensureTerminal = (): void => {
+      if (disposed) return;
+      const currentContainer = containerRef.current;
+      if (!currentContainer) return;
+      const rect = currentContainer.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
 
-    // Handle user input
-    const onDataDisposable = terminal.onData((data) => {
-      const store = useTerminalStore.getState();
+      if (!terminalRef.current) {
+        const terminal = new Terminal({
+          scrollback: 1000,
+          fontSize: 12,
+          fontFamily:
+            "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+          theme: getTerminalTheme(),
+          cursorBlink: true,
+          convertEol: true,
+          allowProposedApi: true,
+        });
 
-      // If a custom input handler is set (e.g., for interactive stdin), use it
-      if (store.inputHandler) {
-        store.inputHandler(data);
-        return;
+        const fitAddon = new FitAddon();
+        const webLinksAddon = new WebLinksAddon();
+
+        terminal.loadAddon(fitAddon);
+        terminal.loadAddon(webLinksAddon);
+
+        terminal.open(currentContainer);
+
+        terminalRef.current = terminal;
+        fitAddonRef.current = fitAddon;
+        setTerminal(terminal);
+
+        try {
+          terminal.writeln("Niotebook Terminal v0.1");
+          terminal.writeln(hintRef.current || DEFAULT_HINT);
+          terminal.write(PROMPT);
+        } catch {
+          // Ignore write errors when terminal is not ready
+        }
+        initializedRef.current = true;
+
+        // Handle user input
+        onDataDisposable = terminal.onData((data) => {
+          const store = useTerminalStore.getState();
+
+          // If a custom input handler is set (e.g., for interactive stdin), use it
+          if (store.inputHandler) {
+            store.inputHandler(data);
+            return;
+          }
+
+          // If running, ignore input (no stdin piping yet)
+          if (store.isRunning) return;
+
+          const code = data.charCodeAt(0);
+
+          if (data === "\r" || data === "\n") {
+            // Enter — execute command
+            terminal.writeln("");
+            const cmd = inputBufferRef.current.trim();
+            inputBufferRef.current = "";
+
+            if (cmd.length > 0) {
+              void store.runCommand(cmd).then(() => {
+                terminal.write(PROMPT);
+              });
+            } else {
+              terminal.write(PROMPT);
+            }
+          } else if (code === 127 || data === "\b") {
+            // Backspace
+            if (inputBufferRef.current.length > 0) {
+              inputBufferRef.current = inputBufferRef.current.slice(0, -1);
+              terminal.write("\b \b");
+            }
+          } else if (code === 3) {
+            // Ctrl+C
+            if (store.isRunning) {
+              store.kill();
+            } else {
+              inputBufferRef.current = "";
+              terminal.writeln("^C");
+              terminal.write(PROMPT);
+            }
+          } else if (code >= 32) {
+            // Printable characters
+            inputBufferRef.current += data;
+            terminal.write(data);
+          }
+        });
       }
 
-      // If running, ignore input (no stdin piping yet)
-      if (store.isRunning) return;
-
-      const code = data.charCodeAt(0);
-
-      if (data === "\r" || data === "\n") {
-        // Enter — execute command
-        terminal.writeln("");
-        const cmd = inputBufferRef.current.trim();
-        inputBufferRef.current = "";
-
-        if (cmd.length > 0) {
-          void store.runCommand(cmd).then(() => {
-            terminal.write(PROMPT);
-          });
-        } else {
-          terminal.write(PROMPT);
-        }
-      } else if (code === 127 || data === "\b") {
-        // Backspace
-        if (inputBufferRef.current.length > 0) {
-          inputBufferRef.current = inputBufferRef.current.slice(0, -1);
-          terminal.write("\b \b");
-        }
-      } else if (code === 3) {
-        // Ctrl+C
-        if (store.isRunning) {
-          store.kill();
-        } else {
-          inputBufferRef.current = "";
-          terminal.writeln("^C");
-          terminal.write(PROMPT);
-        }
-      } else if (code >= 32) {
-        // Printable characters
-        inputBufferRef.current += data;
-        terminal.write(data);
-      }
-    });
-
-    // ResizeObserver → fit
-    const resizeObserver = new ResizeObserver(() => {
       safeFit();
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      ensureTerminal();
     });
     resizeObserver.observe(container);
 
-    // Window resize → fit
     const onWindowResize = (): void => {
-      safeFit();
+      ensureTerminal();
     };
     window.addEventListener("resize", onWindowResize);
 
     requestAnimationFrame(() => {
-      safeFit();
+      ensureTerminal();
     });
 
     return () => {
-      onDataDisposable.dispose();
+      disposed = true;
+      onDataDisposable?.dispose();
       resizeObserver.disconnect();
       window.removeEventListener("resize", onWindowResize);
       setTerminal(null);
-      terminal.dispose();
+      if (terminalRef.current) {
+        terminalRef.current.dispose();
+      }
       terminalRef.current = null;
       fitAddonRef.current = null;
+      initializedRef.current = false;
     };
   }, [setTerminal]);
 
@@ -177,6 +193,10 @@ const XTermView = ({ hint }: XTermViewProps): ReactElement => {
     const terminal = terminalRef.current;
     if (!initializedRef.current || !terminal) return;
     if (!terminal.element) return;
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
     if (!hint) return;
     if (isRunning) return;
     if (inputBufferRef.current.length > 0) return;
