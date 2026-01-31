@@ -5,6 +5,7 @@ import { toDomainId } from "./idUtils";
 
 type UserRecord = {
   _id: GenericId<"users">;
+  _creationTime: number;
   tokenIdentifier: string;
   email?: string;
   role: "admin" | "user" | "guest";
@@ -95,4 +96,54 @@ const me = query({
   },
 });
 
-export { upsertUser, me };
+const listAll = query({
+  args: {},
+  handler: async (
+    ctx,
+  ): Promise<
+    Array<{
+      id: string;
+      email?: string;
+      role: "admin" | "user" | "guest";
+      inviteBatchId?: string;
+      createdAt: number;
+    }>
+  > => {
+    const { requireQueryAdmin } = await import("./auth");
+    await requireQueryAdmin(ctx);
+
+    const users = (await ctx.db.query("users").collect()) as UserRecord[];
+
+    return users.map((user) => ({
+      id: toDomainId(user._id),
+      email: user.email,
+      role: user.role,
+      inviteBatchId: user.inviteBatchId,
+      createdAt: user._creationTime,
+    }));
+  },
+});
+
+const updateRole = mutation({
+  args: {
+    userId: v.id("users"),
+    role: v.union(v.literal("admin"), v.literal("user"), v.literal("guest")),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{ ok: boolean }> => {
+    const { requireMutationAdmin } = await import("./auth");
+    await requireMutationAdmin(ctx);
+
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      return { ok: false };
+    }
+
+    await ctx.db.patch(args.userId, { role: args.role });
+    return { ok: true };
+  },
+});
+
+export { upsertUser, me, listAll, updateRole };
