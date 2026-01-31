@@ -76,8 +76,14 @@ function CoursesPage(): ReactElement {
           </p>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {cs50Courses.length > 0
-            ? cs50Courses.map((course) => (
+          {courses === undefined
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-[180px] animate-pulse rounded-xl bg-surface-muted"
+                />
+              ))
+            : cs50Courses.map((course) => (
                 <CourseCard
                   key={course.id}
                   id={course.id}
@@ -90,12 +96,6 @@ function CoursesPage(): ReactElement {
                   }
                   license={course.license}
                   variant="active"
-                />
-              ))
-            : Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-[180px] animate-pulse rounded-xl bg-surface-muted"
                 />
               ))}
         </div>
