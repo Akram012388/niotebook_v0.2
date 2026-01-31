@@ -44,12 +44,24 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
 
     write: (data) => {
       const { terminalRef } = get();
-      terminalRef?.write(data);
+      if (!terminalRef) return;
+      if (!terminalRef.element) return;
+      try {
+        terminalRef.write(data);
+      } catch {
+        return;
+      }
     },
 
     writeLn: (data) => {
       const { terminalRef } = get();
-      terminalRef?.writeln(data);
+      if (!terminalRef) return;
+      if (!terminalRef.element) return;
+      try {
+        terminalRef.writeln(data);
+      } catch {
+        return;
+      }
     },
 
     clear: () => {
@@ -82,18 +94,15 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
 
       try {
         const exitCode = await routeCommand(parsed, get());
-        if (!ac.signal.aborted) {
-          const { terminalRef } = get();
-          if (exitCode !== 0) {
-            terminalRef?.writeln(
-              `\x1b[31mProcess exited with code ${String(exitCode)}\x1b[0m`,
-            );
-          }
+        if (!ac.signal.aborted && exitCode !== 0) {
+          get().writeLn(
+            `\x1b[31mProcess exited with code ${String(exitCode)}\x1b[0m`,
+          );
         }
       } catch (err) {
         if (!ac.signal.aborted) {
           const msg = err instanceof Error ? err.message : "Unknown error";
-          get().terminalRef?.writeln(`\x1b[31mError: ${msg}\x1b[0m`);
+          get().writeLn(`\x1b[31mError: ${msg}\x1b[0m`);
         }
       } finally {
         set({ isRunning: false, abortController: null });
@@ -106,8 +115,7 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
         abortController.abort();
       }
       set({ isRunning: false, abortController: null });
-      const { terminalRef } = get();
-      terminalRef?.writeln("\r\n\x1b[33m^C\x1b[0m");
+      get().writeLn("\r\n\x1b[33m^C\x1b[0m");
 
       // TODO: JS execution via `new Function()` and Pyodide run on the main thread
       // and cannot be truly interrupted mid-execution. The AbortController above

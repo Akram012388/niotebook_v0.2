@@ -19,7 +19,10 @@ const EXTERNAL_IMPORT_HELPER = `
     if (externals[specifier]) {
       return Promise.resolve(externals[specifier]);
     }
-    return import(specifier);
+    if (specifier.startsWith("http://") || specifier.startsWith("https://") || specifier.startsWith("data:")) {
+      return import(specifier);
+    }
+    return import("${EXTERNAL_CDN_BASE}" + specifier);
   };
 })();
 `;
