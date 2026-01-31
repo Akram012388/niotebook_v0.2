@@ -29,7 +29,7 @@ const SignInPage = (): ReactElement => {
               routing="path"
               path="/sign-in"
               signUpUrl="/sign-up"
-              fallbackRedirectUrl="/workspace"
+              fallbackRedirectUrl="/courses"
             />
           </div>
           <div className="hidden w-full max-w-sm md:block">
