@@ -87,7 +87,7 @@ const CodePane = ({
   const [language, setLanguage] = useState<RuntimeLanguage>(
     environment.primaryLanguage,
   );
-  const [, setRuntimeState] = useState<RuntimeState>({
+  const [runtimeState, setRuntimeState] = useState<RuntimeState>({
     language: "js",
     status: "idle",
   });
@@ -110,6 +110,7 @@ const CodePane = ({
   const mainFilePath = useFileSystemStore((s) => s.mainFilePath);
   const files = useFileSystemStore((s) => s.files);
   const openFile = useEditorStore((s) => s.openFile);
+  const terminalIsRunning = useTerminalStore((s) => s.isRunning);
 
   const allowedLanguages = useMemo(() => {
     const candidates =
@@ -320,12 +321,25 @@ const CodePane = ({
     termStore.writeLn(`\x1b[90m$ run ${activeLanguage}\x1b[0m`);
 
     const vfs = useFileSystemStore.getState().vfs;
+    const formatErrorChunk = (chunk: string): string => {
+      const prefix = "\x1b[31m[err]\x1b[0m ";
+      const lines = chunk.split("\n");
+      return lines
+        .map((line, index) => {
+          if (line.length === 0 && index === lines.length - 1) {
+            return "";
+          }
+          return prefix + line;
+        })
+        .join("\n");
+    };
+
     const result = await runRuntime(activeLanguage, {
       code,
       timeoutMs: RUNTIME_TIMEOUT_MS,
       filesystem: vfs,
       onStdout: (chunk: string) => termStore.write(chunk),
-      onStderr: (chunk: string) => termStore.write(`\x1b[31m${chunk}\x1b[0m`),
+      onStderr: (chunk: string) => termStore.write(formatErrorChunk(chunk)),
     });
 
     // Write remaining buffered output not already streamed
@@ -333,7 +347,7 @@ const CodePane = ({
       termStore.write(result.stdout);
     }
     if (result.stderr && !result.stderr.includes("\x00__streamed__")) {
-      termStore.write(`\x1b[31m${result.stderr}\x1b[0m`);
+      termStore.write(formatErrorChunk(result.stderr));
     }
 
     setRuntimeState({
@@ -403,6 +417,9 @@ const CodePane = ({
                 onRun={handleRun}
                 onStop={handleStop}
                 onClear={handleClear}
+                isRunning={
+                  runtimeState.status === "running" || terminalIsRunning
+                }
               />
             </div>
           }

@@ -10,7 +10,10 @@ import { useFileSystemStore } from "../../../infra/vfs/useFileSystemStore";
 import { runRuntime } from "../../../infra/runtime/runtimeManager";
 import { getWasmerBridge } from "../../../infra/runtime/wasmer/WasmerBridge";
 import type { RuntimeLanguage } from "../../../infra/runtime/types";
-import type { TerminalStoreState, TerminalStoreActions } from "./useTerminalStore";
+import type {
+  TerminalStoreState,
+  TerminalStoreActions,
+} from "./useTerminalStore";
 import {
   runEcho,
   runPwd,
@@ -36,6 +39,20 @@ function parseCommand(input: string): ParsedCommand {
 
 type TerminalContext = TerminalStoreState & TerminalStoreActions;
 
+const ERROR_PREFIX = "\x1b[31m[err]\x1b[0m ";
+
+function formatErrorChunk(chunk: string): string {
+  const lines = chunk.split("\n");
+  return lines
+    .map((line, index) => {
+      if (line.length === 0 && index === lines.length - 1) {
+        return "";
+      }
+      return ERROR_PREFIX + line;
+    })
+    .join("\n");
+}
+
 const LANGUAGE_MAP: Record<string, RuntimeLanguage> = {
   python3: "python",
   python: "python",
@@ -45,8 +62,16 @@ const LANGUAGE_MAP: Record<string, RuntimeLanguage> = {
 
 /** Commands that the sandbox bridge can handle. */
 const SANDBOX_COMMANDS = new Set([
-  "python3", "python", "gcc", "clang",
-  "cat", "ls", "echo", "mkdir", "rm", "pwd",
+  "python3",
+  "python",
+  "gcc",
+  "clang",
+  "cat",
+  "ls",
+  "echo",
+  "mkdir",
+  "rm",
+  "pwd",
 ]);
 
 /**
@@ -88,16 +113,11 @@ async function tryRouteThroughSandbox(
   });
 
   try {
-    const result = await bridge.sendCommand(
-      cmd.executable,
-      cmd.args,
-      vfs,
-      {
-        onStdout: (chunk) => terminal.write(chunk),
-        onStderr: (chunk) => terminal.write(`\x1b[31m${chunk}\x1b[0m`),
-        timeoutMs: 30_000,
-      },
-    );
+    const result = await bridge.sendCommand(cmd.executable, cmd.args, vfs, {
+      onStdout: (chunk) => terminal.write(chunk),
+      onStderr: (chunk) => terminal.write(formatErrorChunk(chunk)),
+      timeoutMs: 30_000,
+    });
 
     // Write remaining buffered output not already streamed
     if (result.stdout && !result.stdout.includes("\x00")) {
@@ -124,24 +144,36 @@ async function routeCommand(
   }
 
   if (executable === "echo") {
-    const io = { stdout: (d: string) => terminal.write(d), stderr: (d: string) => terminal.write(`\x1b[31m${d}\x1b[0m`) };
+    const io = {
+      stdout: (d: string) => terminal.write(d),
+      stderr: (d: string) => terminal.write(formatErrorChunk(d)),
+    };
     return runEcho(args, io);
   }
 
   if (executable === "pwd") {
-    const io = { stdout: (d: string) => terminal.write(d), stderr: (d: string) => terminal.write(`\x1b[31m${d}\x1b[0m`) };
+    const io = {
+      stdout: (d: string) => terminal.write(d),
+      stderr: (d: string) => terminal.write(formatErrorChunk(d)),
+    };
     return runPwd(io);
   }
 
   if (executable === "ls") {
     const vfs = useFileSystemStore.getState().vfs;
-    const io = { stdout: (d: string) => terminal.write(d), stderr: (d: string) => terminal.write(`\x1b[31m${d}\x1b[0m`) };
+    const io = {
+      stdout: (d: string) => terminal.write(d),
+      stderr: (d: string) => terminal.write(formatErrorChunk(d)),
+    };
     return runLsVFS(args, vfs, io);
   }
 
   if (executable === "cat") {
     const vfs = useFileSystemStore.getState().vfs;
-    const io = { stdout: (d: string) => terminal.write(d), stderr: (d: string) => terminal.write(`\x1b[31m${d}\x1b[0m`) };
+    const io = {
+      stdout: (d: string) => terminal.write(d),
+      stderr: (d: string) => terminal.write(formatErrorChunk(d)),
+    };
     return runCatVFS(args, vfs, io);
   }
 
@@ -152,7 +184,10 @@ async function routeCommand(
 
   if (executable === "rm") {
     const vfs = useFileSystemStore.getState().vfs;
-    const io = { stdout: (d: string) => terminal.write(d), stderr: (d: string) => terminal.write(`\x1b[31m${d}\x1b[0m`) };
+    const io = {
+      stdout: (d: string) => terminal.write(d),
+      stderr: (d: string) => terminal.write(formatErrorChunk(d)),
+    };
     return runRmVFS(args, vfs, io);
   }
 
@@ -172,27 +207,35 @@ async function routeCommand(
     let code: string;
     if (language === "c" && executable === "gcc") {
       if (args.length === 0) {
-        terminal.writeLn("\x1b[31mgcc: no input files\x1b[0m");
+        terminal.writeLn(formatErrorChunk("gcc: no input files"));
         return 1;
       }
       const filePath = args[0] ?? "";
-      const resolved = filePath.startsWith("/") ? filePath : `/project/${filePath}`;
+      const resolved = filePath.startsWith("/")
+        ? filePath
+        : `/project/${filePath}`;
       const fileContent = vfs.readFile(resolved);
       if (fileContent === null) {
-        terminal.writeLn(`\x1b[31mgcc: ${filePath}: No such file\x1b[0m`);
+        terminal.writeLn(formatErrorChunk(`gcc: ${filePath}: No such file`));
         return 1;
       }
       code = fileContent;
     } else {
       if (args.length === 0) {
-        terminal.writeLn(`\x1b[31m${executable}: missing file argument\x1b[0m`);
+        terminal.writeLn(
+          formatErrorChunk(`${executable}: missing file argument`),
+        );
         return 1;
       }
       const filePath = args[0] ?? "";
-      const resolved = filePath.startsWith("/") ? filePath : `/project/${filePath}`;
+      const resolved = filePath.startsWith("/")
+        ? filePath
+        : `/project/${filePath}`;
       const fileContent = vfs.readFile(resolved);
       if (fileContent === null) {
-        terminal.writeLn(`\x1b[31m${executable}: can't open file '${filePath}'\x1b[0m`);
+        terminal.writeLn(
+          formatErrorChunk(`${executable}: can't open file '${filePath}'`),
+        );
         return 1;
       }
       code = fileContent;
@@ -203,21 +246,21 @@ async function routeCommand(
       timeoutMs: 10_000,
       filesystem: vfs,
       onStdout: (chunk) => terminal.write(chunk),
-      onStderr: (chunk) => terminal.write(`\x1b[31m${chunk}\x1b[0m`),
+      onStderr: (chunk) => terminal.write(formatErrorChunk(chunk)),
     });
 
     if (result.stdout && !result.stdout.startsWith("\x00__streamed__")) {
       terminal.write(result.stdout);
     }
     if (result.stderr && !result.stderr.startsWith("\x00__streamed__")) {
-      terminal.write(`\x1b[31m${result.stderr}\x1b[0m`);
+      terminal.write(formatErrorChunk(result.stderr));
     }
 
     return result.exitCode;
   }
 
   // ── Unknown command ───────────────────────────────────────
-  terminal.writeLn(`\x1b[31m${executable}: command not found\x1b[0m`);
+  terminal.writeLn(formatErrorChunk(`${executable}: command not found`));
   return 127;
 }
 

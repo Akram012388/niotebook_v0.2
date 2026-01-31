@@ -76,6 +76,20 @@ const runRuntime = async (
   input: RuntimeRunInput,
   filesystem?: VirtualFS,
 ): Promise<RuntimeRunResult> => {
+  const streamState = { stdout: false, stderr: false };
+  const stdoutHandler = input.onStdout
+    ? (chunk: string) => {
+        streamState.stdout = true;
+        input.onStdout?.(chunk);
+      }
+    : undefined;
+  const stderrHandler = input.onStderr
+    ? (chunk: string) => {
+        streamState.stderr = true;
+        input.onStderr?.(chunk);
+      }
+    : undefined;
+
   // Try sandbox bridge first if enabled
   if (sandboxEnabled && filesystem) {
     const sandboxCmd = LANGUAGE_TO_COMMAND[language];
@@ -89,16 +103,25 @@ const runRuntime = async (
             ["-c", input.code],
             filesystem,
             {
-              onStdout: input.onStdout,
-              onStderr: input.onStderr,
+              onStdout: stdoutHandler,
+              onStderr: stderrHandler,
               timeoutMs: input.timeoutMs,
             },
           );
-          return {
+          const finalResult = {
             stdout: result.stdout,
             stderr: result.stderr,
             exitCode: result.exitCode,
             runtimeMs: result.runtimeMs,
+          };
+          return {
+            ...finalResult,
+            stdout: streamState.stdout
+              ? "\x00__streamed__"
+              : finalResult.stdout,
+            stderr: streamState.stderr
+              ? "\x00__streamed__"
+              : finalResult.stderr,
           };
         }
       } catch {
@@ -108,7 +131,26 @@ const runRuntime = async (
   }
 
   const executor = await loadExecutor(language);
-  return executor.run(filesystem ? { ...input, filesystem } : input);
+  const result = await executor.run(
+    filesystem
+      ? {
+          ...input,
+          filesystem,
+          onStdout: stdoutHandler,
+          onStderr: stderrHandler,
+        }
+      : {
+          ...input,
+          onStdout: stdoutHandler,
+          onStderr: stderrHandler,
+        },
+  );
+
+  return {
+    ...result,
+    stdout: streamState.stdout ? "\x00__streamed__" : result.stdout,
+    stderr: streamState.stderr ? "\x00__streamed__" : result.stderr,
+  };
 };
 
 const stopRuntime = async (language: RuntimeLanguage): Promise<void> => {
