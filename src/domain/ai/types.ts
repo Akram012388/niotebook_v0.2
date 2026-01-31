@@ -15,6 +15,7 @@ type NioCodePayload = {
   language: string;
   codeHash?: string;
   code?: string;
+  fileName?: string;
 };
 
 type NioLessonMetaPayload = {

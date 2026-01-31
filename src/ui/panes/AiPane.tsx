@@ -122,6 +122,25 @@ const AiPane = ({
     [onSeek],
   );
 
+  const formattedTime = useMemo(() => {
+    const minutes = Math.floor(videoTimeSec / 60);
+    const seconds = Math.floor(videoTimeSec % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  }, [videoTimeSec]);
+
+  const contextStripLabel = useMemo(() => {
+    const parts: string[] = [];
+    if (lectureNumber !== undefined && lectureNumber !== null) {
+      parts.push(`Lecture ${lectureNumber}`);
+    }
+    parts.push(formattedTime);
+    if (codeSnapshot) {
+      const lang = codeSnapshot.language ?? "unknown";
+      parts.push(`${lang}${codeSnapshot.codeHash ? " (modified)" : ""}`);
+    }
+    return parts.join(" · ");
+  }, [lectureNumber, formattedTime, codeSnapshot]);
+
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">
       <header className="flex h-14 items-center justify-between border-b border-border-muted px-4 py-3">
@@ -137,6 +156,11 @@ const AiPane = ({
           </span>
         </div>
       </header>
+      <div className="border-b border-border-muted bg-surface-muted px-4 py-1.5">
+        <p className="truncate text-[11px] text-text-muted">
+          {contextStripLabel}
+        </p>
+      </div>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
         <ChatScroll isStreaming={streamState === "streaming"}>
           {displayMessages.map((message) => (

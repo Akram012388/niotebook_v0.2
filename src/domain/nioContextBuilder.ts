@@ -22,6 +22,7 @@ type NioContextBuildInput = {
   code: NioCodePayload;
   recentMessages: NioChatMessage[];
   userMessage: string;
+  lastError?: string;
 };
 
 type NioContextBudget = {
@@ -90,6 +91,7 @@ const buildContextMessage = (input: {
   transcriptText: string;
   code: NioCodePayload;
   codeText: string;
+  lastError?: string;
 }): string => {
   const {
     lessonId,
@@ -119,11 +121,12 @@ const buildContextMessage = (input: {
 
     return `Lesson: ${lessonId}`;
   })();
+  const fileNamePart = code.fileName ? ` • ${code.fileName}` : "";
   const codeLabel = code.codeHash
-    ? `Code (${code.language} • ${code.codeHash})`
-    : `Code (${code.language})`;
+    ? `Code (${code.language}${fileNamePart} • ${code.codeHash})`
+    : `Code (${code.language}${fileNamePart})`;
 
-  return [
+  const lines = [
     lectureLabel,
     `Video time: ${videoTimestamp} (${Math.floor(videoTimeSec)}s)`,
     `Transcript window: ${windowStart} - ${windowEnd} (±60s)`,
@@ -131,7 +134,13 @@ const buildContextMessage = (input: {
     transcriptText,
     codeLabel + ":",
     codeText,
-  ].join("\n");
+  ];
+
+  if (input.lastError) {
+    lines.push("Last run error:", input.lastError);
+  }
+
+  return lines.join("\n");
 };
 
 const serializeMessages = (messages: NioContextMessage[]): string => {
@@ -200,6 +209,7 @@ const buildNioContext = (
       transcriptText,
       code: input.code,
       codeText,
+      lastError: input.lastError,
     });
 
     const contextMessages: NioContextMessage[] = [
