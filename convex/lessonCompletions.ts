@@ -1,11 +1,12 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { GenericId } from "convex/values";
 import {
   resolveLessonCompletionSummary,
+  type LessonCompletionSummary,
   type LessonCompletionUpsertInput,
 } from "../src/domain/lesson-completions";
-import { requireMutationUser } from "./auth";
+import { requireMutationUser, requireQueryUser } from "./auth";
 import { logEventInternal } from "./events";
 import { toDomainId, toGenericId } from "./idUtils";
 
@@ -119,4 +120,49 @@ const setLessonCompleted = mutation({
   },
 });
 
-export { setLessonCompleted };
+const getCompletionsByCourse = query({
+  args: {
+    courseId: v.id("courses"),
+  },
+  handler: async (ctx, args): Promise<LessonCompletionSummary[]> => {
+    const user = await requireQueryUser(ctx);
+
+    const lessons = await ctx.db
+      .query("lessons")
+      .withIndex("by_courseId", (q) => q.eq("courseId", args.courseId))
+      .collect();
+
+    const completions: LessonCompletionSummary[] = [];
+
+    for (const lesson of lessons) {
+      const completion = (await ctx.db
+        .query("lessonCompletions")
+        .withIndex("by_userId_lessonId", (q) => {
+          const typed =
+            q as unknown as import("convex/server").IndexRangeBuilder<
+              LessonCompletionRecord,
+              LessonCompletionIndexFields
+            >;
+          return typed
+            .eq("userId", toGenericId(user.id))
+            .eq("lessonId", lesson._id);
+        })
+        .first()) as LessonCompletionRecord | null;
+
+      if (completion) {
+        completions.push({
+          id: toDomainId(completion._id as GenericId<"lessonCompletions">),
+          userId: toDomainId(toGenericId(user.id)),
+          lessonId: toDomainId(completion.lessonId as GenericId<"lessons">),
+          completionMethod: completion.completionMethod,
+          completionPct: completion.completionPct,
+          completedAt: completion.completedAt,
+        });
+      }
+    }
+
+    return completions;
+  },
+});
+
+export { getCompletionsByCourse, setLessonCompleted };
