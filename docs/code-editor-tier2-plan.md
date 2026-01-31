@@ -31,12 +31,13 @@
 ### Scope and decisions (locked for this pass)
 
 - Languages: JS, Python, C, HTML, CSS. Cross-file imports and external dependency imports must work and remain consistent.
-- Language selector: right-aligned dropdown in the Code pane header, premium UX, official language names only (JS, Python, C, HTML, CSS).
-- Tree divider: draggable between file tree and editor, width limits 180–360px, remember per user (localStorage).
-- Terminal: 16px inner padding, font size -1px, actions in header as text controls ordered Run, Stop, Clear.
+- Language selector: right-aligned pill matching the V/C/A control style; inline slide-out options expand left, active language excluded, closes on selection/outside click/Esc.
+- Tree divider: draggable between file tree and editor; default width 180px, resizable range 180–300px; persisted per user (localStorage).
+- Terminal: 16px inner padding, font size -1px; actions in terminal header as text controls (Run/Stop/Clear); disabled for HTML/CSS; prompt-only UI with single `$`.
+- Terminal height: minimum ~160px (>=5 lines visible); max and default unchanged.
 - Pane headers: title left, actions right, consistent padding; remove subtitles in Video, Code, AI panes.
 - Color: VS Code-like near-black background for file tree, editor, and terminal, with subtle panel deltas.
-- Output: stdout/stderr merged with subtle prefixes; fix duplicate prints (no double streaming).
+- Output: stdout/stderr merged with subtle prefixes; stream-safe output with no duplicate prints.
 
 ### Execution loop (required)
 
@@ -69,28 +70,28 @@ Master check
 Tasks
 
 - Insert a draggable vertical divider between file tree and editor.
-- Add width limits (180–360px) and persist per user (localStorage).
+- Default file tree width at 180px; allow resize between 180–300px; persist per user (localStorage).
 - Ensure divider works in 1-col and 2-col layouts; hide tree in 3-col layout.
 - Ensure divider is keyboard-accessible and reflows CM6/xterm on resize.
 
 Master check
 
-- Drag limits respected; width persists after reload.
+- Drag limits respected (180–300px); width persists after reload.
 - Divider visible and aligned in both layouts.
 
 ### Phase 3: Language selector + environment sync
 
 Tasks
 
-- Build right-aligned dropdown language selector (premium UX, accessible, official names only).
+- Build right-aligned pill selector aligned to V/C/A style with inline slide-out options (no dropdown).
 - Add `css` to `RuntimeLanguage`, VFS inference, file icons, and CodeMirror language loading.
 - Update sandbox env preset to allow JS, Python, C, HTML, CSS; update language labels.
-- Implement language switching: set main file path, open/create defaults, update runtime warmup, and keep terminal hints in sync.
+- Implement language switching: set main file path, open/create defaults, update runtime warmup.
 - Replace “Sandbox JS” with the selected language label only.
 
 Master check
 
-- Switching languages updates editor content, tab, and terminal hints without errors.
+- Switching languages updates editor content and tabs without errors.
 - Default files are created and `mainFilePath` stays in sync.
 
 ### Phase 4: Runtime output correctness + preview support
@@ -99,12 +100,14 @@ Tasks
 
 - Fix duplicate stdout/stderr by preventing post-run reprints when streaming is enabled.
 - Merge stdout/stderr in terminal with subtle prefixes for errors.
-- Align Run/Stop/Clear with active language and terminal state.
+- Align Run/Stop/Clear with active language and terminal state; disable for HTML/CSS.
+- Enforce prompt-only terminal UI (single `$`, no banner); ensure prompt restored after clear.
 - Ensure HTML preview has a real mount container (`#niotebook-runtime-frame`).
 
 Master check
 
 - Running JS prints once; stderr does not duplicate.
+- Prompt is single `$` with no banner; Run/Stop/Clear disabled for HTML/CSS.
 - HTML preview renders, and terminal remains responsive.
 
 ### Phase 5: Cross-file imports + external dependencies
@@ -114,7 +117,7 @@ Tasks
 - JS: keep VFS `require()` shim and add external dependency resolution (CDN/import map strategy).
 - HTML/CSS: resolve local `script`/`link` from VFS and allow external URLs.
 - Python: mount VFS files for imports; support external packages listed in environment config.
-- C: ensure VFS `#include` resolution and/or Wasmer clang path is consistent.
+- C: ensure VFS `#include` resolution and C output parsing (printf/puts extraction) is consistent; Wasmer clang remains a future upgrade.
 
 Master check
 
@@ -127,7 +130,7 @@ Tasks
 
 - Verify 1-col, 2-col, 3-col layouts for divider, headers, and dark workspace.
 - Validate keyboard accessibility for divider and language selector.
-- Confirm terminal padding, font sizing, and output behavior.
+- Confirm terminal padding, font sizing, prompt behavior, and min height.
 - Capture known follow-ups as a punch list.
 
 Master check
@@ -155,7 +158,7 @@ Master check
 **What this means for implementation:**
 
 - NO touch event handling for split-pane drag — mouse only
-- NO mobile-responsive file tree — fixed 200px sidebar
+- NO mobile-responsive file tree — resizable 180–300px (default 180px)
 - NO mobile considerations in any phase
 - NO `@media (max-width: ...)` breakpoints for editor components
 - NO virtual keyboard handling for xterm.js or CodeMirror
@@ -183,7 +186,7 @@ No backend servers, no paid APIs, no SaaS dependencies. The only "infrastructure
 
 ### Current State
 
-The workspace already includes CM6, VFS, a tabbed editor, file tree, and an xterm terminal. A Wasmer bridge exists for sandbox commands, while CodePane run paths still rely on direct executors for some languages. The remaining gaps for this fix/polish pass are UI polish and behavioral consistency: header clutter, missing language dropdown, non-resizable file tree divider, dark workspace palette not enforced, terminal padding and font sizing, duplicate stdout/stderr, missing HTML preview mount container, and language-switching consistency.
+The workspace already includes CM6, VFS, a tabbed editor, file tree, and an xterm terminal. A Wasmer bridge exists for sandbox commands, while CodePane run paths still rely on direct executors for some languages. The remaining gaps for this fix/polish pass are UI polish and behavioral consistency: file tree width defaults, terminal prompt handling, HTML/CSS action disabling, C runtime placeholder behavior, and consistent dark workspace surfaces.
 
 Code persistence uses Convex snapshots for the main file plus IndexedDB for VFS state; compatibility must be preserved.
 
@@ -243,7 +246,7 @@ import { CodeMirrorEditor } from "./CodeMirrorEditor";
 
 ```
 CodePane
-├── CodePaneHeader          (run/stop/clear + env indicator)
+├── CodePaneHeader          (language selector pill + layout extras)
 ├── SplitPane               (horizontal resizable divider)
 │   ├── EditorArea
 │   │   ├── FileTreeSidebar
@@ -254,10 +257,9 @@ CodePane
 │   │       │   └── EditorTab (per open file)
 │   │       └── CodeMirrorEditor (NEW — built from scratch)
 │   └── TerminalPanel
-│       ├── TerminalToolbar  (clear, kill)
+│       ├── TerminalToolbar  (run, stop, clear)
 │       └── XTermView        (xterm.js instance)
 ├── RuntimeStatus           (existing, enhanced)
-└── LessonEnvBadge          (shows active environment config)
 ```
 
 ### Data Flow
@@ -584,7 +586,7 @@ CodeMirror 6 was not installed when the original Tier 2 plan was drafted. It is 
 # Core CM6 packages — ALL required
 bun add @codemirror/state @codemirror/view @codemirror/language @codemirror/commands \
        @codemirror/autocomplete @codemirror/search @codemirror/lint \
-       @codemirror/lang-javascript @codemirror/lang-python @codemirror/lang-html \
+       @codemirror/lang-javascript @codemirror/lang-python @codemirror/lang-html @codemirror/lang-css \
        @codemirror/lang-cpp
 ```
 
@@ -630,6 +632,7 @@ const languageLoaders: Record<RuntimeLanguage, () => Promise<LanguageSupport>> =
     js: () => import("@codemirror/lang-javascript").then((m) => m.javascript()),
     python: () => import("@codemirror/lang-python").then((m) => m.python()),
     html: () => import("@codemirror/lang-html").then((m) => m.html()),
+    css: () => import("@codemirror/lang-css").then((m) => m.css()),
     c: () => import("@codemirror/lang-cpp").then((m) => m.cpp()), // lang-cpp, NOT lang-c
   };
 
@@ -771,7 +774,7 @@ All custom widgets must have proper ARIA roles:
 
 ```
 EditorArea
-├── FileTreeSidebar (width: 200px, collapsible) [role="tree"]
+├── FileTreeSidebar (default 180px, resizable 180–300px) [role="tree"]
 │   ├── div.header ("Files" + collapse toggle + "+" button)
 │   └── div.tree (scrollable)
 │       └── FileTreeNode (recursive) [role="treeitem"]
@@ -864,7 +867,7 @@ feat(editor): add file tree sidebar and tabbed multi-file editing with CM6
 
 ## Phase 3: xterm.js Terminal ✅ COMPLETED
 
-**Goal:** Real terminal UI powered by xterm.js. Receives stdout/stderr from runtime executions. Supports ANSI colors, cursor movement, scrollback. Later (Phase 4) becomes a real shell.
+**Goal:** Real terminal UI powered by xterm.js. Receives stdout/stderr from runtime executions. Supports ANSI colors, cursor movement, scrollback. Prompt-only UI (single `$`, no banner). Later (Phase 4) becomes a real shell.
 
 ### SSR Safety — MANDATORY
 
@@ -915,10 +918,11 @@ function TerminalSkeleton() {
 | Path                                        | Purpose                                     |
 | ------------------------------------------- | ------------------------------------------- |
 | `src/ui/code/terminal/XTermView.tsx`        | React wrapper around xterm.js Terminal      |
-| `src/ui/code/terminal/TerminalToolbar.tsx`  | Clear, kill, font size controls             |
+| `src/ui/code/terminal/TerminalToolbar.tsx`  | Run/Stop/Clear text controls                |
 | `src/ui/code/terminal/TerminalPanel.tsx`    | Composed: toolbar + XTermView               |
 | `src/ui/code/terminal/useTerminalStore.ts`  | Zustand store for terminal state            |
 | `src/ui/code/terminal/terminalTheme.ts`     | Niotebook light/dark themes for xterm       |
+| `src/ui/code/terminal/terminalPrompt.ts`    | Prompt constant and helpers                 |
 | `src/ui/code/terminal/commandRouter.ts`     | Routes typed commands to executors or shell |
 | `src/ui/code/terminal/TerminalSkeleton.tsx` | Loading placeholder                         |
 
@@ -928,7 +932,7 @@ function TerminalSkeleton() {
 | ------------------------------------- | --------------------------------------------------------------------------------------- |
 | `src/ui/panes/CodePane.tsx`           | Replace `OutputPanel` with `TerminalPanel` (dynamically imported)                       |
 | `src/ui/code/OutputPanel.tsx`         | Deprecate (keep for fallback/legacy)                                                    |
-| `src/infra/runtime/runtimeManager.ts` | Add `runWithTerminal()` that streams output to terminal                                 |
+| `src/infra/runtime/runtimeManager.ts` | Stream output via `runRuntime` callbacks (`onStdout`, `onStderr`)                       |
 | `src/infra/runtime/types.ts`          | Add `onStdout`, `onStderr` callbacks to `RuntimeRunInput`                               |
 | `package.json`                        | Add `@xterm/xterm@^5.5.0`, `@xterm/addon-fit@^0.10.0`, `@xterm/addon-web-links@^0.11.0` |
 
@@ -947,7 +951,8 @@ type TerminalStoreState = {
   // Output
   write: (data: string) => void; // write to terminal
   writeLn: (data: string) => void; // write + newline
-  clear: () => void;
+  writePrompt: () => void; // write a single $ prompt
+  clear: (options?: { withPrompt?: boolean }) => void;
 
   // Input
   onInput: ((data: string) => void) | null;
@@ -987,7 +992,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 
 // Single Terminal instance, fitted to container
-// Reads theme from document.documentElement[data-theme]
+// Uses workspace dark theme
 // onData → routes to commandRouter or sends to running process stdin
 // ResizeObserver → fitAddon.fit()
 ```
@@ -1042,6 +1047,8 @@ export const niotebookLightTerminal: ITheme = {
 };
 ```
 
+Note: the current implementation always uses the dark terminal theme for the code workspace.
+
 ### Streaming Runtime Output
 
 The current `RuntimeRunResult` returns stdout/stderr as complete strings. For terminal support, we add streaming callbacks:
@@ -1075,7 +1082,7 @@ bun add @xterm/xterm@^5.5.0 @xterm/addon-fit@^0.10.0 @xterm/addon-web-links@^0.1
 feat(terminal): add xterm.js terminal with streaming runtime output
 
 - XTermView React component wrapping xterm.js Terminal (dynamic import, SSR-safe)
-- TerminalPanel with toolbar (clear, kill) + loading skeleton
+- TerminalPanel with toolbar (run/stop/clear) + loading skeleton
 - Zustand useTerminalStore for terminal state management
 - commandRouter for parsing and dispatching terminal commands
 - Streaming stdout/stderr callbacks in RuntimeRunInput
@@ -1336,8 +1343,8 @@ function syncWasiToVFS(wasiFs: WasiFileSystem, vfs: VirtualFS): void;
 If Wasmer fails to load (browser incompatibility, missing SharedArrayBuffer):
 
 1. Fall back to **Pyodide** for Python (already mature, battle-tested)
-2. Fall back to **TCC-WASM** for C
-3. Fall back to **native JS `Function()`** for JavaScript (current approach)
+2. Fall back to **C placeholder runner** (printf/puts extraction)
+3. Fall back to **sandboxed JS runtime** (`Function()` in iframe)
 4. Show banner: "Limited mode — some commands unavailable"
 
 ### Dependencies to Install
@@ -1362,7 +1369,7 @@ feat(wasmer): integrate Wasmer/WASIX for real shell commands via iframe isolatio
 - Clang via WASI for real C compilation
 - Coreutils (ls, cat, echo, mkdir, rm) via WASIX
 - VFS ↔ WASI filesystem sync layer
-- Fallback to Pyodide/TCC-WASM when Wasmer unavailable
+- Fallback to Pyodide + C placeholder runner when Wasmer unavailable
 - Safari 16.4+ compatible via iframe isolation approach
 ```
 
@@ -1440,11 +1447,10 @@ async function mountPythonFiles(
 ```typescript
 // src/infra/runtime/imports/cIncludes.ts
 
-// For TCC-WASM (fallback):
+// For C placeholder runner (printf/puts extraction):
 // 1. Scan code for #include "..." (not <...> — those are stdlib)
 // 2. Resolve each to a VFS path
 // 3. Prepend the header content to the compilation unit
-// (TCC-WASM doesn't have a real FS, so we inline everything)
 
 function resolveIncludes(
   code: string,
@@ -1466,11 +1472,15 @@ function resolveIncludes(
 ```typescript
 // src/infra/runtime/imports/jsModules.ts
 
-// Inject a require() shim before user code:
+// Inject a require() shim before user code and resolve external deps via CDN:
 function makeRequireShim(mainPath: string, vfs: VirtualFS): string {
   return `
     const __vfs_files = ${JSON.stringify(vfsToMap(vfs))};
+    globalThis.__external_modules = globalThis.__external_modules || {};
     function require(specifier) {
+      if (globalThis.__external_modules[specifier]) {
+        return globalThis.__external_modules[specifier];
+      }
       const resolved = __resolveModule(specifier, "${mainPath}");
       if (!__vfs_files[resolved]) throw new Error("Cannot find module: " + specifier);
       const module = { exports: {} };
@@ -1490,8 +1500,8 @@ function makeRequireShim(mainPath: string, vfs: VirtualFS): string {
 feat(imports): enable cross-file imports for Python, C, and JS
 
 - Python: mount all .py files to Pyodide FS + sys.path
-- C: resolve #include "..." from VFS, inline for TCC fallback
-- JS: require() shim reading from VFS
+- C: resolve #include "..." from VFS for placeholder runner
+- JS: require() shim reading from VFS + external deps via CDN
 - Common importResolver with relative path + extension resolution
 - Works with both Wasmer (native FS) and fallback executors
 ```
@@ -1529,7 +1539,7 @@ lessons: defineTable({
 | --------------------------------- | ------------------------------------------------------------- |
 | `src/domain/lessonEnvironment.ts` | Pure types + validation for lesson env configs                |
 | `src/infra/runtime/envPresets.ts` | Built-in presets: "cs50x-c", "cs50p-python", "cs50w-js", etc. |
-| `src/ui/code/LessonEnvBadge.tsx`  | Shows active environment (e.g. "CS50x · C")                   |
+| `src/ui/code/LessonEnvBadge.tsx`  | Optional environment badge (not shown in header by default)   |
 | `src/ui/code/EnvSelector.tsx`     | Override selector (for admin/debug)                           |
 | `convex/schema.ts` (extend)       | Add `environmentConfig` field to `lessons` table              |
 | `convex/lessons.ts` (extend)      | Query to fetch lesson environment config                      |
@@ -1690,7 +1700,7 @@ feat(env): add lesson-aware environment configs with presets
 
 - LessonEnvironment type with starter files, packages, runtime settings
 - Built-in presets: cs50x-c, cs50p-python, cs50w-js, cs50ai-python, sandbox
-- LessonEnvBadge component showing active environment
+- Lesson environment config support; badge is optional and not shown in the code header by default
 - VFS auto-populates from lesson template on first load
 - Language tabs filtered by environment allowedLanguages
 - Convex schema extended with optional environmentConfig on lessons table
@@ -2002,16 +2012,16 @@ Phases 1 → 2 → 7 → 3 → 5 → 6 → 4 → 8
 
 ### Risk Register
 
-| Risk                                      | Impact                      | Mitigation                                                    |
-| ----------------------------------------- | --------------------------- | ------------------------------------------------------------- |
-| Wasmer JS SDK instability / wrong package | Phase 4 blocked             | Pre-implementation research step; Pyodide + TCC-WASM fallback |
-| COOP/COEP breaks Clerk/Convex/YouTube     | Auth + video broken         | Iframe isolation — main app NEVER gets COOP/COEP              |
-| SSR crash from browser-only libraries     | Build fails                 | ALL CM6/xterm/Wasmer behind `next/dynamic({ ssr: false })`    |
-| xterm.js bundle size (~130KB)             | Slow initial load           | Dynamic import, lazy load on first terminal reveal            |
-| CM6 bundle size (~200KB)                  | Slow initial load           | Dynamic import, per-language lazy loading                     |
-| IndexedDB unavailable                     | VFS data loss               | Graceful fallback to in-memory + warning banner               |
-| CM6 EditorState memory                    | Memory bloat with many tabs | Limit to 10 open tabs, evict LRU states                       |
-| Safari WASM memory limit (2GB)            | Large programs crash        | Conservative memory limits, test early                        |
+| Risk                                      | Impact                      | Mitigation                                                         |
+| ----------------------------------------- | --------------------------- | ------------------------------------------------------------------ |
+| Wasmer JS SDK instability / wrong package | Phase 4 blocked             | Pre-implementation research step; Pyodide + C placeholder fallback |
+| COOP/COEP breaks Clerk/Convex/YouTube     | Auth + video broken         | Iframe isolation — main app NEVER gets COOP/COEP                   |
+| SSR crash from browser-only libraries     | Build fails                 | ALL CM6/xterm/Wasmer behind `next/dynamic({ ssr: false })`         |
+| xterm.js bundle size (~130KB)             | Slow initial load           | Dynamic import, lazy load on first terminal reveal                 |
+| CM6 bundle size (~200KB)                  | Slow initial load           | Dynamic import, per-language lazy loading                          |
+| IndexedDB unavailable                     | VFS data loss               | Graceful fallback to in-memory + warning banner                    |
+| CM6 EditorState memory                    | Memory bloat with many tabs | Limit to 10 open tabs, evict LRU states                            |
+| Safari WASM memory limit (2GB)            | Large programs crash        | Conservative memory limits, test early                             |
 
 ### Browser Requirements
 
