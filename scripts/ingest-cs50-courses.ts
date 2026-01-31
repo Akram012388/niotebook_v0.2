@@ -567,4 +567,89 @@ export const cs50sql: CoursePayload = {
   ],
 };
 
-export const ALL_COURSES = [cs50x, cs50p, cs50ai, cs50w, cs50sql];
+// ── CS50R ──────────────────────────────────────────────────
+const ENV_CS50R: EnvironmentConfig = {
+  presetId: "cs50r-r",
+  primaryLanguage: "python",
+  allowedLanguages: ["python"],
+};
+
+export const cs50r: CoursePayload = {
+  course: {
+    sourcePlaylistId: "PLhQjrBD2T382yfNp_-xzX244d-O9W6YmD",
+    title: "CS50R — Introduction to Programming with R",
+    description:
+      "An introduction to programming using R, a popular language for statistical computing and graphics in data science and other domains.",
+    license: "CC BY-NC-SA 4.0",
+    sourceUrl: "https://cs50.harvard.edu/r/",
+    youtubePlaylistUrl:
+      "https://www.youtube.com/playlist?list=PLhQjrBD2T382yfNp_-xzX244d-O9W6YmD",
+  },
+  lessons: [
+    {
+      order: 0,
+      title: "Lecture 1 — Representing Data",
+      videoId: "QkqotQEwvxc",
+      durationSec: 5400,
+      ingestVersion: 1,
+      transcriptStatus: "missing",
+      environmentConfig: ENV_CS50R,
+    },
+    {
+      order: 1,
+      title: "Lecture 2 — Transforming Data",
+      videoId: "zBS0Vnq6JcA",
+      durationSec: 5400,
+      ingestVersion: 1,
+      transcriptStatus: "missing",
+      environmentConfig: ENV_CS50R,
+    },
+    {
+      order: 2,
+      title: "Lecture 3 — Applying Functions",
+      videoId: "i0h8vp3A9j8",
+      durationSec: 5400,
+      ingestVersion: 1,
+      transcriptStatus: "missing",
+      environmentConfig: ENV_CS50R,
+    },
+    {
+      order: 3,
+      title: "Lecture 4 — Tidying Data",
+      videoId: "wIPyom1ozW0",
+      durationSec: 5400,
+      ingestVersion: 1,
+      transcriptStatus: "missing",
+      environmentConfig: ENV_CS50R,
+    },
+    {
+      order: 4,
+      title: "Lecture 5 — Visualizing Data",
+      videoId: "ej187bgCIPw",
+      durationSec: 5400,
+      ingestVersion: 1,
+      transcriptStatus: "missing",
+      environmentConfig: ENV_CS50R,
+    },
+    {
+      order: 5,
+      title: "Lecture 6 — Testing Programs",
+      videoId: "T4SktHZ17IU",
+      durationSec: 3600,
+      ingestVersion: 1,
+      transcriptStatus: "missing",
+      environmentConfig: ENV_CS50R,
+    },
+    {
+      order: 6,
+      title: "Lecture 7 — Packaging Programs",
+      videoId: "0q6jwG4ZPYc",
+      durationSec: 3600,
+      ingestVersion: 1,
+      transcriptStatus: "missing",
+      environmentConfig: ENV_CS50R,
+    },
+  ],
+};
+
+export const ALL_COURSES = [cs50x, cs50p, cs50ai, cs50w, cs50sql, cs50r];
