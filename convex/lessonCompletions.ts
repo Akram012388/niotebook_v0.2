@@ -125,7 +125,12 @@ const getCompletionsByCourse = query({
     courseId: v.id("courses"),
   },
   handler: async (ctx, args): Promise<LessonCompletionSummary[]> => {
-    const user = await requireQueryUser(ctx);
+    let user;
+    try {
+      user = await requireQueryUser(ctx);
+    } catch {
+      return [];
+    }
 
     const lessons = await ctx.db
       .query("lessons")
@@ -239,7 +244,12 @@ const getCompletionCountsByCourses = query({
     courseIds: v.array(v.id("courses")),
   },
   handler: async (ctx, args): Promise<Record<string, number>> => {
-    const user = await requireQueryUser(ctx);
+    let user;
+    try {
+      user = await requireQueryUser(ctx);
+    } catch {
+      return {};
+    }
     const counts: Record<string, number> = {};
 
     for (const courseId of args.courseIds) {
