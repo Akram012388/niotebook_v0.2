@@ -28,7 +28,14 @@ const readChatCache = (lessonId: string): ChatCacheMessage[] => {
       return [];
     }
     return parsed.filter(
-      (message) => message && typeof message.content === "string",
+      (message): message is ChatCacheMessage =>
+        message !== null &&
+        typeof message === "object" &&
+        typeof message.id === "string" &&
+        (message.role === "user" || message.role === "assistant") &&
+        typeof message.content === "string" &&
+        typeof message.timestampSec === "number" &&
+        typeof message.createdAt === "number",
     );
   } catch {
     return [];
