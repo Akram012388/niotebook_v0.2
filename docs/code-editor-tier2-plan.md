@@ -673,12 +673,12 @@ function EditorSkeleton() {
 
 ### Files to Modify
 
-| Path                           | Change                                                                                                                                                                                            |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/ui/code/CodeEditor.tsx`   | **COMPLETE REPLACEMENT** — currently a `<textarea>`. Replace entirely with CM6-based editor using `useEditorStore` + `useFileSystemStore`. This is not a refactor — the textarea must be removed. |
-| `src/ui/panes/CodePane.tsx`    | Replace single `CodeEditor` with `EditorArea` + `TerminalPanel` (Phase 3)                                                                                                                         |
-| `src/ui/code/LanguageTabs.tsx` | Deprecate or repurpose as environment selector (Phase 6)                                                                                                                                          |
-| `package.json`                 | Add all `@codemirror/*` packages listed above                                                                                                                                                     |
+| Path                             | Change                                                                                                                                                                                            |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/ui/code/CodeEditor.tsx`     | **COMPLETE REPLACEMENT** — currently a `<textarea>`. Replace entirely with CM6-based editor using `useEditorStore` + `useFileSystemStore`. This is not a refactor — the textarea must be removed. |
+| `src/ui/panes/CodePane.tsx`      | Replace single `CodeEditor` with `EditorArea` + `TerminalPanel` (Phase 3)                                                                                                                         |
+| `src/ui/code/LanguageSelect.tsx` | Language selector pill (Phase 3)                                                                                                                                                                  |
+| `package.json`                   | Add all `@codemirror/*` packages listed above                                                                                                                                                     |
 
 ### Key Interfaces
 
@@ -1095,7 +1095,7 @@ feat(terminal): add xterm.js terminal with streaming runtime output
 
 ## Phase 4: Wasmer/WASIX Integration ✅ COMPLETED
 
-**Goal:** Run real commands in the browser via Wasmer/WASIX. `python3 main.py`, `ls`, `cat file.txt`, `gcc main.c -o main && ./main`. The terminal becomes a real-ish shell.
+**Goal:** Run real commands in the browser via Wasmer/WASIX. `python3 main.py`, `ls`, `cat file.txt`. C compilation is a planned upgrade; current C runs use a placeholder runner. The terminal becomes a real-ish shell.
 
 ### 📋 Implementation Notes (Phase 4 Completed)
 
@@ -1251,7 +1251,7 @@ type SandboxResponse =
 | `src/app/editor-sandbox/page.tsx`             | Isolated iframe page with COOP/COEP headers            |
 | `src/infra/runtime/wasmer/wasmerShell.ts`     | Initialize Wasmer runtime, mount VFS, expose shell     |
 | `src/infra/runtime/wasmer/wasmerPython.ts`    | CPython WASI package config + execution                |
-| `src/infra/runtime/wasmer/wasmerClang.ts`     | Clang WASI package config for C compilation            |
+| `src/infra/runtime/wasmer/wasmerClang.ts`     | Clang WASI package config for C compilation (planned)  |
 | `src/infra/runtime/wasmer/wasmerCoreutils.ts` | `ls`, `cat`, `echo`, `mkdir`, `rm` via WASIX coreutils |
 | `src/infra/runtime/wasmer/wasmerTypes.ts`     | Types for Wasmer integration                           |
 | `src/infra/runtime/wasmer/vfsMount.ts`        | Sync VirtualFS ↔ WASI filesystem                       |
@@ -1263,7 +1263,7 @@ type SandboxResponse =
 | ------------------------------------------ | --------------------------------------------------------------- |
 | `src/infra/runtime/runtimeManager.ts`      | Add Wasmer-backed executors as primary, existing as fallback    |
 | `src/infra/runtime/pythonExecutor.ts`      | Replace stub with real Pyodide OR Wasmer CPython                |
-| `src/infra/runtime/cExecutor.ts`           | Replace stub with Wasmer Clang                                  |
+| `src/infra/runtime/cExecutor.ts`           | Replace placeholder with Wasmer Clang (planned)                 |
 | `src/ui/code/terminal/commandRouter.ts`    | Route shell commands to Wasmer coreutils via iframe bridge      |
 | `src/ui/code/terminal/useTerminalStore.ts` | Add `shellMode: "shell"` for interactive WASIX shell            |
 | `next.config.ts`                           | Add COOP/COEP headers **ONLY on `/editor-sandbox` route**       |
@@ -1286,18 +1286,7 @@ wasmerPython.ts
   ├── Streams stderr → postMessage → parent → terminalStore.write() (red)
   └── Returns exit code → postMessage → parent
 
-User types: gcc main.c -o main && ./main
-  ↓
-commandRouter.ts → detects "gcc", then "./main"
-  ↓
-WasmerBridge.ts → postMessage to iframe
-  ↓ (inside iframe)
-wasmerClang.ts
-  ├── Loads Clang WASI package
-  ├── Mounts VFS
-  ├── Compiles: gcc /project/main.c -o /project/main
-  ├── Writes binary back to VFS (via postMessage fs-write)
-  └── Runs: /project/main → streams output
+Planned C workflow (future): gcc main.c -o main && ./main via Wasmer clang
 ```
 
 ### Key Interfaces
@@ -1551,7 +1540,7 @@ lessons: defineTable({
 | `src/ui/panes/CodePane.tsx`           | Read lesson env config, initialize VFS with template files      |
 | `src/infra/vfs/useFileSystemStore.ts` | `initializeFromTemplate()` populates VFS from config            |
 | `src/infra/runtime/runtimeManager.ts` | Load executor based on env config language (not user selection) |
-| `src/ui/code/LanguageTabs.tsx`        | Only show languages allowed by env config                       |
+| `src/ui/code/LanguageSelect.tsx`      | Only show languages allowed by env config                       |
 
 ### Key Interfaces
 
@@ -1673,7 +1662,7 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     id: "sandbox",
     name: "Sandbox",
     primaryLanguage: "js",
-    allowedLanguages: ["js", "python", "html", "c"],
+    allowedLanguages: ["js", "python", "html", "css", "c"],
     starterFiles: [
       {
         path: "/project/main.js",
@@ -2075,7 +2064,7 @@ All issues have been fixed with atomic commits on the `jarvis/code-editor-tier2`
 | L14 | SplitPane min values naming inconsistency | Pixel-based min constraints with container-aware clamping   |
 | L15 | Nested interactive elements in EditorTab  | `div[role=tab]` + separate `<button>` for close             |
 | L16 | wasmerShell rm sends wrong signal         | `fs-delete` message type + WasmerBridge handler             |
-| L17 | Missing EnvSelector.tsx                   | Created dev-only dropdown for preset switching              |
+| L17 | Missing EnvSelector.tsx                   | Created dev-only selector for preset switching              |
 | L18 | No VFS file size limits                   | MAX_FILE_SIZE (1MB) + MAX_TOTAL_SIZE (50MB) checks          |
 | L19 | kill() can't interrupt running execution  | Documented limitation, TODO for Web Worker migration        |
 | L20 | No test for cs50x-python preset           | Full validation test suite for all 7 presets (28 tests)     |
