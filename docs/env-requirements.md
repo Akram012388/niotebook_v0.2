@@ -99,6 +99,9 @@ For e2e-ready preview deployments, set:
 
 The e2e workflow skips preview deployments that do not expose the readiness marker.
 
+Manual e2e runs must provide a git ref (`inputs.ref`) so the workflow checks out
+the correct commit for the preview URL.
+
 ## Vercel production configuration
 
 Required for production:
