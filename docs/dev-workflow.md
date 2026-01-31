@@ -39,6 +39,7 @@ follow it for layout, navigation, and interaction behavior.
 - Unit tests: `bun run test`
 - E2E (CI-style): `bun run test:e2e`
 - E2E (local): `bun run test:e2e:local` (installs Playwright browsers, uses `webServer`)
+  - Local webServer runs require a preview deploy key (`CONVEX_DEPLOY_KEY` or `CONVEX_PREVIEW_DEPLOY_KEY`).
 - Format: `bun run format` / `bun run format:check`
 
 ## Environments
