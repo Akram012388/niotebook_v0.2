@@ -7,4 +7,4 @@
 ## 2026-01-31
 
 - Docs alignment tag: `code-editor-fix-docs-alignment-2026-01-31`.
-- Updated code editor Tier 2 plan, UI reference, specs, and PRD to match current workspace behavior.
+- Updated code editor Tier 2 plan, UI reference, specs, plan, PRD, and ADR-003 to match current workspace behavior.

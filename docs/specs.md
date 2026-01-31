@@ -26,7 +26,7 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 ### 1.2 Functional core, imperative shell
 
 - **Pure domain layer**: reducers, selectors, validators, context builders.
-- **Impure edges**: Convex I/O, YouTube player API, WebWorker/WASM execution, AI calls.
+- **Impure edges**: Convex I/O, YouTube player API, sandboxed runtime/WASM execution, AI calls.
 
 ### 1.3 Premium UX budget
 

@@ -179,7 +179,7 @@ The code editor was rebuilt from a plain textarea to a professional IDE-like env
 3. **xterm.js Terminal** — `TerminalPanel` with `XTermView`, `TerminalToolbar`, streaming stdout/stderr, Zustand `useTerminalStore`, dark/light themes.
 4. **Wasmer/WASIX Integration** — Iframe sandbox (`/editor-sandbox`) with COOP/COEP headers, `WasmerBridge` postMessage protocol, fallback to Pyodide/builtins.
 5. **Cross-file Imports** — Python (`sys.path` + Pyodide FS mount), C (`#include` resolution from VFS), JS (`require()` shim reading VFS).
-6. **Lesson-aware Environment Configs** — `LessonEnvironment` type with starter files, `environmentConfig` on lessons, `LessonEnvBadge` UI, environment presets.
+6. **Lesson-aware Environment Configs** — `LessonEnvironment` type with starter files, `environmentConfig` on lessons, optional `LessonEnvBadge`, environment presets.
 7. **Split-pane Resizable Layout** — `SplitPane` component (vertical divider between editor and terminal), mouse-drag resize, persisted split ratio.
 8. **Enhanced Autocomplete** — Context-aware completions via `completionProvider`, language-specific keyword/API suggestions.
 
