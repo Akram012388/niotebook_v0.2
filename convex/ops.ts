@@ -289,3 +289,113 @@ const seedE2E = mutation({
 });
 
 export { seedE2E };
+
+import { requireQueryAdmin } from "./auth";
+
+type EventRow = {
+  _id: string;
+  _creationTime: number;
+  userId?: string;
+  lessonId?: string;
+  sessionId?: string;
+  type: string;
+  metadata: Record<string, unknown>;
+  createdAt: number;
+};
+
+const getActiveUsers = query({
+  args: { timeWindowMs: v.number() },
+  handler: async (ctx, args): Promise<number> => {
+    await requireQueryAdmin(ctx);
+
+    const cutoff = Date.now() - args.timeWindowMs;
+    const events = (await ctx.db.query("events").collect()) as unknown as EventRow[];
+
+    const userIds = new Set<string>();
+    for (const event of events) {
+      if (event.createdAt >= cutoff && event.userId) {
+        userIds.add(String(event.userId));
+      }
+    }
+
+    return userIds.size;
+  },
+});
+
+const getSessionCount = query({
+  args: { timeWindowMs: v.number() },
+  handler: async (ctx, args): Promise<number> => {
+    await requireQueryAdmin(ctx);
+
+    const cutoff = Date.now() - args.timeWindowMs;
+    const events = (await ctx.db.query("events").collect()) as unknown as EventRow[];
+
+    const sessionIds = new Set<string>();
+    for (const event of events) {
+      if (event.createdAt >= cutoff && event.sessionId) {
+        sessionIds.add(event.sessionId);
+      }
+    }
+
+    return sessionIds.size;
+  },
+});
+
+const getAiRequestCount = query({
+  args: { timeWindowMs: v.number() },
+  handler: async (ctx, args): Promise<number> => {
+    await requireQueryAdmin(ctx);
+
+    const cutoff = Date.now() - args.timeWindowMs;
+    const events = (await ctx.db
+      .query("events")
+      .withIndex("by_type_createdAt", (q) =>
+        q.eq("type", "nio_message_sent").gte("createdAt", cutoff),
+      )
+      .collect()) as unknown as EventRow[];
+
+    return events.length;
+  },
+});
+
+const getEventLog = query({
+  args: { limit: v.number() },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<
+    Array<{
+      id: string;
+      type: string;
+      userId?: string;
+      sessionId?: string;
+      createdAt: number;
+    }>
+  > => {
+    await requireQueryAdmin(ctx);
+
+    const events = (await ctx.db
+      .query("events")
+      .order("desc")
+      .take(args.limit)) as unknown as EventRow[];
+
+    return events.map((event) => ({
+      id: String(event._id),
+      type: event.type,
+      userId: event.userId ? String(event.userId) : undefined,
+      sessionId: event.sessionId,
+      createdAt: event.createdAt,
+    }));
+  },
+});
+
+const getTotalLessons = query({
+  args: {},
+  handler: async (ctx): Promise<number> => {
+    await requireQueryAdmin(ctx);
+    const lessons = await ctx.db.query("lessons").collect();
+    return lessons.length;
+  },
+});
+
+export { getActiveUsers, getSessionCount, getAiRequestCount, getEventLog, getTotalLessons };
