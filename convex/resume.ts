@@ -224,4 +224,68 @@ const upsertCodeSnapshot = mutation({
   },
 });
 
-export { getCodeSnapshot, getLatestFrame, upsertCodeSnapshot, upsertFrame };
+type ResumeEntry = {
+  courseId: string;
+  courseTitle: string;
+  lessonId: string;
+  lessonTitle: string;
+  videoTimeSec: number;
+  updatedAt: number;
+};
+
+const getResumeData = query({
+  args: {},
+  handler: async (ctx): Promise<ResumeEntry[]> => {
+    const user = await requireQueryUser(ctx);
+
+    const frames = (await ctx.db.query("frames").collect()) as Array<
+      FrameRecord & { _id: GenericId<"frames"> }
+    >;
+
+    const userFrames = frames.filter(
+      (f) => (f.userId as unknown as string) === (toGenericId(user.id) as unknown as string),
+    );
+
+    const latestByLesson = new Map<string, (typeof userFrames)[number]>();
+    for (const frame of userFrames) {
+      const key = frame.lessonId as unknown as string;
+      const existing = latestByLesson.get(key);
+      if (!existing || frame.updatedAt > existing.updatedAt) {
+        latestByLesson.set(key, frame);
+      }
+    }
+
+    const entries: ResumeEntry[] = [];
+    for (const frame of latestByLesson.values()) {
+      const lesson = await ctx.db.get(frame.lessonId as GenericId<"lessons">);
+      if (!lesson) continue;
+      const course = await ctx.db.get(lesson.courseId as GenericId<"courses">);
+      if (!course) continue;
+
+      const courseKey = lesson.courseId as unknown as string;
+      const existingEntry = entries.find((e) => e.courseId === courseKey);
+      if (existingEntry) {
+        if (frame.updatedAt > existingEntry.updatedAt) {
+          existingEntry.lessonId = toDomainId(lesson._id as GenericId<"lessons">) as unknown as string;
+          existingEntry.lessonTitle = lesson.title as string;
+          existingEntry.videoTimeSec = frame.videoTimeSec;
+          existingEntry.updatedAt = frame.updatedAt;
+        }
+      } else {
+        entries.push({
+          courseId: toDomainId(lesson.courseId as GenericId<"courses">) as unknown as string,
+          courseTitle: course.title as string,
+          lessonId: toDomainId(lesson._id as GenericId<"lessons">) as unknown as string,
+          lessonTitle: lesson.title as string,
+          videoTimeSec: frame.videoTimeSec,
+          updatedAt: frame.updatedAt,
+        });
+      }
+    }
+
+    return entries.sort((a, b) => b.updatedAt - a.updatedAt);
+  },
+});
+
+export type { ResumeEntry };
+export { getCodeSnapshot, getLatestFrame, getResumeData, upsertCodeSnapshot, upsertFrame };
