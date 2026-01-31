@@ -323,7 +323,7 @@ const WorkspaceGrid = (): ReactElement => {
 
   if (effectivePreset === "single") {
     return (
-      <div className="flex h-full min-h-0 gap-4">
+      <div className="flex h-full min-h-0 divide-x divide-border">
         {singlePane === "video" ? (
           <div className="flex min-w-0 flex-1">
             <VideoPane
@@ -390,7 +390,7 @@ const WorkspaceGrid = (): ReactElement => {
 
   if (effectivePreset === "split") {
     return (
-      <div className="flex h-full min-h-0 gap-4">
+      <div className="flex h-full min-h-0 divide-x divide-border">
         <div className="flex min-w-0 flex-[3] flex-col min-h-0">
           <div className="flex-1 min-h-0">
             {leftPane === "video" ? (
@@ -451,7 +451,7 @@ const WorkspaceGrid = (): ReactElement => {
             ) : null}
           </div>
         </div>
-        <div className="flex min-w-0 flex-[2] flex-col gap-4 min-h-0">
+        <div className="flex min-w-0 flex-[2] flex-col min-h-0">
           <div className="flex-1 min-h-0">
             {rightPane === "chat" ? (
               <AiPane
