@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useMutation, useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
 import type { ChatMessageSummary, ChatThreadSummary } from "../../domain/chat";
@@ -167,10 +174,21 @@ const useChatThread = (
     return orderChatMessages(messagesPage?.messages ?? []);
   }, [messagesPage]);
 
+  const subscribe = useCallback(() => {
+    return () => {};
+  }, []);
+
+  const isMounted = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
+
   const cachedMessages = useMemo(() => {
+    if (!isMounted) return [];
     const cached = readChatCache(lessonId);
     return cached.map((message) => fromCachedMessage(message, lectureLabel));
-  }, [lectureLabel, lessonId]);
+  }, [isMounted, lectureLabel, lessonId]);
 
   const mergedMessages = useMemo(() => {
     const displayMessages = remoteMessages.map((message) =>
