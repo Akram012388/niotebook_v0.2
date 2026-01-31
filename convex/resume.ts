@@ -236,7 +236,13 @@ type ResumeEntry = {
 const getResumeData = query({
   args: {},
   handler: async (ctx): Promise<ResumeEntry[]> => {
-    const user = await requireQueryUser(ctx);
+    let user;
+    try {
+      user = await requireQueryUser(ctx);
+    } catch {
+      // Not authenticated yet (auth loading) — return empty
+      return [];
+    }
 
     const frames = (await ctx.db.query("frames").collect()) as Array<
       FrameRecord & { _id: GenericId<"frames"> }
