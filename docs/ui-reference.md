@@ -28,7 +28,8 @@ These override any reference UI if there’s a conflict.
 
 2. KISS surfaces
 
-- No resizable panes.
+- Layout presets are fixed (1/2/3-col), no free-form layout resizing.
+- Code workspace may use internal resizable dividers (file tree + terminal).
 - Only **3 fixed layout presets**:
   - **1-col**: 100%
   - **2-col**: 60/40
@@ -38,7 +39,7 @@ These override any reference UI if there’s a conflict.
 3. Core triad (Lesson workspace)
 
 - Video pane: player only (no transcript UI in client)
-- Code pane: notepad-style editor + terminal output + run/stop
+- Code pane: IDE-like workspace (file tree + tabbed editor + terminal output)
 - AI pane: ChatGPT-grade polish and behavior (minimalist, fast, no clutter)
 
 4. The “Sync primitive” must be visible through behavior, not UI clutter
@@ -137,15 +138,16 @@ References:
 
 **Niotebook code pane UX contract**
 
-- Language selector: compact dropdown (C / Python / JS / TS / HTML / CSS).
-- Controls:
+- Language selector: inline pill matching the V/C/A control style (JS / Python / C / HTML / CSS). Options slide out to the left; active language not shown.
+- Controls (terminal header):
   - Run
   - Stop
   - Clear output
-  - (Optional) Reset snippet (per lesson) — defer if not in plan.md
+  - Disabled for HTML/CSS
 - Terminal output:
   - Monospace
   - Shows stdout/stderr clearly
+  - Prompt-only UI with a single `$` (no banner text)
   - Must not feel like a “log dump”; keep spacing readable.
 
 ### 2.5 Video pane (player-first; no transcript UI)
@@ -238,13 +240,13 @@ A Phase‑1 UI scaffold is acceptable when:
 The code pane has been upgraded from a basic textarea to a full IDE-like workspace. See `docs/code-editor-tier2-plan.md` for the complete component tree and architecture.
 
 **Key UI components:**
+
 - **Editor:** CodeMirror 6 with syntax highlighting, auto-indent, bracket matching, search, and enhanced autocomplete.
-- **File tree sidebar** (200px, collapsible): recursive expand/collapse, context menu (new file, new folder, rename, delete). Hidden in triple-column layout.
+- **File tree sidebar** (default 180px, resizable 180–300px): recursive expand/collapse, context menu (new file, new folder, rename, delete). Hidden in triple-column layout.
 - **Tabbed editing:** TabBar with open files, dirty indicators (dot), close buttons. Single EditorView with swappable EditorState per tab.
-- **Split-pane layout:** vertical resizable divider between editor area and terminal. Drag handle, persisted split ratio.
-- **Terminal:** xterm.js with streaming output, clear/kill toolbar.
-- **Lesson environment badge:** shows active environment config in the header.
-- **Header actions:** Run (flushes dirty files to VFS, streams output), Stop (kills process), Clear (clears terminal).
+- **Split-pane layout:** resizable divider between editor area and terminal. Drag handle, persisted split ratio.
+- **Terminal:** xterm.js with streaming output, prompt-only UI (single `$`), Run/Stop/Clear in terminal header (disabled for HTML/CSS).
+- **Header actions:** Language selector pill in code header; run/stop/clear live in terminal header.
 - **Virtual Filesystem (VFS):** in-memory file tree with IndexedDB persistence. Multi-file projects, cross-file imports (Python, C, JS).
 - **Desktop-only:** viewports below 1024px show a friendly message directing users to desktop.
 

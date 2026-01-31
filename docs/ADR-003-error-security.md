@@ -45,7 +45,7 @@ Define baseline failure modes, degradation paths, and security rules for v0.2.
 
 - Wasmer/WASIX runs inside an isolated iframe (`/editor-sandbox`) with COOP/COEP headers. The main app never receives these headers — Clerk, Convex, and YouTube embeds are unaffected.
 - Communication between parent and sandbox iframe uses `window.postMessage()` with origin validation. Messages are typed (`SandboxMessage` / `SandboxResponse`).
-- JavaScript execution uses `Function()` constructor in a Worker (no `eval` on main thread).
+- JavaScript execution uses `Function()` inside a sandboxed iframe (no `eval` on the main app thread).
 - The VFS enforces file size limits (1MB per file, 50MB total) to prevent memory exhaustion.
 
 ### Boundary validation (no any/unknown)

@@ -177,7 +177,7 @@ Layouts are user-selectable per session and persisted.
 
 ## 6) Code editor + execution
 
-You want “notepad-style,” multi-language, and **no perceptible latency when switching languages**.
+You want an IDE-like, multi-language experience with **no perceptible latency when switching languages**.
 
 ### 6.1 Editor choice
 
@@ -199,8 +199,10 @@ Define a uniform executor interface:
 
 Executors run in isolated contexts:
 
-- JS/Python in **WebWorkers**
-- HTML/CSS in sandboxed iframe
+- JS in a sandboxed iframe
+- Python via Pyodide (main thread, streaming output)
+- HTML/CSS in sandboxed iframe preview
+- C currently uses a lightweight placeholder runner (printf/puts extraction); Wasmer/TCC is the planned upgrade
 
 ### 6.3 Latency strategy (how we meet “premium”)
 
@@ -219,26 +221,34 @@ Mechanism:
 
 **JS**
 
-- Native execution in Worker.
+- Sandbox execution in iframe.
 - Capture console.log → stdout.
+- External deps resolved via CDN (esm.sh) for `require()`/dynamic `import()`.
 
 **TS (deferred)**
 
-- Defer TypeScript execution to post‑alpha to reduce runtime complexity.
+- TypeScript remains deferred and is not exposed in the language selector.
 
 **Python**
 
-- Use Pyodide in Worker (lazy load + prefetch + cache).
+- Use Pyodide (lazy load + cache) in the main thread.
 - Expect initial download cost; hide it behind background warm-up.
 
 **HTML/CSS**
 
-- Render into sandboxed iframe; reload on run.
+- Render into sandboxed iframe preview; reload on run.
+- Local `script`/`link` assets are resolved from VFS and injected as blob URLs.
 
 **C (your requirement + KISS premium)**
 To keep the “no latency” feel, avoid heavyweight clang/LLVM toolchains.
 
 **Pragmatic v0.2 approach:**
+
+Current implementation:
+
+- Extracts `printf`/`puts` string literals and streams output (placeholder runtime).
+
+Planned upgrade:
 
 - Use a **Tiny C Compiler (TCC) in-browser** approach (WASM/emulation), compiled and cached as a language pack.
 - This has real prior art: running TCC in a browser via an emulator and executing the produced binary in the same environment. ([GitHub][2])
