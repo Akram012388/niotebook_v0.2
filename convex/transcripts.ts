@@ -40,7 +40,11 @@ const getTranscriptWindow = query({
     endSec: v.number(),
   },
   handler: async (ctx, args): Promise<TranscriptWindowSegment[]> => {
-    await requireQueryWorkspaceUser(ctx);
+    try {
+      await requireQueryWorkspaceUser(ctx);
+    } catch {
+      return [];
+    }
 
     const lowerBound = Math.max(0, args.startSec - TRANSCRIPT_START_PAD_SEC);
 
