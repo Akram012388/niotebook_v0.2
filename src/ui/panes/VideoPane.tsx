@@ -176,7 +176,7 @@ const VideoPane = ({
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">
-      <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
+      <header className="flex min-h-[56px] items-center justify-between border-b border-border-muted px-4 py-3">
         <div>
           <p className="text-sm font-semibold text-foreground">Lesson video</p>
         </div>
