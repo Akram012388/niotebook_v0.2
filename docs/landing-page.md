@@ -12,6 +12,7 @@
 ## Design Philosophy
 
 **North star:** The Claude Code product page. What makes it work:
+
 - Massive white space. Lets the product breathe.
 - One hero statement that tells you everything in 6 words or fewer.
 - A live product demo (animated terminal) that sells without explaining.
@@ -27,14 +28,16 @@
 ## Page Structure
 
 ### 1. Navbar (sticky)
+
 - Left: `niotebook` wordmark (lowercase, Geist Sans, font-semibold)
 - Right: `Log in` text link + `Get started` button (solid accent)
 - Clean, minimal. No other links in alpha. Maybe "About" later.
 - Transparent background, becomes `bg-surface/80 backdrop-blur` on scroll
 
 ### 2. Hero Section
+
 - **Headline:** One powerful line. Options to brainstorm:
-  - "Learn CS. For real." 
+  - "Learn CS. For real."
   - "Watch. Code. Learn."
   - "The CS50 workspace."
   - "Where lectures become code."
@@ -46,6 +49,7 @@
 - Generous vertical padding (py-32 to py-40). Let it breathe.
 
 ### 3. Product Demo (the money shot)
+
 - Full-width screenshot or embedded preview of the 3-pane workspace
 - Shows: YouTube lecture playing | Code editor with syntax highlighting | AI chat with a contextual response
 - **Option A:** Static high-quality screenshot with subtle shadow/glow
@@ -56,17 +60,19 @@
 - Below the hero, spanning ~80-90% width, with a gentle `shadow-2xl` and `rounded-xl`
 
 ### 4. Value Pillars (3 columns)
+
 Three pillars that explain the "why." Clean icons (Phosphor icons, matching existing codebase), bold label, one-line description.
 
-| Icon | Pillar | Description |
-|------|--------|-------------|
-| 🎬 Play | **Watch lectures** | Harvard's CS50 courses, beautifully embedded. Pick up where you left off. |
-| ⌨️ Code | **Code along** | Real editor with syntax highlighting, terminal, and multi-file support. Run code instantly. |
-| 🤖 AI | **Get unstuck** | AI tutor synced to your video timestamp and code. Context-aware help, not generic answers. |
+| Icon    | Pillar             | Description                                                                                 |
+| ------- | ------------------ | ------------------------------------------------------------------------------------------- |
+| 🎬 Play | **Watch lectures** | Harvard's CS50 courses, beautifully embedded. Pick up where you left off.                   |
+| ⌨️ Code | **Code along**     | Real editor with syntax highlighting, terminal, and multi-file support. Run code instantly. |
+| 🤖 AI   | **Get unstuck**    | AI tutor synced to your video timestamp and code. Context-aware help, not generic answers.  |
 
 Layout: `grid-cols-3` on desktop, `grid-cols-1` stacked on... wait, desktop only. So just `grid-cols-3`, centered, max-width constrained.
 
 ### 5. The Differentiator (single statement section)
+
 One bold statement that separates niotebook from everything else. Full-width centered text.
 
 > **"Not another chatbot. A workspace."**
@@ -78,6 +84,7 @@ or
 Small paragraph below: "Most learning platforms give you videos OR a code editor OR an AI chatbot. niotebook gives you all three, synchronized in real-time. When you're at minute 12:34 of a lecture, your AI tutor knows exactly what you're learning."
 
 ### 6. How It Works (3 steps)
+
 Simple numbered steps with subtle connecting line:
 
 1. **Pick a course** — Start with Harvard's CS50x, CS50P, CS50W, or CS50 AI.
@@ -85,15 +92,18 @@ Simple numbered steps with subtle connecting line:
 3. **Ask for help** — The AI tutor knows your video timestamp, your code, and your course. It's like office hours, 24/7.
 
 ### 7. Course Catalog (optional for alpha)
+
 Grid of available courses with thumbnails. Could be as simple as:
+
 - CS50x 2026 — Introduction to Computer Science
-- CS50P — Programming with Python  
+- CS50P — Programming with Python
 - CS50W — Web Programming
 - CS50 AI — Artificial Intelligence
 
 Each card: course thumbnail (YouTube playlist image), title, subtitle, lesson count. Click → goes to workspace with that course selected.
 
 ### 8. Footer
+
 - Left: `niotebook` wordmark + "© 2026"
 - Right: minimal links — `About` | `GitHub` (if open source) | `Contact`
 - Or even simpler: just the wordmark and copyright. Alpha doesn't need more.
@@ -104,15 +114,15 @@ Each card: course thumbnail (YouTube playlist image), title, subtitle, lesson co
 
 Already defined in `globals.css`:
 
-| Token | Light | Dark |
-|-------|-------|------|
-| `--background` | `#f8fafc` | `#0f172a` |
-| `--foreground` | `#0f172a` | `#e2e8f0` |
-| `--surface` | `#ffffff` | `#111827` |
-| `--surface-muted` | `#f1f5f9` | `#1e293b` |
-| `--accent` | `#0f172a` | `#f8fafc` |
+| Token                 | Light     | Dark      |
+| --------------------- | --------- | --------- |
+| `--background`        | `#f8fafc` | `#0f172a` |
+| `--foreground`        | `#0f172a` | `#e2e8f0` |
+| `--surface`           | `#ffffff` | `#111827` |
+| `--surface-muted`     | `#f1f5f9` | `#1e293b` |
+| `--accent`            | `#0f172a` | `#f8fafc` |
 | `--accent-foreground` | `#f8fafc` | `#0f172a` |
-| `--text-muted` | `#64748b` | `#94a3b8` |
+| `--text-muted`        | `#64748b` | `#94a3b8` |
 
 **Fonts:** Geist Sans (body) + Geist Mono (code accents) — already imported in the app.
 
@@ -123,6 +133,7 @@ Already defined in `globals.css`:
 ## Technical Architecture
 
 ### Route Structure
+
 Currently `/` renders the workspace directly. For the landing page:
 
 - `/` — Landing page (public, no auth required)
@@ -130,12 +141,14 @@ Currently `/` renders the workspace directly. For the landing page:
 - `/login` — Clerk sign-in
 
 This means:
+
 1. Create `src/app/(landing)/page.tsx` — landing page
 2. Create `src/app/(landing)/layout.tsx` — landing layout (no workspace shell, no sidebar)
 3. Move workspace to `src/app/workspace/page.tsx` (or use route groups)
 4. Update redirects: authenticated users hitting `/` could auto-redirect to `/workspace`
 
 ### Components to Create
+
 - `src/ui/landing/LandingNav.tsx` — minimal navbar
 - `src/ui/landing/HeroSection.tsx` — headline + CTA
 - `src/ui/landing/ProductDemo.tsx` — workspace screenshot in browser frame
@@ -146,6 +159,7 @@ This means:
 - `src/ui/landing/LandingFooter.tsx` — minimal footer
 
 ### Animation Strategy
+
 - **Intersection Observer** for scroll-triggered fade-in animations
 - CSS only — no heavy animation libraries
 - `transition-all duration-700 ease-out` for section entries
@@ -153,9 +167,11 @@ This means:
 - Keep it tasteful. This is premium, not flashy.
 
 ### Responsive (Desktop-only)
+
 Per Akram's directive: viewports below 1024px get a friendly "niotebook is best experienced on desktop" message. Landing page is the exception — it should look good on mobile too for shareability (someone shares the link on Twitter, opens on phone). But the workspace redirect is desktop-only.
 
 **Landing page responsive strategy:**
+
 - Desktop (1024px+): Full 3-column layouts, large hero
 - Tablet (768-1023px): 2-column where needed, slightly smaller hero
 - Mobile (<768px): Single column, stacked. Still looks good. CTA still prominent.
@@ -185,21 +201,21 @@ Per Akram's directive: viewports below 1024px get a friendly "niotebook is best 
 
 ## Estimated Effort
 
-| Component | Hours |
-|-----------|-------|
-| Route restructuring (`/` → landing, `/workspace` → app) | 2 |
-| LandingNav | 1 |
-| HeroSection | 2 |
-| ProductDemo (screenshot + browser frame) | 3 |
-| ValuePillars | 1 |
-| Differentiator | 0.5 |
-| HowItWorks | 1.5 |
-| CourseCatalog (optional) | 2 |
-| LandingFooter | 0.5 |
-| Scroll animations | 1.5 |
-| Desktop-only gate | 1 |
-| Polish + responsive | 2 |
-| **Total** | **~18 hours** |
+| Component                                               | Hours         |
+| ------------------------------------------------------- | ------------- |
+| Route restructuring (`/` → landing, `/workspace` → app) | 2             |
+| LandingNav                                              | 1             |
+| HeroSection                                             | 2             |
+| ProductDemo (screenshot + browser frame)                | 3             |
+| ValuePillars                                            | 1             |
+| Differentiator                                          | 0.5           |
+| HowItWorks                                              | 1.5           |
+| CourseCatalog (optional)                                | 2             |
+| LandingFooter                                           | 0.5           |
+| Scroll animations                                       | 1.5           |
+| Desktop-only gate                                       | 1             |
+| Polish + responsive                                     | 2             |
+| **Total**                                               | **~18 hours** |
 
 ---
 

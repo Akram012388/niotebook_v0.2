@@ -21,12 +21,14 @@ Target: Private alpha (5–20 testers). CS50 library (CS50x 2026, CS50P, CS50AI,
 Branch: `fix/core-polish`
 
 #### A1 — AI Chat Streaming + Markdown Rendering
+
 - Verify SSE streaming end-to-end (`src/app/api/nio/route.ts` → `useChatThread.ts`).
 - Add markdown renderer for assistant messages (code blocks with syntax highlighting, inline code, lists, bold/italic).
 - Ensure streaming tokens render markdown incrementally without layout shifts.
 - Files: `src/ui/chat/ChatMessage.tsx`, `src/ui/chat/ChatScroll.tsx`, `src/ui/panes/AiPane.tsx`, `package.json`.
 
 #### A2 — Terminal Runtime Correctness
+
 - Verify JS executor: console.log, console.error, multi-line, async/await, imports.
 - Verify Python executor (Pyodide): print, input(), imports, multi-file.
 - Verify C executor: check stub status, wire Wasmer bridge if ready, document limitations.
@@ -34,12 +36,14 @@ Branch: `fix/core-polish`
 - Files: `src/infra/runtime/*.ts`, `src/ui/code/terminal/commandRouter.ts`.
 
 #### A3 — Learning Pulse: Context Strip + Smarter Nio
+
 - Add context strip to AiPane header: `Lecture 3 · 12:34 · main.py (modified)`.
 - Enrich `nioContextBuilder.ts` with file name, language, last run error output.
 - Update `nioPrompt.ts` to leverage visible context.
 - Files: `src/ui/panes/AiPane.tsx`, `src/domain/nioContextBuilder.ts`, `src/domain/nioPrompt.ts`.
 
 #### A4 — Share & Feedback Wiring
+
 - Connect Share buttons to clipboard + Web Share API (with fallback).
 - Add `feedback` table to `convex/schema.ts`.
 - Create `convex/feedback.ts` mutation to store feedback submissions.
@@ -47,11 +51,13 @@ Branch: `fix/core-polish`
 - Files: `src/ui/shell/ControlCenterDrawer.tsx`, `convex/schema.ts`, `convex/feedback.ts`.
 
 #### A5 — Sign-In Page Terminal Aesthetic
+
 - Add terminal boot sequence animation next to Clerk card (right side).
 - Monospace font, typing animation: `> initializing learning environment...`, `> loading CS50 runtime...`, `> ready.`
 - Files: `src/app/sign-in/[[...sign-in]]/page.tsx`, `src/ui/auth/BootSequence.tsx`.
 
 #### A6 — UI Fixes
+
 - Fix typo "best experinced" → "best experienced" in WorkspaceShell.
 - Wire User panel in ControlCenterDrawer (email, role, sign-out).
 - Files: `src/ui/layout/WorkspaceShell.tsx`, `src/ui/shell/ControlCenterDrawer.tsx`.
@@ -61,6 +67,7 @@ Branch: `fix/core-polish`
 Branch: `feat/courses-route`
 
 #### B1 — Courses Route (`/courses`)
+
 - New Next.js route, protected by auth. Accessible on all viewports (mobile: browse-only, no video/workspace).
 - Layout: "niotebook" nav, user avatar, theme toggle, sign-out.
 - Carousel rows (Apple TV+ / Netflix style):
@@ -70,6 +77,7 @@ Branch: `feat/courses-route`
 - Files: `src/app/courses/page.tsx`, `src/ui/courses/`.
 
 #### B2 — Course Detail Page (`/courses/[courseId]`)
+
 - Course header: title, description, provider, license, source URL.
 - Progress bar: X/Y lectures completed.
 - Lecture list: ordered, title, duration, completion status.
@@ -77,18 +85,21 @@ Branch: `feat/courses-route`
 - Files: `src/app/courses/[courseId]/page.tsx`, `src/ui/courses/`.
 
 #### B3 — Course Card Component
+
 - Minimalist card: title, provider badge, lecture count, progress bar.
 - Hover: scale + shadow lift. Auto-sliding carousel (CSS scroll-snap).
 - "Coming Soon" variant: greyed out, lock icon.
 - Files: `src/ui/courses/CourseCard.tsx`, `src/ui/courses/CourseCarousel.tsx`.
 
 #### B4 — Update User Journey Routing
+
 - Post-auth redirect: `/courses` instead of `/workspace`.
 - `/workspace` requires `lessonId` query param.
 - Update Clerk `afterSignInUrl`/`afterSignUpUrl`.
 - Files: `src/app/layout.tsx`, `src/app/providers.tsx`, middleware.
 
 #### B5 — Resume Experience
+
 - Query `frames` for last active lesson per course.
 - "Continue" card: course name, lecture title, video timestamp, code language.
 - Files: `convex/resume.ts`, `src/ui/courses/ResumeCard.tsx`.
@@ -98,23 +109,28 @@ Branch: `feat/courses-route`
 Branch: `feat/admin-console`
 
 #### C1 — Admin Route & Layout
+
 - `/admin` route protected by admin role.
 - Sidebar nav: Dashboard, Users, Invites, Feedback, Events.
 - Files: `src/app/admin/layout.tsx`, `src/app/admin/page.tsx`.
 
 #### C2 — Invite Management
+
 - Generate invite codes (single/batch), track status, revoke.
 - Files: `src/app/admin/invites/page.tsx`, `convex/invites.ts`.
 
 #### C3 — User Management
+
 - List users (email, role, joined, last active), change roles, view activity.
 - Files: `src/app/admin/users/page.tsx`, `convex/users.ts`.
 
 #### C4 — Feedback Dashboard
+
 - List feedback submissions, filter by category, sort by date/rating.
 - Files: `src/app/admin/feedback/page.tsx`, `convex/feedback.ts`.
 
 #### C5 — Analytics Dashboard
+
 - Active users, sessions, AI requests, per-course stats, provider distribution, event log viewer.
 - Files: `src/app/admin/analytics/page.tsx`, `convex/ops.ts`.
 
@@ -123,17 +139,20 @@ Branch: `feat/admin-console`
 Branch: `feat/content-expansion`
 
 #### D1 — Ingest CS50 Course Library
+
 - Run ingest for CS50P, CS50AI, CS50W, CS50SQL (data ready).
 - Add/verify lesson environment presets per course.
 - Files: `convex/ingest.ts`, `src/domain/lessonEnvironment.ts`.
 
 #### D2 — Progress Tracking UI
+
 - Lesson completion: auto (video >90%) or manual ("Mark Complete").
 - Course progress from `lessonCompletions` table, surfaced in course cards and detail page.
 - Connect to Learning Pulse: Nio references progress.
 - Files: `convex/lessonCompletions.ts`, `src/ui/courses/`.
 
 #### D3 — Hardcoded Coming Soon Cards
+
 - Static config: `src/ui/courses/comingSoonCourses.ts`.
 - Entries: MIT 6.006, Stanford CS106A, Google IT Cert, Meta Frontend Dev, etc.
 - Rendered as greyed-out CourseCard variant.
@@ -144,6 +163,7 @@ Branch: `feat/content-expansion`
 Branch: `test/e2e-alpha`
 
 #### E1 — E2E Test Suite
+
 - Auth flow: sign in → redirect to /courses.
 - Course browsing: navigate, view detail, click lecture.
 - Workspace: lesson load, editor, terminal, video.
@@ -152,27 +172,32 @@ Branch: `test/e2e-alpha`
 - Files: `tests/e2e/*.e2e.ts`.
 
 #### E2 — Unit Test Gaps
+
 - Markdown rendering, course components, admin mutations, runtime executors.
 - Files: `tests/unit/`.
 
 ### Execution Order
 
 **Phase 1 — Foundation (sequential):**
+
 1. A1: AI streaming + markdown rendering.
 2. A2: Terminal runtime correctness.
 3. A6: Quick UI fixes.
 
 **Phase 2 — Parallel (git worktrees):**
+
 - Worktree 1: A3 + A4 + A5 (polish in existing routes).
 - Worktree 2: B1–B5 (courses route — entirely new files).
 - Worktree 3: C1–C5 (admin console — entirely new files).
 
 **Phase 3 — Integration:**
+
 - D1: Ingest remaining CS50 courses.
 - D2 + D3: Progress tracking + coming soon cards (after B merged).
 - B4: Update routing (after B + A stable).
 
 **Phase 4 — Quality:**
+
 - E1 + E2: E2E and unit tests.
 - Landing page demo video (screen recording after workspace polished).
 
