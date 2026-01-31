@@ -54,9 +54,9 @@ follow it for layout, navigation, and interaction behavior.
 - Semgrep: `p/security-audit` ruleset, fails PR on findings (`.github/workflows/semgrep.yml`).
 - E2E: triggered by Vercel preview deploy via `repository_dispatch` with `BASE_URL` (`.github/workflows/e2e.yml`).
   - Runs only when the deployed preview exposes the `niotebook-e2e` marker.
-  - Skips non-`main` refs for repository dispatch to reduce noise.
   - Skips if the deploy payload does not include a git ref (prevents main fallback).
   - Manual runs require both `base_url` and `ref` inputs.
+  - Required for main merges; preview deploys run e2e for any ref.
 - Preview-data refresh: nightly + manual (`.github/workflows/preview-data-refresh.yml`) using token-gated ingest/verify.
 - Prod refresh (ingest): manual (`.github/workflows/prod-refresh.yml`) using token-gated ingest/verify.
 - Vercel build command: `bun run build` only (Convex deploy handled by GitHub workflows).

@@ -10,3 +10,4 @@
 - Updated code editor Tier 2 plan, UI reference, specs, plan, PRD, and ADR-003 to match current workspace behavior.
 - E2E workflow: skip runs when Vercel payload is missing a ref to avoid falling back to main.
 - Local e2e: allow preview deploy key from `CONVEX_PREVIEW_DEPLOY_KEY`.
+- E2E workflow: run preview deployments for any ref to satisfy required checks.

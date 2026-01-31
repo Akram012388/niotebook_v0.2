@@ -153,13 +153,6 @@ jobs:
               skip_reason = (
                   "base URL is production (niotebook-v0-2.vercel.app)"
               )
-          if (
-              skip_reason is None
-              and event_name == "repository_dispatch"
-              and branch_ref
-              and branch_ref != "main"
-          ):
-              skip_reason = f"ref is {branch_ref} (only main allowed)"
 
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
               handle.write(f"CHECKOUT_REF={ref}\n")

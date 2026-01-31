@@ -101,6 +101,8 @@ For e2e-ready preview deployments, set:
 - `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS=true`
 
 The e2e workflow skips preview deployments that do not expose the readiness marker.
+Repository dispatch runs rely on the Vercel payload providing a git ref so the
+correct commit is checked out for the preview URL.
 
 Manual e2e runs must provide a git ref (`inputs.ref`) so the workflow checks out
 the correct commit for the preview URL.
