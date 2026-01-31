@@ -95,10 +95,19 @@ function useSplitPane({
   storageKey,
   containerRef: externalContainerRef,
 }: UseSplitPaneOptions): UseSplitPaneReturn {
+  const [storedRatio] = useState<number | null>(() => loadRatio(storageKey));
+  const storedRatioRef = useRef<number | null>(storedRatio);
+  const initialSplitRef = useRef(initialSplit);
+  const didApplyInitialSplitRef = useRef(false);
+
   const [ratio, setRatio] = useState<number>(() => {
-    const stored = loadRatio(storageKey);
-    // On initial render we don't have container size, so trust the stored/initial value
-    return stored ?? initialSplit;
+    if (storedRatio !== null) {
+      return storedRatio;
+    }
+    if (initialSplit > 1) {
+      return 0.2;
+    }
+    return initialSplit;
   });
 
   const [isDragging, setIsDragging] = useState(false);
@@ -161,8 +170,12 @@ function useSplitPane({
         ? container.getBoundingClientRect().height
         : container.getBoundingClientRect().width
       : undefined;
+    const baseRatio =
+      initialSplitRef.current > 1 && total
+        ? initialSplitRef.current / total
+        : initialSplitRef.current;
     const clamped = clampRatio(
-      initialSplit,
+      baseRatio,
       minFirst,
       minSecond,
       total,
@@ -204,8 +217,18 @@ function useSplitPane({
     if (!container) return;
     const rect = container.getBoundingClientRect();
     const total = direction === "vertical" ? rect.height : rect.width;
+    let baseRatio = ratioRef.current;
+    if (
+      !didApplyInitialSplitRef.current &&
+      storedRatioRef.current === null &&
+      initialSplitRef.current > 1 &&
+      total > 0
+    ) {
+      baseRatio = initialSplitRef.current / total;
+      didApplyInitialSplitRef.current = true;
+    }
     const clamped = clampRatio(
-      ratioRef.current,
+      baseRatio,
       minFirst,
       minSecond,
       total,
@@ -213,9 +236,15 @@ function useSplitPane({
       maxSecond,
     );
     if (clamped !== ratioRef.current) {
-      setRatio(clamped);
-      saveRatio(storageKey, clamped);
-      window.dispatchEvent(new Event("resize"));
+      const raf = window.requestAnimationFrame(() => {
+        if (clamped === ratioRef.current) return;
+        setRatio(clamped);
+        saveRatio(storageKey, clamped);
+        window.dispatchEvent(new Event("resize"));
+      });
+      return () => {
+        window.cancelAnimationFrame(raf);
+      };
     }
   }, [
     direction,

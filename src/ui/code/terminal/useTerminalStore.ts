@@ -5,6 +5,7 @@
  * output writing, and command execution lifecycle.
  */
 import { create } from "zustand";
+import { TERMINAL_PROMPT } from "./terminalPrompt";
 import type { Terminal } from "@xterm/xterm";
 
 type ShellMode = "command" | "interactive" | "shell";
@@ -66,7 +67,13 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
 
     clear: () => {
       const { terminalRef } = get();
-      terminalRef?.clear();
+      if (!terminalRef) return;
+      try {
+        terminalRef.clear();
+      } catch {
+        return;
+      }
+      get().write(TERMINAL_PROMPT);
     },
 
     setInputHandler: (handler) => {

@@ -14,6 +14,7 @@ import { useLayoutPreset } from "../layout/LayoutPresetContext";
 import { useEditorStore } from "../code/useEditorStore";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
 import { useTerminalStore } from "../code/terminal/useTerminalStore";
+import { TERMINAL_PROMPT } from "../code/terminal/terminalPrompt";
 import { LanguageSelect } from "../code/LanguageSelect";
 import type { EventLogResult } from "../../domain/events";
 import type { CodeSnapshotSummary } from "../../domain/resume";
@@ -318,6 +319,7 @@ const CodePane = ({
 
     // Stream output to terminal
     const termStore = useTerminalStore.getState();
+    termStore.write("\x1b[2K\r");
     termStore.writeLn(`\x1b[90m$ run ${activeLanguage}\x1b[0m`);
 
     const vfs = useFileSystemStore.getState().vfs;
@@ -358,6 +360,7 @@ const CodePane = ({
         ? "Runtime timed out"
         : `${activeLanguage.toUpperCase()} runtime ready`,
     });
+    termStore.write(TERMINAL_PROMPT);
   };
 
   const handleStop = useCallback((): void => {
@@ -382,22 +385,6 @@ const CodePane = ({
     },
     [allowedLanguages],
   );
-
-  const terminalHint = useMemo(() => {
-    switch (activeLanguage) {
-      case "python":
-        return "Type a command: python3 main.py, ls, cat, echo, clear";
-      case "c":
-        return "Type a command: gcc main.c, ls, cat, echo, clear";
-      case "html":
-        return "Preview HTML with Run. Commands: ls, cat, echo, clear";
-      case "css":
-        return "CSS previews via HTML. Commands: ls, cat, echo, clear";
-      case "js":
-      default:
-        return "Type a command: node main.js, ls, cat, echo, clear";
-    }
-  }, [activeLanguage]);
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-border bg-surface">
@@ -437,7 +424,6 @@ const CodePane = ({
                 isRunning={
                   runtimeState.status === "running" || terminalIsRunning
                 }
-                hint={terminalHint}
               />
             </div>
           }

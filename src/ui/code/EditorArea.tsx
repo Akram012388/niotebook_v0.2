@@ -29,9 +29,9 @@ const EditorArea = ({ showFileTree }: EditorAreaProps): ReactElement => {
     <div className="flex min-h-0 h-full flex-1 bg-workspace-editor">
       <SplitPane
         direction="horizontal"
-        initialSplit={0.22}
+        initialSplit={180}
         minFirst={180}
-        maxFirst={360}
+        maxFirst={300}
         minSecond={240}
         storageKey="niotebook:split-file-tree"
         first={

@@ -14,35 +14,24 @@ import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
 
+import { TERMINAL_PROMPT } from "./terminalPrompt";
 import { useTerminalStore } from "./useTerminalStore";
 import { niotebookDarkTerminal } from "./terminalTheme";
 
-const PROMPT = "\x1b[32m$ \x1b[0m";
-const DEFAULT_HINT =
-  "Type a command: python3 main.py, node main.js, ls, cat, echo, clear";
+const PROMPT = TERMINAL_PROMPT;
 
 function getTerminalTheme(): import("@xterm/xterm").ITheme {
   return niotebookDarkTerminal;
 }
 
-type XTermViewProps = {
-  hint: string;
-};
-
-const XTermView = ({ hint }: XTermViewProps): ReactElement => {
+const XTermView = (): ReactElement => {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const inputBufferRef = useRef("");
-  const hintRef = useRef(hint);
-  const initializedRef = useRef(false);
+  const promptPendingRef = useRef(false);
 
   const setTerminal = useTerminalStore((s) => s.setTerminal);
-  const isRunning = useTerminalStore((s) => s.isRunning);
-
-  useEffect(() => {
-    hintRef.current = hint;
-  }, [hint]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -98,13 +87,10 @@ const XTermView = ({ hint }: XTermViewProps): ReactElement => {
         setTerminal(terminal);
 
         try {
-          terminal.writeln("Niotebook Terminal v0.1");
-          terminal.writeln(hintRef.current || DEFAULT_HINT);
           terminal.write(PROMPT);
         } catch {
           // Ignore write errors when terminal is not ready
         }
-        initializedRef.current = true;
 
         // Handle user input
         onDataDisposable = terminal.onData((data) => {
@@ -126,13 +112,18 @@ const XTermView = ({ hint }: XTermViewProps): ReactElement => {
             terminal.writeln("");
             const cmd = inputBufferRef.current.trim();
             inputBufferRef.current = "";
+            promptPendingRef.current = true;
 
             if (cmd.length > 0) {
               void store.runCommand(cmd).then(() => {
+                if (!promptPendingRef.current) return;
                 terminal.write(PROMPT);
+                promptPendingRef.current = false;
               });
             } else {
+              if (!promptPendingRef.current) return;
               terminal.write(PROMPT);
+              promptPendingRef.current = false;
             }
           } else if (code === 127 || data === "\b") {
             // Backspace
@@ -185,29 +176,8 @@ const XTermView = ({ hint }: XTermViewProps): ReactElement => {
       }
       terminalRef.current = null;
       fitAddonRef.current = null;
-      initializedRef.current = false;
     };
   }, [setTerminal]);
-
-  useEffect(() => {
-    const terminal = terminalRef.current;
-    if (!initializedRef.current || !terminal) return;
-    if (!terminal.element) return;
-    const container = containerRef.current;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return;
-    if (!hint) return;
-    if (isRunning) return;
-    if (inputBufferRef.current.length > 0) return;
-    try {
-      terminal.write("\r\n");
-      terminal.writeln(hint);
-      terminal.write(PROMPT);
-    } catch {
-      return;
-    }
-  }, [hint, isRunning]);
 
   return (
     <div ref={containerRef} className="h-full w-full bg-workspace-terminal" />
@@ -216,4 +186,3 @@ const XTermView = ({ hint }: XTermViewProps): ReactElement => {
 
 export default XTermView;
 export { XTermView };
-export type { XTermViewProps };
