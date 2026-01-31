@@ -124,11 +124,13 @@ const AiPane = ({
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">
-      <header className="flex min-h-[56px] items-center justify-between border-b border-border-muted px-4 py-3">
-        <div>
-          <p className="text-sm font-semibold text-foreground">Assistant</p>
+      <header className="flex h-14 items-center justify-between border-b border-border-muted px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-foreground">
+            Assistant
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {headerExtras}
           <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
             Live
