@@ -189,6 +189,14 @@ const schema = defineSchema({
   })
     .index("by_userId", ["userId"])
     .index("by_type_createdAt", ["type", "createdAt"]),
+  feedback: defineTable({
+    userId: v.id("users"),
+    category: v.string(),
+    rating: v.number(),
+    notes: v.optional(v.string()),
+    lessonId: v.optional(v.id("lessons")),
+    createdAt: v.number(),
+  }).index("by_userId", ["userId"]),
   rateLimits: defineTable({
     scope: v.union(v.literal("invite_redeem"), v.literal("ai_request")),
     subject: v.string(),
