@@ -68,7 +68,11 @@ const toLessonSummary = (lesson: LessonRecord): LessonSummary => {
 const getCourses = query({
   args: {},
   handler: async (ctx): Promise<CourseSummary[]> => {
-    await requireQueryWorkspaceUser(ctx);
+    try {
+      await requireQueryWorkspaceUser(ctx);
+    } catch {
+      return [];
+    }
 
     const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
     return orderCoursesByTitle(courses.map(toCourseSummary));
@@ -80,7 +84,11 @@ const getLessonsByCourse = query({
     courseId: v.id("courses"),
   },
   handler: async (ctx, args): Promise<LessonSummary[]> => {
-    await requireQueryWorkspaceUser(ctx);
+    try {
+      await requireQueryWorkspaceUser(ctx);
+    } catch {
+      return [];
+    }
 
     const lessons = (await ctx.db
       .query("lessons")
@@ -99,7 +107,11 @@ const getLesson = query({
     lessonId: v.id("lessons"),
   },
   handler: async (ctx, args): Promise<LessonSummary | null> => {
-    await requireQueryWorkspaceUser(ctx);
+    try {
+      await requireQueryWorkspaceUser(ctx);
+    } catch {
+      return null;
+    }
 
     const lesson = (await ctx.db.get(args.lessonId)) as LessonRecord | null;
 
