@@ -78,8 +78,8 @@ const ENV_CS50W_HTML: EnvironmentConfig = {
 
 const ENV_CS50SQL: EnvironmentConfig = {
   presetId: "cs50sql-sql",
-  primaryLanguage: "python",
-  allowedLanguages: ["python"],
+  primaryLanguage: "sql",
+  allowedLanguages: ["sql"],
 };
 
 // ── CS50x 2026 ──────────────────────────────────────────────
@@ -504,7 +504,7 @@ export const cs50sql: CoursePayload = {
     {
       order: 0,
       title: "Lecture 0 — Querying",
-      videoId: "wdzA0gGDNtk",
+      videoId: "vHYeChEf2lA",
       durationSec: 7200,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -513,7 +513,7 @@ export const cs50sql: CoursePayload = {
     {
       order: 1,
       title: "Lecture 1 — Relating",
-      videoId: "zrCLRC3Ci1c",
+      videoId: "_2t18Hy9Z0Y",
       durationSec: 7200,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -522,7 +522,7 @@ export const cs50sql: CoursePayload = {
     {
       order: 2,
       title: "Lecture 2 — Designing",
-      videoId: "QYd-RtK58VQ",
+      videoId: "QzRW6bfv3Fo",
       durationSec: 7200,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -531,7 +531,7 @@ export const cs50sql: CoursePayload = {
     {
       order: 3,
       title: "Lecture 3 — Writing",
-      videoId: "BD0cD0KXNnQ",
+      videoId: "BD08USRd2M8",
       durationSec: 5400,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -540,7 +540,7 @@ export const cs50sql: CoursePayload = {
     {
       order: 4,
       title: "Lecture 4 — Viewing",
-      videoId: "jZwW0dNSYKs",
+      videoId: "jZwGVuA8PMI",
       durationSec: 5400,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -549,7 +549,7 @@ export const cs50sql: CoursePayload = {
     {
       order: 5,
       title: "Lecture 5 — Optimizing",
-      videoId: "xYBclb-sYQ4",
+      videoId: "qa5-mKVSQHQ",
       durationSec: 5400,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -558,7 +558,7 @@ export const cs50sql: CoursePayload = {
     {
       order: 6,
       title: "Lecture 6 — Scaling",
-      videoId: "atEEZyMrnJA",
+      videoId: "jXbXGkgT2Xg",
       durationSec: 5400,
       ingestVersion: 1,
       transcriptStatus: "missing",
