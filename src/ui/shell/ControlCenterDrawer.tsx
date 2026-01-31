@@ -18,7 +18,15 @@ import {
   UserCircle,
   X,
 } from "@phosphor-icons/react";
-import { useMemo, useState, type ReactElement, type RefObject } from "react";
+import {
+  useCallback,
+  useMemo,
+  useState,
+  type ReactElement,
+  type RefObject,
+} from "react";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import type { CourseSummary, LessonSummary } from "../../domain/content";
 import { resolveLectureNumber } from "../../domain/lectureNumber";
 
@@ -87,6 +95,68 @@ const ControlCenterDrawer = ({
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackCategories, setFeedbackCategories] = useState<string[]>([]);
   const [feedbackNotes, setFeedbackNotes] = useState("");
+  const [copyConfirm, setCopyConfirm] = useState(false);
+
+  const logEvent = useMutation(api.events.logEvent);
+  const submitFeedbackMutation = useMutation(api.feedback.submit);
+
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+
+  const handleCopyLink = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopyConfirm(true);
+      setTimeout(() => setCopyConfirm(false), 2000);
+      void logEvent({
+        eventType: "share_copy",
+        metadata: { surface: "control_center" },
+      });
+    } catch {
+      // clipboard not available
+    }
+  }, [shareUrl, logEvent]);
+
+  const handleShareVia = useCallback(async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "niotebook",
+          url: shareUrl,
+        });
+      } catch {
+        // user cancelled or share failed
+      }
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopyConfirm(true);
+      setTimeout(() => setCopyConfirm(false), 2000);
+    }
+    void logEvent({
+      eventType: "share_copy",
+      metadata: { surface: "control_center" },
+    });
+  }, [shareUrl, logEvent]);
+
+  const handleShareSocial = useCallback(
+    (network: string) => {
+      const encoded = encodeURIComponent(shareUrl);
+      const text = encodeURIComponent("Check out niotebook!");
+      const urls: Record<string, string> = {
+        x: `https://x.com/intent/tweet?url=${encoded}&text=${text}`,
+        linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encoded}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encoded}`,
+      };
+      const url = urls[network];
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+      void logEvent({
+        eventType: "share_social",
+        metadata: { surface: "control_center", network },
+      });
+    },
+    [shareUrl, logEvent],
+  );
 
   const handleTabChange = (next: "lectures" | "courses"): void => {
     setActiveTab(next);
@@ -117,16 +187,48 @@ const ControlCenterDrawer = ({
     });
   };
 
-  const handleResetFeedback = (): void => {
+  const handleResetFeedback = useCallback((): void => {
     setFeedbackRating(0);
     setFeedbackCategories([]);
     setFeedbackNotes("");
-  };
+  }, []);
 
   const isFeedbackDirty =
     feedbackRating > 0 ||
     feedbackCategories.length > 0 ||
     feedbackNotes.trim().length > 0;
+
+  const handleSubmitFeedback = useCallback(async () => {
+    if (!isFeedbackDirty) return;
+    const category = feedbackCategories.join(", ") || "General";
+    try {
+      await submitFeedbackMutation({
+        category,
+        rating: feedbackRating,
+        notes: feedbackNotes || undefined,
+      });
+      void logEvent({
+        eventType: "feedback_submitted",
+        metadata: {
+          surface: "control_center",
+          rating: feedbackRating,
+          textLength: feedbackNotes.length,
+        },
+      });
+      handleResetFeedback();
+      setActiveSettingsCard(null);
+    } catch {
+      // mutation failed
+    }
+  }, [
+    isFeedbackDirty,
+    feedbackCategories,
+    feedbackRating,
+    feedbackNotes,
+    submitFeedbackMutation,
+    logEvent,
+    handleResetFeedback,
+  ]);
 
   const filteredLectures = useMemo(() => {
     const normalized = lectureQuery.trim().toLowerCase();
@@ -368,15 +470,22 @@ const ControlCenterDrawer = ({
                         <div className="flex items-center gap-2">
                           <input
                             readOnly
-                            value="https://niotebook.app/share/lecture"
+                            value={shareUrl}
                             className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-xs text-foreground"
                           />
                           <button
                             type="button"
+                            onClick={() => void handleCopyLink()}
                             className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition hover:bg-surface-muted hover:text-foreground"
                             aria-label="Copy share link"
                           >
-                            <CopySimple size={16} weight="regular" />
+                            {copyConfirm ? (
+                              <span className="text-[10px] font-medium">
+                                OK
+                              </span>
+                            ) : (
+                              <CopySimple size={16} weight="regular" />
+                            )}
                           </button>
                         </div>
                       </div>
@@ -386,6 +495,7 @@ const ControlCenterDrawer = ({
                         </div>
                         <button
                           type="button"
+                          onClick={() => void handleShareVia()}
                           className="flex items-center justify-center gap-2 rounded-lg border border-border bg-foreground px-3 py-2 text-xs font-semibold text-background"
                         >
                           <PaperPlaneTilt size={14} weight="regular" />
@@ -399,6 +509,7 @@ const ControlCenterDrawer = ({
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
+                            onClick={() => handleShareSocial("x")}
                             className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-text-muted transition hover:bg-surface hover:text-foreground"
                             aria-label="Share on X"
                           >
@@ -406,6 +517,7 @@ const ControlCenterDrawer = ({
                           </button>
                           <button
                             type="button"
+                            onClick={() => handleShareSocial("linkedin")}
                             className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-text-muted transition hover:bg-surface hover:text-foreground"
                             aria-label="Share on LinkedIn"
                           >
@@ -413,6 +525,7 @@ const ControlCenterDrawer = ({
                           </button>
                           <button
                             type="button"
+                            onClick={() => handleShareSocial("facebook")}
                             className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-text-muted transition hover:bg-surface hover:text-foreground"
                             aria-label="Share on Facebook"
                           >
@@ -532,6 +645,7 @@ const ControlCenterDrawer = ({
                         <button
                           type="button"
                           disabled={!isFeedbackDirty}
+                          onClick={() => void handleSubmitFeedback()}
                           className={`rounded-full px-4 py-1 text-xs font-semibold transition ${
                             isFeedbackDirty
                               ? "bg-foreground text-background"

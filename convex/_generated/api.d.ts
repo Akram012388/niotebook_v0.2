@@ -13,6 +13,7 @@ import type * as chat from "../chat.js";
 import type * as content from "../content.js";
 import type * as crons from "../crons.js";
 import type * as events from "../events.js";
+import type * as feedback from "../feedback.js";
 import type * as idUtils from "../idUtils.js";
 import type * as ingest from "../ingest.js";
 import type * as invites from "../invites.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   content: typeof content;
   crons: typeof crons;
   events: typeof events;
+  feedback: typeof feedback;
   idUtils: typeof idUtils;
   ingest: typeof ingest;
   invites: typeof invites;
