@@ -25,7 +25,12 @@ const getLatestFrame = query({
     lessonId: v.id("lessons"),
   },
   handler: async (ctx, args): Promise<FrameSummary | null> => {
-    const user = await requireQueryUser(ctx);
+    let user;
+    try {
+      user = await requireQueryUser(ctx);
+    } catch {
+      return null;
+    }
 
     const frame = (await ctx.db
       .query("frames")
@@ -129,7 +134,12 @@ const getCodeSnapshot = query({
     language: v.string(),
   },
   handler: async (ctx, args): Promise<CodeSnapshotSummary | null> => {
-    const user = await requireQueryUser(ctx);
+    let user;
+    try {
+      user = await requireQueryUser(ctx);
+    } catch {
+      return null;
+    }
 
     const snapshot = (await ctx.db
       .query("codeSnapshots")
