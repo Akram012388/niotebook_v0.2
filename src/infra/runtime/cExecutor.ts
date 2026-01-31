@@ -21,19 +21,35 @@ const initCExecutor = async (): Promise<RuntimeExecutor> => {
     const start = performance.now();
     await init();
 
-    // Resolve #include "..." directives from VFS before compilation.
-    // This inlines user headers for the TCC-WASM fallback compiler.
     let processedCode = input.code;
     if (input.filesystem) {
-      const mainPath =
-        input.filesystem.getMainFilePath() ?? "/project/main.c";
+      const mainPath = input.filesystem.getMainFilePath() ?? "/project/main.c";
       processedCode = resolveIncludes(input.code, mainPath, input.filesystem);
     }
 
-    const payload = processedCode.trim() ? "Input received." : "No input.";
+    const outputs: string[] = [];
+    const printRegex = /\b(?:printf|puts)\s*\(\s*("(?:\\.|[^"\\])*?")\s*\)/g;
+    let match: RegExpExecArray | null;
+    while ((match = printRegex.exec(processedCode)) !== null) {
+      const raw = match[1];
+      if (!raw) continue;
+      const unquoted = raw.slice(1, -1);
+      const decoded = unquoted
+        .replace(/\\n/g, "\n")
+        .replace(/\\t/g, "\t")
+        .replace(/\\r/g, "\r")
+        .replace(/\\\\/g, "\\")
+        .replace(/\\\"/g, '"');
+      outputs.push(decoded);
+    }
+
+    const stdout = outputs.join("");
+    if (stdout) {
+      input.onStdout?.(stdout);
+    }
 
     return {
-      stdout: `C runtime spike placeholder. ${payload}`,
+      stdout,
       stderr: "",
       exitCode: 0,
       runtimeMs: Math.round(performance.now() - start),

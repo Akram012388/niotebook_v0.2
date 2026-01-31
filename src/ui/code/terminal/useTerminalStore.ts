@@ -88,12 +88,10 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       if (!terminalRef) return;
       if (!terminalRef.element) return;
       try {
-        if (!hasOutputSincePrompt && !lastOutputEndedWithNewline) {
-          return;
-        }
         if (hasOutputSincePrompt && !lastOutputEndedWithNewline) {
           terminalRef.write("\r\n");
         }
+        terminalRef.write("\x1b[2K\r");
         terminalRef.write(TERMINAL_PROMPT);
         markPromptWritten();
       } catch {
