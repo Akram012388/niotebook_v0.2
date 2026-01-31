@@ -20,6 +20,7 @@ type SplitPaneProps = {
   /** Maximum size for the second pane in pixels (optional). */
   maxSecond?: number;
   storageKey?: string;
+  resetOnLoad?: "first" | "second";
   first: ReactNode;
   second: ReactNode;
 };
@@ -32,6 +33,7 @@ const SplitPane = ({
   minSecond,
   maxSecond,
   storageKey,
+  resetOnLoad,
   first,
   second,
 }: SplitPaneProps): ReactElement => {
@@ -46,6 +48,7 @@ const SplitPane = ({
       maxSecond,
       storageKey,
       containerRef,
+      resetOnLoad,
     });
 
   const isVertical = direction === "vertical";

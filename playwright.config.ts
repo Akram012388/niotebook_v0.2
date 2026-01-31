@@ -25,8 +25,11 @@ if (process.env.NEXT_PUBLIC_CONVEX_URL) {
   webServerEnv.NEXT_PUBLIC_CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
 }
 
-if (process.env.CONVEX_DEPLOY_KEY) {
-  webServerEnv.CONVEX_DEPLOY_KEY = process.env.CONVEX_DEPLOY_KEY;
+const previewDeployKey =
+  process.env.CONVEX_DEPLOY_KEY ?? process.env.CONVEX_PREVIEW_DEPLOY_KEY;
+
+if (previewDeployKey) {
+  webServerEnv.CONVEX_DEPLOY_KEY = previewDeployKey;
 }
 
 if (process.env.NEXT_PUBLIC_DEFAULT_LESSON_ID) {
@@ -47,6 +50,7 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
+    viewport: { width: 1280, height: 800 },
   },
   webServer: useWebServer
     ? {

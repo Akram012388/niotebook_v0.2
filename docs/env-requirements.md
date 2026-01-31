@@ -79,6 +79,9 @@ The E2E workflow (`.github/workflows/e2e.yml`) expects:
 The seed script (`scripts/e2eSeed.ts`) runs against preview-data and requires
 `CONVEX_URL`, `NIOTEBOOK_INGEST_TOKEN`, and `NIOTEBOOK_E2E_VIDEO_ID`.
 
+Local e2e runs that use the webServer need a preview deploy key available as
+`CONVEX_DEPLOY_KEY` or `CONVEX_PREVIEW_DEPLOY_KEY`.
+
 The workflow preflights the deployed URL and only runs Playwright if it finds
 the `niotebook-e2e` marker (emitted when `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=true`).
 
@@ -98,6 +101,11 @@ For e2e-ready preview deployments, set:
 - `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS=true`
 
 The e2e workflow skips preview deployments that do not expose the readiness marker.
+Repository dispatch runs rely on the Vercel payload providing a git ref so the
+correct commit is checked out for the preview URL.
+
+Manual e2e runs must provide a git ref (`inputs.ref`) so the workflow checks out
+the correct commit for the preview URL.
 
 ## Vercel production configuration
 

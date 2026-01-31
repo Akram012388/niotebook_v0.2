@@ -25,10 +25,7 @@ const RedirectToSignIn = (): ReactElement => {
   }, [router]);
 
   return (
-    <AuthShell
-      title="Redirecting"
-      subtitle="Taking you to sign in..."
-    >
+    <AuthShell title="Redirecting" subtitle="Taking you to sign in...">
       <div className="rounded-xl border border-dashed border-border bg-surface-muted px-4 py-6 text-sm text-text-muted">
         Redirecting to sign in...
       </div>
@@ -80,11 +77,8 @@ const AuthGate = ({ children }: AuthGateProps): ReactElement => {
   const isClerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const isProd = process.env.NODE_ENV === "production";
   const isE2ePreview = process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true";
-  const isPreviewHost =
-    typeof window !== "undefined" &&
-    window.location.hostname.endsWith(".vercel.app");
 
-  if (isE2ePreview && isPreviewHost) {
+  if (isE2ePreview) {
     return <>{children}</>;
   }
 

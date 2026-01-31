@@ -94,6 +94,8 @@ const CodePane = ({
 
   const { activePreset } = useLayoutPreset();
   const showFileTree = activePreset !== "triple";
+  const shouldResetSplits = activePreset !== "triple";
+  const fileTreeLayoutKey = activePreset === "single" ? "single" : "split";
 
   const initializeFromTemplate = useFileSystemStore(
     (s) => s.initializeFromTemplate,
@@ -398,14 +400,14 @@ const CodePane = ({
   );
 
   return (
-    <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-border bg-surface">
-      <header className="flex items-center justify-between border-b border-border-muted px-4 py-3">
-        <div className="flex items-center gap-3">
-          <p className="text-sm font-semibold text-foreground">
+    <section className="flex h-full min-h-0 w-full flex-col bg-surface">
+      <header className="flex h-14 items-center justify-between border-b border-border-muted px-4 py-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <p className="truncate text-sm font-semibold text-foreground">
             Code workspace
           </p>
         </div>
-        <div className="flex items-center gap-3 text-xs">
+        <div className="flex shrink-0 items-center gap-3 text-xs">
           <LanguageSelect
             value={activeLanguage}
             options={allowedLanguages}
@@ -421,9 +423,13 @@ const CodePane = ({
           minFirst={100}
           minSecond={160}
           storageKey="niotebook:split-editor-output"
+          resetOnLoad={shouldResetSplits ? "second" : undefined}
           first={
             <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-editor">
-              <EditorArea showFileTree={showFileTree} />
+              <EditorArea
+                showFileTree={showFileTree}
+                layoutKey={fileTreeLayoutKey}
+              />
             </div>
           }
           second={
