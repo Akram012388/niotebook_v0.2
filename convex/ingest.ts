@@ -606,6 +606,96 @@ const migrateCs50SqlPlaylistId = mutation({
   },
 });
 
+/**
+ * One-off migration to fix incorrect video IDs for CS50AI, CS50P, and CS50W.
+ * Also corrects CS50W's playlist ID.
+ *
+ * Run once per deployment, then remove.
+ */
+const migrateCs50VideoFixes = mutation({
+  args: {
+    ingestToken: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await ensureIngestAllowed(ctx, args.ingestToken);
+
+    const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
+    const results: { course: string; fixes: string[] }[] = [];
+
+    // --- CS50AI: fix lectures 4 and 6 ---
+    const cs50ai = courses.find((c) => c.title.includes("CS50AI"));
+    if (cs50ai) {
+      const lessons = (await ctx.db
+        .query("lessons")
+        .withIndex("by_courseId", (q) => q.eq("courseId", cs50ai._id))
+        .collect()) as LessonRecord[];
+      const fixes: string[] = [];
+      for (const l of lessons) {
+        if (l.order === 4) {
+          await ctx.db.patch(l._id, { videoId: "-g0iJjnO2_w" });
+          fixes.push("order 4: -g0iJjnO2_w");
+        }
+        if (l.order === 6) {
+          await ctx.db.patch(l._id, { videoId: "QAZc9xsQNjQ" });
+          fixes.push("order 6: QAZc9xsQNjQ");
+        }
+      }
+      results.push({ course: "CS50AI", fixes });
+    }
+
+    // --- CS50P: fix lectures 1, 2, and 9 ---
+    const cs50p = courses.find((c) => c.title.includes("CS50P"));
+    if (cs50p) {
+      const lessons = (await ctx.db
+        .query("lessons")
+        .withIndex("by_courseId", (q) => q.eq("courseId", cs50p._id))
+        .collect()) as LessonRecord[];
+      const fixes: string[] = [];
+      const videoFixes: Record<number, string> = {
+        1: "_b6NgY_pMdw",
+        2: "-7xg8pGcP6w",
+        9: "6pgodt1mezg",
+      };
+      for (const l of lessons) {
+        if (videoFixes[l.order]) {
+          await ctx.db.patch(l._id, { videoId: videoFixes[l.order] });
+          fixes.push(`order ${l.order}: ${videoFixes[l.order]}`);
+        }
+      }
+      results.push({ course: "CS50P", fixes });
+    }
+
+    // --- CS50W: fix playlist ID + lectures 5, 7, 8 ---
+    const cs50w = courses.find((c) => c.title.includes("CS50W"));
+    if (cs50w) {
+      await ctx.db.patch(cs50w._id, {
+        sourcePlaylistId: "PLhQjrBD2T380xvFSUmToMMzERZ3qB5Ueu",
+        youtubePlaylistUrl:
+          "https://www.youtube.com/playlist?list=PLhQjrBD2T380xvFSUmToMMzERZ3qB5Ueu",
+      });
+      const lessons = (await ctx.db
+        .query("lessons")
+        .withIndex("by_courseId", (q) => q.eq("courseId", cs50w._id))
+        .collect()) as LessonRecord[];
+      const fixes: string[] = ["playlist ID updated"];
+      const videoFixes: Record<number, string> = {
+        5: "x5trGVMKTdY",
+        7: "WbRDkJ4lPdY",
+        8: "6PWTxRGh_dk",
+      };
+      for (const l of lessons) {
+        if (videoFixes[l.order]) {
+          await ctx.db.patch(l._id, { videoId: videoFixes[l.order] });
+          fixes.push(`order ${l.order}: ${videoFixes[l.order]}`);
+        }
+      }
+      results.push({ course: "CS50W", fixes });
+    }
+
+    return results;
+  },
+});
+
 export {
   clearTranscriptSegmentsBatch,
   finalizeTranscriptIngest,
@@ -613,4 +703,5 @@ export {
   ingestCs50x2026,
   ingestTranscriptSegmentsBatch,
   migrateCs50SqlPlaylistId,
+  migrateCs50VideoFixes,
 };

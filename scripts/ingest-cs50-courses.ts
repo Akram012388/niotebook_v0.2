@@ -231,7 +231,7 @@ export const cs50p: CoursePayload = {
     {
       order: 1,
       title: "Lecture 1 — Conditionals",
-      videoId: "ZEQh45W_UDo",
+      videoId: "_b6NgY_pMdw",
       durationSec: 5400,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -240,7 +240,7 @@ export const cs50p: CoursePayload = {
     {
       order: 2,
       title: "Lecture 2 — Loops",
-      videoId: "eqUwSA0xI-s",
+      videoId: "-7xg8pGcP6w",
       durationSec: 5400,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -303,7 +303,7 @@ export const cs50p: CoursePayload = {
     {
       order: 9,
       title: "Lecture 9 — Et Cetera",
-      videoId: "-iqf1A2-SEA",
+      videoId: "6pgodt1mezg",
       durationSec: 5400,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -364,7 +364,7 @@ export const cs50ai: CoursePayload = {
     {
       order: 4,
       title: "Lecture 4 — Learning",
-      videoId: "dIBKtoDAByE",
+      videoId: "-g0iJjnO2_w",
       durationSec: 5400,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -382,7 +382,7 @@ export const cs50ai: CoursePayload = {
     {
       order: 6,
       title: "Lecture 6 — Language",
-      videoId: "A9pS1mNILUw",
+      videoId: "QAZc9xsQNjQ",
       durationSec: 5400,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -394,14 +394,14 @@ export const cs50ai: CoursePayload = {
 // ── CS50W ───────────────────────────────────────────────────
 export const cs50w: CoursePayload = {
   course: {
-    sourcePlaylistId: "PLhQjrBD2T380xvFSUmToMMzERU3LBkTYy",
+    sourcePlaylistId: "PLhQjrBD2T380xvFSUmToMMzERZ3qB5Ueu",
     title: "CS50W — Web Programming with Python and JavaScript",
     description:
       "Topics include database design, scalability, security, and user experience. Uses frameworks like Django, React, and Bootstrap.",
     license: "CC BY-NC-SA 4.0",
     sourceUrl: "https://cs50.harvard.edu/web/",
     youtubePlaylistUrl:
-      "https://www.youtube.com/playlist?list=PLhQjrBD2T380xvFSUmToMMzERU3LBkTYy",
+      "https://www.youtube.com/playlist?list=PLhQjrBD2T380xvFSUmToMMzERZ3qB5Ueu",
   },
   lessons: [
     {
@@ -452,7 +452,7 @@ export const cs50w: CoursePayload = {
     {
       order: 5,
       title: "Lecture 5 — JavaScript",
-      videoId: "x5trGVMKTkY",
+      videoId: "x5trGVMKTdY",
       durationSec: 7200,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -470,7 +470,7 @@ export const cs50w: CoursePayload = {
     {
       order: 7,
       title: "Lecture 7 — Testing, CI/CD",
-      videoId: "NtfbWkxJTHw",
+      videoId: "WbRDkJ4lPdY",
       durationSec: 5400,
       ingestVersion: 1,
       transcriptStatus: "missing",
@@ -479,7 +479,7 @@ export const cs50w: CoursePayload = {
     {
       order: 8,
       title: "Lecture 8 — Scalability and Security",
-      videoId: "95Q-o8lfG48",
+      videoId: "6PWTxRGh_dk",
       durationSec: 5400,
       ingestVersion: 1,
       transcriptStatus: "missing",
