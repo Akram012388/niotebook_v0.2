@@ -135,10 +135,12 @@ const AiPane = ({
     }
     parts.push(formattedTime);
     if (codeSnapshot) {
-      const lang = codeSnapshot.language ?? "unknown";
-      parts.push(`${lang}${codeSnapshot.codeHash ? " (modified)" : ""}`);
+      const lang = (codeSnapshot.language ?? "unknown").toUpperCase();
+      parts.push(
+        `Code: ${lang}${codeSnapshot.codeHash ? " (modified)" : ""}`,
+      );
     }
-    return parts.join(" · ");
+    return parts.join(" │ ");
   }, [lectureNumber, formattedTime, codeSnapshot]);
 
   return (
@@ -157,7 +159,7 @@ const AiPane = ({
         </div>
       </header>
       <div className="border-b border-border-muted bg-surface-muted px-4 py-1.5">
-        <p className="truncate text-[11px] text-text-muted">
+        <p className="truncate text-[11px] font-medium tracking-wide text-text-muted">
           {contextStripLabel}
         </p>
       </div>
