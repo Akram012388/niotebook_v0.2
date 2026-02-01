@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -59,6 +60,64 @@ const useVideoDisplayTime = (): number => {
     getVideoTimeServerSnapshot,
   );
 };
+
+// ── PaneSwitcher ─────────────────────────────────────────────
+type PaneSwitcherOption = {
+  label: string;
+  ariaLabel: string;
+  value: string;
+};
+
+type PaneSwitcherProps = {
+  options: PaneSwitcherOption[];
+  active: string;
+  onSelect: (value: string) => void;
+  disabledValues?: string[];
+};
+
+const PaneSwitcher = memo(function PaneSwitcher({
+  options,
+  active,
+  onSelect,
+  disabledValues,
+}: PaneSwitcherProps): ReactElement {
+  return (
+    <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
+      {options.map((option) => {
+        const isActive = option.value === active;
+        const isDisabled = disabledValues?.includes(option.value) ?? false;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onSelect(option.value)}
+            disabled={isDisabled}
+            className={`rounded-full px-2 py-1 text-[11px] transition ${
+              isActive
+                ? "bg-surface text-foreground"
+                : isDisabled
+                  ? "text-text-subtle"
+                  : "text-text-muted hover:bg-surface hover:text-foreground"
+            }`}
+            aria-label={option.ariaLabel}
+          >
+            {option.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+});
+
+const VC_OPTIONS: PaneSwitcherOption[] = [
+  { label: "V", ariaLabel: "Show video", value: "video" },
+  { label: "C", ariaLabel: "Show code", value: "code" },
+];
+
+const AC_OPTIONS: PaneSwitcherOption[] = [
+  { label: "A", ariaLabel: "Show assistant", value: "chat" },
+  { label: "C", ariaLabel: "Show code", value: "code" },
+];
 
 // ── Pane state external store ─────────────────────────────────
 const paneListeners = new Set<() => void>();
@@ -358,6 +417,26 @@ const WorkspaceGrid = (): ReactElement => {
     router.replace(`${pathname}?${params.toString()}`);
   }, [lessonId, pathname, router, searchParams, startLessonId]);
 
+  const handleSelectSingle = useCallback(
+    (value: string) => setSinglePane(value as "video" | "code"),
+    [setSinglePane],
+  );
+
+  const handleSelectLeft = useCallback(
+    (value: string) => setLeftPane(value as "video" | "code"),
+    [setLeftPane],
+  );
+
+  const handleSelectRight = useCallback(
+    (value: string) => setRightPane(value as "chat" | "code"),
+    [setRightPane],
+  );
+
+  const rightDisabled = useMemo(
+    () => (leftPane === "code" ? ["code"] : undefined),
+    [leftPane],
+  );
+
   const activeLessonId = lessonId ?? startLessonId;
 
   if (!activeLessonId) {
@@ -384,24 +463,7 @@ const WorkspaceGrid = (): ReactElement => {
               codeHash={codeHash ?? undefined}
               showInfoStrip
               headerExtras={
-                <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
-                  <button
-                    type="button"
-                    onClick={() => setSinglePane("video")}
-                    className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
-                    aria-label="Show video"
-                  >
-                    V
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSinglePane("code")}
-                    className="rounded-full px-2 py-1 text-[11px] text-text-muted transition hover:bg-surface hover:text-foreground"
-                    aria-label="Show code"
-                  >
-                    C
-                  </button>
-                </div>
+                <PaneSwitcher options={VC_OPTIONS} active="video" onSelect={handleSelectSingle} />
               }
             />
           </div>
@@ -412,24 +474,7 @@ const WorkspaceGrid = (): ReactElement => {
               lessonId={activeLessonId}
               onSnapshot={handleSnapshot}
               headerExtras={
-                <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
-                  <button
-                    type="button"
-                    onClick={() => setSinglePane("video")}
-                    className="rounded-full px-2 py-1 text-[11px] text-text-muted transition hover:bg-surface hover:text-foreground"
-                    aria-label="Show video"
-                  >
-                    V
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSinglePane("code")}
-                    className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
-                    aria-label="Show code"
-                  >
-                    C
-                  </button>
-                </div>
+                <PaneSwitcher options={VC_OPTIONS} active="code" onSelect={handleSelectSingle} />
               }
             />
           </div>
@@ -453,24 +498,7 @@ const WorkspaceGrid = (): ReactElement => {
                 codeHash={codeHash ?? undefined}
                 showInfoStrip
                 headerExtras={
-                  <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
-                    <button
-                      type="button"
-                      onClick={() => setLeftPane("video")}
-                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
-                      aria-label="Show video"
-                    >
-                      V
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLeftPane("code")}
-                      className="rounded-full px-2 py-1 text-[11px] text-text-muted transition hover:bg-surface hover:text-foreground"
-                      aria-label="Show code"
-                    >
-                      C
-                    </button>
-                  </div>
+                  <PaneSwitcher options={VC_OPTIONS} active="video" onSelect={handleSelectLeft} />
                 }
               />
             ) : null}
@@ -479,24 +507,7 @@ const WorkspaceGrid = (): ReactElement => {
                 lessonId={activeLessonId}
                 onSnapshot={handleSnapshot}
                 headerExtras={
-                  <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
-                    <button
-                      type="button"
-                      onClick={() => setLeftPane("video")}
-                      className="rounded-full px-2 py-1 text-[11px] text-text-muted transition hover:bg-surface hover:text-foreground"
-                      aria-label="Show video"
-                    >
-                      V
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLeftPane("code")}
-                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
-                      aria-label="Show code"
-                    >
-                      C
-                    </button>
-                  </div>
+                  <PaneSwitcher options={VC_OPTIONS} active="code" onSelect={handleSelectLeft} />
                 }
               />
             ) : null}
@@ -511,29 +522,7 @@ const WorkspaceGrid = (): ReactElement => {
                 codeSnapshot={codeSnapshot}
                 onThreadChange={handleThreadChange}
                 headerExtras={
-                  <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
-                    <button
-                      type="button"
-                      onClick={() => setRightPane("chat")}
-                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
-                      aria-label="Show assistant"
-                    >
-                      A
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRightPane("code")}
-                      className={`rounded-full px-2 py-1 text-[11px] transition ${
-                        leftPane === "code"
-                          ? "text-text-subtle"
-                          : "text-text-muted hover:bg-surface hover:text-foreground"
-                      }`}
-                      disabled={leftPane === "code"}
-                      aria-label="Show code"
-                    >
-                      C
-                    </button>
-                  </div>
+                  <PaneSwitcher options={AC_OPTIONS} active="chat" onSelect={handleSelectRight} disabledValues={rightDisabled} />
                 }
               />
             ) : null}
@@ -542,25 +531,7 @@ const WorkspaceGrid = (): ReactElement => {
                 lessonId={activeLessonId}
                 onSnapshot={handleSnapshot}
                 headerExtras={
-                  <div className="flex items-center gap-1 rounded-full border border-border bg-surface-muted p-1">
-                    <button
-                      type="button"
-                      onClick={() => setRightPane("chat")}
-                      className="rounded-full px-2 py-1 text-[11px] text-text-muted transition hover:bg-surface hover:text-foreground"
-                      aria-label="Show assistant"
-                    >
-                      A
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRightPane("code")}
-                      className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition"
-                      disabled={leftPane === "code"}
-                      aria-label="Show code"
-                    >
-                      C
-                    </button>
-                  </div>
+                  <PaneSwitcher options={AC_OPTIONS} active="code" onSelect={handleSelectRight} disabledValues={rightDisabled} />
                 }
               />
             ) : null}
