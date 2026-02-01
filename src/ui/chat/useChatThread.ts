@@ -296,23 +296,25 @@ const useChatThread = (
               endSec: context.videoTimeSec + 60,
             };
 
-            await createMessage({
-              threadId: resolvedThreadId,
-              role: "user",
-              content,
-              videoTimeSec: context.videoTimeSec,
-              timeWindow,
-              codeHash: context.code.codeHash,
-            });
-
-            void logEvent({
-              eventType: "nio_message_sent",
-              lessonId,
-              metadata: {
-                lessonId,
+            // Run createMessage and logEvent in parallel
+            await Promise.all([
+              createMessage({
                 threadId: resolvedThreadId,
-              },
-            });
+                role: "user",
+                content,
+                videoTimeSec: context.videoTimeSec,
+                timeWindow,
+                codeHash: context.code.codeHash,
+              }),
+              logEvent({
+                eventType: "nio_message_sent",
+                lessonId,
+                metadata: {
+                  lessonId,
+                  threadId: resolvedThreadId,
+                },
+              }).catch(() => undefined),
+            ]);
           } catch {
             // Convex calls failed — continue with local-only thread
             if (!activeThreadId) {
