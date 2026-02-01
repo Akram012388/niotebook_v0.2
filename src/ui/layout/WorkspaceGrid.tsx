@@ -18,6 +18,9 @@ import { useLayoutPreset } from "./LayoutPresetContext";
 import { storageAdapter } from "../../infra/storageAdapter";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 
+const DEFAULT_LESSON_ID: string | null =
+  process.env.NEXT_PUBLIC_DEFAULT_LESSON_ID ?? null;
+
 // ── Video time external store ─────────────────────────────────
 // Module-level store so video time updates only re-render subscribers (AiPane),
 // not the entire WorkspaceGrid tree.
@@ -338,13 +341,12 @@ const WorkspaceGrid = (): ReactElement => {
   ]);
 
   const lessonId = searchParams.get("lessonId");
-  const defaultLessonId = useMemo((): string | null => {
-    return process.env.NEXT_PUBLIC_DEFAULT_LESSON_ID ?? null;
-  }, []);
-  const storedLessonId = isMounted
-    ? storageAdapter.getItem("niotebook.lesson")
-    : null;
-  const startLessonId = storedLessonId ?? defaultLessonId;
+  // Cache localStorage read so it doesn't hit storage on every render
+  const storedLessonId = useMemo(
+    () => (isMounted ? storageAdapter.getItem("niotebook.lesson") : null),
+    [isMounted],
+  );
+  const startLessonId = storedLessonId ?? DEFAULT_LESSON_ID;
 
   useEffect(() => {
     if (lessonId || !startLessonId) {

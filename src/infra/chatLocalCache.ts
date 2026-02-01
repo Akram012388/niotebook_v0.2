@@ -9,7 +9,8 @@ type ChatCacheMessage = {
   requestId?: string;
 };
 
-const CACHE_PREFIX = "niotebook.chatCache";
+const CACHE_VERSION = 1;
+const CACHE_PREFIX = `niotebook.chatCache.v${CACHE_VERSION}`;
 const CACHE_LIMIT = 50;
 
 const buildCacheKey = (lessonId: string): string => {
