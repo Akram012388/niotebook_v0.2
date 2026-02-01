@@ -47,6 +47,7 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
       className={`group flex flex-col gap-1 ${
         isUser ? "items-end" : "items-start"
       }`}
+      style={{ contentVisibility: "auto", containIntrinsicSize: "auto 80px" }}
     >
       <div
         className={

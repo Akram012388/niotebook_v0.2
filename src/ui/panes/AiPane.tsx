@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, type ReactElement } from "react";
+import { useCallback, useMemo, useEffect, type ReactElement } from "react";
 import { useQuery } from "convex/react";
 import { ChatComposer } from "../chat/ChatComposer";
 import { ChatMessage } from "../chat/ChatMessage";
 import { ChatScroll } from "../chat/ChatScroll";
 import { useChatThread } from "../chat/useChatThread";
 import { useTranscriptWindow } from "../transcript/useTranscriptWindow";
-import type { ChatMessage as ChatMessageType } from "../chat/chatTypes";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 import { getLessonRef } from "../content/convexContent";
 import { resolveLectureNumber } from "../../domain/lectureNumber";
@@ -57,11 +56,6 @@ const AiPane = ({
   const { messages, sendMessage, threadId, streamState, streamError } =
     useChatThread(lessonId, lectureLabel);
   const transcriptWindow = useTranscriptWindow(lessonId, videoTimeSec);
-
-  const displayMessages = useMemo<ChatMessageType[]>(
-    () => messages,
-    [messages],
-  );
 
   const transcriptPayload = useMemo(
     () => ({
@@ -115,13 +109,6 @@ const AiPane = ({
     ],
   );
 
-  const handleSeek = useCallback(
-    (timestampSec: number): void => {
-      onSeek?.(timestampSec);
-    },
-    [onSeek],
-  );
-
   const formattedTime = useMemo(() => {
     const minutes = Math.floor(videoTimeSec / 60);
     const seconds = Math.floor(videoTimeSec % 60);
@@ -165,11 +152,11 @@ const AiPane = ({
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
         <ChatScroll isStreaming={streamState === "streaming"}>
-          {displayMessages.map((message) => (
+          {messages.map((message) => (
             <ChatMessage
               key={message.id}
               message={message}
-              onSeek={handleSeek}
+              onSeek={onSeek}
             />
           ))}
         </ChatScroll>
