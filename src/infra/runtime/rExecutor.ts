@@ -78,6 +78,7 @@ function mountRFiles(
 async function initRExecutor(): Promise<RuntimeExecutor> {
   const executor: RuntimeExecutor = {
     async init() {
+      // Preload WebR WASM so run() doesn't include download time
       await loadWebR();
     },
 
@@ -140,7 +141,7 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
           sink()
           close(.nio_out)
           close(.nio_err)
-          cat(.nio_stdout)
+          .nio_stdout
         `;
 
         try {
@@ -165,7 +166,7 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
 
         // Collect stderr
         try {
-          const errResult = await webr.evalR("cat(.nio_stderr)");
+          const errResult = await webr.evalR(".nio_stderr");
           if (errResult && typeof errResult === "object" && "type" in errResult) {
             try {
               const js = await errResult.toJs();

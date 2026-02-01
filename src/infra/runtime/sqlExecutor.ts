@@ -22,6 +22,7 @@ const SQL_JS_CDN = "https://sql.js.org/dist";
 
 let sqlJsPromise: Promise<SqlJsStatic> | null = null;
 let db: SqlJsDatabase | null = null;
+let seeded = false;
 
 function loadSqlJs(): Promise<SqlJsStatic> {
   if (sqlJsPromise) return sqlJsPromise;
@@ -162,8 +163,9 @@ async function initSqlExecutor(): Promise<RuntimeExecutor> {
           db = new SQL.Database();
         }
 
-        // Auto-execute seed files from VFS if present
-        if (input.filesystem) {
+        // Auto-execute seed files from VFS on first run only
+        if (input.filesystem && !seeded) {
+          seeded = true;
           for (const seedName of ["schema.sql", "seed.sql"]) {
             const seedContent = input.filesystem.readFile(
               `/project/${seedName}`,

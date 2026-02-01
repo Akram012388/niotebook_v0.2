@@ -5,55 +5,74 @@ import type {
   RuntimeRunResult,
 } from "./types";
 
+/**
+ * C executor — routes through the WasmerBridge for real gcc compilation
+ * and execution inside the sandbox iframe. Falls back to an error message
+ * when the sandbox is unavailable.
+ */
 const initCExecutor = async (): Promise<RuntimeExecutor> => {
-  let isReady = false;
-
   const init = async (): Promise<void> => {
-    if (isReady) {
-      return;
+    try {
+      const { getWasmerBridge } = await import("./wasmer/WasmerBridge");
+      const bridge = getWasmerBridge();
+      if (bridge.getStatus() !== "ready") {
+        await bridge.init();
+      }
+    } catch {
+      // Bridge unavailable — run() will handle the fallback
     }
-
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    isReady = true;
   };
 
   const run = async (input: RuntimeRunInput): Promise<RuntimeRunResult> => {
     const start = performance.now();
-    await init();
 
+    // Resolve #include directives so the sandbox receives a single translation unit
     let processedCode = input.code;
     if (input.filesystem) {
-      const mainPath = input.filesystem.getMainFilePath() ?? "/project/main.c";
+      const mainPath =
+        input.filesystem.getMainFilePath() ?? "/project/main.c";
       processedCode = resolveIncludes(input.code, mainPath, input.filesystem);
     }
 
-    const outputs: string[] = [];
-    const printRegex = /\b(?:printf|puts)\s*\(\s*("(?:\\.|[^"\\])*?")\s*\)/g;
-    let match: RegExpExecArray | null;
-    while ((match = printRegex.exec(processedCode)) !== null) {
-      const raw = match[1];
-      if (!raw) continue;
-      const unquoted = raw.slice(1, -1);
-      const decoded = unquoted
-        .replace(/\\n/g, "\n")
-        .replace(/\\t/g, "\t")
-        .replace(/\\r/g, "\r")
-        .replace(/\\\\/g, "\\")
-        .replace(/\\\"/g, '"');
-      outputs.push(decoded);
+    // Try WasmerBridge for real compilation + execution
+    try {
+      const { getWasmerBridge } = await import("./wasmer/WasmerBridge");
+      const bridge = getWasmerBridge();
+
+      if (bridge.getStatus() !== "ready") {
+        await bridge.init();
+      }
+
+      if (bridge.getStatus() === "ready") {
+        const result = await bridge.sendCommand(
+          "gcc",
+          ["-c", processedCode],
+          input.filesystem,
+          {
+            onStdout: input.onStdout,
+            onStderr: input.onStderr,
+            timeoutMs: input.timeoutMs,
+          },
+        );
+        return {
+          stdout: result.stdout,
+          stderr: result.stderr,
+          exitCode: result.exitCode,
+          runtimeMs: Math.round(result.runtimeMs),
+        };
+      }
+    } catch {
+      // Bridge unavailable — fall through to error
     }
 
-    const stdout = outputs.join("");
-    if (stdout) {
-      input.onStdout?.(stdout);
-    }
-
+    const message =
+      "C execution requires the sandbox runtime.\nThe Wasmer sandbox could not be initialized.\n";
+    input.onStderr?.(message);
     return {
-      stdout,
-      stderr: "",
-      exitCode: 0,
+      stdout: "",
+      stderr: message,
+      exitCode: 1,
       runtimeMs: Math.round(performance.now() - start),
-      timedOut: false,
     };
   };
 

@@ -101,7 +101,7 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
       return;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await loadPyodideInstance();
     isReady = true;
   };
 

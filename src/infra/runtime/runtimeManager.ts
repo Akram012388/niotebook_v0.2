@@ -64,8 +64,8 @@ const loadExecutor = async (
       executor = await initJsExecutor();
   }
 
-  executorMap[language] = executor;
   await executor.init();
+  executorMap[language] = executor;
 
   return executor;
 };

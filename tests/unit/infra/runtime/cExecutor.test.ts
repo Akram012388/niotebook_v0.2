@@ -2,55 +2,20 @@ import { describe, expect, it, vi } from "vitest";
 import { initCExecutor } from "../../../../src/infra/runtime/cExecutor";
 
 describe("cExecutor", () => {
-  it("extracts printf output", async () => {
+  it("returns sandbox error when WasmerBridge is unavailable", async () => {
     const executor = await initCExecutor();
+    const onStderr = vi.fn();
     const result = await executor.run({
       code: '#include <stdio.h>\nint main() { printf("hello world"); return 0; }',
       timeoutMs: 5000,
+      onStderr,
     });
-    expect(result.stdout).toBe("hello world");
-    expect(result.exitCode).toBe(0);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("sandbox runtime");
+    expect(onStderr).toHaveBeenCalled();
   });
 
-  it("extracts puts output", async () => {
-    const executor = await initCExecutor();
-    const result = await executor.run({
-      code: '#include <stdio.h>\nint main() { puts("line one"); return 0; }',
-      timeoutMs: 5000,
-    });
-    expect(result.stdout).toBe("line one");
-  });
-
-  it("handles escape sequences", async () => {
-    const executor = await initCExecutor();
-    const result = await executor.run({
-      code: 'int main() { printf("a\\nb\\tc"); return 0; }',
-      timeoutMs: 5000,
-    });
-    expect(result.stdout).toBe("a\nb\tc");
-  });
-
-  it("handles multiple printf calls", async () => {
-    const executor = await initCExecutor();
-    const result = await executor.run({
-      code: 'int main() { printf("one"); printf("two"); return 0; }',
-      timeoutMs: 5000,
-    });
-    expect(result.stdout).toBe("onetwo");
-  });
-
-  it("calls onStdout callback", async () => {
-    const executor = await initCExecutor();
-    const onStdout = vi.fn();
-    await executor.run({
-      code: 'int main() { printf("hello"); return 0; }',
-      timeoutMs: 5000,
-      onStdout,
-    });
-    expect(onStdout).toHaveBeenCalledWith("hello");
-  });
-
-  it("returns empty stdout for code without printf/puts", async () => {
+  it("returns empty stdout when bridge is unavailable", async () => {
     const executor = await initCExecutor();
     const result = await executor.run({
       code: "int main() { int x = 42; return 0; }",
