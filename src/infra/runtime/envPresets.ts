@@ -143,22 +143,41 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
 
   "cs50sql-sql": {
     id: "cs50sql-sql",
-    name: "CS50SQL · SQL",
-    primaryLanguage: "python",
-    allowedLanguages: ["python"],
+    name: "CS50 SQL",
+    primaryLanguage: "sql",
+    allowedLanguages: ["sql"],
     starterFiles: [
       {
-        path: "/project/queries.py",
-        content:
-          '"""CS50 SQL — Practice Queries"""\n\nimport cs50\n\ndb = cs50.SQL("sqlite:///example.db")\nrows = db.execute("SELECT * FROM sqlite_master")\nfor row in rows:\n    print(row)\n',
+        path: "/project/queries.sql",
+        content: "-- Write your SQL queries here\nSELECT 'hello, SQL';\n",
         readonly: false,
       },
     ],
-    packages: [{ language: "python", name: "cs50" }],
+    packages: [],
     runtimeSettings: {
       timeoutMs: 10_000,
       maxOutputBytes: 1_048_576,
-      stdinEnabled: true,
+      stdinEnabled: false,
+    },
+  },
+
+  "cs50r": {
+    id: "cs50r",
+    name: "CS50R",
+    primaryLanguage: "r",
+    allowedLanguages: ["r"],
+    starterFiles: [
+      {
+        path: "/project/hello.R",
+        content: 'cat("hello, world\\n")\n',
+        readonly: false,
+      },
+    ],
+    packages: [],
+    runtimeSettings: {
+      timeoutMs: 15_000,
+      maxOutputBytes: 1_048_576,
+      stdinEnabled: false,
     },
   },
 
@@ -166,7 +185,7 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     id: "sandbox",
     name: "Sandbox",
     primaryLanguage: "js",
-    allowedLanguages: ["js", "python", "c", "html", "css"],
+    allowedLanguages: ["js", "python", "c", "html", "css", "sql", "r"],
     starterFiles: [
       {
         path: "/project/main.js",

@@ -22,6 +22,8 @@ const IMPORT_TRIGGERS: Record<RuntimeLanguage, RegExp> = {
   c: /#include\s+"([^"]*?)$/,
   html: /(?:src|href)\s*=\s*['"]([^'"]*?)$/,
   css: /@import\s+(?:url\()?['"]([^'"]*?)$/,
+  sql: /(?:$)^/, // SQL has no import syntax
+  r: /source\(["']([^"']*?)$/,
 };
 
 function getImportCompletions(
@@ -152,6 +154,10 @@ const SYMBOL_PATTERN_FACTORIES: Record<
   c: [{ makeRegex: () => /\w+\s+(\w+)\s*\(/gm, type: "function" }],
   html: [],
   css: [],
+  sql: [],
+  r: [
+    { makeRegex: () => /(?:^|\n)(\w+)\s*<-\s*function/g, type: "function" },
+  ],
 };
 
 function getCrossFileSymbolCompletions(

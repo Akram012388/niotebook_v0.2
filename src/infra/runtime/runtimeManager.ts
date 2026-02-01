@@ -3,6 +3,8 @@ import { initCssExecutor } from "./cssExecutor";
 import { initHtmlExecutor } from "./htmlExecutor";
 import { initJsExecutor } from "./jsExecutor";
 import { initPythonExecutor } from "./pythonExecutor";
+import { initSqlExecutor } from "./sqlExecutor";
+import { initRExecutor } from "./rExecutor";
 import type { VirtualFS } from "../vfs/VirtualFS";
 import type {
   RuntimeExecutor,
@@ -51,6 +53,12 @@ const loadExecutor = async (
       break;
     case "c":
       executor = await initCExecutor();
+      break;
+    case "sql":
+      executor = await initSqlExecutor();
+      break;
+    case "r":
+      executor = await initRExecutor();
       break;
     default:
       executor = await initJsExecutor();

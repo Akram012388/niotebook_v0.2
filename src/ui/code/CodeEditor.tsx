@@ -22,6 +22,8 @@ const DEFAULT_CODE_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
   html: "<h1>Hello, CS50</h1>",
   c: '#include <stdio.h>\n\nint main(void) {\n  printf("Hello, CS50\\n");\n  return 0;\n}\n',
   css: "body {\n  font-family: system-ui, sans-serif;\n}\n",
+  sql: "-- Write your SQL queries here\nSELECT 'hello, SQL';\n",
+  r: 'cat("hello, world\\n")\n',
 };
 
 type CodeEditorProps = {

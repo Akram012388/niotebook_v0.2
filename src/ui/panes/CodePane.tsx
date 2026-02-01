@@ -50,6 +50,8 @@ const DEFAULT_CODE_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
   html: "<h1>Hello, CS50</h1>",
   c: '#include <stdio.h>\n\nint main(void) {\n  printf("Hello, CS50\\n");\n  return 0;\n}\n',
   css: "body {\n  font-family: system-ui, sans-serif;\n}\n",
+  sql: "-- Write your SQL queries here\nSELECT 'hello, SQL';\n",
+  r: 'cat("hello, world\\n")\n',
 };
 
 const EXTENSION_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
@@ -58,6 +60,8 @@ const EXTENSION_BY_LANGUAGE: Record<RuntimeLanguage, string> = {
   html: "index.html",
   c: "main.c",
   css: "styles.css",
+  sql: "queries.sql",
+  r: "main.R",
 };
 
 // ── Component ─────────────────────────────────────────────────
@@ -355,10 +359,35 @@ const CodePane = ({
 
       // Write remaining buffered output not already streamed
       if (result.stdout && !result.stdout.includes("\x00__streamed__")) {
-        termStore.write(result.stdout);
+        // Strip SVG plot marker before writing to terminal
+        const cleanStdout = result.stdout.replace(
+          /\x00__plot_svg__[\s\S]*$/,
+          "",
+        );
+        if (cleanStdout) {
+          termStore.write(cleanStdout);
+        }
       }
       if (result.stderr && !result.stderr.includes("\x00__streamed__")) {
         termStore.write(formatErrorChunk(result.stderr));
+      }
+
+      // Render R plot SVG in the HTML preview pane if present
+      if (result.stdout?.includes("\x00__plot_svg__")) {
+        const svgData = result.stdout.split("\x00__plot_svg__")[1];
+        if (svgData) {
+          const container = document.getElementById(
+            "niotebook-runtime-frame",
+          );
+          if (container) {
+            const frame = document.createElement("iframe");
+            frame.style.width = "100%";
+            frame.style.height = "100%";
+            frame.style.border = "none";
+            frame.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;display:flex;align-items:center;justify-content:center;background:#0d1117;min-height:100vh}svg{max-width:100%;max-height:100vh}</style></head><body>${svgData}</body></html>`;
+            container.replaceChildren(frame);
+          }
+        }
       }
 
       setRuntimeState({

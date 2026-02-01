@@ -284,6 +284,8 @@ const SNIPPETS_BY_LANGUAGE: Record<RuntimeLanguage, Completion[]> = {
   js: JS_SNIPPETS,
   html: [], // HTML snippets could be added later
   css: [],
+  sql: [],
+  r: [],
 };
 
 function createSnippetCompletionSource(language: RuntimeLanguage) {

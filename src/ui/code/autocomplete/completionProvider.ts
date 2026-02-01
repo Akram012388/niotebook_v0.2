@@ -20,6 +20,8 @@ const LANGUAGE_COMPLETIONS: Record<RuntimeLanguage, CompletionSource> = {
   js: jsCompletions,
   html: () => null, // No special HTML completions yet
   css: () => null,
+  sql: () => null,
+  r: () => null,
 };
 
 /**

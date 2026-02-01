@@ -515,10 +515,102 @@ const ingestCourse = mutation({
   },
 });
 
+/**
+ * One-off migration: fix CS50SQL sourcePlaylistId and re-ingest lessons
+ * with the correct video IDs.
+ *
+ * Run once per deployment, then remove.
+ */
+const migrateCs50SqlPlaylistId = mutation({
+  args: {
+    oldSourcePlaylistId: v.string(),
+    newSourcePlaylistId: v.string(),
+    newYoutubePlaylistUrl: v.string(),
+    lessons: v.array(
+      v.object({
+        order: v.number(),
+        videoId: v.string(),
+        title: v.string(),
+        durationSec: v.number(),
+        environmentConfig: environmentConfigValidator,
+      }),
+    ),
+    ingestToken: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await ensureIngestAllowed(ctx, args.ingestToken);
+
+    const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
+    const course = courses.find(
+      (c) => c.sourcePlaylistId === args.oldSourcePlaylistId,
+    );
+
+    if (!course) {
+      throw new Error(
+        `Course with sourcePlaylistId "${args.oldSourcePlaylistId}" not found`,
+      );
+    }
+
+    // 1. Update the course record with the correct playlist ID
+    await ctx.db.patch(course._id, {
+      sourcePlaylistId: args.newSourcePlaylistId,
+      youtubePlaylistUrl: args.newYoutubePlaylistUrl,
+    });
+
+    // 2. Update each lesson's videoId
+    const lessons = (await ctx.db
+      .query("lessons")
+      .withIndex("by_courseId", (q) => q.eq("courseId", course._id))
+      .collect()) as LessonRecord[];
+
+    const lessonByOrder = new Map<number, LessonRecord>();
+    for (const l of lessons) {
+      lessonByOrder.set(l.order, l);
+    }
+
+    const results: { order: number; videoId: string; updated: boolean }[] = [];
+
+    for (const incoming of args.lessons) {
+      const existing = lessonByOrder.get(incoming.order);
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          videoId: incoming.videoId,
+          title: incoming.title,
+          durationSec: incoming.durationSec,
+          environmentConfig: incoming.environmentConfig,
+        });
+        results.push({
+          order: incoming.order,
+          videoId: incoming.videoId,
+          updated: true,
+        });
+      } else {
+        await ctx.db.insert("lessons", {
+          courseId: course._id,
+          videoId: incoming.videoId,
+          title: incoming.title,
+          durationSec: incoming.durationSec,
+          order: incoming.order,
+          environmentConfig: incoming.environmentConfig,
+          transcriptStatus: "missing" as const,
+        });
+        results.push({
+          order: incoming.order,
+          videoId: incoming.videoId,
+          updated: false,
+        });
+      }
+    }
+
+    return { courseId: course._id, results };
+  },
+});
+
 export {
   clearTranscriptSegmentsBatch,
   finalizeTranscriptIngest,
   ingestCourse,
   ingestCs50x2026,
   ingestTranscriptSegmentsBatch,
+  migrateCs50SqlPlaylistId,
 };
