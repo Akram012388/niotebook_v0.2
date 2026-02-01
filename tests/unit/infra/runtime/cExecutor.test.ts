@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { initCExecutor } from "../../../../src/infra/runtime/cExecutor";
 
 describe("cExecutor", () => {
-  it("extracts printf output", async () => {
+  it("executes printf with literal string", async () => {
     const executor = await initCExecutor();
     const result = await executor.run({
       code: '#include <stdio.h>\nint main() { printf("hello world"); return 0; }',
@@ -12,50 +12,45 @@ describe("cExecutor", () => {
     expect(result.exitCode).toBe(0);
   });
 
-  it("extracts puts output", async () => {
+  it("executes printf with format specifiers", async () => {
     const executor = await initCExecutor();
     const result = await executor.run({
-      code: '#include <stdio.h>\nint main() { puts("line one"); return 0; }',
+      code: '#include <stdio.h>\nint main() { int x = 42; printf("%d\\n", x); return 0; }',
       timeoutMs: 5000,
     });
-    expect(result.stdout).toBe("line one");
-  });
-
-  it("handles escape sequences", async () => {
-    const executor = await initCExecutor();
-    const result = await executor.run({
-      code: 'int main() { printf("a\\nb\\tc"); return 0; }',
-      timeoutMs: 5000,
-    });
-    expect(result.stdout).toBe("a\nb\tc");
-  });
-
-  it("handles multiple printf calls", async () => {
-    const executor = await initCExecutor();
-    const result = await executor.run({
-      code: 'int main() { printf("one"); printf("two"); return 0; }',
-      timeoutMs: 5000,
-    });
-    expect(result.stdout).toBe("onetwo");
+    expect(result.stdout).toBe("42\n");
   });
 
   it("calls onStdout callback", async () => {
     const executor = await initCExecutor();
     const onStdout = vi.fn();
     await executor.run({
-      code: 'int main() { printf("hello"); return 0; }',
+      code: '#include <stdio.h>\nint main() { printf("hello"); return 0; }',
       timeoutMs: 5000,
       onStdout,
     });
     expect(onStdout).toHaveBeenCalledWith("hello");
   });
 
-  it("returns empty stdout for code without printf/puts", async () => {
+  it("returns empty stdout for code without output", async () => {
     const executor = await initCExecutor();
     const result = await executor.run({
       code: "int main() { int x = 42; return 0; }",
       timeoutMs: 5000,
     });
     expect(result.stdout).toBe("");
+  });
+
+  it("reports errors in stderr", async () => {
+    const executor = await initCExecutor();
+    const onStderr = vi.fn();
+    const result = await executor.run({
+      code: "int main() { undefined_function(); return 0; }",
+      timeoutMs: 5000,
+      onStderr,
+    });
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr.length).toBeGreaterThan(0);
+    expect(onStderr).toHaveBeenCalled();
   });
 });

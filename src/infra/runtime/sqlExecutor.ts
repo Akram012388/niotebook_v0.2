@@ -22,6 +22,7 @@ const SQL_JS_CDN = "https://sql.js.org/dist";
 
 let sqlJsPromise: Promise<SqlJsStatic> | null = null;
 let db: SqlJsDatabase | null = null;
+let seeded = false;
 
 function loadSqlJs(): Promise<SqlJsStatic> {
   if (sqlJsPromise) return sqlJsPromise;
@@ -132,8 +133,30 @@ function formatAsciiTable(result: SqlJsResult): string {
   return lines.join("\n") + "\n";
 }
 
+/**
+ * Strip SQL comments (-- line comments and /* block comments *​/) to find the
+ * first real token. This ensures statements like `-- note\nSELECT ...` are
+ * correctly classified as SELECT queries.
+ */
+function stripLeadingComments(sql: string): string {
+  let s = sql;
+  for (;;) {
+    s = s.trimStart();
+    if (s.startsWith("--")) {
+      const nl = s.indexOf("\n");
+      s = nl === -1 ? "" : s.slice(nl + 1);
+    } else if (s.startsWith("/*")) {
+      const end = s.indexOf("*/");
+      s = end === -1 ? "" : s.slice(end + 2);
+    } else {
+      break;
+    }
+  }
+  return s;
+}
+
 function isSelectStatement(sql: string): boolean {
-  const upper = sql.trimStart().toUpperCase();
+  const upper = stripLeadingComments(sql).toUpperCase();
   return (
     upper.startsWith("SELECT") ||
     upper.startsWith("PRAGMA") ||
@@ -162,8 +185,9 @@ async function initSqlExecutor(): Promise<RuntimeExecutor> {
           db = new SQL.Database();
         }
 
-        // Auto-execute seed files from VFS if present
-        if (input.filesystem) {
+        // Auto-execute seed files from VFS on first run only
+        if (input.filesystem && !seeded) {
+          seeded = true;
           for (const seedName of ["schema.sql", "seed.sql"]) {
             const seedContent = input.filesystem.readFile(
               `/project/${seedName}`,

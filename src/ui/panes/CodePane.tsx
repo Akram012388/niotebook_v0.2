@@ -24,7 +24,6 @@ import {
   stopRuntime,
 } from "../../infra/runtime/runtimeManager";
 import type { RuntimeLanguage, RuntimeState } from "../../infra/runtime/types";
-import { RUNTIME_TIMEOUT_MS } from "../../infra/runtime/runtimeConstants";
 import type { LessonEnvironment } from "../../domain/lessonEnvironment";
 import { getPresetOrDefault } from "../../infra/runtime/envPresets";
 
@@ -350,7 +349,7 @@ const CodePane = ({
     try {
       const result = await runRuntime(activeLanguage, {
         code,
-        timeoutMs: RUNTIME_TIMEOUT_MS,
+        timeoutMs: environment.runtimeSettings.timeoutMs,
         filesystem: vfs,
         packages: environment.packages,
         onStdout: (chunk: string) => termStore.write(chunk),

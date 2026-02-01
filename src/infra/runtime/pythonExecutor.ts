@@ -101,13 +101,18 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
       return;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    // Trigger Pyodide download but don't block — run() will await the promise.
+    // This lets the warmup phase complete quickly so the executor is cached,
+    // while Pyodide downloads in the background.
+    void loadPyodideInstance();
     isReady = true;
   };
 
   const run = async (input: RuntimeRunInput): Promise<RuntimeRunResult> => {
-    const start = performance.now();
     await init();
+    // Await Pyodide BEFORE starting the timeout so download time isn't counted
+    const pyodide = await loadPyodideInstance();
+    const start = performance.now();
     const timeoutMs = input.timeoutMs ?? RUNTIME_TIMEOUT_MS;
     let suppressOutput = false;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -126,7 +131,6 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
 
     const runPromise = (async (): Promise<RuntimeRunResult> => {
       try {
-        const pyodide = await loadPyodideInstance();
 
         if (input.filesystem) {
           mountPythonFiles(pyodide, input.filesystem);
