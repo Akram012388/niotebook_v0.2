@@ -24,44 +24,78 @@ type WebRClass = new (options?: {
   channelType?: number;
 }) => WebRInstance;
 
-type WebRModule = {
+type WebRGlobal = {
   WebR?: WebRClass;
   ChannelType?: { PostMessage: number };
 };
 
-const WEBR_CDN = "https://webr.r-wasm.org/v0.5.0/";
+const WEBR_CDN = "https://webr.r-wasm.org/v0.4.4/";
 const WEBR_SCRIPT_URL = `${WEBR_CDN}webr.mjs`;
 
 let webrPromise: Promise<WebRInstance> | null = null;
 
 /**
- * Load WebR from CDN via dynamic import of the ESM module URL.
- * This avoids the Next.js bundler mangling the Web Worker script paths
- * that WebR needs to spawn its communication channel.
+ * Load WebR from CDN via <script type="module"> injection.
+ * Dynamic import() of cross-origin ESM fails in many browsers, so we
+ * inject a module script that assigns WebR to globalThis, similar to
+ * how Pyodide is loaded.
  */
 function loadWebR(): Promise<WebRInstance> {
   if (webrPromise) return webrPromise;
 
   webrPromise = (async () => {
-    // Dynamic import from CDN URL — bypasses the bundler entirely.
-    // WebR's worker scripts load relative to baseUrl, which stays correct.
-    let mod: WebRModule;
-    try {
-      mod = (await import(/* webpackIgnore: true */ WEBR_SCRIPT_URL)) as WebRModule;
-    } catch {
-      throw new Error(
-        "Failed to load WebR from CDN. Check your network connection.",
-      );
+    // Check if already loaded on globalThis
+    const existing = (globalThis as unknown as WebRGlobal).WebR;
+    if (existing) {
+      const channelType =
+        (globalThis as unknown as WebRGlobal).ChannelType?.PostMessage ?? 3;
+      const webr = new existing({
+        baseUrl: WEBR_CDN,
+        interactive: false,
+        channelType,
+      });
+      await webr.init();
+      return webr;
     }
 
-    const WebR = mod.WebR;
+    // Inject a module script that loads WebR and exposes it globally
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.type = "module";
+      script.textContent = `
+        import { WebR, ChannelType } from "${WEBR_SCRIPT_URL}";
+        globalThis.WebR = WebR;
+        globalThis.ChannelType = ChannelType;
+        globalThis.__webr_loaded__ = true;
+        document.dispatchEvent(new Event("webr-loaded"));
+      `;
+      script.onerror = () => reject(new Error("Failed to load WebR script"));
+
+      // Listen for the custom event
+      const onLoaded = () => {
+        document.removeEventListener("webr-loaded", onLoaded);
+        resolve();
+      };
+      document.addEventListener("webr-loaded", onLoaded);
+
+      // Timeout after 30s
+      setTimeout(() => {
+        document.removeEventListener("webr-loaded", onLoaded);
+        if (!(globalThis as unknown as { __webr_loaded__?: boolean }).__webr_loaded__) {
+          reject(new Error("WebR load timed out"));
+        }
+      }, 30000);
+
+      document.head.appendChild(script);
+    });
+
+    const WebR = (globalThis as unknown as WebRGlobal).WebR;
     if (!WebR) {
       throw new Error("WebR module did not export WebR class");
     }
 
-    // ChannelType.PostMessage (3) — does not require COOP/COEP headers
-    // or SharedArrayBuffer on the main page.
-    const channelType = mod.ChannelType?.PostMessage ?? 3;
+    const channelType =
+      (globalThis as unknown as WebRGlobal).ChannelType?.PostMessage ?? 3;
 
     const webr = new WebR({
       baseUrl: WEBR_CDN,
@@ -71,6 +105,11 @@ function loadWebR(): Promise<WebRInstance> {
     await webr.init();
     return webr;
   })();
+
+  // Reset on failure so retry is possible
+  webrPromise.catch(() => {
+    webrPromise = null;
+  });
 
   return webrPromise;
 }
@@ -108,10 +147,7 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
     async init() {
       // Trigger WebR download but don't block warmup.
       // run() will await the promise before executing.
-      void loadWebR().catch(() => {
-        // Reset promise so next attempt can retry
-        webrPromise = null;
-      });
+      void loadWebR();
     },
 
     async run(input: RuntimeRunInput): Promise<RuntimeRunResult> {

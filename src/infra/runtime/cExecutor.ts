@@ -40,7 +40,11 @@ const initCExecutor = async (): Promise<RuntimeExecutor> => {
       return { stdout: "", stderr: msg, exitCode: 1, runtimeMs: 0 };
     }
 
-    let processedCode = input.code;
+    // JSCPP doesn't support `void` in main params: main(void) → main()
+    let processedCode = input.code.replace(
+      /\bmain\s*\(\s*void\s*\)/g,
+      "main()",
+    );
     if (input.filesystem) {
       const mainPath =
         input.filesystem.getMainFilePath() ?? "/project/main.c";
