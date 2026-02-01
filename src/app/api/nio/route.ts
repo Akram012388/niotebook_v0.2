@@ -878,27 +878,6 @@ export const POST = async (request: Request): Promise<Response> => {
     (line) => line.trim().length > 0,
   );
 
-  if (!hasTranscriptLines && isConvexEnabled()) {
-    try {
-      const lines = await fetchTranscriptWindow({
-        lessonId: validation.data.lessonId,
-        startSec: transcriptPayload.startSec,
-        endSec: transcriptPayload.endSec,
-        authHeader: convexAuthHeader,
-      });
-      if (lines.length > 0) {
-        transcriptPayload = {
-          ...transcriptPayload,
-          lines,
-        };
-      }
-    } catch {
-      debugLog("transcript fetch failed", {
-        requestId: validation.data.requestId,
-      });
-    }
-  }
-
   let lessonMeta: {
     title?: string;
     order?: number;
@@ -914,13 +893,42 @@ export const POST = async (request: Request): Promise<Response> => {
       }
     : null;
 
-  if (!lessonMeta && isConvexEnabled()) {
-    try {
-      lessonMeta = await fetchLessonMeta({
-        lessonId: validation.data.lessonId,
-        authHeader: convexAuthHeader,
+  // Fetch transcript and lesson meta in parallel when both are needed
+  const needsTranscript = !hasTranscriptLines && isConvexEnabled();
+  const needsLessonMeta = !lessonMeta && isConvexEnabled();
+
+  if (needsTranscript || needsLessonMeta) {
+    const [transcriptResult, lessonMetaResult] = await Promise.allSettled([
+      needsTranscript
+        ? fetchTranscriptWindow({
+            lessonId: validation.data.lessonId,
+            startSec: transcriptPayload.startSec,
+            endSec: transcriptPayload.endSec,
+            authHeader: convexAuthHeader,
+          })
+        : Promise.resolve(null),
+      needsLessonMeta
+        ? fetchLessonMeta({
+            lessonId: validation.data.lessonId,
+            authHeader: convexAuthHeader,
+          })
+        : Promise.resolve(null),
+    ]);
+
+    if (transcriptResult.status === "fulfilled" && transcriptResult.value) {
+      const lines = transcriptResult.value;
+      if (lines.length > 0) {
+        transcriptPayload = { ...transcriptPayload, lines };
+      }
+    } else if (transcriptResult.status === "rejected") {
+      debugLog("transcript fetch failed", {
+        requestId: validation.data.requestId,
       });
-    } catch {
+    }
+
+    if (lessonMetaResult.status === "fulfilled" && lessonMetaResult.value) {
+      lessonMeta = lessonMetaResult.value;
+    } else if (lessonMetaResult.status === "rejected") {
       debugLog("lesson meta fetch failed", {
         requestId: validation.data.requestId,
       });
