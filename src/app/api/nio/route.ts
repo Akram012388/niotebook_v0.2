@@ -390,25 +390,23 @@ const streamStub = async (args: {
     finalText: fullText,
   });
 
-  try {
-    await persistAssistantMessage({
-      threadId: args.threadId,
-      requestId: args.requestId,
-      content: fullText,
-      videoTimeSec: args.videoTimeSec,
-      timeWindow: args.timeWindow,
-      codeHash: args.codeHash,
-      provider: STUB_PROVIDER,
-      model: STUB_MODEL,
-      latencyMs,
-      usedFallback: false,
-      contextHash: args.contextHash,
-      client: args.client,
-    });
-  } catch (error) {
+  // Fire-and-forget: don't block stream close on persistence
+  void persistAssistantMessage({
+    threadId: args.threadId,
+    requestId: args.requestId,
+    content: fullText,
+    videoTimeSec: args.videoTimeSec,
+    timeWindow: args.timeWindow,
+    codeHash: args.codeHash,
+    provider: STUB_PROVIDER,
+    model: STUB_MODEL,
+    latencyMs,
+    usedFallback: false,
+    contextHash: args.contextHash,
+    client: args.client,
+  }).catch((error) => {
     console.error("[nio] stub persistence failed", error);
-    return;
-  }
+  });
 };
 
 const streamWithProviders = async (args: {
@@ -693,25 +691,23 @@ const streamWithProviders = async (args: {
     finalText: fullText,
   });
 
-  try {
-    await persistAssistantMessage({
-      threadId: args.threadId,
-      requestId: args.requestId,
-      content: fullText,
-      videoTimeSec: args.videoTimeSec,
-      timeWindow: args.timeWindow,
-      codeHash: args.codeHash,
-      provider: providerResult.provider,
-      model: providerResult.model,
-      latencyMs,
-      usedFallback,
-      contextHash: args.contextHash,
-      client: args.client,
-    });
-  } catch (error) {
+  // Fire-and-forget: don't block stream close on persistence
+  void persistAssistantMessage({
+    threadId: args.threadId,
+    requestId: args.requestId,
+    content: fullText,
+    videoTimeSec: args.videoTimeSec,
+    timeWindow: args.timeWindow,
+    codeHash: args.codeHash,
+    provider: providerResult.provider,
+    model: providerResult.model,
+    latencyMs,
+    usedFallback,
+    contextHash: args.contextHash,
+    client: args.client,
+  }).catch((error) => {
     console.error("[nio] assistant persistence failed", error);
-    return;
-  }
+  });
 };
 
 const fetchTranscriptWindow = async (args: {
