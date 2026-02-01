@@ -89,6 +89,7 @@ const ControlCenterDrawer = ({
     "content",
   );
   const [lectureQuery, setLectureQuery] = useState("");
+  const [courseQuery, setCourseQuery] = useState("");
   const [activeSettingsCard, setActiveSettingsCard] = useState<
     "share" | "feedback" | null
   >(null);
@@ -245,11 +246,18 @@ const ControlCenterDrawer = ({
     });
   }, [lectureQuery, lessonOptions]);
 
-  const sortedCourses = useMemo(() => {
-    return [...courseOptions].sort((left, right) =>
+  const filteredCourses = useMemo(() => {
+    const sorted = [...courseOptions].sort((left, right) =>
       left.title.localeCompare(right.title),
     );
-  }, [courseOptions]);
+    const normalized = courseQuery.trim().toLowerCase();
+    if (!normalized) return sorted;
+    return sorted.filter(
+      (course) =>
+        course.title.toLowerCase().includes(normalized) ||
+        (course.description?.toLowerCase().includes(normalized) ?? false),
+    );
+  }, [courseOptions, courseQuery]);
 
   if (!isMounted) {
     return null;
@@ -374,12 +382,26 @@ const ControlCenterDrawer = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-3">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                      Courses
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-2">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                        Search
+                      </div>
+                      <input
+                        value={courseQuery}
+                        onChange={(event) =>
+                          setCourseQuery(event.target.value)
+                        }
+                        placeholder="Search courses"
+                        className="rounded-xl border border-border bg-surface px-3 py-2 text-xs text-foreground placeholder:text-text-subtle"
+                      />
                     </div>
                     <div className="flex flex-col gap-2">
-                      {sortedCourses.map((course) => {
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                        Courses
+                      </div>
+                    <div className="flex flex-col gap-2">
+                      {filteredCourses.map((course) => {
                         const isActive = course.id === courseId;
                         return (
                           <button
@@ -410,11 +432,12 @@ const ControlCenterDrawer = ({
                           </button>
                         );
                       })}
-                      {sortedCourses.length === 0 ? (
+                      {filteredCourses.length === 0 ? (
                         <div className="rounded-xl border border-dashed border-border bg-surface-muted px-3 py-4 text-xs text-text-muted">
-                          No courses available yet.
+                          No courses match that search.
                         </div>
                       ) : null}
+                    </div>
                     </div>
                   </div>
                 )

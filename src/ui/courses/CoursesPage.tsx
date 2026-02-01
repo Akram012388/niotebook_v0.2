@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactElement } from "react";
+import { useMemo, useState, type ReactElement } from "react";
 import { useQuery } from "convex/react";
 import { getCoursesRef } from "@/ui/content/convexContent";
 import { getResumeDataRef } from "./convexResume";
@@ -16,9 +16,34 @@ function CoursesPage(): ReactElement {
   const courses = useQuery(getCoursesRef);
   const resumeData = useQuery(getResumeDataRef);
 
-  const cs50Courses = (courses ?? []).filter((c) =>
-    CS50_TITLES.some((t) => c.title.includes(t)),
-  );
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const normalized = searchQuery.trim().toLowerCase();
+
+  const cs50Courses = useMemo(() => {
+    const all = (courses ?? []).filter((c) =>
+      CS50_TITLES.some((t) => c.title.includes(t)),
+    );
+    if (!normalized) return all;
+    return all.filter(
+      (c) =>
+        c.title.toLowerCase().includes(normalized) ||
+        (c.description?.toLowerCase().includes(normalized) ?? false),
+    );
+  }, [courses, normalized]);
+
+  const filteredComingSoon = useMemo(() => {
+    if (!normalized) return COMING_SOON_GROUPS;
+    return COMING_SOON_GROUPS.map((group) => ({
+      ...group,
+      courses: group.courses.filter(
+        (item) =>
+          item.title.toLowerCase().includes(normalized) ||
+          item.description.toLowerCase().includes(normalized) ||
+          item.provider.toLowerCase().includes(normalized),
+      ),
+    })).filter((group) => group.courses.length > 0);
+  }, [normalized]);
 
   const courseIds = useMemo(
     () => cs50Courses.map((c) => c.id as string),
@@ -43,6 +68,12 @@ function CoursesPage(): ReactElement {
           Open-licensed courses from top universities. Watch lectures, code
           along, and get AI help.
         </p>
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search courses"
+          className="mt-2 w-full max-w-md rounded-xl border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-text-subtle"
+        />
       </div>
 
       {/* Continue Learning */}
@@ -102,7 +133,7 @@ function CoursesPage(): ReactElement {
       </section>
 
       {/* Coming Soon — grouped by provider */}
-      {COMING_SOON_GROUPS.map((group) => (
+      {filteredComingSoon.map((group) => (
         <section key={group.provider} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <h2 className="text-lg font-semibold text-foreground">
