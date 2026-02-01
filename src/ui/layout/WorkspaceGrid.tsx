@@ -169,7 +169,7 @@ const WorkspaceGrid = (): ReactElement => {
     timeSec: number;
     token: number;
   } | null>(null);
-  const [videoTimeSec, setVideoTimeSec] = useState<number>(0);
+  const [videoDisplayTimeSec, setVideoDisplayTimeSec] = useState<number>(0);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [codeHash, setCodeHash] = useState<string | null>(null);
   const [codeSnapshot, setCodeSnapshot] = useState<CodeSnapshotSummary | null>(
@@ -197,7 +197,11 @@ const WorkspaceGrid = (): ReactElement => {
   }, []);
 
   const handleVideoTime = useCallback((timestampSec: number): void => {
-    setVideoTimeSec(timestampSec);
+    setVideoDisplayTimeSec(timestampSec);
+  }, []);
+
+  const handleVideoDisplayTime = useCallback((timestampSec: number): void => {
+    setVideoDisplayTimeSec(timestampSec);
   }, []);
 
   const handleThreadChange = useCallback(
@@ -330,6 +334,7 @@ const WorkspaceGrid = (): ReactElement => {
               lessonId={activeLessonId}
               seekRequest={seekRequest}
               onTimeChange={handleVideoTime}
+              onTimeUpdate={handleVideoDisplayTime}
               threadId={threadId ?? undefined}
               codeHash={codeHash ?? undefined}
               showInfoStrip
@@ -398,6 +403,7 @@ const WorkspaceGrid = (): ReactElement => {
                 lessonId={activeLessonId}
                 seekRequest={seekRequest}
                 onTimeChange={handleVideoTime}
+              onTimeUpdate={handleVideoDisplayTime}
                 threadId={threadId ?? undefined}
                 codeHash={codeHash ?? undefined}
                 showInfoStrip
@@ -457,7 +463,7 @@ const WorkspaceGrid = (): ReactElement => {
               <AiPane
                 lessonId={activeLessonId}
                 onSeek={handleSeek}
-                videoTimeSec={videoTimeSec}
+                videoTimeSec={videoDisplayTimeSec}
                 codeSnapshot={codeSnapshot}
                 onThreadChange={handleThreadChange}
                 headerExtras={
@@ -526,6 +532,7 @@ const WorkspaceGrid = (): ReactElement => {
         lessonId={activeLessonId}
         seekRequest={seekRequest}
         onTimeChange={handleVideoTime}
+              onTimeUpdate={handleVideoDisplayTime}
         threadId={threadId ?? undefined}
         codeHash={codeHash ?? undefined}
         showInfoStrip
@@ -534,7 +541,7 @@ const WorkspaceGrid = (): ReactElement => {
       <AiPane
         lessonId={activeLessonId}
         onSeek={handleSeek}
-        videoTimeSec={videoTimeSec}
+        videoTimeSec={videoDisplayTimeSec}
         codeSnapshot={codeSnapshot}
         onThreadChange={handleThreadChange}
       />

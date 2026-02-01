@@ -23,6 +23,7 @@ type VideoPaneProps = {
   codeHash?: string;
   threadId?: string;
   onTimeChange?: (timeSec: number) => void;
+  onTimeUpdate?: (timeSec: number) => void;
   headerExtras?: ReactElement;
   showInfoStrip?: boolean;
 };
@@ -33,6 +34,7 @@ const VideoPane = ({
   codeHash,
   threadId,
   onTimeChange,
+  onTimeUpdate,
   headerExtras,
   showInfoStrip = false,
 }: VideoPaneProps): ReactElement => {
@@ -71,7 +73,12 @@ const VideoPane = ({
       lectureNumber !== null && lectureNumber !== undefined
         ? `Lecture ${lectureNumber}`
         : null;
-    const topicPart = lesson?.title ?? null;
+    let topicPart = lesson?.title ?? null;
+    if (topicPart && lecturePart) {
+      topicPart = topicPart
+        .replace(/^Lecture\s+\d+\s*[:\u2014—\-–]\s*/i, "")
+        .trim() || null;
+    }
     const secondaryParts = [lecturePart, topicPart].filter(Boolean).join(": ");
     return {
       primary: courseTitle ?? "Lesson video",
@@ -231,6 +238,7 @@ const VideoPane = ({
                 seekToSec={seekRequest?.timeSec}
                 seekToken={seekRequest?.token}
                 onTimeSample={handleTimeChange}
+                onTimeUpdate={onTimeUpdate}
                 onSeek={handleTimeChange}
                 showControls={false}
               />

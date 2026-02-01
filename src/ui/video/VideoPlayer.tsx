@@ -25,6 +25,7 @@ type VideoPlayerProps = {
   seekToSec?: number | null;
   seekToken?: number;
   onTimeSample?: (timeSec: number) => void;
+  onTimeUpdate?: (timeSec: number) => void;
   onSeek?: (timeSec: number) => void;
   onPlayState?: (state: VideoPlaybackState) => void;
   showControls?: boolean;
@@ -44,6 +45,7 @@ const VideoPlayer = ({
   seekToSec,
   seekToken,
   onTimeSample,
+  onTimeUpdate,
   onSeek,
   onPlayState,
   showControls = true,
@@ -86,6 +88,7 @@ const VideoPlayer = ({
 
   const updateCurrentTimeRef = useRef(updateCurrentTime);
   const onSeekRef = useRef(onSeek);
+  const onTimeUpdateRef = useRef(onTimeUpdate);
   const initialTimeRef = useRef<number | null>(initialTimeSec ?? null);
 
   useEffect(() => {
@@ -95,6 +98,10 @@ const VideoPlayer = ({
   useEffect(() => {
     onSeekRef.current = onSeek;
   }, [onSeek]);
+
+  useEffect(() => {
+    onTimeUpdateRef.current = onTimeUpdate;
+  }, [onTimeUpdate]);
 
   useEffect(() => {
     initialTimeRef.current =
@@ -167,6 +174,7 @@ const VideoPlayer = ({
                 }
                 lastSampleRef.current = null;
                 updateCurrentTimeRef.current(nextSec);
+                onTimeUpdateRef.current?.(nextSec);
                 onSeekRef.current?.(nextSec);
               } else if (typeof initialTimeRef.current === "number") {
                 applyInitialSeek(initialTimeRef.current);
@@ -183,6 +191,7 @@ const VideoPlayer = ({
                 playStateRef.current = "paused";
                 const nextTime = event.target.getCurrentTime();
                 updateCurrentTimeRef.current(nextTime);
+                onTimeUpdateRef.current?.(nextTime);
                 onSeekRef.current?.(nextTime);
                 playbackCache.set(videoId, {
                   timeSec: nextTime,
@@ -194,6 +203,7 @@ const VideoPlayer = ({
                 playStateRef.current = "paused";
                 const nextTime = event.target.getCurrentTime();
                 updateCurrentTimeRef.current(nextTime);
+                onTimeUpdateRef.current?.(nextTime);
                 onSeekRef.current?.(nextTime);
                 playbackCache.set(videoId, {
                   timeSec: nextTime,
@@ -269,6 +279,7 @@ const VideoPlayer = ({
 
       const t = clampVideoTime(player.getCurrentTime());
       updateCurrentTime(t);
+      onTimeUpdateRef.current?.(t);
       playbackCache.set(videoId, { timeSec: t, playing: true });
     }, 1000);
 
