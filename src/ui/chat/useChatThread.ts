@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type MutableRefObject,
 } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
@@ -242,6 +243,10 @@ const useChatThread = (
   }, [lessonId, mergedMessages]);
 
   const rafRef = useRef<number | null>(null);
+  const mergedMessagesRef: MutableRefObject<ChatMessage[]> = useRef(mergedMessages);
+  mergedMessagesRef.current = mergedMessages;
+  const streamStateRef: MutableRefObject<ChatStreamState> = useRef(streamState);
+  streamStateRef.current = streamState;
 
   useEffect(() => {
     return () => {
@@ -262,7 +267,7 @@ const useChatThread = (
 
   const sendMessage = useCallback(
     async (content: string, context: ChatSendContext): Promise<void> => {
-      if (streamState === "streaming") {
+      if (streamStateRef.current === "streaming") {
         return;
       }
 
@@ -272,7 +277,7 @@ const useChatThread = (
       const requestId = crypto.randomUUID();
       const assistantTempId = crypto.randomUUID();
       const fallbackThreadId = activeThreadId ?? "local-thread";
-      const recentMessages = buildRecentMessages(mergedMessages);
+      const recentMessages = buildRecentMessages(mergedMessagesRef.current);
 
       try {
         let resolvedThreadId = fallbackThreadId;
@@ -516,6 +521,7 @@ const useChatThread = (
         setStreamState((prev) => (prev === "streaming" ? "idle" : prev));
       }
     },
+    // mergedMessages and streamState read from refs to keep sendMessage stable
     [
       activeThreadId,
       createMessage,
@@ -524,8 +530,6 @@ const useChatThread = (
       isConvexEnabled,
       lessonId,
       lectureLabel,
-      mergedMessages,
-      streamState,
       updateLocalMessage,
       logEvent,
     ],
