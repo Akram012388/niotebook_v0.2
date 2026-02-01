@@ -3,7 +3,6 @@
 import { PaperPlaneRight } from "@phosphor-icons/react";
 import {
   useCallback,
-  useEffect,
   useRef,
   useState,
   type ReactElement,
@@ -23,17 +22,13 @@ const ChatComposer = ({
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  useEffect((): void => {
+  const resizeTextarea = (): void => {
     const textarea = textareaRef.current;
-
-    if (!textarea) {
-      return;
-    }
-
+    if (!textarea) return;
     textarea.style.height = "auto";
     const nextHeight = Math.min(textarea.scrollHeight, MAX_HEIGHT_PX);
     textarea.style.height = `${nextHeight}px`;
-  }, [value]);
+  };
 
   const handleSend = useCallback((): void => {
     if (disabled) {
@@ -68,7 +63,10 @@ const ChatComposer = ({
         ref={textareaRef}
         rows={1}
         value={value}
-        onChange={(event) => setValue(event.target.value)}
+        onChange={(event) => {
+          setValue(event.target.value);
+          resizeTextarea();
+        }}
         onKeyDown={handleKeyDown}
         placeholder="Ask about the lesson..."
         className="chat-input min-h-[44px] max-h-[140px] flex-1 resize-none overflow-y-auto border-0 bg-transparent text-sm text-foreground outline-none placeholder:text-text-subtle focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0"
