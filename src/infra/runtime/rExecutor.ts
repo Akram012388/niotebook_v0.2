@@ -20,15 +20,16 @@ type Shelter = {
   purge: () => void;
 };
 
+type ShelterConstructor = new () => Promise<Shelter>;
+
 type WebRInstance = {
   init: () => Promise<void>;
-  installPackages: (pkgs: string[]) => Promise<void>;
   FS: {
     writeFile: (path: string, content: string) => void;
     mkdirTree: (path: string) => void;
   };
   destroy: () => void;
-  shelter: Shelter;
+  Shelter: ShelterConstructor;
 };
 
 type WebRClass = new (options?: {
@@ -50,7 +51,7 @@ const WEBR_SCRIPT_URL = `${WEBR_CDN}webr.mjs`;
 const WEBR_LOAD_TIMEOUT_MS = 60_000;
 const WEBR_EVAL_TIMEOUT_MS = 30_000;
 
-let webrPromise: Promise<WebRInstance> | null = null;
+let webrPromise: Promise<{ webr: WebRInstance; shelter: Shelter }> | null = null;
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
@@ -66,7 +67,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
  * Cross-origin dynamic import() fails in many browsers, so we inject
  * a module script that assigns WebR to globalThis (same pattern as Pyodide).
  */
-function loadWebR(): Promise<WebRInstance> {
+function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
   if (webrPromise) return webrPromise;
 
   webrPromise = withTimeout(
@@ -101,7 +102,11 @@ function loadWebR(): Promise<WebRInstance> {
       const channelType = g.ChannelType?.PostMessage ?? 3;
       const webr = new WebR({ baseUrl: WEBR_CDN, interactive: false, channelType });
       await webr.init();
-      return webr;
+
+      // Create a shelter for captureR — must be constructed async
+      const shelter = await new webr.Shelter();
+
+      return { webr, shelter };
     })(),
     WEBR_LOAD_TIMEOUT_MS,
     "WebR load",
@@ -140,7 +145,7 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
       let stderr = "";
 
       try {
-        const webr = await loadWebR();
+        const { webr, shelter } = await loadWebR();
 
         if (input.filesystem) {
           mountRFiles(webr, input.filesystem);
@@ -149,7 +154,7 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
         // Use shelter.captureR — the correct way to capture stdout/stderr.
         // It returns { output: [{type, data}, ...], images, result }.
         const captured = await withTimeout(
-          webr.shelter.captureR(input.code, { withAutoprint: true }),
+          shelter.captureR(input.code, { withAutoprint: true }),
           WEBR_EVAL_TIMEOUT_MS,
           "R execution",
         );
@@ -170,14 +175,8 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
           }
         }
 
-        // Handle captured plot images
-        if (captured.images && captured.images.length > 0) {
-          // Convert first image to SVG-like data URL marker
-          // (images are ImageBitmap — for now just note their presence)
-        }
-
         // Clean up shelter objects
-        try { webr.shelter.purge(); } catch { /* ignore */ }
+        try { shelter.purge(); } catch { /* ignore */ }
 
         return {
           stdout,
