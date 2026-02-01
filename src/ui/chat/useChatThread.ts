@@ -274,224 +274,246 @@ const useChatThread = (
       const fallbackThreadId = activeThreadId ?? "local-thread";
       const recentMessages = buildRecentMessages(mergedMessages);
 
-      let resolvedThreadId = fallbackThreadId;
-
-      if (isConvexEnabled) {
-        resolvedThreadId = (activeThreadId ??
-          (await ensureThread({ lessonId }))) as string;
-
-        if (!activeThreadId) {
-          setLocalThreadId(resolvedThreadId);
-        }
-
-        const timeWindow = {
-          startSec: Math.max(0, context.videoTimeSec - 60),
-          endSec: context.videoTimeSec + 60,
-        };
-
-        await createMessage({
-          threadId: resolvedThreadId,
-          role: "user",
-          content,
-          videoTimeSec: context.videoTimeSec,
-          timeWindow,
-          codeHash: context.code.codeHash,
-        });
-
-        void logEvent({
-          eventType: "nio_message_sent",
-          lessonId,
-          metadata: {
-            lessonId,
-            threadId: resolvedThreadId,
-          },
-        });
-      } else if (!activeThreadId) {
-        setLocalThreadId(fallbackThreadId);
-      }
-
-      const placeholder: ChatMessage = {
-        id: assistantTempId,
-        role: "assistant",
-        content: "",
-        badge: `${lectureLabel} • ${formatTimestamp(context.videoTimeSec)}`,
-        timestampSec: context.videoTimeSec,
-        createdAt: Date.now(),
-        isStreaming: true,
-        requestId,
-      };
-
-      setLocalMessages((prev) => [...prev, placeholder]);
-
-      const payload: NioChatRequest = {
-        requestId,
-        assistantTempId,
-        lessonId,
-        threadId: resolvedThreadId,
-        videoTimeSec: context.videoTimeSec,
-        userMessage: content,
-        recentMessages,
-        transcript: {
-          startSec: context.transcript.startSec,
-          endSec: context.transcript.endSec,
-          lines: context.transcript.lines,
-        },
-        code: {
-          language: context.code.language,
-          codeHash: context.code.codeHash,
-          code: context.code.code,
-        },
-        lesson: context.lesson,
-      };
-
-      let response: Response;
-
       try {
-        const token = await getToken({ template: "convex" });
-        const headers: Record<string, string> = {
-          "Content-Type": "application/json",
-        };
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
+        let resolvedThreadId = fallbackThreadId;
+
+        if (isConvexEnabled) {
+          try {
+            resolvedThreadId = (activeThreadId ??
+              (await ensureThread({ lessonId }))) as string;
+
+            if (!activeThreadId) {
+              setLocalThreadId(resolvedThreadId);
+            }
+
+            const timeWindow = {
+              startSec: Math.max(0, context.videoTimeSec - 60),
+              endSec: context.videoTimeSec + 60,
+            };
+
+            await createMessage({
+              threadId: resolvedThreadId,
+              role: "user",
+              content,
+              videoTimeSec: context.videoTimeSec,
+              timeWindow,
+              codeHash: context.code.codeHash,
+            });
+
+            void logEvent({
+              eventType: "nio_message_sent",
+              lessonId,
+              metadata: {
+                lessonId,
+                threadId: resolvedThreadId,
+              },
+            });
+          } catch {
+            // Convex calls failed — continue with local-only thread
+            if (!activeThreadId) {
+              setLocalThreadId(fallbackThreadId);
+            }
+            resolvedThreadId = fallbackThreadId;
+          }
+        } else if (!activeThreadId) {
+          setLocalThreadId(fallbackThreadId);
         }
 
-        response = await fetch("/api/nio", {
-          method: "POST",
-          headers,
-          body: JSON.stringify(payload),
-        });
-      } catch {
-        updateLocalMessage(assistantTempId, (message) => ({
-          ...message,
-          content: "Unable to reach the assistant service.",
-          isStreaming: false,
-        }));
-        setStreamError("Unable to reach the assistant service.");
-        setStreamState("error");
-        return;
-      }
+        const placeholder: ChatMessage = {
+          id: assistantTempId,
+          role: "assistant",
+          content: "",
+          badge: `${lectureLabel} • ${formatTimestamp(context.videoTimeSec)}`,
+          timestampSec: context.videoTimeSec,
+          createdAt: Date.now(),
+          isStreaming: true,
+          requestId,
+        };
 
-      if (!response.ok) {
-        let errorMessage = "Assistant request failed.";
+        setLocalMessages((prev) => [...prev, placeholder]);
+
+        const payload: NioChatRequest = {
+          requestId,
+          assistantTempId,
+          lessonId,
+          threadId: resolvedThreadId,
+          videoTimeSec: context.videoTimeSec,
+          userMessage: content,
+          recentMessages,
+          transcript: {
+            startSec: context.transcript.startSec,
+            endSec: context.transcript.endSec,
+            lines: context.transcript.lines,
+          },
+          code: {
+            language: context.code.language,
+            codeHash: context.code.codeHash,
+            code: context.code.code,
+          },
+          lesson: context.lesson,
+        };
+
+        let response: Response;
 
         try {
-          const body = (await response.json()) as {
-            error?: { message?: string };
+          const token = await getToken({ template: "convex" });
+          const headers: Record<string, string> = {
+            "Content-Type": "application/json",
           };
-          if (body.error?.message) {
-            errorMessage = body.error.message;
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+          }
+
+          response = await fetch("/api/nio", {
+            method: "POST",
+            headers,
+            body: JSON.stringify(payload),
+          });
+        } catch {
+          updateLocalMessage(assistantTempId, (message) => ({
+            ...message,
+            content: "Unable to reach the assistant service.",
+            isStreaming: false,
+          }));
+          setStreamError("Unable to reach the assistant service.");
+          return;
+        }
+
+        if (!response.ok) {
+          let errorMessage = "Assistant request failed.";
+
+          try {
+            const body = (await response.json()) as {
+              error?: { message?: string };
+            };
+            if (body.error?.message) {
+              errorMessage = body.error.message;
+            }
+          } catch {
+            errorMessage = `Assistant request failed (${response.status}).`;
+          }
+
+          updateLocalMessage(assistantTempId, (message) => ({
+            ...message,
+            content: errorMessage,
+            isStreaming: false,
+          }));
+          setStreamError(errorMessage);
+          return;
+        }
+
+        if (!response.body) {
+          updateLocalMessage(assistantTempId, (message) => ({
+            ...message,
+            content: "Assistant response stream missing.",
+            isStreaming: false,
+          }));
+          setStreamError("Assistant response stream missing.");
+          return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let tokenBuffer = "";
+        let receivedDone = false;
+        let receivedError = false;
+
+        const flushTokens = (): void => {
+          if (!tokenBuffer) {
+            return;
+          }
+
+          const chunk = tokenBuffer;
+          tokenBuffer = "";
+          updateLocalMessage(assistantTempId, (message) => ({
+            ...message,
+            content: message.content + chunk,
+          }));
+        };
+
+        const scheduleFlush = (): void => {
+          if (rafRef.current !== null) {
+            return;
+          }
+
+          rafRef.current = window.requestAnimationFrame(() => {
+            rafRef.current = null;
+            flushTokens();
+          });
+        };
+
+        try {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) {
+              break;
+            }
+
+            buffer += decoder.decode(value, { stream: true });
+            const chunks = buffer.split("\n\n");
+            buffer = chunks.pop() ?? "";
+
+            for (const chunk of chunks) {
+              const event = parseSseEvent(chunk.trim());
+              if (!event) {
+                continue;
+              }
+
+              if (event.type === "token") {
+                tokenBuffer += event.token;
+                scheduleFlush();
+              }
+
+              if (event.type === "done") {
+                flushTokens();
+                receivedDone = true;
+                updateLocalMessage(assistantTempId, (message) => ({
+                  ...message,
+                  content: event.finalText,
+                  isStreaming: false,
+                }));
+              }
+
+              if (event.type === "error") {
+                flushTokens();
+                receivedError = true;
+                updateLocalMessage(assistantTempId, (message) => ({
+                  ...message,
+                  content: event.message,
+                  isStreaming: false,
+                }));
+                setStreamError(event.message);
+              }
+            }
           }
         } catch {
-          errorMessage = `Assistant request failed (${response.status}).`;
-        }
-
-        updateLocalMessage(assistantTempId, (message) => ({
-          ...message,
-          content: errorMessage,
-          isStreaming: false,
-        }));
-        setStreamError(errorMessage);
-        setStreamState("error");
-        return;
-      }
-
-      if (!response.body) {
-        updateLocalMessage(assistantTempId, (message) => ({
-          ...message,
-          content: "Assistant response stream missing.",
-          isStreaming: false,
-        }));
-        setStreamError("Assistant response stream missing.");
-        setStreamState("error");
-        return;
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let tokenBuffer = "";
-      let receivedDone = false;
-      let receivedError = false;
-
-      const flushTokens = (): void => {
-        if (!tokenBuffer) {
+          // SSE read loop failed (network error, aborted stream)
+          if (!receivedDone && !receivedError) {
+            flushTokens();
+            updateLocalMessage(assistantTempId, (message) => ({
+              ...message,
+              content:
+                message.content || "Connection to assistant lost.",
+              isStreaming: false,
+            }));
+            setStreamError("Connection to assistant lost.");
+          }
           return;
         }
 
-        const chunk = tokenBuffer;
-        tokenBuffer = "";
-        updateLocalMessage(assistantTempId, (message) => ({
-          ...message,
-          content: message.content + chunk,
-        }));
-      };
-
-      const scheduleFlush = (): void => {
-        if (rafRef.current !== null) {
-          return;
-        }
-
-        rafRef.current = window.requestAnimationFrame(() => {
-          rafRef.current = null;
+        if (!receivedDone && !receivedError) {
           flushTokens();
-        });
-      };
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) {
-          break;
+          updateLocalMessage(assistantTempId, (message) => ({
+            ...message,
+            content: message.content || "Assistant response interrupted.",
+            isStreaming: false,
+          }));
+          setStreamError("Assistant response interrupted.");
         }
-
-        buffer += decoder.decode(value, { stream: true });
-        const chunks = buffer.split("\n\n");
-        buffer = chunks.pop() ?? "";
-
-        for (const chunk of chunks) {
-          const event = parseSseEvent(chunk.trim());
-          if (!event) {
-            continue;
-          }
-
-          if (event.type === "token") {
-            tokenBuffer += event.token;
-            scheduleFlush();
-          }
-
-          if (event.type === "done") {
-            flushTokens();
-            receivedDone = true;
-            updateLocalMessage(assistantTempId, (message) => ({
-              ...message,
-              content: event.finalText,
-              isStreaming: false,
-            }));
-            setStreamState("idle");
-          }
-
-          if (event.type === "error") {
-            flushTokens();
-            receivedError = true;
-            updateLocalMessage(assistantTempId, (message) => ({
-              ...message,
-              content: event.message,
-              isStreaming: false,
-            }));
-            setStreamError(event.message);
-            setStreamState("error");
-          }
-        }
-      }
-
-      if (!receivedDone && !receivedError) {
-        flushTokens();
-        updateLocalMessage(assistantTempId, (message) => ({
-          ...message,
-          content: message.content || "Assistant response interrupted.",
-          isStreaming: false,
-        }));
-        setStreamError("Assistant response interrupted.");
-        setStreamState("error");
+      } finally {
+        // Always reset stream state so the input is never permanently stuck
+        setStreamState((prev) => (prev === "streaming" ? "idle" : prev));
       }
     },
     [

@@ -65,14 +65,32 @@ const streamGroq = async (
     })),
   };
 
-  const response = await fetch(GROQ_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60_000);
+
+  let response: Response;
+  try {
+    response = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeout);
+    throw createProviderStreamError(
+      controller.signal.aborted
+        ? "Groq request timed out."
+        : `Groq fetch failed: ${err instanceof Error ? err.message : String(err)}`,
+      0,
+      "groq",
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     throw createProviderStreamError(

@@ -103,13 +103,31 @@ const streamGemini = async (
   const requestUrl = `${GEMINI_API_BASE}/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`;
   debugLog("request", { model: GEMINI_MODEL, url: requestUrl });
 
-  const response = await fetch(requestUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60_000);
+
+  let response: Response;
+  try {
+    response = await fetch(requestUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeout);
+    throw createProviderStreamError(
+      controller.signal.aborted
+        ? "Gemini request timed out."
+        : `Gemini fetch failed: ${err instanceof Error ? err.message : String(err)}`,
+      0,
+      "gemini",
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
 
   debugLog("response", { status: response.status });
 
