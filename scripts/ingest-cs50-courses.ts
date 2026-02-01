@@ -491,14 +491,14 @@ export const cs50w: CoursePayload = {
 // ── CS50SQL ─────────────────────────────────────────────────
 export const cs50sql: CoursePayload = {
   course: {
-    sourcePlaylistId: "PLhQjrBD2T382v1MBjNOhREjMjYt0WQAz4",
+    sourcePlaylistId: "PLhQjrBD2T382v1MBjNOhPu9SiJ1fsD4C0",
     title: "CS50SQL — Introduction to Databases with SQL",
     description:
       "An introduction to databases using a language called SQL. Learn to create, read, update, and delete data with relational databases.",
     license: "CC BY-NC-SA 4.0",
     sourceUrl: "https://cs50.harvard.edu/sql/",
     youtubePlaylistUrl:
-      "https://www.youtube.com/playlist?list=PLhQjrBD2T382v1MBjNOhREjMjYt0WQAz4",
+      "https://www.youtube.com/playlist?list=PLhQjrBD2T382v1MBjNOhPu9SiJ1fsD4C0",
   },
   lessons: [
     {
