@@ -194,37 +194,36 @@ const useChatThread = (
   }, [isMounted, lectureLabel, lessonId]);
 
   const mergedMessages = useMemo(() => {
-    const displayMessages = remoteMessages.map((message) =>
-      toChatMessage(message, lectureLabel),
-    );
-    const remoteIds = new Set(displayMessages.map((message) => message.id));
-    const remoteRequestIds = new Set(
-      displayMessages
-        .map((message) => message.requestId)
-        .filter((requestId): requestId is string => Boolean(requestId)),
-    );
-    const cachedOnly = cachedMessages.filter(
-      (message) =>
-        !remoteIds.has(message.id) &&
-        (!message.requestId || !remoteRequestIds.has(message.requestId)),
-    );
-    const cachedIds = new Set(cachedOnly.map((message) => message.id));
-    const localOnly = localMessages.filter(
-      (message) =>
-        !remoteIds.has(message.id) &&
-        !cachedIds.has(message.id) &&
-        (!message.requestId || !remoteRequestIds.has(message.requestId)),
-    );
-    const combined = [
-      ...displayMessages,
-      ...cachedOnly,
-      ...localOnly.map((message) => ({
+    // Single-pass dedup using Maps keyed by id and requestId
+    const seenIds = new Map<string, ChatMessage>();
+    const seenRequestIds = new Set<string>();
+
+    // Remote messages take priority
+    for (const message of remoteMessages) {
+      const chat = toChatMessage(message, lectureLabel);
+      seenIds.set(chat.id, chat);
+      if (chat.requestId) seenRequestIds.add(chat.requestId);
+    }
+
+    // Cached messages fill gaps
+    for (const message of cachedMessages) {
+      if (seenIds.has(message.id)) continue;
+      if (message.requestId && seenRequestIds.has(message.requestId)) continue;
+      seenIds.set(message.id, message);
+      if (message.requestId) seenRequestIds.add(message.requestId);
+    }
+
+    // Local messages fill remaining gaps (with badge update)
+    for (const message of localMessages) {
+      if (seenIds.has(message.id)) continue;
+      if (message.requestId && seenRequestIds.has(message.requestId)) continue;
+      seenIds.set(message.id, {
         ...message,
         badge: `${lectureLabel} • ${formatTimestamp(message.timestampSec)}`,
-      })),
-    ];
+      });
+    }
 
-    return [...combined].sort(
+    return Array.from(seenIds.values()).sort(
       (left, right) => left.createdAt - right.createdAt,
     );
   }, [cachedMessages, lectureLabel, localMessages, remoteMessages]);
