@@ -14,6 +14,8 @@ import type {
 } from "./types";
 
 const executorMap: Partial<Record<RuntimeLanguage, RuntimeExecutor>> = {};
+const pendingInit: Partial<Record<RuntimeLanguage, Promise<RuntimeExecutor>>> =
+  {};
 
 /** Whether to try routing through the sandbox bridge first. */
 let sandboxEnabled = false;
@@ -36,38 +38,49 @@ const loadExecutor = async (
     return executorMap[language] as RuntimeExecutor;
   }
 
-  let executor: RuntimeExecutor;
-
-  switch (language) {
-    case "js":
-      executor = await initJsExecutor();
-      break;
-    case "html":
-      executor = await initHtmlExecutor();
-      break;
-    case "css":
-      executor = await initCssExecutor();
-      break;
-    case "python":
-      executor = await initPythonExecutor();
-      break;
-    case "c":
-      executor = await initCExecutor();
-      break;
-    case "sql":
-      executor = await initSqlExecutor();
-      break;
-    case "r":
-      executor = await initRExecutor();
-      break;
-    default:
-      executor = await initJsExecutor();
+  // Deduplicate concurrent init calls for the same language
+  if (pendingInit[language]) {
+    return pendingInit[language] as Promise<RuntimeExecutor>;
   }
 
-  await executor.init();
-  executorMap[language] = executor;
+  const pending = (async (): Promise<RuntimeExecutor> => {
+    let executor: RuntimeExecutor;
 
-  return executor;
+    switch (language) {
+      case "js":
+        executor = await initJsExecutor();
+        break;
+      case "html":
+        executor = await initHtmlExecutor();
+        break;
+      case "css":
+        executor = await initCssExecutor();
+        break;
+      case "python":
+        executor = await initPythonExecutor();
+        break;
+      case "c":
+        executor = await initCExecutor();
+        break;
+      case "sql":
+        executor = await initSqlExecutor();
+        break;
+      case "r":
+        executor = await initRExecutor();
+        break;
+      default:
+        executor = await initJsExecutor();
+    }
+
+    await executor.init();
+    executorMap[language] = executor;
+    delete pendingInit[language];
+
+    return executor;
+  })();
+
+  pendingInit[language] = pending;
+  return pending;
 };
 
 /**

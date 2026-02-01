@@ -106,8 +106,12 @@ function mountRFiles(
 async function initRExecutor(): Promise<RuntimeExecutor> {
   const executor: RuntimeExecutor = {
     async init() {
-      // Preload WebR WASM so run() doesn't include download time
-      await loadWebR();
+      // Trigger WebR download but don't block warmup.
+      // run() will await the promise before executing.
+      void loadWebR().catch(() => {
+        // Reset promise so next attempt can retry
+        webrPromise = null;
+      });
     },
 
     async run(input: RuntimeRunInput): Promise<RuntimeRunResult> {
