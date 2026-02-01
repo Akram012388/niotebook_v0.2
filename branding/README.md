@@ -112,9 +112,18 @@ branding/
 │       └── accent/        ← green variant
 ├── favicons/              ← .ico, apple-touch-icon, android-chrome
 ├── social/
-│   ├── profile/           ← 400x400 circle-safe crops
-│   ├── banners/           ← twitter, linkedin, github, discord
-│   └── og/                ← 1200x630 open graph image
+│   ├── profile/           ← 400x400 circle-safe crops (shared)
+│   ├── banners/           ← cross-platform banners (shared)
+│   ├── og/                ← 1200x630 open graph image
+│   ├── github/            ← repo social preview (1280x640)
+│   ├── twitter/           ← profile pic, header (1500x500)
+│   ├── discord/           ← server icon, banner (960x540)
+│   ├── linkedin/          ← profile pic, banner (1584x396)
+│   ├── youtube/           ← channel icon, banner (2560x1440), thumbnails
+│   ├── instagram/         ← profile pic (320x320), posts (1080x1080), stories (1080x1920)
+│   ├── tiktok/            ← profile pic, video covers (1080x1920)
+│   ├── facebook/          ← profile pic (170x170), cover (820x312), posts
+│   └── producthunt/       ← launch assets, gallery images
 ├── icons/
 │   ├── app/               ← 1024x1024 master + platform exports
 │   └── badge/             ← inline SVG badge for READMEs
