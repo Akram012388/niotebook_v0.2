@@ -21,6 +21,7 @@ type WebRResult = {
 type WebRClass = new (options?: {
   baseUrl?: string;
   interactive?: boolean;
+  channelType?: number;
 }) => WebRInstance;
 
 const WEBR_CDN = "https://webr.r-wasm.org/v0.5.0/";
@@ -36,9 +37,12 @@ function loadWebR(): Promise<WebRInstance> {
     if (!WebR) {
       throw new Error("webR module did not export WebR class");
     }
+    // channelType 3 = PostMessage — avoids requiring COOP/COEP headers
+    // (SharedArrayBuffer) on the main page. Slightly slower but works everywhere.
     const webr = new WebR({
       baseUrl: WEBR_CDN,
       interactive: false,
+      channelType: 3,
     });
     await webr.init();
     return webr;
