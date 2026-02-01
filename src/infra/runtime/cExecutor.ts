@@ -48,7 +48,11 @@ const initCExecutor = async (): Promise<RuntimeExecutor> => {
     if (input.filesystem) {
       const mainPath =
         input.filesystem.getMainFilePath() ?? "/project/main.c";
-      processedCode = resolveIncludes(input.code, mainPath, input.filesystem);
+      processedCode = resolveIncludes(
+        processedCode,
+        mainPath,
+        input.filesystem,
+      );
     }
 
     let stdout = "";

@@ -27,12 +27,28 @@ type WebRClass = new (options?: {
 type WebRGlobal = {
   WebR?: WebRClass;
   ChannelType?: { PostMessage: number };
+  __webr_loaded__?: boolean;
 };
 
 const WEBR_CDN = "https://webr.r-wasm.org/v0.4.4/";
 const WEBR_SCRIPT_URL = `${WEBR_CDN}webr.mjs`;
 
+/** Timeout for the initial WebR load + init (CDN download + WASM bootstrap). */
+const WEBR_LOAD_TIMEOUT_MS = 60_000;
+/** Timeout for individual R code evaluation calls. */
+const WEBR_EVAL_TIMEOUT_MS = 30_000;
+
 let webrPromise: Promise<WebRInstance> | null = null;
+
+/** Race a promise against a timeout. */
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms),
+    ),
+  ]);
+}
 
 /**
  * Load WebR from CDN via <script type="module"> injection.
@@ -43,68 +59,53 @@ let webrPromise: Promise<WebRInstance> | null = null;
 function loadWebR(): Promise<WebRInstance> {
   if (webrPromise) return webrPromise;
 
-  webrPromise = (async () => {
-    // Check if already loaded on globalThis
-    const existing = (globalThis as unknown as WebRGlobal).WebR;
-    if (existing) {
-      const channelType =
-        (globalThis as unknown as WebRGlobal).ChannelType?.PostMessage ?? 3;
-      const webr = new existing({
+  webrPromise = withTimeout(
+    (async () => {
+      const g = globalThis as unknown as WebRGlobal;
+
+      // Check if already loaded on globalThis
+      if (!g.WebR) {
+        // Inject a module script that loads WebR and exposes it globally
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement("script");
+          script.type = "module";
+          script.textContent = `
+            import { WebR, ChannelType } from "${WEBR_SCRIPT_URL}";
+            globalThis.WebR = WebR;
+            globalThis.ChannelType = ChannelType;
+            globalThis.__webr_loaded__ = true;
+            document.dispatchEvent(new Event("webr-loaded"));
+          `;
+          script.onerror = () => reject(new Error("Failed to load WebR script"));
+
+          const onLoaded = () => {
+            document.removeEventListener("webr-loaded", onLoaded);
+            resolve();
+          };
+          document.addEventListener("webr-loaded", onLoaded);
+          document.head.appendChild(script);
+        });
+      }
+
+      const WebR = g.WebR;
+      if (!WebR) {
+        throw new Error("WebR module did not export WebR class");
+      }
+
+      // ChannelType.PostMessage (3) — no COOP/COEP required
+      const channelType = g.ChannelType?.PostMessage ?? 3;
+
+      const webr = new WebR({
         baseUrl: WEBR_CDN,
         interactive: false,
         channelType,
       });
       await webr.init();
       return webr;
-    }
-
-    // Inject a module script that loads WebR and exposes it globally
-    await new Promise<void>((resolve, reject) => {
-      const script = document.createElement("script");
-      script.type = "module";
-      script.textContent = `
-        import { WebR, ChannelType } from "${WEBR_SCRIPT_URL}";
-        globalThis.WebR = WebR;
-        globalThis.ChannelType = ChannelType;
-        globalThis.__webr_loaded__ = true;
-        document.dispatchEvent(new Event("webr-loaded"));
-      `;
-      script.onerror = () => reject(new Error("Failed to load WebR script"));
-
-      // Listen for the custom event
-      const onLoaded = () => {
-        document.removeEventListener("webr-loaded", onLoaded);
-        resolve();
-      };
-      document.addEventListener("webr-loaded", onLoaded);
-
-      // Timeout after 30s
-      setTimeout(() => {
-        document.removeEventListener("webr-loaded", onLoaded);
-        if (!(globalThis as unknown as { __webr_loaded__?: boolean }).__webr_loaded__) {
-          reject(new Error("WebR load timed out"));
-        }
-      }, 30000);
-
-      document.head.appendChild(script);
-    });
-
-    const WebR = (globalThis as unknown as WebRGlobal).WebR;
-    if (!WebR) {
-      throw new Error("WebR module did not export WebR class");
-    }
-
-    const channelType =
-      (globalThis as unknown as WebRGlobal).ChannelType?.PostMessage ?? 3;
-
-    const webr = new WebR({
-      baseUrl: WEBR_CDN,
-      interactive: false,
-      channelType,
-    });
-    await webr.init();
-    return webr;
-  })();
+    })(),
+    WEBR_LOAD_TIMEOUT_MS,
+    "WebR load",
+  );
 
   // Reset on failure so retry is possible
   webrPromise.catch(() => {
@@ -142,11 +143,19 @@ function mountRFiles(
   }
 }
 
+/** Extract a string value from a WebR result object. */
+async function extractString(result: WebRResult): Promise<string> {
+  const js = await result.toJs();
+  if (js.values && js.values.length > 0) {
+    return String(js.values[0]);
+  }
+  return "";
+}
+
 async function initRExecutor(): Promise<RuntimeExecutor> {
   const executor: RuntimeExecutor = {
     async init() {
       // Trigger WebR download but don't block warmup.
-      // run() will await the promise before executing.
       void loadWebR();
     },
 
@@ -168,23 +177,20 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
         const setupCode = `
           .nio_stdout <- ""
           .nio_stderr <- ""
-          .nio_svg <- ""
 
-          # Set up SVG capture for plots
           .nio_capture_plot <- function() {
             tmp <- tempfile(fileext = ".svg")
             svg(tmp, width = 7, height = 5)
             tmp
           }
 
-          # Capture output
           .nio_out <- textConnection(".nio_stdout", open = "w")
           .nio_err <- textConnection(".nio_stderr", open = "w")
           sink(.nio_out)
           sink(.nio_err, type = "message")
         `;
 
-        await webr.evalRVoid(setupCode);
+        await withTimeout(webr.evalRVoid(setupCode), WEBR_EVAL_TIMEOUT_MS, "R setup");
 
         // Check if code contains plot calls
         const hasPlotCalls = /\b(plot|hist|barplot|boxplot|pie|pairs|ggplot|geom_)\b/.test(input.code);
@@ -196,36 +202,34 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
 
         // Execute user code
         try {
-          await webr.evalRVoid(userCode);
+          await withTimeout(webr.evalRVoid(userCode), WEBR_EVAL_TIMEOUT_MS, "R execution");
         } catch (rErr) {
           const msg = rErr instanceof Error ? rErr.message : String(rErr);
           stderr += msg + "\n";
           input.onStderr?.(msg + "\n");
         }
 
-        // Collect output
+        // Collect output — use paste(collapse="\n") because textConnection
+        // stores a character vector, not a single string.
         const collectCode = `
           sink(type = "message")
           sink()
           close(.nio_out)
           close(.nio_err)
-          .nio_stdout
+          paste(.nio_stdout, collapse = "\n")
         `;
 
         try {
-          const result = await webr.evalR(collectCode);
+          const result = await withTimeout(
+            webr.evalR(collectCode),
+            WEBR_EVAL_TIMEOUT_MS,
+            "R output collection",
+          );
           if (result && typeof result === "object" && "type" in result) {
-            try {
-              const js = await result.toJs();
-              if (js.values && js.values.length > 0) {
-                const text = String(js.values[0]);
-                if (text) {
-                  stdout += text;
-                  input.onStdout?.(text);
-                }
-              }
-            } catch {
-              // toJs conversion failed, output already captured
+            const text = await extractString(result);
+            if (text) {
+              stdout += text;
+              input.onStdout?.(text);
             }
           }
         } catch {
@@ -234,19 +238,16 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
 
         // Collect stderr
         try {
-          const errResult = await webr.evalR(".nio_stderr");
+          const errResult = await withTimeout(
+            webr.evalR('paste(.nio_stderr, collapse = "\\n")'),
+            WEBR_EVAL_TIMEOUT_MS,
+            "R stderr collection",
+          );
           if (errResult && typeof errResult === "object" && "type" in errResult) {
-            try {
-              const js = await errResult.toJs();
-              if (js.values && js.values.length > 0) {
-                const text = String(js.values[0]);
-                if (text) {
-                  stderr += text;
-                  input.onStderr?.(text);
-                }
-              }
-            } catch {
-              // ignore
+            const text = await extractString(errResult);
+            if (text) {
+              stderr += text;
+              input.onStderr?.(text);
             }
           }
         } catch {
@@ -256,14 +257,15 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
         // Read SVG plot if generated
         if (hasPlotCalls) {
           try {
-            const svgResult = await webr.evalR(
-              "readLines(.nio_plot_file, warn = FALSE) |> paste(collapse = '\\n')",
+            const svgResult = await withTimeout(
+              webr.evalR(
+                "readLines(.nio_plot_file, warn = FALSE) |> paste(collapse = '\\n')",
+              ),
+              WEBR_EVAL_TIMEOUT_MS,
+              "R SVG read",
             );
             if (svgResult && typeof svgResult === "object" && "type" in svgResult) {
-              const js = await svgResult.toJs();
-              if (js.values && js.values.length > 0) {
-                svgOutput = String(js.values[0]);
-              }
+              svgOutput = await extractString(svgResult);
             }
           } catch {
             // Plot capture failed — not fatal
@@ -272,7 +274,6 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
 
         const runtimeMs = Math.round(performance.now() - start);
 
-        // If SVG was generated, emit it as a special stdout marker
         if (svgOutput) {
           const plotMarker = `\x00__plot_svg__${svgOutput}`;
           stdout += plotMarker;

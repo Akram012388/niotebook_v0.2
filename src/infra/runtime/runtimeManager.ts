@@ -89,7 +89,6 @@ const loadExecutor = async (
  */
 const LANGUAGE_TO_COMMAND: Partial<Record<RuntimeLanguage, string>> = {
   python: "python3",
-  c: "gcc",
 };
 
 const runRuntime = async (
