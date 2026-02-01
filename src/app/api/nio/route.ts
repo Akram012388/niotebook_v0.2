@@ -158,13 +158,12 @@ const buildStubTokens = (text: string): string[] => {
 };
 
 const consumeAiRateLimit = async (
-  authHeader?: string | null,
+  client: ConvexHttpClient,
 ): Promise<RateLimitDecision | null> => {
   if (!isConvexEnabled()) {
     return null;
   }
 
-  const client = createConvexClient(authHeader);
   return client.mutation(api.rateLimits.consumeAiRateLimit, {});
 };
 
@@ -180,14 +179,13 @@ const persistAssistantMessage = async (args: {
   latencyMs: number;
   usedFallback: boolean;
   contextHash: string;
-  authHeader?: string | null;
+  client: ConvexHttpClient;
 }): Promise<void> => {
   if (!isConvexEnabled()) {
     return;
   }
 
-  const client = createConvexClient(args.authHeader);
-  await client.mutation(api.chat.completeAssistantMessage, {
+  await args.client.mutation(api.chat.completeAssistantMessage, {
     threadId: args.threadId as Id<"chatThreads">,
     requestId: args.requestId,
     content: args.content,
@@ -208,14 +206,13 @@ const logAiFallbackEvent = async (args: {
   fromProvider: NioProviderId;
   toProvider: NioProviderId;
   reason: string;
-  authHeader?: string | null;
+  client: ConvexHttpClient;
 }): Promise<void> => {
   if (!isConvexEnabled()) {
     return;
   }
 
-  const client = createConvexClient(args.authHeader);
-  await client.mutation(api.events.logEvent, {
+  await args.client.mutation(api.events.logEvent, {
     eventType: "ai_fallback_triggered",
     lessonId: args.lessonId as Id<"lessons">,
     metadata: {
@@ -329,7 +326,7 @@ const streamStub = async (args: {
   videoTimeSec: number;
   timeWindow: { startSec: number; endSec: number };
   codeHash?: string;
-  authHeader?: string | null;
+  client: ConvexHttpClient;
   enqueue: (event: NioSseEvent) => void;
   isAborted: () => boolean;
 }): Promise<void> => {
@@ -406,7 +403,7 @@ const streamStub = async (args: {
       latencyMs,
       usedFallback: false,
       contextHash: args.contextHash,
-      authHeader: args.authHeader,
+      client: args.client,
     });
   } catch (error) {
     console.error("[nio] stub persistence failed", error);
@@ -430,7 +427,7 @@ const streamWithProviders = async (args: {
   timeWindow: { startSec: number; endSec: number };
   codeHash?: string;
   messages: NioContextMessage[];
-  authHeader?: string | null;
+  client: ConvexHttpClient;
   enqueue: (event: NioSseEvent) => void;
   isAborted: () => boolean;
 }): Promise<void> => {
@@ -533,7 +530,7 @@ const streamWithProviders = async (args: {
       fromProvider: "gemini",
       toProvider: "groq",
       reason: fallbackReason,
-      authHeader: args.authHeader,
+      client: args.client,
     }).catch((error) => {
       console.error("[nio] fallback event failed", error);
     });
@@ -709,7 +706,7 @@ const streamWithProviders = async (args: {
       latencyMs,
       usedFallback,
       contextHash: args.contextHash,
-      authHeader: args.authHeader,
+      client: args.client,
     });
   } catch (error) {
     console.error("[nio] assistant persistence failed", error);
@@ -721,14 +718,13 @@ const fetchTranscriptWindow = async (args: {
   lessonId: string;
   startSec: number;
   endSec: number;
-  authHeader?: string | null;
+  client: ConvexHttpClient;
 }): Promise<string[]> => {
   if (!isConvexEnabled()) {
     return [];
   }
 
-  const client = createConvexClient(args.authHeader);
-  const segments = await client.query(api.transcripts.getTranscriptWindow, {
+  const segments = await args.client.query(api.transcripts.getTranscriptWindow, {
     lessonId: args.lessonId as Id<"lessons">,
     startSec: args.startSec,
     endSec: args.endSec,
@@ -739,7 +735,7 @@ const fetchTranscriptWindow = async (args: {
 
 const fetchLessonMeta = async (args: {
   lessonId: string;
-  authHeader?: string | null;
+  client: ConvexHttpClient;
 }): Promise<{
   title?: string;
   order?: number;
@@ -751,8 +747,7 @@ const fetchLessonMeta = async (args: {
     return null;
   }
 
-  const client = createConvexClient(args.authHeader);
-  const lesson = await client.query(api.content.getLesson, {
+  const lesson = await args.client.query(api.content.getLesson, {
     lessonId: args.lessonId as Id<"lessons">,
   });
 
@@ -829,10 +824,12 @@ export const POST = async (request: Request): Promise<Response> => {
     );
   }
 
+  const convexClient = createConvexClient(convexAuthHeader);
+
   let rateLimitDecision: RateLimitDecision | null = null;
 
   try {
-    rateLimitDecision = await consumeAiRateLimit(convexAuthHeader);
+    rateLimitDecision = await consumeAiRateLimit(convexClient);
   } catch (error) {
     console.error("[nio] rate limit check failed", error);
     rateLimitDecision = null;
@@ -904,13 +901,13 @@ export const POST = async (request: Request): Promise<Response> => {
             lessonId: validation.data.lessonId,
             startSec: transcriptPayload.startSec,
             endSec: transcriptPayload.endSec,
-            authHeader: convexAuthHeader,
+            client: convexClient,
           })
         : Promise.resolve(null),
       needsLessonMeta
         ? fetchLessonMeta({
             lessonId: validation.data.lessonId,
-            authHeader: convexAuthHeader,
+            client: convexClient,
           })
         : Promise.resolve(null),
     ]);
@@ -1045,7 +1042,7 @@ export const POST = async (request: Request): Promise<Response> => {
             videoTimeSec: validation.data.videoTimeSec,
             timeWindow: assistantTimeWindow,
             codeHash: validation.data.code.codeHash,
-            authHeader: convexAuthHeader,
+            client: convexClient,
             enqueue,
             isAborted: () => aborted,
           });
@@ -1065,7 +1062,7 @@ export const POST = async (request: Request): Promise<Response> => {
           timeWindow: assistantTimeWindow,
           codeHash: validation.data.code.codeHash,
           messages: contextResult.messages,
-          authHeader: convexAuthHeader,
+          client: convexClient,
           enqueue,
           isAborted: () => aborted,
         });
