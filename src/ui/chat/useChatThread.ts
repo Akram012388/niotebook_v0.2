@@ -8,6 +8,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
 import type { ChatMessageSummary, ChatThreadSummary } from "../../domain/chat";
@@ -125,6 +126,7 @@ const useChatThread = (
   lessonId: string,
   lectureLabel: string,
 ): UseChatThreadResult => {
+  const { getToken } = useAuth();
   const isConvexEnabled = process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
   const [streamState, setStreamState] = useState<ChatStreamState>("idle");
   const [streamError, setStreamError] = useState<string | null>(null);
@@ -345,11 +347,17 @@ const useChatThread = (
       let response: Response;
 
       try {
+        const token = await getToken({ template: "convex" });
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
         response = await fetch("/api/nio", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers,
           body: JSON.stringify(payload),
         });
       } catch {
@@ -490,6 +498,7 @@ const useChatThread = (
       activeThreadId,
       createMessage,
       ensureThread,
+      getToken,
       isConvexEnabled,
       lessonId,
       lectureLabel,
