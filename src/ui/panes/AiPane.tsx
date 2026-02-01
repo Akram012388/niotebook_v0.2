@@ -11,11 +11,11 @@ import type { ChatMessage as ChatMessageType } from "../chat/chatTypes";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 import { getLessonRef } from "../content/convexContent";
 import { resolveLectureNumber } from "../../domain/lectureNumber";
+import { useVideoDisplayTime } from "../layout/WorkspaceGrid";
 
 type AiPaneProps = {
   lessonId: string;
   onSeek?: (timestampSec: number) => void;
-  videoTimeSec?: number;
   onThreadChange?: (threadId: string | null) => void;
   headerExtras?: ReactElement;
   codeSnapshot?: CodeSnapshotSummary | null;
@@ -24,11 +24,11 @@ type AiPaneProps = {
 const AiPane = ({
   lessonId,
   onSeek,
-  videoTimeSec = 0,
   onThreadChange,
   headerExtras,
   codeSnapshot = null,
 }: AiPaneProps): ReactElement => {
+  const videoTimeSec = useVideoDisplayTime();
   const isConvexEnabled = process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
   const lesson = useQuery(
     getLessonRef,

@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useSyncExternalStore,
   useState,
   type ReactElement,
@@ -17,6 +18,46 @@ import { useLayoutPreset } from "./LayoutPresetContext";
 import { storageAdapter } from "../../infra/storageAdapter";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 
+// ── Video time external store ─────────────────────────────────
+// Module-level store so video time updates only re-render subscribers (AiPane),
+// not the entire WorkspaceGrid tree.
+const videoTimeListeners = new Set<() => void>();
+let videoTimeSnapshot = 0;
+
+const notifyVideoTime = (): void => {
+  for (const listener of videoTimeListeners) {
+    listener();
+  }
+};
+
+const setVideoTime = (timeSec: number): void => {
+  videoTimeSnapshot = timeSec;
+  notifyVideoTime();
+};
+
+const subscribeVideoTime = (onStoreChange: () => void): (() => void) => {
+  videoTimeListeners.add(onStoreChange);
+  return () => {
+    videoTimeListeners.delete(onStoreChange);
+  };
+};
+
+const getVideoTimeSnapshot = (): number => videoTimeSnapshot;
+const getVideoTimeServerSnapshot = (): number => 0;
+
+/**
+ * Subscribe to the current video display time without causing re-renders
+ * in WorkspaceGrid. Only components that call this hook will re-render.
+ */
+const useVideoDisplayTime = (): number => {
+  return useSyncExternalStore(
+    subscribeVideoTime,
+    getVideoTimeSnapshot,
+    getVideoTimeServerSnapshot,
+  );
+};
+
+// ── Pane state external store ─────────────────────────────────
 const paneListeners = new Set<() => void>();
 let singlePaneSnapshot: "video" | "code" = "video";
 let leftPaneSnapshot: "video" | "code" = "video";
@@ -169,7 +210,7 @@ const WorkspaceGrid = (): ReactElement => {
     timeSec: number;
     token: number;
   } | null>(null);
-  const [videoDisplayTimeSec, setVideoDisplayTimeSec] = useState<number>(0);
+  const videoTimeRef = useRef<number>(0);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [codeHash, setCodeHash] = useState<string | null>(null);
   const [codeSnapshot, setCodeSnapshot] = useState<CodeSnapshotSummary | null>(
@@ -197,11 +238,13 @@ const WorkspaceGrid = (): ReactElement => {
   }, []);
 
   const handleVideoTime = useCallback((timestampSec: number): void => {
-    setVideoDisplayTimeSec(timestampSec);
+    videoTimeRef.current = timestampSec;
+    setVideoTime(timestampSec);
   }, []);
 
   const handleVideoDisplayTime = useCallback((timestampSec: number): void => {
-    setVideoDisplayTimeSec(timestampSec);
+    videoTimeRef.current = timestampSec;
+    setVideoTime(timestampSec);
   }, []);
 
   const handleThreadChange = useCallback(
@@ -463,7 +506,6 @@ const WorkspaceGrid = (): ReactElement => {
               <AiPane
                 lessonId={activeLessonId}
                 onSeek={handleSeek}
-                videoTimeSec={videoDisplayTimeSec}
                 codeSnapshot={codeSnapshot}
                 onThreadChange={handleThreadChange}
                 headerExtras={
@@ -541,7 +583,6 @@ const WorkspaceGrid = (): ReactElement => {
       <AiPane
         lessonId={activeLessonId}
         onSeek={handleSeek}
-        videoTimeSec={videoDisplayTimeSec}
         codeSnapshot={codeSnapshot}
         onThreadChange={handleThreadChange}
       />
@@ -549,4 +590,4 @@ const WorkspaceGrid = (): ReactElement => {
   );
 };
 
-export { WorkspaceGrid };
+export { useVideoDisplayTime, WorkspaceGrid };
