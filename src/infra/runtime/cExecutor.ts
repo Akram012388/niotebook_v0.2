@@ -6,27 +6,40 @@ import type {
 } from "./types";
 
 /**
- * C executor — routes through the WasmerBridge for real gcc compilation
- * and execution inside the sandbox iframe. Falls back to an error message
- * when the sandbox is unavailable.
+ * C executor — interprets C code in-browser using JSCPP.
+ * Supports stdio.h, stdlib.h, math.h, string.h, ctype.h, time.h.
+ * Ideal for CS50-level code (printf, scanf, variables, loops, arrays, etc).
  */
 const initCExecutor = async (): Promise<RuntimeExecutor> => {
+  type JSCPP = {
+    run: (
+      code: string,
+      input: string,
+      config: Record<string, unknown>,
+    ) => { exitCode: number };
+  };
+
+  let jscpp: JSCPP | null = null;
+
   const init = async (): Promise<void> => {
-    try {
-      const { getWasmerBridge } = await import("./wasmer/WasmerBridge");
-      const bridge = getWasmerBridge();
-      if (bridge.getStatus() !== "ready") {
-        await bridge.init();
-      }
-    } catch {
-      // Bridge unavailable — run() will handle the fallback
-    }
+    if (jscpp) return;
+    const mod = await import("JSCPP");
+    jscpp = (mod.default ?? mod) as unknown as JSCPP;
   };
 
   const run = async (input: RuntimeRunInput): Promise<RuntimeRunResult> => {
     const start = performance.now();
 
-    // Resolve #include directives so the sandbox receives a single translation unit
+    if (!jscpp) {
+      await init();
+    }
+
+    if (!jscpp) {
+      const msg = "C interpreter failed to load.\n";
+      input.onStderr?.(msg);
+      return { stdout: "", stderr: msg, exitCode: 1, runtimeMs: 0 };
+    }
+
     let processedCode = input.code;
     if (input.filesystem) {
       const mainPath =
@@ -34,46 +47,42 @@ const initCExecutor = async (): Promise<RuntimeExecutor> => {
       processedCode = resolveIncludes(input.code, mainPath, input.filesystem);
     }
 
-    // Try WasmerBridge for real compilation + execution
+    let stdout = "";
+    let stderr = "";
+
     try {
-      const { getWasmerBridge } = await import("./wasmer/WasmerBridge");
-      const bridge = getWasmerBridge();
-
-      if (bridge.getStatus() !== "ready") {
-        await bridge.init();
-      }
-
-      if (bridge.getStatus() === "ready") {
-        const result = await bridge.sendCommand(
-          "gcc",
-          ["-c", processedCode],
-          input.filesystem,
-          {
-            onStdout: input.onStdout,
-            onStderr: input.onStderr,
-            timeoutMs: input.timeoutMs,
+      const exitResult = jscpp.run(processedCode, input.stdin ?? "", {
+        stdio: {
+          write(s: string) {
+            stdout += s;
+            input.onStdout?.(s);
           },
-        );
-        return {
-          stdout: result.stdout,
-          stderr: result.stderr,
-          exitCode: result.exitCode,
-          runtimeMs: Math.round(result.runtimeMs),
-        };
-      }
-    } catch {
-      // Bridge unavailable — fall through to error
-    }
+        },
+        unsigned_overflow: "warn",
+      });
 
-    const message =
-      "C execution requires the sandbox runtime.\nThe Wasmer sandbox could not be initialized.\n";
-    input.onStderr?.(message);
-    return {
-      stdout: "",
-      stderr: message,
-      exitCode: 1,
-      runtimeMs: Math.round(performance.now() - start),
-    };
+      const exitCode =
+        typeof exitResult === "object" && exitResult !== null
+          ? (exitResult.exitCode ?? 0)
+          : 0;
+
+      return {
+        stdout,
+        stderr,
+        exitCode: typeof exitCode === "number" ? exitCode : 0,
+        runtimeMs: Math.round(performance.now() - start),
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      stderr = msg + "\n";
+      input.onStderr?.(stderr);
+      return {
+        stdout,
+        stderr,
+        exitCode: 1,
+        runtimeMs: Math.round(performance.now() - start),
+      };
+    }
   };
 
   const stop = (): void => {

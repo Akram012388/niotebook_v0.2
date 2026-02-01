@@ -24,25 +24,49 @@ type WebRClass = new (options?: {
   channelType?: number;
 }) => WebRInstance;
 
+type WebRModule = {
+  WebR?: WebRClass;
+  ChannelType?: { PostMessage: number };
+};
+
 const WEBR_CDN = "https://webr.r-wasm.org/v0.5.0/";
+const WEBR_SCRIPT_URL = `${WEBR_CDN}webr.mjs`;
 
 let webrPromise: Promise<WebRInstance> | null = null;
 
+/**
+ * Load WebR from CDN via dynamic import of the ESM module URL.
+ * This avoids the Next.js bundler mangling the Web Worker script paths
+ * that WebR needs to spawn its communication channel.
+ */
 function loadWebR(): Promise<WebRInstance> {
   if (webrPromise) return webrPromise;
 
   webrPromise = (async () => {
-    const mod = await import("webr") as unknown as { WebR?: WebRClass };
+    // Dynamic import from CDN URL — bypasses the bundler entirely.
+    // WebR's worker scripts load relative to baseUrl, which stays correct.
+    let mod: WebRModule;
+    try {
+      mod = (await import(/* webpackIgnore: true */ WEBR_SCRIPT_URL)) as WebRModule;
+    } catch {
+      throw new Error(
+        "Failed to load WebR from CDN. Check your network connection.",
+      );
+    }
+
     const WebR = mod.WebR;
     if (!WebR) {
-      throw new Error("webR module did not export WebR class");
+      throw new Error("WebR module did not export WebR class");
     }
-    // channelType 3 = PostMessage — avoids requiring COOP/COEP headers
-    // (SharedArrayBuffer) on the main page. Slightly slower but works everywhere.
+
+    // ChannelType.PostMessage (3) — does not require COOP/COEP headers
+    // or SharedArrayBuffer on the main page.
+    const channelType = mod.ChannelType?.PostMessage ?? 3;
+
     const webr = new WebR({
       baseUrl: WEBR_CDN,
       interactive: false,
-      channelType: 3,
+      channelType,
     });
     await webr.init();
     return webr;
