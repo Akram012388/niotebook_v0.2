@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "highlight.js/styles/github-dark-dimmed.css";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   --background: #FAFAFA;
   --foreground: #0A0A0A;

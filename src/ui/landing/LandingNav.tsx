@@ -14,7 +14,7 @@ export function LandingNav(): ReactElement {
       }}
     >
       <div className="flex items-center gap-2">
-        <Wordmark height={32} />
+        <Wordmark height={40} />
         <span
           className="text-[10px] font-mono px-1.5 py-0.5 rounded"
           style={{
