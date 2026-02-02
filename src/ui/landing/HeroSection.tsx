@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState, type ReactElement } from "react";
+import { motion } from "framer-motion";
 
 const CODE_LINES = [
-  { text: "def learn(concept):", color: "var(--accent)" },
-  { text: "    understanding = watch(concept)", color: "var(--text-muted)" },
-  { text: "    skills = code(understanding)", color: "var(--text-muted)" },
-  { text: "    return skills.level_up()", color: "var(--accent)" },
+  { text: "def learn(concept):", color: "#00FF66" },
+  { text: "    understanding = watch(concept)", color: "#FAFAFA" },
+  { text: "    skills = code(understanding)", color: "#FAFAFA" },
+  { text: "    return skills.level_up()", color: "#00FF66" },
 ];
 
 function TypingCode(): ReactElement {
@@ -32,10 +33,7 @@ function TypingCode(): ReactElement {
     <div className="font-mono text-xs sm:text-sm leading-6 sm:leading-7">
       {CODE_LINES.map((line, i) => (
         <div key={i} className="flex">
-          <span
-            className="w-6 sm:w-8 text-right mr-3 sm:mr-4 select-none"
-            style={{ color: "var(--text-subtle)" }}
-          >
+          <span className="w-6 sm:w-8 text-right mr-3 sm:mr-4 select-none text-[#404040]">
             {i + 1}
           </span>
           <span style={{ color: line.color }}>
@@ -48,8 +46,7 @@ function TypingCode(): ReactElement {
               (visibleLines >= CODE_LINES.length &&
                 i === CODE_LINES.length - 1)) && (
               <span
-                className="inline-block w-[2px] h-[1em] ml-px align-middle animate-[blink_1s_step-end_infinite]"
-                style={{ background: "var(--accent)" }}
+                className="inline-block w-[2px] h-[1em] ml-px align-middle animate-[blink_1s_step-end_infinite] bg-workspace-accent"
               />
             )}
           </span>
@@ -60,95 +57,93 @@ function TypingCode(): ReactElement {
 }
 
 export function HeroSection(): ReactElement {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   return (
-    <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20">
-      {/* Background gradient orbs */}
+    <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 bg-[#0A0A0A]">
+      {/* Acid green gradient orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
-          className="absolute -top-1/4 -left-1/4 w-[60vw] h-[60vw] rounded-full opacity-[0.07] blur-[100px] animate-[drift_20s_ease-in-out_infinite]"
-          style={{ background: "var(--accent)" }}
+          className="absolute -top-1/4 -left-1/4 w-[60vw] h-[60vw] rounded-full opacity-[0.12] blur-[120px] animate-[drift_20s_ease-in-out_infinite]"
+          style={{ background: "#00FF66" }}
         />
         <div
-          className="absolute -bottom-1/4 -right-1/4 w-[50vw] h-[50vw] rounded-full opacity-[0.05] blur-[120px] animate-[drift_25s_ease-in-out_infinite_reverse]"
-          style={{ background: "var(--accent)" }}
+          className="absolute -bottom-1/4 -right-1/4 w-[50vw] h-[50vw] rounded-full opacity-[0.08] blur-[140px] animate-[drift_25s_ease-in-out_infinite_reverse]"
+          style={{ background: "#00FF66" }}
         />
       </div>
 
       {/* Grid pattern overlay */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        className="absolute inset-0 pointer-events-none opacity-[0.04]"
         style={{
-          backgroundImage: `linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(#FAFAFA 1px, transparent 1px), linear-gradient(90deg, #FAFAFA 1px, transparent 1px)`,
           backgroundSize: "60px 60px",
         }}
       />
 
-      <div
-        className={`relative z-10 max-w-5xl mx-auto text-center transition-all duration-1000 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-      >
+      <div className="relative z-10 max-w-5xl mx-auto text-center">
         {/* Badge */}
-        <div
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-8 sm:mb-10"
-          style={{
-            background: "var(--surface-muted)",
-            color: "var(--text-muted)",
-            border: "1px solid var(--border)",
-          }}
+        <motion.div
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-8 sm:mb-10 border border-[#404040] bg-[#171717] text-[#A3A3A3]"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <span
-            className="w-1.5 h-1.5 rounded-full animate-pulse"
-            style={{ background: "var(--accent)" }}
-          />
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-workspace-accent" />
           Now in beta
-        </div>
+        </motion.div>
 
         {/* Headline */}
-        <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight leading-[0.9] mb-6 sm:mb-8">
-          <span className="inline-block animate-[fadeSlideUp_0.6s_ease-out_0.1s_both]">
+        <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight leading-[0.9] mb-6 sm:mb-8 text-[#FAFAFA]">
+          <motion.span
+            className="inline-block"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
             watch.
-          </span>{" "}
-          <span className="inline-block animate-[fadeSlideUp_0.6s_ease-out_0.3s_both]">
+          </motion.span>{" "}
+          <motion.span
+            className="inline-block text-workspace-accent"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
             code.
-          </span>{" "}
-          <span className="inline-block animate-[fadeSlideUp_0.6s_ease-out_0.5s_both]">
+          </motion.span>{" "}
+          <motion.span
+            className="inline-block"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
             learn.
-          </span>
+          </motion.span>
         </h1>
 
         {/* Tagline */}
-        <p
-          className="text-base sm:text-lg md:text-xl max-w-xl mx-auto mb-10 sm:mb-12 leading-relaxed animate-[fadeSlideUp_0.6s_ease-out_0.7s_both]"
-          style={{ color: "var(--text-muted)" }}
+        <motion.p
+          className="text-base sm:text-lg md:text-xl max-w-xl mx-auto mb-10 sm:mb-12 leading-relaxed text-[#A3A3A3]"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.7 }}
         >
           Your CS lecture just became an IDE.
           <br />
-          <span
-            className="font-mono text-sm"
-            style={{ color: "var(--text-subtle)" }}
-          >
+          <span className="font-mono text-sm text-[#737373]">
             Video + editor + AI — one canvas, zero tab-switching.
           </span>
-        </p>
+        </motion.p>
 
         {/* CTA */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 sm:mb-20 animate-[fadeSlideUp_0.6s_ease-out_0.9s_both]">
+        <motion.div
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 sm:mb-20"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.9 }}
+        >
           <Link
             href="/workspace"
-            className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-            style={
-              {
-                background: "var(--accent)",
-                color: "var(--accent-foreground)",
-                "--tw-ring-color": "var(--text-muted)",
-                "--tw-ring-offset-color": "var(--background)",
-              } as React.CSSProperties
-            }
+            className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-workspace-accent text-[#0A0A0A] hover:shadow-[0_0_30px_rgba(0,255,102,0.3)]"
           >
             Start Learning
             <svg
@@ -165,42 +160,26 @@ export function HeroSection(): ReactElement {
               />
             </svg>
           </Link>
-          <span className="text-xs" style={{ color: "var(--text-subtle)" }}>
+          <span className="text-xs text-[#737373]">
             Free during beta · No credit card
           </span>
-        </div>
+        </motion.div>
 
         {/* Code editor mockup */}
-        <div
-          className="relative max-w-lg mx-auto rounded-xl overflow-hidden shadow-2xl animate-[fadeSlideUp_0.8s_ease-out_1.1s_both]"
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-          }}
+        <motion.div
+          className="relative max-w-lg mx-auto rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-[#0A0A0A]"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.1 }}
         >
           {/* Title bar */}
-          <div
-            className="flex items-center gap-2 px-4 py-3"
-            style={{ borderBottom: "1px solid var(--border)" }}
-          >
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-[#262626]">
             <div className="flex gap-1.5">
-              <span
-                className="w-2.5 h-2.5 rounded-full opacity-80"
-                style={{ background: "var(--text-subtle)" }}
-              />
-              <span
-                className="w-2.5 h-2.5 rounded-full opacity-60"
-                style={{ background: "var(--text-subtle)" }}
-              />
-              <span
-                className="w-2.5 h-2.5 rounded-full opacity-40"
-                style={{ background: "var(--text-subtle)" }}
-              />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#404040]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#333333]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#262626]" />
             </div>
-            <span
-              className="ml-2 text-xs font-mono"
-              style={{ color: "var(--text-subtle)" }}
-            >
+            <span className="ml-2 text-xs font-mono text-[#737373]">
               main.py
             </span>
           </div>
@@ -208,7 +187,7 @@ export function HeroSection(): ReactElement {
           <div className="p-4 sm:p-6 text-left">
             <TypingCode />
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { type ReactElement } from "react";
+import { motion } from "framer-motion";
 
 interface ValueProp {
   icon: ReactElement;
@@ -73,14 +74,14 @@ const VALUE_PROPS: ValueProp[] = [
     label: "The Library",
     title: "The world\u2019s best CS courses. Free. Open. All in one place.",
     description:
-      "Niotebook is the digital library of the best free MOOCs — massive open online courseware from institutions like Harvard, MIT, and creators who believe education should be accessible to everyone. Every course, every lecture, completely free and open source. We just made the experience of learning from them radically better.",
+      "Niotebook is the digital library of the best free MOOCs \u2014 massive open online courseware from institutions like Harvard, MIT, and creators who believe education should be accessible to everyone. Every course, every lecture, completely free and open source. We just made the experience of learning from them radically better.",
   },
   {
     icon: <EditorIcon />,
     label: "The Editor",
     title: "A smart code editor that follows along.",
     description:
-      "No more tab-switching between the lecture and your IDE. Niotebook\u2019s integrated code editor lives right next to the video — syntax highlighting, multi-language support, and instant execution. Pause the lecture, edit the code, run it, see the result. All without leaving the canvas.",
+      "No more tab-switching between the lecture and your IDE. Niotebook\u2019s integrated code editor lives right next to the video \u2014 syntax highlighting, multi-language support, and instant execution. Pause the lecture, edit the code, run it, see the result. All without leaving the canvas.",
   },
   {
     icon: <AssistantIcon />,
@@ -98,56 +99,24 @@ function ValueCard({
   prop: ValueProp;
   index: number;
 }): ReactElement {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.15 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   const isReversed = index % 2 === 1;
 
   return (
-    <div
-      ref={ref}
-      className="transition-all duration-700"
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(32px)",
-        transitionDelay: "100ms",
-      }}
+    <motion.div
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ duration: 0.6, delay: 0.1 }}
     >
       <div
         className={`flex flex-col ${isReversed ? "md:flex-row-reverse" : "md:flex-row"} items-start gap-8 md:gap-12`}
       >
         {/* Icon + label */}
         <div className="flex-shrink-0 flex flex-col items-start gap-3 md:w-48">
-          <div
-            className="flex items-center justify-center w-12 h-12 rounded-xl"
-            style={{
-              background: "var(--surface-muted)",
-              border: "1px solid var(--border)",
-              color: "var(--accent)",
-            }}
-          >
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl border border-workspace-accent/20 bg-workspace-accent/5 text-workspace-accent">
             {prop.icon}
           </div>
-          <span
-            className="text-[11px] font-mono uppercase tracking-[0.15em] font-semibold"
-            style={{ color: "var(--text-subtle)" }}
-          >
+          <span className="text-[11px] font-mono uppercase tracking-[0.15em] font-semibold text-workspace-accent/70">
             {prop.label}
           </span>
         </div>
@@ -157,15 +126,12 @@ function ValueCard({
           <h3 className="text-xl sm:text-2xl font-bold tracking-tight mb-3 leading-snug">
             {prop.title}
           </h3>
-          <p
-            className="text-sm sm:text-base leading-relaxed max-w-xl"
-            style={{ color: "var(--text-muted)" }}
-          >
+          <p className="text-sm sm:text-base leading-relaxed max-w-xl text-text-muted">
             {prop.description}
           </p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -173,21 +139,24 @@ export function ValuePropSection(): ReactElement {
   return (
     <section className="relative py-24 sm:py-32 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-16 sm:mb-20">
-          <p
-            className="text-[11px] font-mono uppercase tracking-[0.2em] mb-4"
-            style={{ color: "var(--text-subtle)" }}
-          >
+        <motion.div
+          className="text-center mb-16 sm:mb-20"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <p className="text-[11px] font-mono uppercase tracking-[0.2em] mb-4 text-workspace-accent/60">
             What makes Niotebook different
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight">
             The best free courses.
             <br />
-            <span style={{ color: "var(--text-muted)" }}>
+            <span className="text-text-muted">
               A better way to learn from them.
             </span>
           </h2>
-        </div>
+        </motion.div>
 
         <div className="flex flex-col gap-16 sm:gap-20">
           {VALUE_PROPS.map((prop, i) => (
@@ -196,17 +165,20 @@ export function ValuePropSection(): ReactElement {
         </div>
 
         {/* Credit line */}
-        <div className="mt-16 sm:mt-20 text-center">
-          <p
-            className="text-xs sm:text-sm leading-relaxed max-w-lg mx-auto"
-            style={{ color: "var(--text-subtle)" }}
-          >
+        <motion.div
+          className="mt-16 sm:mt-20 text-center"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <p className="text-xs sm:text-sm leading-relaxed max-w-lg mx-auto text-text-subtle">
             All courses are freely available thanks to institutions and creators
             like Harvard, MIT, Yale, and others who believe great education
             should be open to everyone. We{"'"}re just building the best
             environment to learn from them.
           </p>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
