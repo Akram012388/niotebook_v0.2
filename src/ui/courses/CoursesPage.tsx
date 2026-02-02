@@ -3,7 +3,10 @@
 import { useMemo, useState, type ReactElement } from "react";
 import { useQuery } from "convex/react";
 import { motion } from "framer-motion";
-import { getCoursesRef } from "@/ui/content/convexContent";
+import {
+  getCoursesRef,
+  getLessonCountsByCourseRef,
+} from "@/ui/content/convexContent";
 import { getResumeDataRef } from "./convexResume";
 import { getCompletionCountsByCourseRef } from "./convexCompletions";
 import { CourseCard } from "./CourseCard";
@@ -23,6 +26,7 @@ const sectionVariants = {
 
 function CoursesPage(): ReactElement {
   const courses = useQuery(getCoursesRef);
+  const lessonCounts = useQuery(getLessonCountsByCourseRef);
   const resumeData = useQuery(getResumeDataRef);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -152,7 +156,9 @@ function CoursesPage(): ReactElement {
                   title={course.title}
                   description={course.description}
                   provider="Harvard"
-                  lessonCount={0}
+                  lessonCount={
+                    lessonCounts?.[course.id as string] ?? 0
+                  }
                   completedCount={
                     completionCounts?.[course.id as string] ?? 0
                   }

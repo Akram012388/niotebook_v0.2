@@ -22,9 +22,20 @@ type LessonReference = import("convex/server").FunctionReference<
   LessonSummary | null
 >;
 
+type LessonCountsByCourseReference = import("convex/server").FunctionReference<
+  "query",
+  "public",
+  Record<string, never>,
+  Record<string, number>
+>;
+
 const getCoursesRef = makeFunctionReference<"query">(
   "content:getCourses",
 ) as CoursesReference;
+
+const getLessonCountsByCourseRef = makeFunctionReference<"query">(
+  "content:getLessonCountsByCourse",
+) as LessonCountsByCourseReference;
 
 const getLessonsByCourseRef = makeFunctionReference<"query">(
   "content:getLessonsByCourse",
@@ -34,4 +45,9 @@ const getLessonRef = makeFunctionReference<"query">(
   "content:getLesson",
 ) as LessonReference;
 
-export { getCoursesRef, getLessonRef, getLessonsByCourseRef };
+export {
+  getCoursesRef,
+  getLessonCountsByCourseRef,
+  getLessonRef,
+  getLessonsByCourseRef,
+};

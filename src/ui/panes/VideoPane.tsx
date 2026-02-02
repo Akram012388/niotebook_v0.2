@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useQuery } from "convex/react";
 import { VideoPlayer } from "../video/VideoPlayer";
+import { useAutoCompletion } from "../video/useAutoCompletion";
 import { useVideoFrame } from "../video/useVideoFrame";
 import { getCoursesRef, getLessonRef } from "../content/convexContent";
 import { resolveLectureNumber } from "../../domain/lectureNumber";
@@ -62,6 +63,11 @@ const VideoPane = ({
       order: lesson?.order,
     });
   }, [lesson?.order, lesson?.subtitlesUrl, lesson?.title, lesson?.transcriptUrl]);
+
+  const checkAutoCompletion = useAutoCompletion({
+    lessonId,
+    durationSec: lesson?.durationSec,
+  });
 
   const courseTitle = course?.title ?? null;
 
@@ -192,8 +198,9 @@ const VideoPane = ({
     (timeSec: number): void => {
       onTimeChange?.(timeSec);
       setLastSampleTimeSec(timeSec);
+      checkAutoCompletion(timeSec);
     },
-    [onTimeChange],
+    [checkAutoCompletion, onTimeChange],
   );
 
   return (
