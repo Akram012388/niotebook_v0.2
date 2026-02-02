@@ -232,7 +232,7 @@ const seedE2E = mutation({
       ? existingCourse._id
       : await ctx.db.insert("courses", {
           sourcePlaylistId: "e2e-preview",
-          title: "E2E course",
+          title: "CS50x E2E",
           description: "Seeded for preview E2E runs.",
           license: "MIT",
           sourceUrl: "https://example.com",
