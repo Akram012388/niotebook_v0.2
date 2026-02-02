@@ -143,6 +143,14 @@ const useChatThread = (
 
   const [localThreadId, setLocalThreadId] = useState<string | null>(null);
 
+  // Reset local state when the lesson changes
+  useEffect(() => {
+    setLocalMessages([]);
+    setLocalThreadId(null);
+    setStreamState("idle");
+    setStreamError(null);
+  }, [lessonId]);
+
   const activeThreadId = (thread?.id as string | undefined) ?? localThreadId;
 
   const messagesPage = useQuery(
@@ -277,6 +285,17 @@ const useChatThread = (
         // Force-reset stuck stream state
         setStreamState("idle");
       }
+
+      // Cancel any pending RAF flush from a previous stream
+      if (rafRef.current !== null) {
+        window.cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+
+      // Finalize any still-streaming local messages
+      setLocalMessages((prev) =>
+        prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m)),
+      );
 
       setStreamError(null);
       setStreamState("streaming");
