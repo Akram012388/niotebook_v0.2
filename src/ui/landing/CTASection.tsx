@@ -1,79 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { type ReactElement } from "react";
+import { motion } from "framer-motion";
 
 export function CTASection(): ReactElement {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.3 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <section className="relative py-24 sm:py-32 px-4 sm:px-6">
-      <div
-        ref={ref}
-        className="max-w-3xl mx-auto text-center transition-all duration-1000"
-        style={{
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(20px)",
-        }}
+      <motion.div
+        className="max-w-3xl mx-auto text-center"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.7 }}
       >
         {/* Decorative code snippet */}
-        <div
-          className="inline-block font-mono text-xs px-4 py-2 rounded-lg mb-8"
-          style={{
-            background: "var(--surface-muted)",
-            color: "var(--text-subtle)",
-            border: "1px solid var(--border)",
-          }}
-        >
-          <span style={{ color: "var(--text-muted)" }}>$</span> niotebook{" "}
-          <span style={{ color: "var(--accent)" }}>--start</span>{" "}
-          your-cs-journey
+        <div className="inline-block font-mono text-xs px-4 py-2 rounded-lg mb-8 border border-border bg-surface-muted">
+          <span className="text-text-muted">$</span>{" "}
+          <span className="text-foreground">niotebook</span>{" "}
+          <span className="text-workspace-accent">--start</span>{" "}
+          <span className="text-text-subtle">your-cs-journey</span>
         </div>
 
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
           Stop watching tutorials.
           <br />
-          <span style={{ color: "var(--text-muted)" }}>
-            Start building knowledge.
-          </span>
+          <span className="text-text-muted">Start building knowledge.</span>
         </h2>
 
-        <p
-          className="text-sm sm:text-base mb-10 max-w-md mx-auto"
-          style={{ color: "var(--text-subtle)" }}
-        >
+        <p className="text-sm sm:text-base mb-10 max-w-md mx-auto text-text-subtle">
           Join the beta. It&apos;s free, it&apos;s fast, and your IDE will thank
           you.
         </p>
 
         <Link
           href="/workspace"
-          className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-          style={
-            {
-              background: "var(--accent)",
-              color: "var(--accent-foreground)",
-              "--tw-ring-color": "var(--text-muted)",
-              "--tw-ring-offset-color": "var(--background)",
-            } as React.CSSProperties
-          }
+          className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-workspace-accent text-[#0A0A0A] hover:shadow-[0_0_40px_rgba(0,255,102,0.25)]"
         >
           Start Learning
           <svg
@@ -90,18 +52,15 @@ export function CTASection(): ReactElement {
             />
           </svg>
         </Link>
-      </div>
+      </motion.div>
     </section>
   );
 }
 
 export function LandingFooter(): ReactElement {
   return (
-    <footer
-      className="py-8 text-center"
-      style={{ borderTop: "1px solid var(--border)" }}
-    >
-      <p className="text-xs font-mono" style={{ color: "var(--text-subtle)" }}>
+    <footer className="py-8 text-center border-t border-border">
+      <p className="text-xs font-mono text-text-subtle">
         © {new Date().getFullYear()} Niotebook · Built for learners who ship
       </p>
     </footer>

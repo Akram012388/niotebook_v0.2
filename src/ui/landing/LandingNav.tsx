@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { type ReactElement } from "react";
 import { ThemeToggle } from "./ThemeToggle";
+import { Wordmark } from "../brand/Wordmark";
 
 export function LandingNav(): ReactElement {
   return (
@@ -13,7 +14,7 @@ export function LandingNav(): ReactElement {
       }}
     >
       <div className="flex items-center gap-2">
-        <span className="text-lg font-bold tracking-tight">niotebook</span>
+        <Wordmark height={32} />
         <span
           className="text-[10px] font-mono px-1.5 py-0.5 rounded"
           style={{

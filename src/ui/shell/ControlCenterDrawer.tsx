@@ -302,7 +302,7 @@ const ControlCenterDrawer = ({
               onClick={() => handleTabChange("lectures")}
               className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                 activeTab === "lectures"
-                  ? "border-border bg-surface text-foreground"
+                  ? "border-workspace-accent/40 bg-workspace-accent-muted text-foreground"
                   : "border-transparent text-text-muted hover:bg-surface-muted"
               }`}
             >
@@ -314,7 +314,7 @@ const ControlCenterDrawer = ({
               onClick={() => handleTabChange("courses")}
               className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                 activeTab === "courses"
-                  ? "border-border bg-surface text-foreground"
+                  ? "border-workspace-accent/40 bg-workspace-accent-muted text-foreground"
                   : "border-transparent text-text-muted hover:bg-surface-muted"
               }`}
             >
@@ -353,10 +353,10 @@ const ControlCenterDrawer = ({
                               key={lesson.id}
                               type="button"
                               onClick={() => onSelectLesson(lesson.id)}
-                              className={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs transition ${
+                              className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-left text-xs transition ${
                                 isActive
-                                  ? "border-border bg-surface text-foreground shadow-sm"
-                                  : "border-border text-text-muted hover:bg-surface-muted hover:text-foreground"
+                                  ? "border-workspace-accent/50 bg-workspace-accent-muted text-foreground shadow-md shadow-workspace-accent/10 ring-1 ring-workspace-accent/20"
+                                  : "border-border text-text-muted hover:border-workspace-accent/20 hover:bg-surface-muted hover:text-foreground"
                               }`}
                             >
                               <div className="flex flex-col">
@@ -412,10 +412,10 @@ const ControlCenterDrawer = ({
                               setActiveTab("lectures");
                               setPanelView("content");
                             }}
-                            className={`flex flex-col gap-1 rounded-xl border px-3 py-2 text-left text-xs transition ${
+                            className={`flex flex-col gap-1 rounded-xl border px-3 py-2.5 text-left text-xs transition ${
                               isActive
-                                ? "border-border bg-surface text-foreground shadow-sm"
-                                : "border-border text-text-muted hover:bg-surface-muted hover:text-foreground"
+                                ? "border-workspace-accent/50 bg-workspace-accent-muted text-foreground shadow-md shadow-workspace-accent/10 ring-1 ring-workspace-accent/20"
+                                : "border-border text-text-muted hover:border-workspace-accent/20 hover:bg-surface-muted hover:text-foreground"
                             }`}
                           >
                             <span className="text-sm text-foreground">

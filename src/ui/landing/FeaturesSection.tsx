@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { type ReactElement } from "react";
+import { motion } from "framer-motion";
 
 interface Feature {
   icon: ReactElement;
@@ -102,25 +103,25 @@ const FEATURES: Feature[] = [
     icon: <SyncIcon />,
     title: "Video + Code in Sync",
     description:
-      "The lecture plays. The editor follows. Pause the video — the code is already there, cursor blinking, ready for you to run.",
+      "The lecture plays. The editor follows. Pause the video \u2014 the code is already there, cursor blinking, ready for you to run.",
   },
   {
     icon: <AiIcon />,
     title: "AI That Reads the Room",
     description:
-      "Your tutor knows what slide you're on, what code you wrote, and where you got lost. Context-aware help, not generic answers.",
+      "Your tutor knows what slide you\u2019re on, what code you wrote, and where you got lost. Context-aware help, not generic answers.",
   },
   {
     icon: <LanguageIcon />,
     title: "Python, JS, C, and More",
     description:
-      "Switch languages mid-lesson. The runtime follows. From Python scripts to C pointers — one workspace, every language.",
+      "Switch languages mid-lesson. The runtime follows. From Python scripts to C pointers \u2014 one workspace, every language.",
   },
   {
     icon: <DoingIcon />,
     title: "Learn by Shipping",
     description:
-      "Every concept becomes runnable code in seconds. No setup, no boilerplate. Type, run, understand — then do it again.",
+      "Every concept becomes runnable code in seconds. No setup, no boilerplate. Type, run, understand \u2014 then do it again.",
   },
 ];
 
@@ -131,29 +132,13 @@ function FeatureCard({
   feature: Feature;
   index: number;
 }): ReactElement {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.2 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div
-      ref={ref}
-      className="group relative p-6 sm:p-8 rounded-xl transition-all duration-700"
+    <motion.div
+      className="group relative p-6 sm:p-8 rounded-2xl border border-border bg-surface transition-all duration-300 hover:border-workspace-accent/30 hover:shadow-xl hover:shadow-workspace-accent/5"
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
       onMouseMove={(e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         e.currentTarget.style.setProperty(
@@ -165,42 +150,30 @@ function FeatureCard({
           `${e.clientY - rect.top}px`,
         );
       }}
-      style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(24px)",
-        transitionDelay: `${index * 120}ms`,
-      }}
     >
       <div
-        className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
-          background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--surface-muted), transparent 60%)`,
+          background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 255, 102, 0.04), transparent 60%)`,
         }}
       />
       <div className="relative">
-        <div className="mb-4" style={{ color: "var(--accent)" }}>
-          {feature.icon}
-        </div>
+        <div className="mb-4 text-workspace-accent">{feature.icon}</div>
         <h3 className="text-base sm:text-lg font-semibold mb-2">
           {feature.title}
         </h3>
-        <p
-          className="text-sm leading-relaxed"
-          style={{ color: "var(--text-muted)" }}
-        >
+        <p className="text-sm leading-relaxed text-text-muted">
           {feature.description}
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 export function FeaturesSection(): ReactElement {
   return (
     <section className="relative py-24 sm:py-32 px-4 sm:px-6 overflow-hidden">
-      {/* Grid pattern overlay — matching hero section */}
+      {/* Grid pattern overlay */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03]"
         style={{
@@ -209,11 +182,14 @@ export function FeaturesSection(): ReactElement {
         }}
       />
       <div className="relative max-w-5xl mx-auto">
-        <div className="text-center mb-16 sm:mb-20">
-          <p
-            className="text-xs font-mono uppercase tracking-[0.2em] mb-4"
-            style={{ color: "var(--text-subtle)" }}
-          >
+        <motion.div
+          className="text-center mb-16 sm:mb-20"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <p className="text-xs font-mono uppercase tracking-[0.2em] mb-4 text-workspace-accent/60">
             How it works
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
@@ -221,7 +197,7 @@ export function FeaturesSection(): ReactElement {
             <br />
             Everything you need.
           </h2>
-        </div>
+        </motion.div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {FEATURES.map((f, i) => (
             <FeatureCard key={f.title} feature={f} index={i} />

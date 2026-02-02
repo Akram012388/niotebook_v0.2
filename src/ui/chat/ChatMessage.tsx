@@ -12,22 +12,57 @@ type ChatMessageProps = {
 const remarkPlugins = [remarkGfm];
 const rehypePlugins = [rehypeHighlight];
 
-const AssistantContent = memo(function AssistantContent({
+/** Full markdown render — only used for completed messages. */
+const RenderedMarkdown = memo(function RenderedMarkdown({
   content,
 }: {
   content: string;
+}) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={remarkPlugins}
+      rehypePlugins={rehypePlugins}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+});
+
+/**
+ * During streaming we render plain text with a blinking cursor.
+ * This avoids re-parsing the full markdown AST on every token,
+ * which is the primary cause of jitter.
+ */
+function StreamingContent({ content }: { content: string }): ReactElement {
+  return (
+    <p className="whitespace-pre-wrap">
+      {content}
+      <span
+        className="ml-0.5 inline-block h-4 w-[2px] align-text-bottom bg-workspace-accent"
+        style={{ animation: "blink 1s step-end infinite" }}
+        aria-hidden="true"
+      />
+    </p>
+  );
+}
+
+const AssistantContent = memo(function AssistantContent({
+  content,
+  isStreaming,
+}: {
+  content: string;
+  isStreaming?: boolean;
 }) {
   return (
     <div
       className="nio-markdown w-full text-sm leading-6 text-foreground"
       data-testid="chat-message"
     >
-      <ReactMarkdown
-        remarkPlugins={remarkPlugins}
-        rehypePlugins={rehypePlugins}
-      >
-        {content}
-      </ReactMarkdown>
+      {isStreaming ? (
+        <StreamingContent content={content} />
+      ) : (
+        <RenderedMarkdown content={content} />
+      )}
     </div>
   );
 });
@@ -47,7 +82,11 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
       className={`group flex flex-col gap-1 ${
         isUser ? "items-end" : "items-start"
       }`}
-      style={{ contentVisibility: "auto", containIntrinsicSize: "auto 80px" }}
+      style={
+        message.isStreaming
+          ? undefined
+          : { contentVisibility: "auto", containIntrinsicSize: "auto 80px" }
+      }
     >
       <div
         className={
@@ -68,7 +107,10 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
             </p>
           </div>
         ) : (
-          <AssistantContent content={message.content} />
+          <AssistantContent
+            content={message.content}
+            isStreaming={message.isStreaming}
+          />
         )}
         {isUser ? (
           <button

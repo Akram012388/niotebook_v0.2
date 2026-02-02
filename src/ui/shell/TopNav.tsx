@@ -9,6 +9,7 @@ import {
   type ReactElement,
 } from "react";
 import { SidebarSimple } from "@phosphor-icons/react";
+import { Wordmark } from "../brand/Wordmark";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { useUser, useClerk } from "@clerk/nextjs";
@@ -265,9 +266,7 @@ const TopNav = (): ReactElement => {
     <header className="border-b border-border bg-surface">
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold tracking-tight text-foreground">
-            niotebook
-          </span>
+          <Wordmark height={24} />
         </div>
         <div className="flex items-center gap-3">
           <LayoutPresetToggle />
