@@ -1,4 +1,4 @@
-import { memo, type ReactElement } from "react";
+import { memo, useEffect, useRef, useState, type ReactElement } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -28,15 +28,43 @@ const RenderedMarkdown = memo(function RenderedMarkdown({
   );
 });
 
+/** Chars per frame to emit — tuned for ~60fps smooth typewriter feel. */
+const CHARS_PER_TICK = 2;
+const TICK_MS = 16;
+
 /**
  * During streaming we render plain text with a blinking cursor.
- * This avoids re-parsing the full markdown AST on every token,
- * which is the primary cause of jitter.
+ * Characters are revealed incrementally for a smooth typewriter effect
+ * similar to the Claude app, instead of chunking by SSE batches.
  */
 function StreamingContent({ content }: { content: string }): ReactElement {
+  const [visible, setVisible] = useState(0);
+  const targetRef = useRef(content.length);
+
+  useEffect(() => {
+    targetRef.current = content.length;
+  }, [content.length]);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+
+    const tick = (): void => {
+      setVisible((prev) => {
+        const target = targetRef.current;
+        if (prev >= target) return prev;
+        const next = Math.min(prev + CHARS_PER_TICK, target);
+        timer = setTimeout(tick, TICK_MS);
+        return next;
+      });
+    };
+
+    timer = setTimeout(tick, TICK_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <p className="whitespace-pre-wrap">
-      {content}
+      {content.slice(0, visible)}
       <span
         className="ml-0.5 inline-block h-4 w-[2px] align-text-bottom bg-workspace-accent"
         style={{ animation: "blink 1s step-end infinite" }}
