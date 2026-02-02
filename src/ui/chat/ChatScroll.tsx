@@ -78,10 +78,10 @@ const ChatScroll = ({
         <button
           type="button"
           onClick={handleScrollToBottom}
-          className="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full border-2 border-workspace-accent bg-surface text-workspace-accent shadow-lg shadow-workspace-accent/20 transition-all hover:scale-110 hover:bg-workspace-accent hover:text-[#0A0A0A] focus-visible:ring-2 focus-visible:ring-workspace-accent focus-visible:ring-offset-2"
+          className="absolute bottom-3 right-3 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-surface text-text-muted shadow-sm transition-all hover:bg-surface-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-border focus-visible:ring-offset-1"
           aria-label="Scroll to bottom"
         >
-          <ArrowDown size={18} weight="bold" />
+          <ArrowDown size={14} weight="bold" />
         </button>
       ) : null}
     </div>
