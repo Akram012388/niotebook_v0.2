@@ -308,6 +308,14 @@ button:disabled {
   color: var(--text-muted) !important;
 }
 
+/* Fix OTP code input fields — visible border + white text on dark bg */
+.cl-otpCodeFieldInput {
+  color: #FAFAFA !important;
+  border-color: var(--border) !important;
+  background: var(--surface-muted) !important;
+  caret-color: #FAFAFA !important;
+}
+
 #niotebook-runtime-frame:empty {
   display: none;
 }
