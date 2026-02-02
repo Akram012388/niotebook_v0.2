@@ -2,7 +2,7 @@
 
 import { type ReactElement, type ReactNode } from "react";
 import { useClerk } from "@clerk/nextjs";
-import { ThemeToggle } from "@/ui/landing/ThemeToggle";
+
 import { Wordmark } from "@/ui/brand/Wordmark";
 
 type CoursesLayoutProps = {
@@ -20,7 +20,6 @@ export default function CoursesLayout({
         <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-4 py-3">
           <Wordmark height={22} />
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             <button
               type="button"
               onClick={() => void signOut()}

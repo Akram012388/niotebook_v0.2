@@ -1,7 +1,7 @@
 const clerkAppearance = {
   variables: {
-    colorPrimary: "#0A0A0A",
-    colorText: "#0A0A0A",
+    colorPrimary: "#FAFAFA",
+    colorText: "#FAFAFA",
     colorBackground: "transparent",
     borderRadius: "0.75rem",
     fontFamily: "var(--font-geist-sans)",
