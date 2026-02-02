@@ -1,9 +1,9 @@
 "use client";
 
 import { type ReactElement, type ReactNode } from "react";
-import Link from "next/link";
 import { useClerk } from "@clerk/nextjs";
 import { ThemeToggle } from "@/ui/landing/ThemeToggle";
+import { Wordmark } from "@/ui/brand/Wordmark";
 
 type CoursesLayoutProps = {
   children: ReactNode;
@@ -18,12 +18,7 @@ export default function CoursesLayout({
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="border-b border-border bg-surface">
         <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-4 py-3">
-          <Link
-            href="/courses"
-            className="text-sm font-semibold tracking-tight text-foreground"
-          >
-            niotebook
-          </Link>
+          <Wordmark height={22} />
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <button
