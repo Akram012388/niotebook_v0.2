@@ -15,6 +15,7 @@ import { encodeSseEvent, NIO_SSE_HEADERS } from "../../../infra/ai/nioSse";
 import { shouldFallbackBeforeFirstToken } from "../../../infra/ai/fallbackGate";
 import { neutralizePromptInjection } from "../../../infra/ai/promptInjection";
 import { fetchSubtitleWindow } from "../../../infra/ai/subtitleFallback";
+import { fetchYoutubeTranscriptWindow } from "../../../infra/ai/youtubeTranscriptFallback";
 import type {
   NioProviderId,
   NioProviderStreamResult,
@@ -738,6 +739,7 @@ const fetchLessonMeta = async (args: {
   lectureNumber?: number;
   subtitlesUrl?: string;
   transcriptUrl?: string;
+  videoId?: string;
 } | null> => {
   if (!isConvexEnabled()) {
     return null;
@@ -764,6 +766,7 @@ const fetchLessonMeta = async (args: {
     lectureNumber: lectureNumber ?? undefined,
     subtitlesUrl: lesson.subtitlesUrl,
     transcriptUrl: lesson.transcriptUrl,
+    videoId: lesson.videoId,
   };
 };
 
@@ -885,6 +888,7 @@ export const POST = async (request: Request): Promise<Response> => {
     lectureNumber?: number;
     subtitlesUrl?: string;
     transcriptUrl?: string;
+    videoId?: string;
   } | null = validation.data.lesson
     ? {
         title: validation.data.lesson.title,
@@ -894,9 +898,9 @@ export const POST = async (request: Request): Promise<Response> => {
       }
     : null;
 
-  // Fetch transcript and lesson meta in parallel when both are needed
+  // Always fetch lesson meta server-side to avoid stale client data
   const needsTranscript = !hasTranscriptLines && isConvexEnabled();
-  const needsLessonMeta = !lessonMeta && isConvexEnabled();
+  const needsLessonMeta = isConvexEnabled();
 
   if (needsTranscript || needsLessonMeta) {
     const [transcriptResult, lessonMetaResult] = await Promise.allSettled([
@@ -993,6 +997,37 @@ export const POST = async (request: Request): Promise<Response> => {
       hasLessonMeta: Boolean(lessonMeta),
       subtitlesUrl: lessonMeta?.subtitlesUrl ?? "none",
     });
+  }
+
+  // YouTube transcript fallback (for courses without SRT files, e.g. CS50R)
+  if (
+    !transcriptPayload.lines.some((line) => line.trim().length > 0) &&
+    lessonMeta?.videoId
+  ) {
+    debugLog("transcript: attempting YouTube fallback", {
+      requestId: validation.data.requestId,
+      videoId: lessonMeta.videoId,
+    });
+    try {
+      const lines = await fetchYoutubeTranscriptWindow({
+        videoId: lessonMeta.videoId,
+        startSec: transcriptPayload.startSec,
+        endSec: transcriptPayload.endSec,
+      });
+      debugLog("transcript: YouTube fallback result", {
+        requestId: validation.data.requestId,
+        lineCount: lines.length,
+      });
+      if (lines.length > 0) {
+        transcriptPayload = { ...transcriptPayload, lines };
+      }
+    } catch (err) {
+      debugLog("transcript: YouTube fallback failed", {
+        requestId: validation.data.requestId,
+        videoId: lessonMeta.videoId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   if (!transcriptPayload.lines.some((line) => line.trim().length > 0)) {

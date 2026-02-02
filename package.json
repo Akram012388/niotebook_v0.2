@@ -59,6 +59,7 @@
     "remark-gfm": "^4.0.1",
     "sql.js": "^1.13.0",
     "webr": "^0.5.8",
+    "youtube-transcript": "^1.2.1",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
