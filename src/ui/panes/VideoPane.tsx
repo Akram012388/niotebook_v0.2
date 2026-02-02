@@ -128,6 +128,7 @@ const VideoPane = ({
   const lastSeekRef = useRef<number | null>(null);
   const lastPersistedRef = useRef<number | null>(null);
   const videoAreaRef = useRef<HTMLDivElement | null>(null);
+  const videoWrapRef = useRef<HTMLDivElement | null>(null);
   const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
     null,
   );
@@ -138,6 +139,33 @@ const VideoPane = ({
     }
   }, [frame?.videoTimeSec, onTimeChange]);
 
+
+  // Size the video wrapper via direct DOM writes to avoid state-driven
+  // re-render loops that caused jitter with the previous setState approach.
+  useEffect(() => {
+    const area = videoAreaRef.current;
+    if (!area || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const applyWidth = (areaW: number, areaH: number): void => {
+      const wrap = videoWrapRef.current;
+      if (!wrap || areaW <= 0 || areaH <= 0) return;
+      const optimal = Math.round(Math.min(areaW, areaH * (16 / 9)));
+      wrap.style.width = `${optimal}px`;
+    };
+
+    const observer = new ResizeObserver((entries) => {
+      const rect = entries[0]?.contentRect;
+      if (rect) applyWidth(rect.width, rect.height);
+    });
+
+    observer.observe(area);
+    const rect = area.getBoundingClientRect();
+    applyWidth(rect.width, rect.height);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect((): void => {
     if (lastSeek === null || lastSeekRef.current === lastSeek) {
@@ -192,10 +220,10 @@ const VideoPane = ({
       <div className="flex min-h-0 flex-1 flex-col p-4">
         <div
           ref={videoAreaRef}
-          className="flex min-h-0 flex-1 items-start justify-center overflow-hidden"
+          className="flex min-h-0 flex-1 items-start justify-center"
         >
           {lesson ? (
-            <div className="aspect-video max-h-full max-w-full">
+            <div ref={videoWrapRef} className="w-full max-w-full aspect-video">
 
               <VideoPlayer
                 videoId={lesson.videoId}
