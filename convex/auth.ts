@@ -40,6 +40,12 @@ const resolveIdentity = async (
     .first();
 
   if (!user) {
+    console.error(
+      "[auth] User not found for tokenIdentifier:",
+      identity.tokenIdentifier,
+      "| email:",
+      identity.email,
+    );
     return null;
   }
 

@@ -128,7 +128,7 @@ const VideoPane = ({
   const lastSeekRef = useRef<number | null>(null);
   const lastPersistedRef = useRef<number | null>(null);
   const videoAreaRef = useRef<HTMLDivElement | null>(null);
-  const [maxVideoWidth, setMaxVideoWidth] = useState<number | null>(null);
+  const videoWrapRef = useRef<HTMLDivElement | null>(null);
   const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
     null,
   );
@@ -139,37 +139,32 @@ const VideoPane = ({
     }
   }, [frame?.videoTimeSec, onTimeChange]);
 
+
+  // Size the video wrapper via direct DOM writes to avoid state-driven
+  // re-render loops that caused jitter with the previous setState approach.
   useEffect(() => {
-    const element = videoAreaRef.current;
-    if (!element || typeof ResizeObserver === "undefined") {
+    const area = videoAreaRef.current;
+    if (!area || typeof ResizeObserver === "undefined") {
       return;
     }
 
-    const updateSize = (width: number, height: number): void => {
-      if (width <= 0 || height <= 0) {
-        return;
-      }
-      const candidate = Math.min(width, height * (16 / 9));
-      setMaxVideoWidth(Math.round(candidate));
+    const applyWidth = (areaW: number, areaH: number): void => {
+      const wrap = videoWrapRef.current;
+      if (!wrap || areaW <= 0 || areaH <= 0) return;
+      const optimal = Math.round(Math.min(areaW, areaH * (16 / 9)));
+      wrap.style.width = `${optimal}px`;
     };
 
     const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) {
-        return;
-      }
-      const rect = entry.contentRect;
-      updateSize(rect.width, rect.height);
+      const rect = entries[0]?.contentRect;
+      if (rect) applyWidth(rect.width, rect.height);
     });
 
-    observer.observe(element);
+    observer.observe(area);
+    const rect = area.getBoundingClientRect();
+    applyWidth(rect.width, rect.height);
 
-    const rect = element.getBoundingClientRect();
-    updateSize(rect.width, rect.height);
-
-    return () => {
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, []);
 
   useEffect((): void => {
@@ -228,10 +223,8 @@ const VideoPane = ({
           className="flex min-h-0 flex-1 items-start justify-center"
         >
           {lesson ? (
-            <div
-              className="w-full max-w-full aspect-video"
-              style={{ width: maxVideoWidth ? `${maxVideoWidth}px` : "100%" }}
-            >
+            <div ref={videoWrapRef} className="w-full max-w-full aspect-video">
+
               <VideoPlayer
                 videoId={lesson.videoId}
                 initialTimeSec={initialTimeSec}
