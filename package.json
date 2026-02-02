@@ -17,7 +17,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:local": "playwright install --with-deps && playwright test",
-    "e2e:convex:push": "convex deploy --preview-create e2e",
+    "e2e:convex:push": "bun ./scripts/e2eConvexPush.ts",
     "e2e:seed": "bun ./scripts/e2eSeed.ts",
     "ingest:cs50x": "bun ./scripts/ingestCs50x2026.ts",
     "check:any": "rg --hidden --no-ignore-vcs '\\bany\\b' convex tests --type ts --glob '!convex/_generated/**' && echo 'error: any is forbidden in convex & tests' && exit 1 || exit 0",
