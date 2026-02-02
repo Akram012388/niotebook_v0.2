@@ -11,10 +11,11 @@ const finalizeMutation =
   "ingest:finalizeTranscriptIngest" as unknown as FunctionReference<"mutation">;
 
 const COURSE_SOURCE_PLAYLIST_ID = "cs50x-2026";
-const COURSE_TITLE = "CS50x 2026";
-const COURSE_SOURCE_URL = "https://cs50.harvard.edu/x/weeks/";
-const COURSE_LICENSE = "CC";
-const COURSE_DESCRIPTION = "CS50x 2026 lecture series.";
+const COURSE_TITLE = "CS50x 2026 — Introduction to Computer Science";
+const COURSE_SOURCE_URL = "https://cs50.harvard.edu/x/";
+const COURSE_LICENSE = "CC BY-NC-SA 4.0";
+const COURSE_DESCRIPTION =
+  "Harvard's introduction to the intellectual enterprises of computer science and the art of programming.";
 const INGEST_VERSION = 1;
 const MIN_SLUG_COUNT = 3;
 const TRANSCRIPT_WARN_THRESHOLD_SEC = 120;

@@ -719,6 +719,28 @@ const patchLessonUrls = mutation({
   },
 });
 
+const patchCourseMeta = mutation({
+  args: {
+    courseId: v.id("courses"),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    license: v.optional(v.string()),
+    sourceUrl: v.optional(v.string()),
+    ingestToken: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<void> => {
+    await ensureIngestAllowed(ctx, args.ingestToken);
+    const patch: Record<string, string> = {};
+    if (args.title) patch.title = args.title;
+    if (args.description) patch.description = args.description;
+    if (args.license) patch.license = args.license;
+    if (args.sourceUrl) patch.sourceUrl = args.sourceUrl;
+    if (Object.keys(patch).length > 0) {
+      await ctx.db.patch(args.courseId, patch);
+    }
+  },
+});
+
 export {
   clearTranscriptSegmentsBatch,
   finalizeTranscriptIngest,
@@ -727,5 +749,6 @@ export {
   ingestTranscriptSegmentsBatch,
   migrateCs50SqlPlaylistId,
   migrateCs50VideoFixes,
+  patchCourseMeta,
   patchLessonUrls,
 };
