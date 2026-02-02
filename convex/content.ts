@@ -172,4 +172,23 @@ const seedLesson = mutation({
   },
 });
 
-export { getCourses, getLesson, getLessonsByCourse, seedLesson };
+const getLessonCountsByCourse = query({
+  args: {},
+  handler: async (ctx): Promise<Record<string, number>> => {
+    const lessons = await ctx.db.query("lessons").collect();
+    const counts: Record<string, number> = {};
+    for (const lesson of lessons) {
+      const key = lesson.courseId as unknown as string;
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  },
+});
+
+export {
+  getCourses,
+  getLesson,
+  getLessonCountsByCourse,
+  getLessonsByCourse,
+  seedLesson,
+};
