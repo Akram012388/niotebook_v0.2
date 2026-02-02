@@ -216,8 +216,7 @@ button:disabled {
 .nio-markdown :not(pre) > code {
   padding: 0.15em 0.35em;
   border-radius: 0.25rem;
-  background: #1e1e2e;
-  color: #cdd6f4;
+  background: var(--surface-muted);
 }
 
 .nio-markdown ul,

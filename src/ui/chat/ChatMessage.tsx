@@ -33,9 +33,20 @@ const CHARS_PER_TICK = 2;
 const TICK_MS = 16;
 
 /**
- * During streaming we render plain text with a blinking cursor.
- * Characters are revealed incrementally for a smooth typewriter effect
- * similar to the Claude app, instead of chunking by SSE batches.
+ * Truncate markdown content at a visible character boundary without
+ * breaking mid-tag. We slice the raw markdown source which ReactMarkdown
+ * can handle even if truncated (unclosed formatting degrades gracefully).
+ */
+const truncateMarkdown = (source: string, maxChars: number): string => {
+  if (maxChars >= source.length) return source;
+  return source.slice(0, maxChars);
+};
+
+/**
+ * During streaming we render markdown incrementally — characters are
+ * revealed with a typewriter effect while still rendering full markdown
+ * (code blocks, bold, etc.) so there is no visual "jump" when streaming
+ * finishes.
  */
 function StreamingContent({ content }: { content: string }): ReactElement {
   const [visible, setVisible] = useState(0);
@@ -62,15 +73,22 @@ function StreamingContent({ content }: { content: string }): ReactElement {
     return () => clearTimeout(timer);
   }, []);
 
+  const visibleContent = truncateMarkdown(content, visible);
+
   return (
-    <p className="whitespace-pre-wrap">
-      {content.slice(0, visible)}
+    <>
+      <ReactMarkdown
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={rehypePlugins}
+      >
+        {visibleContent}
+      </ReactMarkdown>
       <span
         className="ml-0.5 inline-block h-4 w-[2px] align-text-bottom bg-workspace-accent"
         style={{ animation: "blink 1s step-end infinite" }}
         aria-hidden="true"
       />
-    </p>
+    </>
   );
 }
 
