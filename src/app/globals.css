@@ -201,7 +201,8 @@ button:disabled {
   margin: 0.5em 0;
   padding: 0.75em 1em;
   border-radius: 0.5rem;
-  background: var(--surface-muted);
+  background: #1e1e2e;
+  color: #cdd6f4;
   overflow-x: auto;
   font-size: 0.8125rem;
   line-height: 1.6;
@@ -215,7 +216,8 @@ button:disabled {
 .nio-markdown :not(pre) > code {
   padding: 0.15em 0.35em;
   border-radius: 0.25rem;
-  background: var(--surface-muted);
+  background: #1e1e2e;
+  color: #cdd6f4;
 }
 
 .nio-markdown ul,
