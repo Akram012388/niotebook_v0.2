@@ -129,6 +129,7 @@ const VideoPane = ({
   const lastPersistedRef = useRef<number | null>(null);
   const videoAreaRef = useRef<HTMLDivElement | null>(null);
   const [maxVideoWidth, setMaxVideoWidth] = useState<number | null>(null);
+  const lastWidthRef = useRef<number | null>(null);
   const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
     null,
   );
@@ -149,8 +150,17 @@ const VideoPane = ({
       if (width <= 0 || height <= 0) {
         return;
       }
-      const candidate = Math.min(width, height * (16 / 9));
-      setMaxVideoWidth(Math.round(candidate));
+      const candidate = Math.round(Math.min(width, height * (16 / 9)));
+      // Only update if the change is significant (>2px) to prevent
+      // ResizeObserver ↔ state update feedback loops that cause jitter.
+      if (
+        lastWidthRef.current !== null &&
+        Math.abs(candidate - lastWidthRef.current) <= 2
+      ) {
+        return;
+      }
+      lastWidthRef.current = candidate;
+      setMaxVideoWidth(candidate);
     };
 
     const observer = new ResizeObserver((entries) => {

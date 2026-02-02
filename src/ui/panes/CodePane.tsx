@@ -26,6 +26,7 @@ import {
 import type { RuntimeLanguage, RuntimeState } from "../../infra/runtime/types";
 import type { LessonEnvironment } from "../../domain/lessonEnvironment";
 import { getPresetOrDefault } from "../../infra/runtime/envPresets";
+import { storageAdapter } from "../../infra/storageAdapter";
 
 // ── SSR-safe dynamic import of EditorArea ─────────────────────
 
@@ -87,9 +88,13 @@ const CodePane = ({
     [environmentConfig, environmentPresetId],
   );
 
-  const [language, setLanguage] = useState<RuntimeLanguage>(
-    environment.primaryLanguage,
-  );
+  const [language, setLanguage] = useState<RuntimeLanguage>(() => {
+    const stored = storageAdapter.getItem("niotebook.language");
+    if (stored && Object.keys(DEFAULT_CODE_BY_LANGUAGE).includes(stored)) {
+      return stored as RuntimeLanguage;
+    }
+    return environment.primaryLanguage;
+  });
   const [runtimeState, setRuntimeState] = useState<RuntimeState>({
     language: "js",
     status: "idle",
@@ -434,6 +439,7 @@ const CodePane = ({
     (nextLanguage: RuntimeLanguage): void => {
       if (!allowedLanguages.includes(nextLanguage)) return;
       setLanguage(nextLanguage);
+      storageAdapter.setItem("niotebook.language", nextLanguage);
     },
     [allowedLanguages],
   );
