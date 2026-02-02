@@ -36,6 +36,7 @@ type NioChatRequest = {
   transcript: NioTranscriptPayload;
   code: NioCodePayload;
   lesson?: NioLessonMetaPayload;
+  lastError?: string;
 };
 
 type NioErrorCode =

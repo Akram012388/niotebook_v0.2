@@ -158,11 +158,11 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
             isStreaming={message.isStreaming}
           />
         )}
-        {isUser ? (
+        {message.badge ? (
           <button
             type="button"
             onClick={handleSeek}
-            className="text-[11px] font-medium opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 text-text-muted hover:text-foreground dark:text-text-subtle dark:hover:text-foreground"
+            className={`text-[11px] font-medium opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 text-text-muted hover:text-foreground dark:text-text-subtle dark:hover:text-foreground ${isUser ? "" : "self-start"}`}
             aria-label={`Seek to ${message.badge}`}
           >
             {message.badge}

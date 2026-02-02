@@ -1049,6 +1049,7 @@ export const POST = async (request: Request): Promise<Response> => {
     code: validation.data.code,
     recentMessages: sanitizedHistory,
     userMessage: sanitizedUser.text,
+    lastError: validation.data.lastError,
   });
 
   if (!contextResult.ok) {

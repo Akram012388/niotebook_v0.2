@@ -40,6 +40,7 @@ type ChatSendContext = {
     language: string;
     codeHash?: string;
     code?: string;
+    fileName?: string;
   };
   lesson?: {
     title?: string;
@@ -47,6 +48,7 @@ type ChatSendContext = {
     subtitlesUrl?: string;
     transcriptUrl?: string;
   };
+  lastError?: string;
 };
 
 type UseChatThreadResult = {
@@ -383,8 +385,10 @@ const useChatThread = (
             language: context.code.language,
             codeHash: context.code.codeHash,
             code: context.code.code,
+            fileName: context.code.fileName,
           },
           lesson: context.lesson,
+          lastError: context.lastError,
         };
 
         let response: Response;

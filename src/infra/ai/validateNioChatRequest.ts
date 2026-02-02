@@ -60,7 +60,7 @@ const parseCodePayload = (value: unknown): NioCodePayload | null => {
     return null;
   }
 
-  const { language, codeHash, code } = value;
+  const { language, codeHash, code, fileName } = value;
 
   if (!isString(language)) {
     return null;
@@ -74,7 +74,11 @@ const parseCodePayload = (value: unknown): NioCodePayload | null => {
     return null;
   }
 
-  return { language, codeHash, code };
+  if (fileName !== undefined && !isString(fileName)) {
+    return null;
+  }
+
+  return { language, codeHash, code, fileName };
 };
 
 const parseRecentMessages = (value: unknown): NioChatMessage[] | null => {
@@ -142,6 +146,7 @@ const validateNioChatRequest = (payload: unknown): ValidationResult => {
     transcript,
     code,
     lesson,
+    lastError,
   } = payload;
 
   if (!isString(requestId) || requestId.trim().length === 0) {
@@ -188,6 +193,10 @@ const validateNioChatRequest = (payload: unknown): ValidationResult => {
     return { ok: false, error: "lesson metadata must be valid." };
   }
 
+  if (lastError !== undefined && !isString(lastError)) {
+    return { ok: false, error: "lastError must be a string." };
+  }
+
   return {
     ok: true,
     data: {
@@ -201,6 +210,7 @@ const validateNioChatRequest = (payload: unknown): ValidationResult => {
       transcript: parsedTranscript,
       code: parsedCode,
       lesson: parsedLesson ?? undefined,
+      lastError,
     },
   };
 };
