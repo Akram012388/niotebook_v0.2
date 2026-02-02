@@ -13,7 +13,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "coverage/**",
-    "dist/**",
+    "**/dist/**",
     "node_modules/**",
     "convex/_generated/**",
     ".tmp/**",

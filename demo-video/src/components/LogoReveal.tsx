@@ -33,8 +33,9 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
 
   // Exit: slide up and fade
   const exitStart = enterDuration + holdDuration;
+  const exitFrame = Math.min(exitDuration, Math.max(0, frame - exitStart));
   const exitProgress = spring({
-    frame: Math.max(0, frame - exitStart),
+    frame: exitFrame,
     fps,
     config: SPRING_CONFIGS.gentle,
   });
@@ -44,7 +45,7 @@ export const LogoReveal: React.FC<LogoRevealProps> = ({
     enterProgress - exitProgress,
     [-1, 0, 1],
     [-100, 0, -100],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
   );
 
   // Opacity: fade in, hold, fade out

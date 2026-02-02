@@ -12,8 +12,8 @@ declare module "JSCPP" {
     exitCode: number;
   }
 
-  function run(code: string, input: string, config?: JSCPPConfig): JSCPPResult;
+  type Run = (code: string, input: string, config?: JSCPPConfig) => JSCPPResult;
 
-  const JSCPP: { run: typeof run };
+  const JSCPP: { run: Run };
   export default JSCPP;
 }
