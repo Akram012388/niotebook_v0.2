@@ -290,6 +290,24 @@ button:disabled {
   padding: 0;
 }
 
+/* --- Clerk overrides (invite-only alpha) --- */
+
+/* Hide "Don't have an account? Sign up" footer */
+.cl-footerAction {
+  display: none !important;
+}
+
+/* Fix button text visibility (white-on-white) */
+.cl-formButtonPrimary {
+  color: var(--background) !important;
+}
+
+/* Fix secondary text visibility on dark backgrounds */
+.cl-footerActionText,
+.cl-internal-b1ylls {
+  color: var(--text-muted) !important;
+}
+
 #niotebook-runtime-frame:empty {
   display: none;
 }
