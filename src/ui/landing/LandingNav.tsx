@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { type ReactElement } from "react";
-import { ThemeToggle } from "./ThemeToggle";
 import { Wordmark } from "../brand/Wordmark";
 
 export function LandingNav(): ReactElement {
@@ -26,7 +25,6 @@ export function LandingNav(): ReactElement {
         </span>
       </div>
       <div className="flex items-center gap-3">
-        <ThemeToggle />
         <Link
           href="/sign-in"
           className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"

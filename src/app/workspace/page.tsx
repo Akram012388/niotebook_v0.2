@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/ui/shell/AppShell";
 import { WorkspaceShell } from "@/ui/layout/WorkspaceShell";
 import { AuthGate } from "@/ui/auth/AuthGate";
+import { ForceTheme } from "@/ui/ForceTheme";
 
 type WorkspacePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -20,6 +21,7 @@ export default async function WorkspacePage({
 
   return (
     <AuthGate>
+      <ForceTheme theme="light" />
       <AppShell>
         <Suspense
           fallback={

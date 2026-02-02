@@ -5,10 +5,12 @@ import type { ReactElement } from "react";
 import { BootSequence } from "@/ui/auth/BootSequence";
 import { clerkAppearance } from "@/ui/auth/clerkAppearance";
 import { Wordmark } from "@/ui/brand/Wordmark";
+import { ForceTheme } from "@/ui/ForceTheme";
 
 const SignInPage = (): ReactElement => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+      <ForceTheme theme="dark" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.18),_transparent_55%)]" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-[1200px] flex-col justify-center px-6 py-12">
         <div className="mb-6">
