@@ -1,60 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useRef, type ReactElement } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-
-const CODE_LINES = [
-  { text: "def learn(concept):", color: "#00FF66" },
-  { text: "    understanding = watch(concept)", color: "#FAFAFA" },
-  { text: "    skills = code(understanding)", color: "#FAFAFA" },
-  { text: "    return skills.level_up()", color: "#00FF66" },
-];
-
-function TypingCode(): ReactElement {
-  const [visibleLines, setVisibleLines] = useState(0);
-  const [visibleChars, setVisibleChars] = useState(0);
-
-  useEffect(() => {
-    if (visibleLines >= CODE_LINES.length) return;
-    const currentLine = CODE_LINES[visibleLines].text;
-    if (visibleChars < currentLine.length) {
-      const t = setTimeout(() => setVisibleChars((c) => c + 1), 35);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => {
-      setVisibleLines((l) => l + 1);
-      setVisibleChars(0);
-    }, 300);
-    return () => clearTimeout(t);
-  }, [visibleLines, visibleChars]);
-
-  return (
-    <div className="font-mono text-xs sm:text-sm leading-6 sm:leading-7">
-      {CODE_LINES.map((line, i) => (
-        <div key={i} className="flex">
-          <span className="w-6 sm:w-8 text-right mr-3 sm:mr-4 select-none text-[#404040]">
-            {i + 1}
-          </span>
-          <span style={{ color: line.color }}>
-            {i < visibleLines
-              ? line.text
-              : i === visibleLines
-                ? line.text.slice(0, visibleChars)
-                : ""}
-            {(i === visibleLines ||
-              (visibleLines >= CODE_LINES.length &&
-                i === CODE_LINES.length - 1)) && (
-              <span
-                className="inline-block w-[2px] h-[1em] ml-px align-middle animate-[blink_1s_step-end_infinite] bg-workspace-accent"
-              />
-            )}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export function HeroSection(): ReactElement {
   const sectionRef = useRef<HTMLElement>(null);
@@ -181,27 +130,39 @@ export function HeroSection(): ReactElement {
           </span>
         </motion.div>
 
-        {/* Code editor mockup */}
+        {/* Video demo placeholder — 16:9 */}
         <motion.div
-          className="relative max-w-lg mx-auto rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-[#0A0A0A]"
+          className="relative mx-auto mb-16 w-full max-w-3xl aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-[#0A0A0A]"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.1 }}
         >
-          {/* Title bar */}
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-[#262626]">
-            <div className="flex gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#404040]" />
-              <span className="w-2.5 h-2.5 rounded-full bg-[#333333]" />
-              <span className="w-2.5 h-2.5 rounded-full bg-[#262626]" />
-            </div>
-            <span className="ml-2 text-xs font-mono text-[#737373]">
-              main.py
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+            <Image
+              src="/niotebook-wordmark-dark.svg"
+              alt=""
+              width={180}
+              height={34}
+              className="opacity-20"
+              aria-hidden="true"
+            />
+            <button
+              type="button"
+              className="flex h-16 w-16 items-center justify-center rounded-full border border-[#404040] bg-[#171717] text-[#FAFAFA] transition hover:border-workspace-accent hover:text-workspace-accent hover:shadow-[0_0_24px_rgba(0,255,102,0.2)]"
+              aria-label="Play demo video"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </button>
+            <span className="text-xs text-[#737373] font-mono">
+              Demo coming soon
             </span>
-          </div>
-          {/* Code */}
-          <div className="p-4 sm:p-6 text-left">
-            <TypingCode />
           </div>
         </motion.div>
       </motion.div>

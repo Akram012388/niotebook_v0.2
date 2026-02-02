@@ -51,7 +51,7 @@ const CourseCard = memo(function CourseCard({
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
-        className="flex flex-col gap-3 rounded-2xl border border-border bg-surface-muted p-5 opacity-60 transition-opacity hover:opacity-80"
+        className="flex flex-col gap-3 rounded-2xl border border-border bg-surface-muted p-5 opacity-60 transition-all duration-200 hover:opacity-80 hover:scale-[1.02] hover:shadow-lg"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -118,12 +118,12 @@ const CourseCard = memo(function CourseCard({
     >
       <Link
         href={`/courses/${id as string}`}
-        className="group relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-workspace-accent/40 hover:shadow-xl hover:shadow-workspace-accent/5"
+        className="group relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl dark:hover:border-workspace-accent/40 dark:hover:shadow-workspace-accent/5 hover:border-foreground/20 hover:shadow-foreground/5"
       >
-        {/* Subtle green glow on hover */}
-        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-workspace-accent/0 to-workspace-accent/0 transition-all duration-300 group-hover:from-workspace-accent/[0.03] group-hover:to-transparent" />
+        {/* Subtle glow on hover (green in dark mode only) */}
+        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-workspace-accent/0 to-workspace-accent/0 transition-all duration-300 dark:group-hover:from-workspace-accent/[0.03] dark:group-hover:to-transparent" />
 
-        <h3 className="relative text-base font-semibold leading-tight text-foreground transition-colors group-hover:text-workspace-accent">
+        <h3 className="relative text-base font-semibold leading-tight text-foreground transition-colors dark:group-hover:text-workspace-accent group-hover:text-[#0A0A0A] group-hover:font-extrabold">
           {title}
         </h3>
         {description && (

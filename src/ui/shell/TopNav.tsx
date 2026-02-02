@@ -266,7 +266,7 @@ const TopNav = (): ReactElement => {
     <header className="border-b border-border bg-surface">
       <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
-          <Wordmark height={24} />
+          <Wordmark height={32} />
         </div>
         <div className="flex items-center gap-3">
           <LayoutPresetToggle />

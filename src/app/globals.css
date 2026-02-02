@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "highlight.js/styles/github-dark-dimmed.css";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   --background: #FAFAFA;
   --foreground: #0A0A0A;
@@ -286,6 +288,32 @@ button:disabled {
 .nio-markdown pre .hljs {
   background: transparent;
   padding: 0;
+}
+
+/* --- Clerk overrides (invite-only alpha) --- */
+
+/* Hide "Don't have an account? Sign up" footer */
+.cl-footerAction {
+  display: none !important;
+}
+
+/* Fix button text visibility (white-on-white) */
+.cl-formButtonPrimary {
+  color: var(--background) !important;
+}
+
+/* Fix secondary text visibility on dark backgrounds */
+.cl-footerActionText,
+.cl-internal-b1ylls {
+  color: var(--text-muted) !important;
+}
+
+/* Fix OTP code input fields — visible border + white text on dark bg */
+.cl-otpCodeFieldInput {
+  color: #FAFAFA !important;
+  border: 1px solid #525252 !important;
+  background: var(--surface-muted) !important;
+  caret-color: #FAFAFA !important;
 }
 
 #niotebook-runtime-frame:empty {
