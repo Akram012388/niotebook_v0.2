@@ -311,7 +311,7 @@ button:disabled {
 /* Fix OTP code input fields — visible border + white text on dark bg */
 .cl-otpCodeFieldInput {
   color: #FAFAFA !important;
-  border-color: var(--border) !important;
+  border: 1px solid #525252 !important;
   background: var(--surface-muted) !important;
   caret-color: #FAFAFA !important;
 }
