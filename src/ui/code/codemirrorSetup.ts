@@ -76,44 +76,44 @@ async function loadLanguage(lang: RuntimeLanguage): Promise<LanguageSupport> {
 const niotebookWorkspaceTheme = EditorView.theme(
   {
     "&": {
-      backgroundColor: "var(--color-workspace-editor, #0d1117)",
-      color: "var(--color-workspace-text, #e5e7eb)",
+      backgroundColor: "var(--color-workspace-editor, #0A0A0A)",
+      color: "var(--color-workspace-text, #FAFAFA)",
       height: "100%",
     },
     ".cm-scroller": {
-      backgroundColor: "var(--color-workspace-editor, #0d1117)",
+      backgroundColor: "var(--color-workspace-editor, #0A0A0A)",
       height: "100%",
       minHeight: "100%",
     },
     ".cm-content": {
-      caretColor: "var(--color-workspace-text, #e5e7eb)",
+      caretColor: "var(--color-workspace-text, #FAFAFA)",
       fontFamily: "var(--font-mono, ui-monospace, monospace)",
       fontSize: "12px",
       lineHeight: "1.6",
       minHeight: "100%",
     },
     ".cm-cursor": {
-      borderLeftColor: "var(--color-workspace-text, #e5e7eb)",
+      borderLeftColor: "var(--color-workspace-text, #FAFAFA)",
     },
     ".cm-gutters": {
-      backgroundColor: "var(--color-workspace-editor, #0d1117)",
-      color: "var(--color-workspace-text-muted, #9aa4b2)",
+      backgroundColor: "var(--color-workspace-editor, #0A0A0A)",
+      color: "var(--color-workspace-text-muted, #A3A3A3)",
       border: "none",
       minHeight: "100%",
     },
     ".cm-activeLineGutter": {
       backgroundColor:
-        "var(--color-workspace-accent-muted, rgba(96, 165, 250, 0.2))",
+        "var(--color-workspace-accent-muted, rgba(0, 255, 102, 0.15))",
     },
     ".cm-activeLine": {
       backgroundColor:
-        "var(--color-workspace-accent-muted, rgba(96, 165, 250, 0.2))",
+        "var(--color-workspace-accent-muted, rgba(0, 255, 102, 0.15))",
     },
     ".cm-selectionBackground": {
-      backgroundColor: "rgba(96, 165, 250, 0.25) !important",
+      backgroundColor: "rgba(0, 255, 102, 0.15) !important",
     },
     "&.cm-focused .cm-selectionBackground": {
-      backgroundColor: "rgba(96, 165, 250, 0.35) !important",
+      backgroundColor: "rgba(0, 255, 102, 0.25) !important",
     },
   },
   { dark: true },
