@@ -128,8 +128,6 @@ const VideoPane = ({
   const lastSeekRef = useRef<number | null>(null);
   const lastPersistedRef = useRef<number | null>(null);
   const videoAreaRef = useRef<HTMLDivElement | null>(null);
-  const [maxVideoWidth, setMaxVideoWidth] = useState<number | null>(null);
-  const lastWidthRef = useRef<number | null>(null);
   const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
     null,
   );
@@ -140,47 +138,6 @@ const VideoPane = ({
     }
   }, [frame?.videoTimeSec, onTimeChange]);
 
-  useEffect(() => {
-    const element = videoAreaRef.current;
-    if (!element || typeof ResizeObserver === "undefined") {
-      return;
-    }
-
-    const updateSize = (width: number, height: number): void => {
-      if (width <= 0 || height <= 0) {
-        return;
-      }
-      const candidate = Math.round(Math.min(width, height * (16 / 9)));
-      // Only update if the change is significant (>2px) to prevent
-      // ResizeObserver ↔ state update feedback loops that cause jitter.
-      if (
-        lastWidthRef.current !== null &&
-        Math.abs(candidate - lastWidthRef.current) <= 2
-      ) {
-        return;
-      }
-      lastWidthRef.current = candidate;
-      setMaxVideoWidth(candidate);
-    };
-
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) {
-        return;
-      }
-      const rect = entry.contentRect;
-      updateSize(rect.width, rect.height);
-    });
-
-    observer.observe(element);
-
-    const rect = element.getBoundingClientRect();
-    updateSize(rect.width, rect.height);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
 
   useEffect((): void => {
     if (lastSeek === null || lastSeekRef.current === lastSeek) {
@@ -235,13 +192,11 @@ const VideoPane = ({
       <div className="flex min-h-0 flex-1 flex-col p-4">
         <div
           ref={videoAreaRef}
-          className="flex min-h-0 flex-1 items-start justify-center"
+          className="flex min-h-0 flex-1 items-start justify-center overflow-hidden"
         >
           {lesson ? (
-            <div
-              className="w-full max-w-full aspect-video"
-              style={{ width: maxVideoWidth ? `${maxVideoWidth}px` : "100%" }}
-            >
+            <div className="aspect-video max-h-full max-w-full">
+
               <VideoPlayer
                 videoId={lesson.videoId}
                 initialTimeSec={initialTimeSec}
