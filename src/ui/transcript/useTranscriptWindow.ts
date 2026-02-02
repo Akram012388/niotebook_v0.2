@@ -40,9 +40,17 @@ const useTranscriptWindow = (
     [lessonId],
   );
 
-  if (remoteSegments) {
+  if (remoteSegments && remoteSegments.length > 0) {
     cacheTranscriptWindowMemory(lessonId, startSec, endSec, remoteSegments);
     return { segments: remoteSegments, startSec, endSec };
+  }
+
+  if (remoteSegments !== undefined && remoteSegments.length === 0) {
+    console.warn("[transcript] getTranscriptWindow returned 0 segments", {
+      lessonId,
+      startSec,
+      endSec,
+    });
   }
 
   if (cached) {
