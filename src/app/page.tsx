@@ -5,10 +5,12 @@ import { ValuePropSection } from "@/ui/landing/ValuePropSection";
 import { StatsSection } from "@/ui/landing/StatsSection";
 import { FeaturesSection } from "@/ui/landing/FeaturesSection";
 import { CTASection, LandingFooter } from "@/ui/landing/CTASection";
+import { ForceTheme } from "@/ui/ForceTheme";
 
 export default function Home(): ReactElement {
   return (
     <>
+      <ForceTheme theme="dark" />
       <a
         href="#content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium"
