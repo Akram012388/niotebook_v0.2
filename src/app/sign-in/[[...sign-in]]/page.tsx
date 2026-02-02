@@ -4,6 +4,7 @@ import { SignIn } from "@clerk/nextjs";
 import type { ReactElement } from "react";
 import { BootSequence } from "@/ui/auth/BootSequence";
 import { clerkAppearance } from "@/ui/auth/clerkAppearance";
+import { Wordmark } from "@/ui/brand/Wordmark";
 
 const SignInPage = (): ReactElement => {
   return (
@@ -11,9 +12,7 @@ const SignInPage = (): ReactElement => {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.18),_transparent_55%)]" />
       <div className="relative mx-auto flex min-h-screen w-full max-w-[1200px] flex-col justify-center px-6 py-12">
         <div className="mb-6">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-            niotebook
-          </span>
+          <Wordmark height={20} />
           <h1 className="mt-3 text-3xl font-semibold text-foreground">
             Sign in
           </h1>
