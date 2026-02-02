@@ -104,7 +104,7 @@ function CoursesPage(): ReactElement {
               Continue Learning
             </h2>
           </div>
-          <div className="flex gap-4 overflow-x-auto pt-2 pb-2">
+          <div className="flex gap-4 overflow-x-auto overflow-y-visible pt-4 pb-4 -mt-2 -mb-2 px-2 -mx-2">
             {resumeData.map((entry) => (
               <ResumeCard
                 key={entry.lessonId}

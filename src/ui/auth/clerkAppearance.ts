@@ -2,6 +2,7 @@ const clerkAppearance = {
   variables: {
     colorPrimary: "#FAFAFA",
     colorText: "#FAFAFA",
+    colorTextSecondary: "#A3A3A3",
     colorBackground: "transparent",
     borderRadius: "0.75rem",
     fontFamily: "var(--font-geist-sans)",
@@ -16,6 +17,15 @@ const clerkAppearance = {
     formFieldInput:
       "rounded-lg border border-border bg-surface-muted text-foreground",
     formFieldLabel: "text-sm text-text-muted",
+    // Fix: make OTP inputs, resend text, and secondary text visible on dark bg
+    otpCodeFieldInput:
+      "border border-border bg-surface-muted text-foreground",
+    formResendCodeLink: "text-text-muted",
+    identityPreview: "text-text-muted",
+    identityPreviewEditButton: "text-text-muted",
+    formHeaderSubtitle: "text-text-muted",
+    // Hide sign-up link — invite-only alpha
+    footer: "hidden",
   },
 } as const;
 
