@@ -17,6 +17,8 @@ type TerminalStoreState = {
   inputHandler: ((data: string) => void) | null;
   /** Abort controller for the currently running command. */
   abortController: AbortController | null;
+  /** Last error message from a failed code run (for AI context). */
+  lastRunError: string | null;
 };
 
 type TerminalStoreActions = {
@@ -30,6 +32,7 @@ type TerminalStoreActions = {
   kill: () => void;
   setRunning: (running: boolean) => void;
   setAbortController: (ac: AbortController | null) => void;
+  setLastRunError: (error: string | null) => void;
 };
 
 let lastOutputEndedWithNewline = true;
@@ -54,6 +57,7 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
     terminalRef: null,
     inputHandler: null,
     abortController: null,
+    lastRunError: null,
 
     setTerminal: (t) => {
       set({ terminalRef: t });
@@ -124,6 +128,10 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
 
     setAbortController: (ac) => {
       set({ abortController: ac });
+    },
+
+    setLastRunError: (error) => {
+      set({ lastRunError: error });
     },
 
     runCommand: async (cmd) => {
