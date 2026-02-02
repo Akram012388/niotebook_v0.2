@@ -48,6 +48,8 @@ type CodeSnapshotSummary = {
   code: string;
   codeHash: string;
   updatedAt: number;
+  /** Active file name (e.g. "main.py"). Optional — additive field. */
+  fileName?: string;
 };
 
 type CodeSnapshotUpsertInput = {

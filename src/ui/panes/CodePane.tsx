@@ -303,6 +303,10 @@ const CodePane = ({
     if (!onSnapshot) return;
     if (!mainFileContent) return;
 
+    const activeFileName = mainFilePath
+      ? mainFilePath.split("/").pop()
+      : undefined;
+
     onSnapshot({
       id: "local-snapshot" as CodeSnapshotSummary["id"],
       userId: "local-user" as CodeSnapshotSummary["userId"],
@@ -311,6 +315,7 @@ const CodePane = ({
       code: mainFileContent,
       codeHash: "",
       updatedAt: Date.now(),
+      fileName: activeFileName,
     });
   }, [mainFileContent, mainFilePath, activeLanguage, lessonId, onSnapshot]);
 

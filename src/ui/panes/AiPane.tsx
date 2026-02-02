@@ -75,6 +75,7 @@ const AiPane = ({
       language: codeSnapshot?.language ?? "unknown",
       codeHash: codeSnapshot?.codeHash,
       code: codeSnapshot?.code,
+      fileName: codeSnapshot?.fileName,
     }),
     [codeSnapshot],
   );
@@ -123,8 +124,9 @@ const AiPane = ({
     parts.push(formattedTime);
     if (codeSnapshot) {
       const lang = (codeSnapshot.language ?? "unknown").toUpperCase();
+      const fileLabel = codeSnapshot.fileName ?? lang;
       parts.push(
-        `Code: ${lang}${codeSnapshot.codeHash ? " (modified)" : ""}`,
+        `${fileLabel}${codeSnapshot.codeHash ? " (modified)" : ""}`,
       );
     }
     return parts.join(" │ ");
