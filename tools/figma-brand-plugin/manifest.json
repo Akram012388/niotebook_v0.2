@@ -1,0 +1,18 @@
+{
+  "name": "Niotebook Brand System",
+  "id": "niotebook-brand-system",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": { "allowedDomains": ["none"] },
+  "menu": [
+    { "name": "Build All", "command": "buildAll" },
+    { "separator": true },
+    { "name": "Colors & Text Styles", "command": "buildStyles" },
+    { "name": "Logo System", "command": "buildLogos" },
+    { "name": "Social Assets", "command": "buildSocial" },
+    { "name": "App Icons & Favicons", "command": "buildIcons" },
+    { "name": "Brand Guide Page", "command": "buildGuide" }
+  ]
+}

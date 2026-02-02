@@ -17,6 +17,16 @@
         "@playwright/mcp@latest"
       ],
       "env": {}
+    },
+    "figma": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "figma-developer-mcp",
+        "--figma-api-key=figd_VLvF4wK-aWnebNmeZR7tHWw_tTa4YelrBzlhHD36",
+        "--stdio"
+      ]
     }
   }
 }
