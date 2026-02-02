@@ -353,10 +353,10 @@ const ControlCenterDrawer = ({
                               key={lesson.id}
                               type="button"
                               onClick={() => onSelectLesson(lesson.id)}
-                              className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-left text-xs transition ${
+                              className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-left text-xs transition-all duration-200 ${
                                 isActive
                                   ? "border-workspace-accent/50 bg-workspace-accent-muted text-foreground shadow-md shadow-workspace-accent/10 ring-1 ring-workspace-accent/20"
-                                  : "border-border text-text-muted hover:border-workspace-accent/20 hover:bg-surface-muted hover:text-foreground"
+                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md hover:border-workspace-accent/20 hover:bg-surface-muted hover:text-foreground"
                               }`}
                             >
                               <div className="flex flex-col">
@@ -412,10 +412,10 @@ const ControlCenterDrawer = ({
                               setActiveTab("lectures");
                               setPanelView("content");
                             }}
-                            className={`flex flex-col gap-1 rounded-xl border px-3 py-2.5 text-left text-xs transition ${
+                            className={`flex flex-col gap-1 rounded-xl border px-3 py-2.5 text-left text-xs transition-all duration-200 ${
                               isActive
                                 ? "border-workspace-accent/50 bg-workspace-accent-muted text-foreground shadow-md shadow-workspace-accent/10 ring-1 ring-workspace-accent/20"
-                                : "border-border text-text-muted hover:border-workspace-accent/20 hover:bg-surface-muted hover:text-foreground"
+                                : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md hover:border-workspace-accent/20 hover:bg-surface-muted hover:text-foreground"
                             }`}
                           >
                             <span className="text-sm text-foreground">
