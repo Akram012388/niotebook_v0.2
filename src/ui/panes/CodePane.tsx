@@ -443,7 +443,7 @@ const CodePane = ({
       <header className="flex h-14 items-center justify-between border-b border-border-muted px-4 py-3">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <p className="truncate text-sm font-semibold text-foreground">
-            Code workspace
+            Code
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-3 text-xs">
