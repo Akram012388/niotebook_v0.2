@@ -132,7 +132,7 @@ export function HeroSection(): ReactElement {
 
         {/* Video demo placeholder — 16:9 */}
         <motion.div
-          className="relative mx-auto w-full max-w-3xl aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-[#0A0A0A]"
+          className="relative mx-auto mb-16 w-full max-w-3xl aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-[#0A0A0A]"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.1 }}

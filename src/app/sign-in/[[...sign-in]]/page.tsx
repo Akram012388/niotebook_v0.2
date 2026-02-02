@@ -29,7 +29,7 @@ const SignInPage = (): ReactElement => {
               appearance={clerkAppearance}
               routing="path"
               path="/sign-in"
-              signUpUrl="/sign-up"
+              signUpUrl=""
               fallbackRedirectUrl="/courses"
             />
           </div>
