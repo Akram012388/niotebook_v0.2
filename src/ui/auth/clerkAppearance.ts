@@ -1,14 +1,14 @@
 const clerkAppearance = {
   variables: {
-    colorPrimary: "#0f172a",
-    colorText: "#0f172a",
+    colorPrimary: "#0A0A0A",
+    colorText: "#0A0A0A",
     colorBackground: "transparent",
     borderRadius: "0.75rem",
     fontFamily: "var(--font-geist-sans)",
   },
   elements: {
     card: "bg-transparent shadow-none p-0",
-    headerTitle: "text-xl font-semibold",
+    headerTitle: "text-xl font-semibold font-[family-name:var(--font-orbitron)]",
     headerSubtitle: "text-sm text-text-muted",
     formButtonPrimary:
       "rounded-lg bg-foreground text-background hover:bg-foreground/90",
