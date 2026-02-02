@@ -25,7 +25,7 @@ const ResumeCard = memo(function ResumeCard({
   return (
     <Link
       href={`/workspace?lessonId=${lessonId}`}
-      className="group relative flex min-w-[260px] max-w-[300px] shrink-0 snap-start flex-col gap-2.5 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-workspace-accent/40 hover:shadow-xl hover:shadow-workspace-accent/5"
+      className="group relative flex min-w-[260px] max-w-[300px] shrink-0 snap-start flex-col gap-2.5 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:scale-[1.02] hover:border-workspace-accent/40 hover:shadow-xl hover:shadow-workspace-accent/5"
     >
       {/* Subtle green glow on hover */}
       <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-workspace-accent/0 to-workspace-accent/0 transition-all duration-300 group-hover:from-workspace-accent/[0.03] group-hover:to-transparent" />
