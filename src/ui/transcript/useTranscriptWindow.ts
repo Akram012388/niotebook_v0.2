@@ -45,14 +45,6 @@ const useTranscriptWindow = (
     return { segments: remoteSegments, startSec, endSec };
   }
 
-  if (remoteSegments !== undefined && remoteSegments.length === 0) {
-    console.warn("[transcript] getTranscriptWindow returned 0 segments", {
-      lessonId,
-      startSec,
-      endSec,
-    });
-  }
-
   if (cached) {
     return {
       segments: cached.segments,

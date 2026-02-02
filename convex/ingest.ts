@@ -696,6 +696,29 @@ const migrateCs50VideoFixes = mutation({
   },
 });
 
+const patchLessonUrls = mutation({
+  args: {
+    lessonId: v.id("lessons"),
+    subtitlesUrl: v.optional(v.string()),
+    transcriptUrl: v.optional(v.string()),
+    ingestToken: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<void> => {
+    await ensureIngestAllowed(ctx, args.ingestToken);
+
+    const patch: Record<string, string> = {};
+    if (args.subtitlesUrl) {
+      patch.subtitlesUrl = args.subtitlesUrl;
+    }
+    if (args.transcriptUrl) {
+      patch.transcriptUrl = args.transcriptUrl;
+    }
+    if (Object.keys(patch).length > 0) {
+      await ctx.db.patch(args.lessonId, patch);
+    }
+  },
+});
+
 export {
   clearTranscriptSegmentsBatch,
   finalizeTranscriptIngest,
@@ -704,4 +727,5 @@ export {
   ingestTranscriptSegmentsBatch,
   migrateCs50SqlPlaylistId,
   migrateCs50VideoFixes,
+  patchLessonUrls,
 };
