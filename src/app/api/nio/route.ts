@@ -871,6 +871,14 @@ export const POST = async (request: Request): Promise<Response> => {
     (line) => line.trim().length > 0,
   );
 
+  debugLog("transcript: client payload", {
+    requestId: validation.data.requestId,
+    lineCount: transcriptPayload.lines.length,
+    hasContent: hasTranscriptLines,
+    startSec: transcriptPayload.startSec,
+    endSec: transcriptPayload.endSec,
+  });
+
   let lessonMeta: {
     title?: string;
     order?: number;
@@ -910,12 +918,20 @@ export const POST = async (request: Request): Promise<Response> => {
 
     if (transcriptResult.status === "fulfilled" && transcriptResult.value) {
       const lines = transcriptResult.value;
+      debugLog("transcript: convex fetch result", {
+        requestId: validation.data.requestId,
+        lineCount: lines.length,
+      });
       if (lines.length > 0) {
         transcriptPayload = { ...transcriptPayload, lines };
       }
     } else if (transcriptResult.status === "rejected") {
-      debugLog("transcript fetch failed", {
+      debugLog("transcript: convex fetch failed", {
         requestId: validation.data.requestId,
+        error:
+          transcriptResult.reason instanceof Error
+            ? transcriptResult.reason.message
+            : String(transcriptResult.reason),
       });
     }
 
@@ -942,11 +958,19 @@ export const POST = async (request: Request): Promise<Response> => {
     !transcriptPayload.lines.some((line) => line.trim().length > 0) &&
     lessonMeta?.subtitlesUrl
   ) {
+    debugLog("transcript: attempting SRT fallback", {
+      requestId: validation.data.requestId,
+      subtitlesUrl: lessonMeta.subtitlesUrl,
+    });
     try {
       const lines = await fetchSubtitleWindow({
         subtitlesUrl: lessonMeta.subtitlesUrl,
         startSec: transcriptPayload.startSec,
         endSec: transcriptPayload.endSec,
+      });
+      debugLog("transcript: SRT fallback result", {
+        requestId: validation.data.requestId,
+        lineCount: lines.length,
       });
       if (lines.length > 0) {
         transcriptPayload = {
@@ -954,11 +978,30 @@ export const POST = async (request: Request): Promise<Response> => {
           lines,
         };
       }
-    } catch {
-      debugLog("subtitle fallback failed", {
+    } catch (err) {
+      debugLog("transcript: SRT fallback failed", {
         requestId: validation.data.requestId,
+        subtitlesUrl: lessonMeta.subtitlesUrl,
+        error: err instanceof Error ? err.message : String(err),
       });
     }
+  } else if (
+    !transcriptPayload.lines.some((line) => line.trim().length > 0)
+  ) {
+    debugLog("transcript: no SRT fallback available", {
+      requestId: validation.data.requestId,
+      hasLessonMeta: Boolean(lessonMeta),
+      subtitlesUrl: lessonMeta?.subtitlesUrl ?? "none",
+    });
+  }
+
+  if (!transcriptPayload.lines.some((line) => line.trim().length > 0)) {
+    console.warn("[nio] all transcript sources empty", {
+      requestId: validation.data.requestId,
+      lessonId: validation.data.lessonId,
+      clientLines: validation.data.transcript.lines.length,
+      subtitlesUrl: lessonMeta?.subtitlesUrl ?? "none",
+    });
   }
 
   const contextResult = buildNioContext({

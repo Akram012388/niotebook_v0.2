@@ -27,6 +27,8 @@ import {
   getChatThreadRef,
 } from "./convexChat";
 
+const STUCK_STREAM_TIMEOUT_MS = 30_000;
+
 type ChatSendContext = {
   videoTimeSec: number;
   transcript: {
@@ -242,6 +244,7 @@ const useChatThread = (
   }, [lessonId, mergedMessages]);
 
   const rafRef = useRef<number | null>(null);
+  const streamStartedAtRef = useRef<number>(0);
   const mergedMessagesRef: MutableRefObject<ChatMessage[]> = useRef(mergedMessages);
   mergedMessagesRef.current = mergedMessages;
   const streamStateRef: MutableRefObject<ChatStreamState> = useRef(streamState);
@@ -267,11 +270,17 @@ const useChatThread = (
   const sendMessage = useCallback(
     async (content: string, context: ChatSendContext): Promise<void> => {
       if (streamStateRef.current === "streaming") {
-        return;
+        const stuckMs = Date.now() - streamStartedAtRef.current;
+        if (stuckMs < STUCK_STREAM_TIMEOUT_MS) {
+          return;
+        }
+        // Force-reset stuck stream state
+        setStreamState("idle");
       }
 
       setStreamError(null);
       setStreamState("streaming");
+      streamStartedAtRef.current = Date.now();
 
       const requestId = crypto.randomUUID();
       const assistantTempId = crypto.randomUUID();
@@ -325,6 +334,16 @@ const useChatThread = (
           setLocalThreadId(fallbackThreadId);
         }
 
+        const userMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: "user",
+          content,
+          badge: `${lectureLabel} • ${formatTimestamp(context.videoTimeSec)}`,
+          timestampSec: context.videoTimeSec,
+          createdAt: Date.now(),
+          requestId,
+        };
+
         const placeholder: ChatMessage = {
           id: assistantTempId,
           role: "assistant",
@@ -336,7 +355,7 @@ const useChatThread = (
           requestId,
         };
 
-        setLocalMessages((prev) => [...prev, placeholder]);
+        setLocalMessages((prev) => [...prev, userMessage, placeholder]);
 
         const payload: NioChatRequest = {
           requestId,
