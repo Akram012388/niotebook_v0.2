@@ -334,16 +334,6 @@ const useChatThread = (
           setLocalThreadId(fallbackThreadId);
         }
 
-        const userMessage: ChatMessage = {
-          id: crypto.randomUUID(),
-          role: "user",
-          content,
-          badge: `${lectureLabel} • ${formatTimestamp(context.videoTimeSec)}`,
-          timestampSec: context.videoTimeSec,
-          createdAt: Date.now(),
-          requestId,
-        };
-
         const placeholder: ChatMessage = {
           id: assistantTempId,
           role: "assistant",
@@ -355,7 +345,7 @@ const useChatThread = (
           requestId,
         };
 
-        setLocalMessages((prev) => [...prev, userMessage, placeholder]);
+        setLocalMessages((prev) => [...prev, placeholder]);
 
         const payload: NioChatRequest = {
           requestId,
