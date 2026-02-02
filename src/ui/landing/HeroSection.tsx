@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ReactElement } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState, type ReactElement } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 const CODE_LINES = [
   { text: "def learn(concept):", color: "#00FF66" },
@@ -57,17 +57,30 @@ function TypingCode(): ReactElement {
 }
 
 export function HeroSection(): ReactElement {
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  const orbY1 = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
+  const orbY2 = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+
   return (
-    <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 bg-[#0A0A0A]">
-      {/* Acid green gradient orbs */}
+    <section
+      ref={sectionRef}
+      className="relative min-h-[100vh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 bg-[#0A0A0A]"
+    >
+      {/* Acid green gradient orbs — parallax */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
+        <motion.div
           className="absolute -top-1/4 -left-1/4 w-[60vw] h-[60vw] rounded-full opacity-[0.12] blur-[120px] animate-[drift_20s_ease-in-out_infinite]"
-          style={{ background: "#00FF66" }}
+          style={{ background: "#00FF66", y: orbY1 }}
         />
-        <div
+        <motion.div
           className="absolute -bottom-1/4 -right-1/4 w-[50vw] h-[50vw] rounded-full opacity-[0.08] blur-[140px] animate-[drift_25s_ease-in-out_infinite_reverse]"
-          style={{ background: "#00FF66" }}
+          style={{ background: "#00FF66", y: orbY2 }}
         />
       </div>
 
@@ -80,7 +93,10 @@ export function HeroSection(): ReactElement {
         }}
       />
 
-      <div className="relative z-10 max-w-5xl mx-auto text-center">
+      <motion.div
+        className="relative z-10 max-w-5xl mx-auto text-center"
+        style={{ y: contentY, opacity: contentOpacity }}
+      >
         {/* Badge */}
         <motion.div
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-8 sm:mb-10 border border-[#404040] bg-[#171717] text-[#A3A3A3]"
@@ -188,7 +204,7 @@ export function HeroSection(): ReactElement {
             <TypingCode />
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 }
