@@ -13,6 +13,10 @@
 
 # testing
 /coverage
+.e2e-seed.json
+.e2e-convex-url
+/test-results
+/playwright-report
 
 # next.js
 /.next/

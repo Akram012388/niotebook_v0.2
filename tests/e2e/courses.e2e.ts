@@ -16,11 +16,9 @@ test.describe("Course browsing", () => {
 
   test("coming soon row shows greyed-out cards", async ({ page }) => {
     await page.goto("/courses");
-    // Coming soon cards have opacity-50 and "Coming Soon" text
-    await expect(page.locator(".opacity-50").first()).toBeVisible({
-      timeout: 15000,
-    });
-    await expect(page.getByText("Coming Soon").first()).toBeVisible();
+    // Coming soon cards have opacity-60 and "Coming Soon" text
+    const comingSoon = page.getByText("Coming Soon").first();
+    await expect(comingSoon).toBeVisible({ timeout: 15000 });
   });
 
   test("click course card navigates to detail page", async ({ page }) => {

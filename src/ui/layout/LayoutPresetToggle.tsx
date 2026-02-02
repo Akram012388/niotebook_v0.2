@@ -81,6 +81,7 @@ const LayoutPresetToggle = (): ReactElement => {
         <button
           key={preset.id}
           type="button"
+          data-testid="layout-toggle"
           className={`flex h-7 w-7 items-center justify-center rounded-full transition ${
             activePreset === preset.id
               ? "bg-surface text-foreground shadow-sm"
