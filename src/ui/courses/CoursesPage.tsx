@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactElement } from "react";
 import { useQuery } from "convex/react";
+import { motion } from "framer-motion";
 import { getCoursesRef } from "@/ui/content/convexContent";
 import { getResumeDataRef } from "./convexResume";
 import { getCompletionCountsByCourseRef } from "./convexCompletions";
@@ -11,6 +12,14 @@ import { COMING_SOON_GROUPS } from "./comingSoonCourses";
 import type { CourseId } from "@/domain/ids";
 
 const CS50_TITLES = ["CS50x", "CS50P", "CS50AI", "CS50W", "CS50SQL", "CS50R"];
+
+const sectionVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06 },
+  },
+};
 
 function CoursesPage(): ReactElement {
   const courses = useQuery(getCoursesRef);
@@ -58,13 +67,18 @@ function CoursesPage(): ReactElement {
   const hasResume = resumeData && resumeData.length > 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-12 px-6 py-10">
+    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-14 px-6 py-12">
       {/* Page header */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+      <motion.div
+        className="flex flex-col gap-3"
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
           Course Catalog
         </h1>
-        <p className="text-sm text-text-muted">
+        <p className="max-w-lg text-sm leading-relaxed text-text-muted">
           Open-licensed courses from top universities. Watch lectures, code
           along, and get AI help.
         </p>
@@ -72,16 +86,24 @@ function CoursesPage(): ReactElement {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search courses"
-          className="mt-2 w-full max-w-md rounded-xl border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-text-subtle"
+          className="mt-1 w-full max-w-md rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-text-subtle transition-colors focus:border-workspace-accent/40 focus:outline-none focus:ring-1 focus:ring-workspace-accent/20"
         />
-      </div>
+      </motion.div>
 
       {/* Continue Learning */}
       {hasResume && (
-        <section className="flex flex-col gap-4">
-          <h2 className="text-lg font-semibold text-foreground">
-            Continue Learning
-          </h2>
+        <motion.section
+          className="flex flex-col gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.4 }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-4 w-1 rounded-full bg-workspace-accent" />
+            <h2 className="text-lg font-semibold text-foreground">
+              Continue Learning
+            </h2>
+          </div>
           <div className="flex gap-4 overflow-x-auto pb-2">
             {resumeData.map((entry) => (
               <ResumeCard
@@ -93,28 +115,37 @@ function CoursesPage(): ReactElement {
               />
             ))}
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* Harvard CS50 Library — active courses */}
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-5">
         <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold text-foreground">
-            Harvard University
-          </h2>
-          <p className="text-xs text-text-muted">
+          <div className="flex items-center gap-3">
+            <div className="h-4 w-1 rounded-full bg-workspace-accent" />
+            <h2 className="text-lg font-semibold text-foreground">
+              Harvard University
+            </h2>
+          </div>
+          <p className="ml-4 text-xs text-text-muted">
             CS50 series — CC BY-NC-SA 4.0
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <motion.div
+          className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           {courses === undefined
             ? Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-[180px] animate-pulse rounded-xl bg-surface-muted"
+                  className="h-[200px] animate-pulse rounded-2xl bg-surface-muted"
                 />
               ))
-            : cs50Courses.map((course) => (
+            : cs50Courses.map((course, i) => (
                 <CourseCard
                   key={course.id}
                   id={course.id}
@@ -127,21 +158,29 @@ function CoursesPage(): ReactElement {
                   }
                   license={course.license}
                   variant="active"
+                  index={i}
                 />
               ))}
-        </div>
+        </motion.div>
       </section>
 
       {/* Coming Soon — grouped by provider */}
       {filteredComingSoon.map((group) => (
-        <section key={group.provider} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
+        <section key={group.provider} className="flex flex-col gap-5">
+          <div className="flex items-center gap-3">
+            <div className="h-4 w-1 rounded-full bg-border" />
             <h2 className="text-lg font-semibold text-foreground">
               {group.provider}
             </h2>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {group.courses.map((item) => (
+          <motion.div
+            className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            {group.courses.map((item, i) => (
               <CourseCard
                 key={item.title}
                 id={"" as CourseId}
@@ -152,9 +191,10 @@ function CoursesPage(): ReactElement {
                 license={item.license}
                 lessonCount={0}
                 variant="coming-soon"
+                index={i}
               />
             ))}
-          </div>
+          </motion.div>
         </section>
       ))}
     </div>

@@ -7,6 +7,29 @@ import type { CourseId } from "../../../../src/domain/ids";
 
 afterEach(cleanup);
 
+// Mock framer-motion to render plain divs (no animation in tests)
+vi.mock("framer-motion", () => {
+  const FM_PROPS = new Set([
+    "initial", "animate", "exit", "variants", "whileInView",
+    "whileHover", "whileTap", "whileFocus", "whileDrag",
+    "viewport", "transition", "custom", "layout", "layoutId",
+  ]);
+  return {
+    motion: new Proxy(
+      {},
+      {
+        get: (_target, tag: string) =>
+          ({ children, ...props }: Record<string, unknown>) => {
+            const filtered = Object.fromEntries(
+              Object.entries(props).filter(([k]) => !FM_PROPS.has(k)),
+            );
+            return createElement(tag, filtered, children as React.ReactNode);
+          },
+      },
+    ),
+  };
+});
+
 // Mock next/link to render a plain anchor
 vi.mock("next/link", () => ({
   __esModule: true,
@@ -155,7 +178,7 @@ describe("CourseCard", () => {
         }),
       );
       const wrapper = container.firstElementChild;
-      expect(wrapper?.className).toContain("opacity-70");
+      expect(wrapper?.className).toContain("opacity-60");
     });
   });
 });
