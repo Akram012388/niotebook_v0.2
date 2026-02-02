@@ -399,6 +399,14 @@ const CodePane = ({
         }
       }
 
+      if (result.timedOut) {
+        useTerminalStore.getState().setLastRunError("Runtime timed out");
+      } else if (result.stderr) {
+        useTerminalStore.getState().setLastRunError(result.stderr.slice(0, 500));
+      } else {
+        useTerminalStore.getState().setLastRunError(null);
+      }
+
       setRuntimeState({
         language: activeLanguage,
         status: result.timedOut ? "error" : "ready",
@@ -409,6 +417,7 @@ const CodePane = ({
     } catch (error) {
       const message = error instanceof Error ? error.message : "Runtime failed";
       termStore.write(formatErrorChunk(`${message}\n`));
+      useTerminalStore.getState().setLastRunError(message);
       setRuntimeState({
         language: activeLanguage,
         status: "error",
