@@ -25,15 +25,15 @@ const ResumeCard = memo(function ResumeCard({
   return (
     <Link
       href={`/workspace?lessonId=${lessonId}`}
-      className="group relative flex min-w-[260px] max-w-[300px] shrink-0 snap-start flex-col gap-2.5 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:scale-[1.02] hover:border-workspace-accent/40 hover:shadow-xl hover:shadow-workspace-accent/5"
+      className="group relative flex min-w-[260px] max-w-[300px] shrink-0 snap-start flex-col gap-2.5 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl dark:hover:border-workspace-accent/40 dark:hover:shadow-workspace-accent/5 hover:border-foreground/20 hover:shadow-foreground/5"
     >
-      {/* Subtle green glow on hover */}
-      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-workspace-accent/0 to-workspace-accent/0 transition-all duration-300 group-hover:from-workspace-accent/[0.03] group-hover:to-transparent" />
+      {/* Subtle glow on hover (green in dark mode only) */}
+      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-workspace-accent/0 to-workspace-accent/0 transition-all duration-300 dark:group-hover:from-workspace-accent/[0.03] dark:group-hover:to-transparent" />
 
       <span className="relative text-[11px] font-medium uppercase tracking-wide text-text-subtle">
         {courseTitle}
       </span>
-      <h3 className="relative text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-workspace-accent">
+      <h3 className="relative text-sm font-semibold leading-snug text-foreground transition-colors dark:group-hover:text-workspace-accent group-hover:text-[#0A0A0A] group-hover:font-extrabold">
         {lessonTitle}
       </h3>
       <div className="relative flex items-center justify-between">
@@ -53,7 +53,7 @@ const ResumeCard = memo(function ResumeCard({
           </svg>
           <span>{formatTimestamp(videoTimeSec)}</span>
         </div>
-        <span className="text-[10px] font-medium text-workspace-accent opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="text-[10px] font-medium dark:text-workspace-accent text-foreground opacity-0 transition-opacity group-hover:opacity-100">
           Resume →
         </span>
       </div>
