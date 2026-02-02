@@ -11,6 +11,7 @@ import type { CodeSnapshotSummary } from "../../domain/resume";
 import { getLessonRef } from "../content/convexContent";
 import { resolveLectureNumber } from "../../domain/lectureNumber";
 import { useVideoDisplayTime } from "../layout/WorkspaceGrid";
+import { useTerminalStore } from "../code/terminal/useTerminalStore";
 
 type AiPaneProps = {
   lessonId: string;
@@ -28,6 +29,7 @@ const AiPane = ({
   codeSnapshot = null,
 }: AiPaneProps): ReactElement => {
   const videoTimeSec = useVideoDisplayTime();
+  const lastRunError = useTerminalStore((s) => s.lastRunError);
   const isConvexEnabled = process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
   const lesson = useQuery(
     getLessonRef,
@@ -96,10 +98,12 @@ const AiPane = ({
           subtitlesUrl: lesson?.subtitlesUrl,
           transcriptUrl: lesson?.transcriptUrl,
         },
+        lastError: lastRunError ?? undefined,
       });
     },
     [
       codePayload,
+      lastRunError,
       lectureNumber,
       lesson?.subtitlesUrl,
       lesson?.title,
