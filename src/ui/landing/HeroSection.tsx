@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRef, type ReactElement } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -130,40 +129,23 @@ export function HeroSection(): ReactElement {
           </span>
         </motion.div>
 
-        {/* Video demo placeholder — 16:9 */}
+        {/* Demo video — native aspect ratio 3320:2160 ≈ 1.537:1 */}
         <motion.div
-          className="relative mx-auto mb-16 w-full max-w-3xl aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-[#0A0A0A]"
+          className="relative mx-auto mb-16 w-[90vw] max-w-6xl rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040]"
+          style={{ aspectRatio: "3320 / 2160" }}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.1 }}
         >
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-            <Image
-              src="/niotebook-wordmark-dark.svg"
-              alt=""
-              width={180}
-              height={34}
-              className="opacity-20"
-              aria-hidden="true"
-            />
-            <button
-              type="button"
-              className="flex h-16 w-16 items-center justify-center rounded-full border border-[#404040] bg-[#171717] text-[#FAFAFA] transition hover:border-workspace-accent hover:text-workspace-accent hover:shadow-[0_0_24px_rgba(0,255,102,0.2)]"
-              aria-label="Play demo video"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </button>
-            <span className="text-xs text-[#737373] font-mono">
-              Demo coming soon
-            </span>
-          </div>
+          <video
+            className="absolute inset-0 w-full h-full object-cover"
+            src="/videos/niotebook-demo-final.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            aria-label="Niotebook demo video showing the integrated learning environment"
+          />
         </motion.div>
       </motion.div>
     </section>
