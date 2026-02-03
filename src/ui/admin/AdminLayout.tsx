@@ -13,6 +13,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/admin" },
   { label: "Users", href: "/admin/users" },
   { label: "Invites", href: "/admin/invites" },
+  { label: "Content", href: "/admin/content" },
   { label: "Feedback", href: "/admin/feedback" },
   { label: "Analytics", href: "/admin/analytics" },
 ];
