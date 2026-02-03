@@ -2,7 +2,7 @@
 
 # dependencies
 /node_modules
-/demo-video/node_modules
+/niotebook-demo-videos/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -57,3 +57,10 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# demo video assets (large files)
+/niotebook-demo-videos/recordings/
+/niotebook-demo-videos/exports/
+/niotebook-demo-videos/remotion/node_modules/
+/niotebook-demo-videos/remotion/out/
+/public/videos/
