@@ -70,16 +70,13 @@ const ensureIngestAllowed = async (
   const allowProdIngest = process.env.NIOTEBOOK_ALLOW_PROD_INGEST === "true";
   const expectedToken = process.env.NIOTEBOOK_INGEST_TOKEN;
 
-  if (process.env.NODE_ENV === "production") {
+  if (expectedToken && ingestToken === expectedToken) {
     if (!allowProdIngest) {
       throw new Error(
         "Production ingest requires NIOTEBOOK_ALLOW_PROD_INGEST.",
       );
     }
-
-    if (expectedToken && ingestToken === expectedToken) {
-      return null;
-    }
+    return null;
   }
 
   return requireMutationAdmin(ctx);
