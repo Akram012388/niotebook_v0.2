@@ -317,6 +317,31 @@ button:disabled {
   caret-color: #FAFAFA !important;
 }
 
+/* Mobile sign-in card fix: ensure all Clerk elements fill container width */
+.cl-rootBox,
+.cl-cardBox,
+.cl-card,
+.cl-header,
+.cl-main,
+.cl-form {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Center the footer content on mobile */
+.cl-footer > div:not(.cl-footerAction) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.cl-footer > div:not(.cl-footerAction) > div {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
 #niotebook-runtime-frame:empty {
   display: none;
 }

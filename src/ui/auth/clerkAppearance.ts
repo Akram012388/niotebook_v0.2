@@ -8,8 +8,10 @@ const clerkAppearance = {
     fontFamily: "var(--font-geist-sans)",
   },
   elements: {
-    rootBox: "w-full",
-    card: "bg-transparent shadow-none p-0 w-full",
+    rootBox: "!w-full !max-w-none",
+    cardBox: "!w-full !max-w-none",
+    card: "bg-transparent shadow-none !p-0 !w-full",
+    header: "!w-full",
     main: "!w-full grow",
     form: "!w-full",
     headerTitle:
