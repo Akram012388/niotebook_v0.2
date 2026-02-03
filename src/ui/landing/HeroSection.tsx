@@ -18,7 +18,7 @@ export function HeroSection(): ReactElement {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-[100vh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 bg-[#0A0A0A]"
+      className="relative min-h-[100vh] flex flex-col items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 pb-16 bg-[#0A0A0A]"
     >
       {/* Acid green gradient orbs — parallax */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -132,7 +132,7 @@ export function HeroSection(): ReactElement {
 
       {/* Demo video — separate from scroll-animated content */}
       <motion.div
-        className="relative z-10 w-[90vw] max-w-6xl mx-auto mt-16 sm:mt-20 mb-16 rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-black"
+        className="relative z-10 w-full max-w-6xl mt-12 sm:mt-16 lg:mt-20 rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-black"
         style={{ aspectRatio: "3320 / 2160" }}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
