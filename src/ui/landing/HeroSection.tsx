@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRef, type ReactElement } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -19,7 +18,7 @@ export function HeroSection(): ReactElement {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-[100vh] flex items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 bg-[#0A0A0A]"
+      className="relative min-h-[100vh] flex flex-col items-center justify-center overflow-hidden px-4 sm:px-6 pt-20 pb-16 bg-[#0A0A0A]"
     >
       {/* Acid green gradient orbs — parallax */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -101,7 +100,7 @@ export function HeroSection(): ReactElement {
 
         {/* CTA */}
         <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 sm:mb-20"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.9 }}
@@ -129,42 +128,25 @@ export function HeroSection(): ReactElement {
             Free during beta · No credit card
           </span>
         </motion.div>
+      </motion.div>
 
-        {/* Video demo placeholder — 16:9 */}
-        <motion.div
-          className="relative mx-auto mb-16 w-full max-w-3xl aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-[#0A0A0A]"
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.1 }}
-        >
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-            <Image
-              src="/niotebook-wordmark-dark.svg"
-              alt=""
-              width={180}
-              height={34}
-              className="opacity-20"
-              aria-hidden="true"
-            />
-            <button
-              type="button"
-              className="flex h-16 w-16 items-center justify-center rounded-full border border-[#404040] bg-[#171717] text-[#FAFAFA] transition hover:border-workspace-accent hover:text-workspace-accent hover:shadow-[0_0_24px_rgba(0,255,102,0.2)]"
-              aria-label="Play demo video"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </button>
-            <span className="text-xs text-[#737373] font-mono">
-              Demo coming soon
-            </span>
-          </div>
-        </motion.div>
+      {/* Demo video — separate from scroll-animated content */}
+      <motion.div
+        className="relative z-10 w-full max-w-6xl mt-12 sm:mt-16 lg:mt-20 rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-black"
+        style={{ aspectRatio: "3320 / 2160" }}
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 1.1 }}
+      >
+        <video
+          className="absolute inset-0 w-full h-full object-cover"
+          src="https://bmsvebvrbefdj0lp.public.blob.vercel-storage.com/videos/niotebook-demo-final.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-label="Niotebook demo video showing the integrated learning environment"
+        />
       </motion.div>
     </section>
   );
