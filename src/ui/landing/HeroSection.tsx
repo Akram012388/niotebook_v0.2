@@ -139,7 +139,7 @@ export function HeroSection(): ReactElement {
         >
           <video
             className="absolute inset-0 w-full h-full object-cover"
-            src="/videos/niotebook-demo-final.mp4"
+            src="https://bmsvebvrbefdj0lp.public.blob.vercel-storage.com/videos/niotebook-demo-final.mp4"
             autoPlay
             loop
             muted
