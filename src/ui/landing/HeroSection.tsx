@@ -100,7 +100,7 @@ export function HeroSection(): ReactElement {
 
         {/* CTA */}
         <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 sm:mb-20"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.9 }}
@@ -128,25 +128,25 @@ export function HeroSection(): ReactElement {
             Free during beta · No credit card
           </span>
         </motion.div>
+      </motion.div>
 
-        {/* Demo video — native aspect ratio 3320:2160 ≈ 1.537:1 */}
-        <motion.div
-          className="relative mx-auto mb-16 w-[90vw] max-w-6xl rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-black isolate"
-          style={{ aspectRatio: "3320 / 2160" }}
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.1 }}
-        >
-          <video
-            className="absolute inset-0 w-full h-full object-cover"
-            src="https://bmsvebvrbefdj0lp.public.blob.vercel-storage.com/videos/niotebook-demo-final.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            aria-label="Niotebook demo video showing the integrated learning environment"
-          />
-        </motion.div>
+      {/* Demo video — separate from scroll-animated content */}
+      <motion.div
+        className="relative z-10 w-[90vw] max-w-6xl mx-auto mt-16 sm:mt-20 mb-16 rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-black"
+        style={{ aspectRatio: "3320 / 2160" }}
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 1.1 }}
+      >
+        <video
+          className="absolute inset-0 w-full h-full object-cover"
+          src="https://bmsvebvrbefdj0lp.public.blob.vercel-storage.com/videos/niotebook-demo-final.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-label="Niotebook demo video showing the integrated learning environment"
+        />
       </motion.div>
     </section>
   );
