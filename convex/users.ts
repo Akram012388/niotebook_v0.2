@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { GenericId } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireMutationAdmin, requireQueryAdmin } from "./auth";
 import { toDomainId } from "./idUtils";
 
 type UserRecord = {
@@ -111,7 +112,6 @@ const listAll = query({
       createdAt: number;
     }>
   > => {
-    const { requireQueryAdmin } = await import("./auth");
     await requireQueryAdmin(ctx);
 
     const users = (await ctx.db.query("users").collect()) as UserRecord[];
@@ -132,7 +132,6 @@ const updateRole = mutation({
     role: v.union(v.literal("admin"), v.literal("user"), v.literal("guest")),
   },
   handler: async (ctx, args): Promise<{ ok: boolean }> => {
-    const { requireMutationAdmin } = await import("./auth");
     await requireMutationAdmin(ctx);
 
     const user = await ctx.db.get(args.userId);
