@@ -24,7 +24,7 @@ const SignInPage = (): ReactElement => {
           </p>
         </div>
         <div className="flex items-start gap-8">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-4 shadow-sm overflow-hidden sm:overflow-visible">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-sm overflow-hidden">
             <SignIn
               appearance={clerkAppearance}
               routing="path"
