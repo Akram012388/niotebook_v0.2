@@ -131,7 +131,7 @@ export function HeroSection(): ReactElement {
 
         {/* Demo video — native aspect ratio 3320:2160 ≈ 1.537:1 */}
         <motion.div
-          className="relative mx-auto mb-16 w-[90vw] max-w-6xl rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040]"
+          className="relative mx-auto mb-16 w-[90vw] max-w-6xl rounded-2xl overflow-hidden shadow-2xl shadow-workspace-accent/10 border border-[#404040] bg-black isolate"
           style={{ aspectRatio: "3320 / 2160" }}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
