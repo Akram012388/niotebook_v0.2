@@ -69,7 +69,7 @@ export function StatsSection(): ReactElement {
         >
           {STATS.map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold tracking-tight text-workspace-accent mb-1">
+              <div className="text-3xl sm:text-4xl font-bold tracking-tight text-accent mb-1">
                 <AnimatedCounter value={stat.value} suffix={stat.suffix} />
               </div>
               <div className="text-xs sm:text-sm text-text-muted">

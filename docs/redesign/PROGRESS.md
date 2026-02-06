@@ -12,7 +12,7 @@
 |-------|-------------|--------|--------|--------|
 | **1** | Design Tokens & Primitives | **Done** | `redesign/phase-1-tokens` | `3bbbd62` |
 | **2** | Base Components | **Done** | `redesign/phase-2-components` | `002cc5b` |
-| **3** | Shell & Chrome | Pending | — | — |
+| **3** | Shell & Chrome | **Done** | `redesign/phase-3-shell` | `5f8b44a` |
 | **4** | Core Panes | Pending | — | — |
 | **5** | Pages | Pending | — | — |
 | **6** | Polish | Pending | — | — |
@@ -72,14 +72,21 @@
 
 ---
 
-## Phase 3 — Shell & Chrome (Pending)
+## Phase 3 — Shell & Chrome ✅
 
-### Planned Deliverables
-- [ ] TopNav refresh — warm palette, Orbitron wordmark
-- [ ] ControlCenterDrawer refresh — warm surfaces, smooth transitions
-- [ ] Layout preset toggles — styled with new tokens
-- [ ] Pane headers and dividers — warm borders
-- [ ] PaneSwitcher pills — accent styling
+**Commit**: `5f8b44a` on `redesign/phase-3-shell`
+**Files changed**: 9
+
+### Deliverables
+- [x] ControlCenterDrawer — `workspace-accent` → `accent` throughout (6 refs, tabs, active lessons, course buttons)
+- [x] AppShell — fallback wordmark uses `font-display` (Orbitron)
+- [x] PaneSwitcher — active pill `bg-accent-muted text-accent shadow-sm font-semibold` (was neutral bg)
+- [x] TopNav — already clean, no changes needed
+- [x] Layout preset toggles — already using design tokens, no changes needed
+- [x] SplitDivider — correctly retains `workspace-*` (inside code editor, always dark)
+- [x] Landing sections cleanup — `workspace-accent` → `accent` in FeaturesSection, ValuePropSection, CTASection, StatsSection
+- [x] ChatMessage cursor — `dark:bg-workspace-accent` → `dark:bg-accent`
+- [x] Verification: typecheck ✅ lint ✅ tests (153/153) ✅
 
 ---
 

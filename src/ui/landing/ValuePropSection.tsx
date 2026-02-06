@@ -113,10 +113,10 @@ function ValueCard({
       >
         {/* Icon + label */}
         <div className="flex-shrink-0 flex flex-col items-start gap-3 md:w-48">
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl border border-workspace-accent/20 bg-workspace-accent/5 text-workspace-accent">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl border border-accent/20 bg-accent/5 text-accent">
             {prop.icon}
           </div>
-          <span className="text-[11px] font-mono uppercase tracking-[0.15em] font-semibold text-workspace-accent/70">
+          <span className="text-[11px] font-mono uppercase tracking-[0.15em] font-semibold text-accent/70">
             {prop.label}
           </span>
         </div>
@@ -146,7 +146,7 @@ export function ValuePropSection(): ReactElement {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-[11px] font-mono uppercase tracking-[0.2em] mb-4 text-workspace-accent/60">
+          <p className="text-[11px] font-mono uppercase tracking-[0.2em] mb-4 text-accent/60">
             What makes Niotebook different
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight">
