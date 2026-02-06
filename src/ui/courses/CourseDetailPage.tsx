@@ -12,6 +12,7 @@ import {
   getCompletionsByCourseRef,
   markCompleteRef,
 } from "./convexCompletions";
+import { NotebookFrame } from "@/ui/shared/NotebookFrame";
 
 type CourseDetailPageProps = {
   courseId: string;
@@ -22,6 +23,23 @@ function formatDuration(seconds: number): string {
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
+
+const lectureContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+const lectureCardVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: Math.min(i * 0.1, 0.8), duration: 0.5, ease: "easeOut" as const },
+  }),
+};
 
 function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
   const courses = useQuery(getCoursesRef);
@@ -62,19 +80,19 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
   if (!course) {
     return (
       <div className="mx-auto flex w-full max-w-[900px] items-center justify-center px-4 py-16">
-        <div className="h-64 w-full animate-pulse rounded-2xl bg-surface-muted" />
+        <div className="h-64 w-full nio-shimmer rounded-2xl" />
       </div>
     );
   }
 
-  return (
-    <div className="mx-auto flex w-full max-w-[900px] flex-col gap-8 px-6 py-10">
+  const content = (
+    <div className="flex flex-col gap-8">
       {/* Header */}
       <motion.div
         className="flex flex-col gap-3"
-        initial={{ opacity: 0, y: -12 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.5 }}
       >
         <Link
           href="/courses"
@@ -90,6 +108,7 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
             strokeLinecap="round"
             strokeLinejoin="round"
             className="transition-transform group-hover:-translate-x-0.5"
+            aria-hidden="true"
           >
             <path d="M19 12H5" />
             <path d="M12 19l-7-7 7-7" />
@@ -127,9 +146,9 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
       {totalCount > 0 && (
         <motion.div
           className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.4 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
         >
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium text-foreground">
@@ -158,76 +177,100 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
         </motion.div>
       )}
 
-      {/* Lecture list */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="h-4 w-1 rounded-full bg-accent" />
-          <h2 className="text-base font-semibold text-foreground">Lectures</h2>
-        </div>
-        {(lessons ?? []).map((lesson, i) => {
-          const isCompleted = completedLessonIds.has(lesson.id as string);
-          return (
-            <motion.div
-              key={lesson.id}
-              className={`flex items-center justify-between rounded-xl border px-4 py-3.5 transition-all ${
-                isCompleted
-                  ? "border-accent/20 bg-accent/[0.03]"
-                  : "border-border bg-surface hover:border-accent/20 hover:shadow-sm"
-              }`}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.05 * Math.min(i, 10) }}
-            >
-              <div className="flex items-center gap-3">
-                <span className="w-6 text-center">
-                  {isCompleted ? (
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="inline text-accent"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  ) : (
-                    <span className="inline-block h-4 w-4 rounded-full border-2 border-border" />
-                  )}
-                </span>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-foreground">
-                    {lesson.title}
+      {/* Lecture card grid */}
+      <div className="flex flex-col gap-4">
+        <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-accent/60">
+          Lectures
+        </p>
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"
+          variants={lectureContainerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+        >
+          {(lessons ?? []).map((lesson, i) => {
+            const isCompleted = completedLessonIds.has(lesson.id as string);
+            return (
+              <motion.div
+                key={lesson.id}
+                custom={i}
+                variants={lectureCardVariants}
+                viewport={{ once: true, amount: 0.2 }}
+                className={`flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-accent/30 hover:shadow-md ${
+                  isCompleted
+                    ? "border-l-[3px] border-l-accent bg-accent/[0.03]"
+                    : ""
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-muted text-xs font-mono text-text-muted">
+                    {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span className="text-xs text-text-muted">
-                    {formatDuration(lesson.durationSec)}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-foreground">
+                      {lesson.title}
+                    </span>
+                    <span className="text-xs font-mono text-text-muted">
+                      {formatDuration(lesson.durationSec)}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="hidden items-center gap-2 lg:flex">
-                {!isCompleted && (
-                  <button
-                    type="button"
-                    onClick={() => handleMarkComplete(lesson.id as string)}
-                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted transition hover:border-accent/30 hover:text-foreground"
-                  >
-                    Mark Complete
-                  </button>
-                )}
-                <Link
-                  href={`/workspace?lessonId=${lesson.id as string}`}
-                  className="rounded-lg bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20"
-                >
-                  {isCompleted ? "Review" : "Start"}
-                </Link>
-              </div>
-            </motion.div>
-          );
-        })}
+                <div className="flex items-center justify-between">
+                  <div>
+                    {isCompleted && (
+                      <div className="flex items-center gap-1.5 text-xs text-accent">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Completed
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!isCompleted && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleMarkComplete(lesson.id as string)
+                        }
+                        className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted transition hover:border-accent/30 hover:text-foreground"
+                      >
+                        Mark Complete
+                      </button>
+                    )}
+                    <Link
+                      href={`/workspace?lessonId=${lesson.id as string}`}
+                      className="rounded-lg bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20"
+                    >
+                      {isCompleted ? "Review" : "Start"} →
+                    </Link>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
       </div>
+    </div>
+  );
+
+  return (
+    <div className="mx-auto w-full max-w-[900px] px-6 py-10">
+      <div className="hidden sm:block">
+        <NotebookFrame compact>{content}</NotebookFrame>
+      </div>
+      <div className="sm:hidden">{content}</div>
     </div>
   );
 }
