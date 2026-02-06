@@ -1,44 +1,42 @@
 "use client";
 
 import { SignIn } from "@clerk/nextjs";
+import { motion } from "framer-motion";
 import type { ReactElement } from "react";
+import { AuthShell } from "@/ui/auth/AuthShell";
 import { BootSequence } from "@/ui/auth/BootSequence";
 import { clerkAppearance } from "@/ui/auth/clerkAppearance";
-import { Wordmark } from "@/ui/brand/Wordmark";
-import { ForceTheme } from "@/ui/ForceTheme";
+
+const fadeUpSlow = (delay = 0) => ({
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.6, delay },
+});
 
 const SignInPage = (): ReactElement => {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
-      <ForceTheme theme="dark" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.18),_transparent_55%)]" />
-      <div className="relative mx-auto flex min-h-screen w-full max-w-[1200px] flex-col justify-center px-6 py-12">
-        <div className="mb-6">
-          <Wordmark height={28} />
-          <h1 className="mt-3 text-3xl font-semibold text-foreground">
-            Sign in
-          </h1>
-          <p className="mt-2 max-w-md text-sm text-text-muted">
-            Niotebook alpha is invite-only. Use the email code from your invite
-            to continue.
-          </p>
-        </div>
-        <div className="flex items-start gap-8">
-          <div className="w-full max-w-md">
-            <SignIn
-              appearance={clerkAppearance}
-              routing="path"
-              path="/sign-in"
-              signUpUrl=""
-              fallbackRedirectUrl="/courses"
-            />
-          </div>
-          <div className="hidden w-full max-w-sm md:block">
-            <BootSequence />
-          </div>
-        </div>
-      </div>
-    </div>
+    <AuthShell
+      title="Sign in"
+      subtitle="Niotebook alpha is invite-only. Use the email code from your invite to continue."
+      sideContent={
+        <motion.div {...fadeUpSlow(0.3)}>
+          <BootSequence />
+        </motion.div>
+      }
+    >
+      <motion.div {...fadeUpSlow(0.2)}>
+        <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-accent/60 mb-3">
+          Sign in to your account
+        </p>
+        <SignIn
+          appearance={clerkAppearance}
+          routing="path"
+          path="/sign-in"
+          signUpUrl=""
+          fallbackRedirectUrl="/courses"
+        />
+      </motion.div>
+    </AuthShell>
   );
 };
 

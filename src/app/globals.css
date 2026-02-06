@@ -452,10 +452,10 @@ button:disabled {
 
 /* Fix OTP code input fields */
 .cl-otpCodeFieldInput {
-  color: #F4F3EE !important;
-  border: 1px solid #3A3531 !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
   background: var(--surface-muted) !important;
-  caret-color: #F4F3EE !important;
+  caret-color: var(--foreground) !important;
 }
 
 /* ==========================================================================
