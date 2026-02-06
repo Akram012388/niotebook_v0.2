@@ -433,9 +433,32 @@ button:disabled {
    Clerk overrides (invite-only alpha)
    ========================================================================== */
 
-/* Hide "Don't have an account? Sign up" footer */
-.cl-footerAction {
+/* Hide entire Clerk footer ("Secured by Clerk" / "Development mode") */
+.cl-footer {
   display: none !important;
+}
+
+/* Strip all internal Clerk card chrome — our wrapper div provides the border/shadow */
+.cl-card,
+.cl-cardBox,
+[class*="cl-card"],
+[class*="cl-cardBox"] {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Clerk validation error styling */
+.cl-formFieldErrorText {
+  color: var(--status-error) !important;
+  font-size: 0.75rem !important;
+}
+
+.cl-alert {
+  color: var(--status-error) !important;
+  background: color-mix(in srgb, var(--status-error) 5%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--status-error) 20%, transparent) !important;
+  border-radius: var(--radius-lg) !important;
 }
 
 /* Fix button text visibility */
@@ -444,18 +467,16 @@ button:disabled {
   background: var(--accent) !important;
 }
 
-/* Fix secondary text visibility on dark backgrounds */
-.cl-footerActionText,
-.cl-internal-b1ylls {
-  color: var(--text-muted) !important;
-}
-
 /* Fix OTP code input fields */
 .cl-otpCodeFieldInput {
   color: var(--foreground) !important;
   border: 1px solid var(--border) !important;
   background: var(--surface-muted) !important;
   caret-color: var(--foreground) !important;
+}
+
+[data-theme="dark"] .cl-otpCodeFieldInput {
+  border-color: var(--accent-border) !important;
 }
 
 /* ==========================================================================
