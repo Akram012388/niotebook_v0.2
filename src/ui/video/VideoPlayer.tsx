@@ -331,13 +331,13 @@ const VideoPlayer = ({
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-black">
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-surface-strong">
         <div ref={containerRef} className="h-full w-full" />
-        <div className="pointer-events-none absolute inset-x-3 top-3 flex items-center justify-between text-[11px] text-white/80">
+        <div className="pointer-events-none absolute inset-x-3 top-3 flex items-center justify-between text-[11px] text-surface-strong-foreground/80">
           <span>{playState === "playing" ? "Playing" : "Paused"}</span>
           <span>{formattedTime}</span>
         </div>
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 text-[11px] text-white/60">
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 text-[11px] text-surface-strong-foreground/60">
           {statusMessage}
         </div>
       </div>

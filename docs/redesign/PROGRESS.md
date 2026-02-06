@@ -13,7 +13,7 @@
 | **1** | Design Tokens & Primitives | **Done** | `redesign/phase-1-tokens` | `3bbbd62` |
 | **2** | Base Components | **Done** | `redesign/phase-2-components` | `002cc5b` |
 | **3** | Shell & Chrome | **Done** | `redesign/phase-3-shell` | `5f8b44a` |
-| **4** | Core Panes | Pending | — | — |
+| **4** | Core Panes | **Done** | `redesign/phase-4-panes` | `58ed916` |
 | **5** | Pages | Pending | — | — |
 | **6** | Polish | Pending | — | — |
 
@@ -90,12 +90,18 @@
 
 ---
 
-## Phase 4 — Core Panes (Pending)
+## Phase 4 — Core Panes ✅
 
-### Planned Deliverables
-- [ ] VideoPane — warm header, info strip
-- [ ] CodePane — file tree, tab bar, toolbar, terminal chrome
-- [ ] AiPane — message bubbles, composer, context strip, streaming
+**Commit**: `58ed916` on `redesign/phase-4-panes`
+**Files changed**: 3 (2 code + PROGRESS.md)
+
+### Deliverables
+- [x] VideoPlayer — `bg-black` → `bg-surface-strong`, overlay text `text-white` → `text-surface-strong-foreground` (warm-tinted)
+- [x] CodeEditor textarea — `bg-black text-slate-100 caret-slate-100` → `bg-workspace-editor text-workspace-text caret-workspace-text`; removed inverted `dark:bg-slate-50 dark:text-slate-900` classes
+- [x] ChatMessage — already clean (dark: modifiers are intentional token-based design)
+- [x] AiPane — already clean (stream error uses status-warning tokens)
+- [x] All code pane components (28 files) — verified clean, workspace-* tokens used correctly
+- [x] Verification: typecheck ✅ lint ✅ tests (153/153) ✅
 
 ---
 
