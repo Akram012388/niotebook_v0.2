@@ -154,7 +154,7 @@ function FeatureCard({
 
 export function FeaturesSection(): ReactElement {
   return (
-    <section className="relative py-12 sm:py-16 px-4 sm:px-6">
+    <section className="relative z-[2] py-12 sm:py-16 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
         <motion.div
           className="text-center mb-10 sm:mb-12"
