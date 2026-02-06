@@ -38,14 +38,14 @@ const formatDate = (ms: number): string =>
 
 const RoleBadge = ({ role }: { role: string }): ReactElement => {
   const colors: Record<string, string> = {
-    admin: "bg-purple-100 text-purple-800",
-    user: "bg-blue-100 text-blue-800",
-    guest: "bg-gray-100 text-gray-800",
+    admin: "bg-accent-muted text-accent",
+    user: "bg-status-info/10 text-status-info",
+    guest: "bg-surface-muted text-text-muted",
   };
 
   return (
     <span
-      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${colors[role] ?? "bg-surface-muted text-muted"}`}
+      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${colors[role] ?? "bg-surface-muted text-text-muted"}`}
     >
       {role}
     </span>

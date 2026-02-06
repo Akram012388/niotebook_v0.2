@@ -71,7 +71,7 @@ const EditorTab = ({
       <span className="truncate max-w-[120px]">{name}</span>
       {isDirty ? (
         <span
-          className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400"
+          className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-status-warning"
           aria-label="Unsaved changes"
         />
       ) : null}

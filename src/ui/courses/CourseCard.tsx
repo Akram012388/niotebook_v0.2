@@ -118,12 +118,12 @@ const CourseCard = memo(function CourseCard({
     >
       <Link
         href={`/courses/${id as string}`}
-        className="group relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl dark:hover:border-workspace-accent/40 dark:hover:shadow-workspace-accent/5 hover:border-foreground/20 hover:shadow-foreground/5"
+        className="group relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl dark:hover:border-accent/40 dark:hover:shadow-accent/5 hover:border-foreground/20 hover:shadow-foreground/5"
       >
         {/* Subtle glow on hover (green in dark mode only) */}
-        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-workspace-accent/0 to-workspace-accent/0 transition-all duration-300 dark:group-hover:from-workspace-accent/[0.03] dark:group-hover:to-transparent" />
+        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-accent/0 to-accent/0 transition-all duration-300 dark:group-hover:from-accent/[0.03] dark:group-hover:to-transparent" />
 
-        <h3 className="relative text-base font-semibold leading-tight text-foreground transition-colors dark:group-hover:text-workspace-accent group-hover:text-[#0A0A0A] group-hover:font-extrabold">
+        <h3 className="relative text-base font-semibold leading-tight text-foreground transition-colors group-hover:text-accent group-hover:font-extrabold">
           {title}
         </h3>
         {description && (
@@ -151,7 +151,7 @@ const CourseCard = memo(function CourseCard({
             <div className="flex flex-col gap-1">
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
                 <div
-                  className="h-full rounded-full bg-workspace-accent transition-all"
+                  className="h-full rounded-full bg-accent transition-all"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>

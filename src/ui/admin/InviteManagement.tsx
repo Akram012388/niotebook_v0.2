@@ -56,14 +56,14 @@ const formatDate = (ms: number): string =>
 
 const StatusBadge = ({ status }: { status: string }): ReactElement => {
   const colors: Record<string, string> = {
-    active: "bg-green-100 text-green-800",
-    used: "bg-blue-100 text-blue-800",
-    expired: "bg-red-100 text-red-800",
+    active: "bg-status-success/10 text-status-success",
+    used: "bg-status-info/10 text-status-info",
+    expired: "bg-status-error/10 text-status-error",
   };
 
   return (
     <span
-      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${colors[status] ?? "bg-surface-muted text-muted"}`}
+      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${colors[status] ?? "bg-surface-muted text-text-muted"}`}
     >
       {status}
     </span>
@@ -240,7 +240,7 @@ const InviteManagement = (): ReactElement => {
                     {invite.status === "active" && (
                       <button
                         onClick={() => handleRevoke(invite.id)}
-                        className="text-xs text-red-600 hover:underline"
+                        className="text-xs text-status-error hover:underline"
                       >
                         Revoke
                       </button>

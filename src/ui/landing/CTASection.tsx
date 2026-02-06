@@ -35,7 +35,7 @@ export function CTASection(): ReactElement {
 
         <Link
           href="/workspace"
-          className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-workspace-accent text-[#0A0A0A] hover:shadow-[0_0_40px_rgba(0,255,102,0.25)]"
+          className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-accent text-accent-foreground hover:shadow-[0_0_40px_var(--accent-muted)]"
         >
           Start Learning
           <svg

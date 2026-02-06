@@ -113,7 +113,7 @@ const FileTreeActions = ({
           </li>
           <li
             role="menuitem"
-            className={`${itemClass} text-red-500`}
+            className={`${itemClass} text-status-error`}
             onClick={handleDelete}
           >
             Delete
