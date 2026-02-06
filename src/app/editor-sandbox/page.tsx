@@ -47,7 +47,7 @@ export default function EditorSandboxPage() {
   // Status is only shown if someone navigates here directly.
   if (status === "error") {
     return (
-      <div style={{ padding: 20, fontFamily: "monospace", color: "#f87171" }}>
+      <div style={{ padding: 20, fontFamily: "monospace", color: "var(--status-error)" }}>
         <p>Sandbox Error: {errorMsg}</p>
       </div>
     );

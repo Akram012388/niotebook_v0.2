@@ -14,7 +14,7 @@
 | **2** | Base Components | **Done** | `redesign/phase-2-components` | `002cc5b` |
 | **3** | Shell & Chrome | **Done** | `redesign/phase-3-shell` | `5f8b44a` |
 | **4** | Core Panes | **Done** | `redesign/phase-4-panes` | `58ed916` |
-| **5** | Pages | Pending | — | — |
+| **5** | Pages | **Done** | `redesign/phase-5-pages` | `c0020a3` |
 | **6** | Polish | Pending | — | — |
 
 ---
@@ -105,12 +105,20 @@
 
 ---
 
-## Phase 5 — Pages (Pending)
+## Phase 5 — Pages ✅
 
-### Planned Deliverables
-- [ ] Course browser — CourseCard, CourseCarousel, CourseDetailPage
-- [ ] Landing page — HeroSection, FeaturesSection, etc.
-- [ ] Auth screens — AuthGate, AuthShell, BootSequence
+**Commit**: `c0020a3` on `redesign/phase-5-pages`
+**Files changed**: 3 (2 code + PROGRESS.md)
+
+### Deliverables
+- [x] Editor sandbox error — `#f87171` → `var(--status-error)` CSS variable
+- [x] CodePane SVG preview iframe — `#0A0A0A` → `#1C1917` (warm dark bg matching design system)
+- [x] All landing page components (8 files) — verified clean from Phases 2-3
+- [x] All course components (6 files) — verified clean from Phase 2
+- [x] All auth components (3 files) — verified clean from Phase 2
+- [x] All admin components (16 files) — verified clean from Phase 2
+- [x] Zero hardcoded Tailwind color classes remain in `src/`
+- [x] Verification: typecheck ✅ lint ✅ tests (153/153) ✅
 
 ---
 
