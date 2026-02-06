@@ -75,7 +75,7 @@
   --font-code: var(--font-geist-mono);
 
   /* --- Background Pattern --- */
-  --pattern-opacity: 0.035;
+  --pattern-opacity: 0.018;
   --pattern-color: rgba(28, 25, 23, var(--pattern-opacity));
 }
 
@@ -123,7 +123,7 @@
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.30);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
 
-  --pattern-opacity: 0.04;
+  --pattern-opacity: 0.02;
   --pattern-color: rgba(244, 243, 238, var(--pattern-opacity));
 }
 
