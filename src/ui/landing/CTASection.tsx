@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export function CTASection(): ReactElement {
   return (
-    <section className="relative py-24 sm:py-32 px-4 sm:px-6">
+    <section className="relative py-16 sm:py-20 px-4 sm:px-6">
       <motion.div
         className="max-w-3xl mx-auto text-center"
         initial={{ opacity: 0, y: 20 }}
@@ -28,7 +28,7 @@ export function CTASection(): ReactElement {
           <span className="text-text-muted">Start building knowledge.</span>
         </h2>
 
-        <p className="text-sm sm:text-base mb-10 max-w-md mx-auto text-text-subtle">
+        <p className="text-sm sm:text-base mb-8 max-w-md mx-auto text-text-subtle">
           Join the beta. It&apos;s free, it&apos;s fast, and your IDE will thank
           you.
         </p>
@@ -59,7 +59,7 @@ export function CTASection(): ReactElement {
 
 export function LandingFooter(): ReactElement {
   return (
-    <footer className="py-8 text-center border-t border-border">
+    <footer className="py-8 text-center">
       <p className="text-xs font-mono text-text-subtle">
         © {new Date().getFullYear()} Niotebook · Built for learners who ship
       </p>

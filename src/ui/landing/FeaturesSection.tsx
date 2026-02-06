@@ -172,7 +172,7 @@ function FeatureCard({
 
 export function FeaturesSection(): ReactElement {
   return (
-    <section className="relative py-24 sm:py-32 px-4 sm:px-6 overflow-hidden">
+    <section className="relative py-16 sm:py-20 px-4 sm:px-6 overflow-hidden">
       {/* Grid pattern overlay */}
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.03]"
@@ -183,7 +183,7 @@ export function FeaturesSection(): ReactElement {
       />
       <div className="relative max-w-5xl mx-auto">
         <motion.div
-          className="text-center mb-16 sm:mb-20"
+          className="text-center mb-10 sm:mb-12"
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
