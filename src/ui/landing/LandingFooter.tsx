@@ -148,14 +148,14 @@ const FOOTER_COLUMNS: FooterColumn[] = [
 export function LandingFooter(): ReactElement {
   return (
     <footer
-      className="w-full border-t border-surface-strong-foreground/10 bg-surface-strong text-surface-strong-foreground"
+      className="relative z-[2] w-full border-t border-surface-strong-foreground/10 bg-surface-strong text-surface-strong-foreground"
       role="contentinfo"
     >
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-12 sm:py-16">
         {/* Column grid */}
         <nav
           aria-label="Footer"
-          className="grid grid-cols-2 gap-y-10 gap-x-8 md:grid-cols-4"
+          className="grid grid-cols-2 gap-y-10 gap-x-8 md:grid-cols-4 md:justify-items-center"
         >
           {FOOTER_COLUMNS.map((col) => (
             <div key={col.heading}>
@@ -195,7 +195,7 @@ export function LandingFooter(): ReactElement {
 
         {/* Wordmark + copyright */}
         <div className="mt-12 pt-8 border-t border-surface-strong-foreground/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Wordmark height={24} />
+          <Wordmark height={24} className="[&>span]:text-surface-strong-foreground" />
           <p className="text-xs font-mono text-surface-strong-foreground/40">
             &copy; {new Date().getFullYear()} Niotebook &middot; Built for
             learners who ship
