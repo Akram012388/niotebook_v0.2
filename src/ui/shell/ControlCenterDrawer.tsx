@@ -269,7 +269,7 @@ const ControlCenterDrawer = ({
         type="button"
         onClick={onClose}
         tabIndex={-1}
-        className={`absolute inset-0 bg-black/30 transition-opacity duration-[120ms] ${
+        className={`absolute inset-0 bg-black/30 transition-opacity duration-100 ${
           isOpen ? "opacity-100" : "opacity-0"
         }`}
         aria-label="Close control center"
@@ -278,7 +278,7 @@ const ControlCenterDrawer = ({
         ref={drawerRef}
         role="dialog"
         aria-modal="true"
-        className={`absolute right-0 top-0 h-full w-[360px] border-l border-border bg-surface shadow-lg transition-transform duration-[180ms] ease-out ${
+        className={`absolute right-0 top-0 h-full w-[360px] border-l border-border bg-surface shadow-lg transition-transform duration-200 ease-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

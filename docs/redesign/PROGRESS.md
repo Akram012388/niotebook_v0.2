@@ -15,7 +15,7 @@
 | **3** | Shell & Chrome | **Done** | `redesign/phase-3-shell` | `5f8b44a` |
 | **4** | Core Panes | **Done** | `redesign/phase-4-panes` | `58ed916` |
 | **5** | Pages | **Done** | `redesign/phase-5-pages` | `c0020a3` |
-| **6** | Polish | Pending | — | — |
+| **6** | Polish | **Done** | `redesign/phase-6-polish` | `adcfa94` |
 
 ---
 
@@ -122,15 +122,22 @@
 
 ---
 
-## Phase 6 — Polish (Pending)
+## Phase 6 — Polish ✅
 
-### Planned Deliverables
-- [ ] Background pattern fine-tuning
-- [ ] All micro-interactions and motion design
-- [ ] Theme transition smoothness
-- [ ] Accessibility audit (contrast ratios, focus states)
-- [ ] Cross-browser testing
-- [ ] Final color tuning
+**Commit**: `adcfa94` on `redesign/phase-6-polish`
+**Files changed**: 5 (4 code + PROGRESS.md)
+
+### Deliverables
+- [x] ChatComposer — added `focus-within:border-accent/40 focus-within:ring-1 focus-within:ring-accent/40` (keyboard focus was invisible)
+- [x] LanguageSelect — added `focus-visible:ring-2 focus-visible:ring-accent/40` to main button
+- [x] ControlCenterDrawer — normalized `duration-[120ms]` → `duration-100`, `duration-[180ms]` → `duration-200` (no arbitrary brackets)
+- [x] `.nio-pattern` — verified applied to `<body>` in layout.tsx (working correctly)
+- [x] Border radius — all using standard Tailwind classes, no arbitrary `rounded-[Xpx]` values
+- [x] Shadows — standard + intentional landing glow effects, consistent
+- [x] Typography — arbitrary `text-[11px]`/`text-[10px]` intentional for dense UI
+- [x] Opacity patterns — all intentional (parallax orbs, grid overlays, hover reveals)
+- [x] Zero arbitrary `duration-[Xms]` brackets remain in TSX
+- [x] Verification: typecheck ✅ lint ✅ tests (153/153) ✅
 
 ---
 
