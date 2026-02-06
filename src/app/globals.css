@@ -75,7 +75,7 @@
   --font-code: var(--font-geist-mono);
 
   /* --- Background Pattern --- */
-  --pattern-opacity: 0.035;
+  --pattern-opacity: 0.018;
   --pattern-color: rgba(28, 25, 23, var(--pattern-opacity));
 }
 
@@ -123,7 +123,7 @@
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.30);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
 
-  --pattern-opacity: 0.04;
+  --pattern-opacity: 0.02;
   --pattern-color: rgba(244, 243, 238, var(--pattern-opacity));
 }
 
@@ -165,7 +165,7 @@
   /* Typography */
   --font-sans: var(--font-body);
   --font-mono: var(--font-code);
-  --font-display: var(--font-display);
+  --font-display: var(--font-orbitron);
   --font-logo: var(--font-orbitron);
 
   /* Shadows */
@@ -219,13 +219,14 @@ button:disabled {
 
 .nio-pattern::before {
   content: "";
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle, var(--pattern-color) 1px, transparent 1px);
+    linear-gradient(var(--pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--pattern-color) 1px, transparent 1px);
   background-size: 24px 24px;
-  z-index: 0;
+  z-index: 1;
 }
 
 /* ==========================================================================
