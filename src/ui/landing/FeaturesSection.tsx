@@ -156,24 +156,24 @@ export function FeaturesSection(): ReactElement {
   return (
     <section className="relative z-[2] py-12 sm:py-16 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
-        <motion.div
-          className="text-center mb-10 sm:mb-12"
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <p className="text-xs font-mono uppercase tracking-[0.2em] mb-4 text-accent/60">
-            How it works
-          </p>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
-            One canvas.
-            <br />
-            Everything you need.
-          </h2>
-        </motion.div>
-
         <NotebookFrame>
+          <motion.div
+            className="text-center mb-10 sm:mb-12"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <p className="text-[11px] font-mono uppercase tracking-[0.2em] mb-4 text-accent/60">
+              How it works
+            </p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+              One canvas.
+              <br />
+              <span className="text-text-muted">Everything you need.</span>
+            </h2>
+          </motion.div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {FEATURES.map((f, i) => (
               <FeatureCard key={f.title} feature={f} index={i} />
