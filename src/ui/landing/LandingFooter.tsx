@@ -148,7 +148,7 @@ const FOOTER_COLUMNS: FooterColumn[] = [
 export function LandingFooter(): ReactElement {
   return (
     <footer
-      className="relative z-[2] w-full border-t border-surface-strong-foreground/10 bg-surface-strong text-surface-strong-foreground"
+      className="relative z-[2] mt-12 sm:mt-16 w-full border-t border-surface-strong-foreground/10 bg-surface-strong text-surface-strong-foreground"
       role="contentinfo"
     >
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-12 sm:py-16">
