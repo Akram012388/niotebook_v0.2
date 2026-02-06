@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { type ReactElement } from "react";
 import { Wordmark } from "../brand/Wordmark";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function LandingNav(): ReactElement {
   return (
@@ -12,19 +13,9 @@ export function LandingNav(): ReactElement {
         borderBottom: "1px solid var(--border)",
       }}
     >
-      <div className="flex items-center gap-2">
-        <Wordmark height={40} />
-        <span
-          className="text-[10px] font-mono px-1.5 py-0.5 rounded"
-          style={{
-            background: "var(--surface-muted)",
-            color: "var(--text-subtle)",
-          }}
-        >
-          beta
-        </span>
-      </div>
+      <Wordmark height={40} />
       <div className="flex items-center gap-3">
+        <ThemeToggle />
         <Link
           href="/sign-in"
           className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
