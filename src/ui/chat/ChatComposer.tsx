@@ -58,7 +58,7 @@ const ChatComposer = ({
   const isReady = value.trim().length > 0 && !disabled;
 
   return (
-    <div className="flex items-end gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
+    <div className="flex items-end gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm transition-colors focus-within:border-accent/40 focus-within:ring-1 focus-within:ring-accent/40">
       <textarea
         ref={textareaRef}
         rows={1}
