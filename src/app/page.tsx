@@ -4,7 +4,7 @@ import { HeroSection } from "@/ui/landing/HeroSection";
 import { ValuePropSection } from "@/ui/landing/ValuePropSection";
 import { StatsSection } from "@/ui/landing/StatsSection";
 import { FeaturesSection } from "@/ui/landing/FeaturesSection";
-import { CTASection, LandingFooter } from "@/ui/landing/CTASection";
+import { CTASection } from "@/ui/landing/CTASection";
 export default function Home(): ReactElement {
   return (
     <>
@@ -26,7 +26,6 @@ export default function Home(): ReactElement {
         <FeaturesSection />
         <CTASection />
       </main>
-      <LandingFooter />
     </>
   );
 }
