@@ -26,7 +26,7 @@ const KpiCard = ({ label, value, previousValue }: KpiCardProps): ReactElement =>
         {delta !== null && (
           <span
             className={`font-mono text-xs ${
-              delta >= 0 ? "text-green-400" : "text-red-400"
+              delta >= 0 ? "text-status-success" : "text-status-error"
             }`}
           >
             {delta >= 0 ? "↑" : "↓"}

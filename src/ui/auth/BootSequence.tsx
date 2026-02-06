@@ -60,7 +60,7 @@ const BootSequence = (): ReactElement => {
   }, [currentLineIndex, currentCharIndex, isTyping]);
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-border bg-[#0a0a0a] p-6 font-mono text-sm leading-relaxed text-[#22c55e] shadow-lg">
+    <div className="flex flex-col gap-2 rounded-2xl border border-border bg-surface-strong p-6 font-mono text-sm leading-relaxed text-accent shadow-lg">
       {visibleLines.map((line, index) => (
         <div key={index} className="flex">
           <span>{line}</span>

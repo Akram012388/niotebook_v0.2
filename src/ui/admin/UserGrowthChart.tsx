@@ -24,31 +24,31 @@ const UserGrowthChart = ({ data }: UserGrowthChartProps): ReactElement => (
         <LineChart data={data}>
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 10, fill: "#666" }}
+            tick={{ fontSize: 10, fill: "var(--text-subtle)" }}
             tickFormatter={(v: string) => v.slice(5)}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 10, fill: "#666" }}
+            tick={{ fontSize: 10, fill: "var(--text-subtle)" }}
             axisLine={false}
             tickLine={false}
             allowDecimals={false}
           />
           <Tooltip
             contentStyle={{
-              background: "#111",
-              border: "1px solid #333",
+              background: "var(--surface-strong)",
+              border: "1px solid var(--border)",
               borderRadius: 6,
               fontSize: 12,
               fontFamily: "monospace",
             }}
-            labelStyle={{ color: "#999" }}
+            labelStyle={{ color: "var(--text-muted)" }}
           />
           <Line
             type="monotone"
             dataKey="count"
-            stroke="#FAFAFA"
+            stroke="var(--foreground)"
             strokeWidth={2}
             dot={false}
           />

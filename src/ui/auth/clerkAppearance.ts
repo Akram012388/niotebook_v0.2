@@ -1,10 +1,10 @@
 const clerkAppearance = {
   variables: {
-    colorPrimary: "#FAFAFA",
-    colorText: "#FAFAFA",
-    colorTextSecondary: "#A3A3A3",
-    colorBackground: "#171717",
-    borderRadius: "0.75rem",
+    colorPrimary: "var(--foreground)",
+    colorText: "var(--foreground)",
+    colorTextSecondary: "var(--text-muted)",
+    colorBackground: "var(--surface)",
+    borderRadius: "var(--radius-lg)",
     fontFamily: "var(--font-geist-sans)",
   },
   elements: {

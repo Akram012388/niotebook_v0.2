@@ -135,13 +135,13 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
             <span className="font-medium text-foreground">
               {completedCount}/{totalCount} lectures completed
             </span>
-            <span className="text-sm font-semibold text-workspace-accent">
+            <span className="text-sm font-semibold text-accent">
               {progressPct}%
             </span>
           </div>
           <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface-muted">
             <motion.div
-              className="h-full rounded-full bg-workspace-accent"
+              className="h-full rounded-full bg-accent"
               initial={{ width: 0 }}
               animate={{ width: `${progressPct}%` }}
               transition={{ duration: 0.8, delay: 0.3 }}
@@ -150,7 +150,7 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
           {firstIncomplete && (
             <Link
               href={`/workspace?lessonId=${firstIncomplete.id as string}`}
-              className="mt-1 w-fit rounded-xl bg-workspace-accent px-5 py-2.5 text-xs font-semibold text-[#0A0A0A] transition-all hover:shadow-[0_0_20px_rgba(0,255,102,0.2)]"
+              className="mt-1 w-fit rounded-xl bg-accent px-5 py-2.5 text-xs font-semibold text-accent-foreground transition-all hover:shadow-[0_0_20px_var(--accent-muted)]"
             >
               Resume
             </Link>
@@ -161,7 +161,7 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
       {/* Lecture list */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-3 mb-2">
-          <div className="h-4 w-1 rounded-full bg-workspace-accent" />
+          <div className="h-4 w-1 rounded-full bg-accent" />
           <h2 className="text-base font-semibold text-foreground">Lectures</h2>
         </div>
         {(lessons ?? []).map((lesson, i) => {
@@ -171,8 +171,8 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
               key={lesson.id}
               className={`flex items-center justify-between rounded-xl border px-4 py-3.5 transition-all ${
                 isCompleted
-                  ? "border-workspace-accent/20 bg-workspace-accent/[0.03]"
-                  : "border-border bg-surface hover:border-workspace-accent/20 hover:shadow-sm"
+                  ? "border-accent/20 bg-accent/[0.03]"
+                  : "border-border bg-surface hover:border-accent/20 hover:shadow-sm"
               }`}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -190,7 +190,7 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
                       strokeWidth="2.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="inline text-workspace-accent"
+                      className="inline text-accent"
                     >
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
@@ -212,14 +212,14 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
                   <button
                     type="button"
                     onClick={() => handleMarkComplete(lesson.id as string)}
-                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted transition hover:border-workspace-accent/30 hover:text-foreground"
+                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted transition hover:border-accent/30 hover:text-foreground"
                   >
                     Mark Complete
                   </button>
                 )}
                 <Link
                   href={`/workspace?lessonId=${lesson.id as string}`}
-                  className="rounded-lg bg-workspace-accent/10 px-3 py-1.5 text-xs font-medium text-workspace-accent transition hover:bg-workspace-accent/20"
+                  className="rounded-lg bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent transition hover:bg-accent/20"
                 >
                   {isCompleted ? "Review" : "Start"}
                 </Link>

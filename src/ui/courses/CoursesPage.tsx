@@ -90,7 +90,7 @@ function CoursesPage(): ReactElement {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search courses"
-          className="mt-1 w-full max-w-md rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-text-subtle transition-colors focus:border-workspace-accent/40 focus:outline-none focus:ring-1 focus:ring-workspace-accent/20"
+          className="mt-1 w-full max-w-md rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-text-subtle transition-colors focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
         />
       </motion.div>
 
@@ -103,7 +103,7 @@ function CoursesPage(): ReactElement {
           transition={{ delay: 0.15, duration: 0.4 }}
         >
           <div className="flex items-center gap-3">
-            <div className="h-4 w-1 rounded-full bg-workspace-accent" />
+            <div className="h-4 w-1 rounded-full bg-accent" />
             <h2 className="text-lg font-semibold text-foreground">
               Continue Learning
             </h2>
@@ -126,7 +126,7 @@ function CoursesPage(): ReactElement {
       <section className="flex flex-col gap-5">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
-            <div className="h-4 w-1 rounded-full bg-workspace-accent" />
+            <div className="h-4 w-1 rounded-full bg-accent" />
             <h2 className="text-lg font-semibold text-foreground">
               Harvard University
             </h2>

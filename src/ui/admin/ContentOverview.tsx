@@ -35,15 +35,15 @@ const formatDuration = (sec: number): string => {
 const statusColor = (status?: string): string => {
   switch (status) {
     case "ok":
-      return "text-green-400";
+      return "text-status-success";
     case "warn":
-      return "text-yellow-400";
+      return "text-status-warning";
     case "error":
-      return "text-red-400";
+      return "text-status-error";
     case "missing":
-      return "text-muted";
+      return "text-text-muted";
     default:
-      return "text-muted";
+      return "text-text-muted";
   }
 };
 

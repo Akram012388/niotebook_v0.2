@@ -167,7 +167,7 @@ const AiPane = ({
           ))}
         </ChatScroll>
         {streamError ? (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <div className="rounded-lg border border-status-warning/25 bg-status-warning/10 px-3 py-2 text-xs text-status-warning">
             {streamError}
           </div>
         ) : null}

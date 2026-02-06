@@ -25,15 +25,15 @@ const ResumeCard = memo(function ResumeCard({
   return (
     <Link
       href={`/workspace?lessonId=${lessonId}`}
-      className="group relative flex min-w-[260px] max-w-[300px] shrink-0 snap-start flex-col gap-2.5 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl dark:hover:border-workspace-accent/40 dark:hover:shadow-workspace-accent/5 hover:border-foreground/20 hover:shadow-foreground/5"
+      className="group relative flex min-w-[260px] max-w-[300px] shrink-0 snap-start flex-col gap-2.5 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl dark:hover:border-accent/40 dark:hover:shadow-accent/5 hover:border-foreground/20 hover:shadow-foreground/5"
     >
       {/* Subtle glow on hover (green in dark mode only) */}
-      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-workspace-accent/0 to-workspace-accent/0 transition-all duration-300 dark:group-hover:from-workspace-accent/[0.03] dark:group-hover:to-transparent" />
+      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-accent/0 to-accent/0 transition-all duration-300 dark:group-hover:from-accent/[0.03] dark:group-hover:to-transparent" />
 
       <span className="relative text-[11px] font-medium uppercase tracking-wide text-text-subtle">
         {courseTitle}
       </span>
-      <h3 className="relative text-sm font-semibold leading-snug text-foreground transition-colors dark:group-hover:text-workspace-accent group-hover:text-[#0A0A0A] group-hover:font-extrabold">
+      <h3 className="relative text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-accent group-hover:font-extrabold">
         {lessonTitle}
       </h3>
       <div className="relative flex items-center justify-between">
@@ -47,13 +47,13 @@ const ResumeCard = memo(function ResumeCard({
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-workspace-accent/60"
+            className="text-accent/60"
           >
             <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
           <span>{formatTimestamp(videoTimeSec)}</span>
         </div>
-        <span className="text-[10px] font-medium dark:text-workspace-accent text-foreground opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="text-[10px] font-medium dark:text-accent text-foreground opacity-0 transition-opacity group-hover:opacity-100">
           Resume →
         </span>
       </div>

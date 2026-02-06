@@ -12,13 +12,13 @@ const RuntimeStatus = ({
 }: RuntimeStatusProps): ReactElement => {
   const statusColor =
     state.status === "running"
-      ? "bg-blue-500"
+      ? "bg-status-info"
       : state.status === "ready"
-        ? "bg-green-500"
+        ? "bg-status-success"
         : state.status === "warming"
-          ? "bg-amber-500"
+          ? "bg-status-warning"
           : state.status === "error"
-            ? "bg-red-500"
+            ? "bg-status-error"
             : "bg-border";
 
   return (

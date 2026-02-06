@@ -34,7 +34,7 @@ const EnvSelectorInner = ({
 
   return (
     <div className="flex items-center gap-1.5 text-xs">
-      <span className="text-amber-500 font-mono text-[10px]">DEV</span>
+      <span className="text-status-warning font-mono text-[10px]">DEV</span>
       <select
         value={currentPresetId}
         onChange={handleChange}
