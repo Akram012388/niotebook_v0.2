@@ -393,7 +393,7 @@ const CodePane = ({
             frame.style.width = "100%";
             frame.style.height = "100%";
             frame.style.border = "none";
-            frame.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;display:flex;align-items:center;justify-content:center;background:#0A0A0A;min-height:100vh}svg{max-width:100%;max-height:100vh}</style></head><body>${svgData}</body></html>`;
+            frame.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;display:flex;align-items:center;justify-content:center;background:#1C1917;min-height:100vh}svg{max-width:100%;max-height:100vh}</style></head><body>${svgData}</body></html>`;
             container.replaceChildren(frame);
           }
         }
