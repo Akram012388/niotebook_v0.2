@@ -68,11 +68,11 @@ export function NotebookFrame({
       >
         <div
           className="absolute inset-y-0"
-          style={{ left: 0, width: RAIL_W, background: "#000" }}
+          style={{ left: 0, width: RAIL_W, background: "var(--foreground)" }}
         />
         <div
           className="absolute inset-y-0"
-          style={{ right: 0, width: RAIL_W, background: "#000" }}
+          style={{ right: 0, width: RAIL_W, background: "var(--foreground)" }}
         />
       </div>
 

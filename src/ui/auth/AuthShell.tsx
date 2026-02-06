@@ -23,10 +23,10 @@ const AuthShell = ({
   const isDesktop = useIsDesktop();
 
   const innerContent = sideContent ? (
-    <div className="flex items-start gap-8">
+    <div className="flex items-stretch gap-8">
       <div className="w-full max-w-md">{children}</div>
       {isDesktop && (
-        <div className="hidden w-full max-w-sm md:block">{sideContent}</div>
+        <div className="hidden w-full max-w-sm md:flex">{sideContent}</div>
       )}
     </div>
   ) : (
@@ -60,12 +60,12 @@ const AuthShell = ({
         </div>
       </nav>
 
-      {/* Main content */}
-      <div className="relative mx-auto flex min-h-screen w-full max-w-4xl flex-col justify-center px-4 sm:px-6 pt-24 pb-12">
+      {/* Main content — z-[2] to sit above the nio-pattern grid (z-1) */}
+      <div className="relative z-[2] mx-auto flex min-h-screen w-full max-w-4xl flex-col justify-center px-4 sm:px-6 pt-24 pb-12">
         <div className="mb-6">
           <h1 className="text-3xl font-semibold text-foreground">{title}</h1>
           {subtitle ? (
-            <p className="mt-2 max-w-md text-sm text-text-muted">{subtitle}</p>
+            <p className="mt-2 text-sm text-text-muted">{subtitle}</p>
           ) : null}
         </div>
 

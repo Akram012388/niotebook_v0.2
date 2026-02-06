@@ -20,17 +20,24 @@
 - Font-size ratio: 0.85 * height, weight: 700
 
 ### NotebookFrame Component
-- Location: `src/ui/landing/NotebookFrame.tsx`
-- Reusable wrapper for landing page content sections
-- `bg-surface`, `rounded-2xl`, `shadow-sm`, generous padding (px-8/12/16, py-10/14)
-- Three-layer binder architecture (all use shared `binderInset` positioning):
-  - Layer 1 (z-0): Rails — two true-black vertical lines
-  - Layer 2 (z-1): Mask strip — narrow `bg-surface` strip with CSS radial-gradient mask punching holes only over the rail column
-  - Layer 3 (z-2): Content — opaque `bg-surface`, no mask
-- Binder geometry constants: RAIL_W=2, RAIL_GAP=2, BINDER_LEFT=20, HOLE_D=6, HOLE_SPACING=12
-- Rails and mask strip share identical `top/bottom/left` = BINDER_LEFT (20px) for visual balance
-- Mask uses `circle at 50% 50%` (relative to the narrow strip, not full frame)
-- The binder is the brand "wink" -- nod to physical ring binders / notebook name
+- Location: `src/ui/shared/NotebookFrame.tsx` (moved from landing/)
+- Reusable wrapper — landing pages, auth pages, course pages, any content section
+- `bg-surface`, `rounded-2xl`, `shadow-sm`, generous padding; `compact` prop for tighter padding
+- Three-layer binder architecture with punch-holes (brand "wink" — notebook/ring binder)
+- **Mobile pattern**: `hidden sm:block` wrapper for desktop + `sm:hidden` plain div for mobile
+
+## Auth Pages Pattern (post-redesign)
+- **Top bar**: Fixed nav matching LandingNav — Wordmark(h=40) left, ThemeToggle + "← Home" right
+- **Background**: `color-mix(in srgb, var(--background) 80%, transparent)` + `backdrop-blur-md`
+- **Border**: `borderBottom: 1px solid var(--border)` via inline style
+- **Content area**: `max-w-4xl`, `pt-24 pb-12` (accounts for fixed nav)
+- **Desktop (sm+)**: Content wrapped in NotebookFrame
+- **Mobile**: Content rendered bare (no NotebookFrame)
+- **Sign-in**: Two-column — Clerk form (max-w-md) + BootSequence (max-w-sm, hidden below md)
+- **Mono label**: `text-[11px] font-mono uppercase tracking-[0.2em] text-accent/60 mb-3`
+- **AuthShell**: Reusable wrapper used by sign-up — same top bar + NotebookFrame pattern
+- **No ForceTheme**: Pages follow user's theme preference
+- **Framer Motion**: fadeUp animations with staggered delays (0, 0.1, 0.2, 0.3)
 
 ## Landing Page Structure (post-rework)
 - `page.tsx` -> LandingNav, HeroSection, ValuePropSection, FeaturesSection, CTASection, LandingFooter
@@ -47,6 +54,17 @@
 - All sections use consistent `max-w-4xl`, `py-12 sm:py-16`, `px-4 sm:px-6`
 - All sections have `relative z-[2]` to stack above the body grid pattern (`z-1`)
 - Legal stub pages at `src/app/(landing)/terms|privacy|cookies/page.tsx` with ForceTheme dark
+
+## Course Pages Pattern (Phase 8)
+- CoursesPage and CourseDetailPage wrap content in desktop-only NotebookFrame (`compact`)
+- **Mono-label pattern**: `text-[11px] font-mono uppercase tracking-[0.2em] text-accent/60` replaces accent-bar headers
+- **Animation timings** (aligned to landing): `staggerChildren: 0.1`, per-card `delay: i * 0.1`, `duration: 0.5`
+- Header entrance: `initial={{ opacity:0, y:16 }}` (positive y, not negative)
+- **Theme-agnostic hover**: `hover:border-accent/30 hover:shadow-md` — NO `dark:` prefix classes
+- **No gradient glow overlays** — removed from CourseCard and ResumeCard
+- Loading skeletons: `nio-shimmer` class (not `animate-pulse`)
+- CourseDetailPage lecture grid: `grid grid-cols-1 sm:grid-cols-2`, card-based with numbered badges
+- Completed cards: `border-l-[3px] border-l-accent bg-accent/[0.03]`
 
 ## Lessons Learned
 
@@ -69,11 +87,46 @@
 - Headings: `/50`, links: `/70`, copyright: `/40`, borders: `/10`
 - **Rule**: Never use page-background-relative text tokens on always-dark surfaces
 
+### Clerk OTP Theme Responsiveness (2026-02-07)
+- **Problem**: Hardcoded dark-mode colors (#F4F3EE, #3A3531) in Clerk OTP inputs break in light theme
+- **Fix**: Use CSS custom properties: `var(--foreground)`, `var(--border)` instead of hardcoded hex
+- **Location**: `globals.css` `.cl-otpCodeFieldInput` rule
+
+### Git Race Conditions with Team Agents (2026-02-07)
+- **Problem**: When working in a team, other agents switch git branches concurrently, wiping uncommitted changes
+- **Fix**: Write files + `git add` + `git commit` as quickly as possible; verify branch before each operation
+- **Rule**: After writing files, immediately stage and commit in the same sequence
+
+### SidebarShell Component (2026-02-07)
+- Location: `src/ui/shell/SidebarShell.tsx`
+- Collapsible sidebar (240px expanded, 56px collapsed rail)
+- Fixed position, `bg-surface`, `border-r border-border`
+- State: `useState` + `localStorage` key `niotebook.sidebar`
+- Uses `requestAnimationFrame` hydration guard (same pattern as ThemeToggle)
+- Responsive: auto-collapse below 768px via `matchMedia`
+- Width transition: `200ms cubic-bezier(0.4, 0, 0.2, 1)` — only after mount
+- Main content uses matching `marginLeft` transition
+- Nav items: Courses (active), Settings (disabled placeholder)
+- Bottom: ThemeToggle + Sign out (via `useClerk`)
+- Wordmark: expanded shows full text, collapsed shows just "n"
+- Active state: `bg-accent-muted border-l-[3px] border-l-accent text-foreground font-medium`
+
+### Team Branch Management (2026-02-07)
+- **Problem**: Multiple agents share workspace; `git checkout --` resets ALL unstaged files
+- **Fix**: Write files -> `git add` immediately -> then clean up other agents' stale changes
+- **Rule**: Never run `git checkout --` on broad patterns when you have unstaged work
+
 ## File Locations
 - Globals CSS: `src/app/globals.css` (tokens, theme, patterns)
 - Layout: `src/app/layout.tsx` (font loading, body classes)
 - Brand: `src/ui/brand/Wordmark.tsx`
-- Shell: `src/ui/shell/AppShell.tsx`
+- Shell: `src/ui/shell/AppShell.tsx`, `src/ui/shell/SidebarShell.tsx`
 - Landing: `src/ui/landing/` (Hero, ValueProp, Features, CTA, LandingFooter, NotebookFrame, LandingNav, ThemeToggle)
 - Legal stubs: `src/app/(landing)/terms|privacy|cookies/page.tsx`
 - ForceTheme: `src/ui/ForceTheme.tsx` (sets data-theme on mount, restores on unmount)
+- Shared: `src/ui/shared/ThemeToggle.tsx`, `src/ui/shared/NotebookFrame.tsx`
+- Auth: `src/ui/auth/` (AuthShell, BootSequence, clerkAppearance, AuthGate)
+- Sign-in: `src/app/sign-in/[[...sign-in]]/page.tsx`
+- Sign-up: `src/app/sign-up/[[...sign-up]]/page.tsx`
+- Courses: `src/ui/courses/` (CoursesPage, CourseDetailPage, CourseCard, ResumeCard)
+- StorageAdapter: `src/infra/storageAdapter.ts` (SSR-safe localStorage wrapper)

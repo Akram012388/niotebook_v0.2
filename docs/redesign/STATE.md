@@ -1,10 +1,15 @@
 # Niotebook v2 Redesign — Branch State
 
 > **Purpose:** Cross-session persistence file for Claude Code to recall exact branch state.
-> **Last updated:** 2026-02-06
+> **Last updated:** 2026-02-07
 > **Branch:** `redesign-v2`
 > **Base:** `main`
-> **Head commit:** `418f0f8` (Merge PR #87)
+> **Head commit:** `9d11205` (prerequisite: shared component moves)
+>
+> **Phase 8 branches (pending merge to redesign-v2):**
+> - `redesign/sidebar-courses` — `691a3f5` (sidebar shell + courses layout)
+> - `redesign/signin` — `239e2f9` (sign-in/sign-up redesign)
+> - `redesign/course-detail-cards` — `c7757bf` (lecture cards + animation alignment)
 
 ---
 
