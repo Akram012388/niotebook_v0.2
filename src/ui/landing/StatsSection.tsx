@@ -58,7 +58,7 @@ function AnimatedCounter({
 
 export function StatsSection(): ReactElement {
   return (
-    <section className="relative py-16 sm:py-20 px-4 sm:px-6 border-y border-border">
+    <section className="relative py-16 sm:py-20 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12"

@@ -6,11 +6,11 @@ import { motion } from "framer-motion";
 
 export function HeroSection(): ReactElement {
   return (
-    <section className="relative flex flex-col items-center justify-center overflow-hidden px-6 sm:px-8 pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20">
+    <section className="relative flex flex-col items-center justify-center overflow-hidden px-6 sm:px-8 pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16">
       <div className="relative z-10 max-w-4xl mx-auto text-center">
         {/* Badge */}
         <motion.div
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-10 sm:mb-14 border border-border bg-surface text-text-muted"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-8 sm:mb-10 border border-border bg-surface text-text-muted"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -49,7 +49,7 @@ export function HeroSection(): ReactElement {
 
         {/* Tagline */}
         <motion.p
-          className="text-base sm:text-lg md:text-xl max-w-lg mx-auto mb-12 sm:mb-16 leading-relaxed text-text-muted"
+          className="text-base sm:text-lg md:text-xl max-w-lg mx-auto mb-10 sm:mb-12 leading-relaxed text-text-muted"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
@@ -95,7 +95,7 @@ export function HeroSection(): ReactElement {
 
       {/* Demo video */}
       <motion.div
-        className="relative z-10 w-full max-w-5xl mt-16 sm:mt-20 lg:mt-24 rounded-2xl overflow-hidden shadow-2xl shadow-accent/5 border border-border bg-surface-strong"
+        className="relative z-10 w-full max-w-5xl mt-12 sm:mt-16 lg:mt-20 rounded-2xl overflow-hidden shadow-2xl shadow-accent/5 border border-border bg-surface-strong"
         style={{ aspectRatio: "3320 / 2160" }}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}

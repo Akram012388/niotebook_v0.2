@@ -137,10 +137,10 @@ function ValueCard({
 
 export function ValuePropSection(): ReactElement {
   return (
-    <section className="relative py-24 sm:py-32 px-4 sm:px-6">
+    <section className="relative py-16 sm:py-20 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto">
         <motion.div
-          className="text-center mb-16 sm:mb-20"
+          className="text-center mb-10 sm:mb-12"
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -158,7 +158,7 @@ export function ValuePropSection(): ReactElement {
           </h2>
         </motion.div>
 
-        <div className="flex flex-col gap-16 sm:gap-20">
+        <div className="flex flex-col gap-12 sm:gap-14">
           {VALUE_PROPS.map((prop, i) => (
             <ValueCard key={prop.label} prop={prop} index={i} />
           ))}
@@ -166,7 +166,7 @@ export function ValuePropSection(): ReactElement {
 
         {/* Credit line */}
         <motion.div
-          className="mt-16 sm:mt-20 text-center"
+          className="mt-12 sm:mt-14 text-center"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
