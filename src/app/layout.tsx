@@ -74,7 +74,7 @@ export default function RootLayout({
         {isE2ePreview ? <meta name="niotebook-e2e" content="ready" /> : null}
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} antialiased bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} antialiased bg-background text-foreground nio-pattern`}
       >
         <ClerkProvider>
           <Providers>{children}</Providers>
