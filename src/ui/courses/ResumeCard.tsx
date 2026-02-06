@@ -25,18 +25,15 @@ const ResumeCard = memo(function ResumeCard({
   return (
     <Link
       href={`/workspace?lessonId=${lessonId}`}
-      className="group relative flex min-w-[260px] max-w-[300px] shrink-0 snap-start flex-col gap-2.5 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl dark:hover:border-accent/40 dark:hover:shadow-accent/5 hover:border-foreground/20 hover:shadow-foreground/5"
+      className="group flex min-w-[260px] max-w-[300px] shrink-0 snap-start flex-col gap-2.5 rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-accent/30 hover:shadow-md"
     >
-      {/* Subtle glow on hover (green in dark mode only) */}
-      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-accent/0 to-accent/0 transition-all duration-300 dark:group-hover:from-accent/[0.03] dark:group-hover:to-transparent" />
-
-      <span className="relative text-[11px] font-medium uppercase tracking-wide text-text-subtle">
+      <span className="text-[11px] font-medium uppercase tracking-wide text-text-subtle">
         {courseTitle}
       </span>
-      <h3 className="relative text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-accent group-hover:font-extrabold">
+      <h3 className="text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
         {lessonTitle}
       </h3>
-      <div className="relative flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs text-text-muted">
           <svg
             width="12"
@@ -53,7 +50,7 @@ const ResumeCard = memo(function ResumeCard({
           </svg>
           <span>{formatTimestamp(videoTimeSec)}</span>
         </div>
-        <span className="text-[10px] font-medium dark:text-accent text-foreground opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="text-[10px] font-medium text-accent opacity-0 transition-opacity group-hover:opacity-100">
           Resume →
         </span>
       </div>
