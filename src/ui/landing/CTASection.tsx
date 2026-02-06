@@ -20,9 +20,7 @@ export function CTASection(): ReactElement {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
               Stop watching tutorials.
               <br />
-              <span className="text-text-muted">
-                Start building knowledge.
-              </span>
+              <span className="text-text-muted">Start building knowledge.</span>
             </h2>
 
             <p className="text-sm sm:text-base mb-8 max-w-md mx-auto text-text-subtle">
@@ -49,23 +47,9 @@ export function CTASection(): ReactElement {
                 />
               </svg>
             </Link>
-
-            {/* Copyright — merged from LandingFooter */}
-            <p className="mt-10 text-xs font-mono text-text-subtle">
-              &copy; {new Date().getFullYear()} Niotebook &middot; Built for
-              learners who ship
-            </p>
           </motion.div>
         </NotebookFrame>
       </div>
     </section>
   );
-}
-
-/**
- * Footer content has been merged into CTASection.
- * This export is kept for backwards compatibility with page.tsx.
- */
-export function LandingFooter(): ReactElement | null {
-  return null;
 }
