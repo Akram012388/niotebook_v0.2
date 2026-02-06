@@ -51,3 +51,12 @@ Run a single E2E test: `bunx playwright test path/to/test.ts`
 - No `any` in `src/convex/tests`, no `unknown` in `src/domain` (enforced by CI scripts)
 - Lefthook git hooks run lint/format checks pre-commit
 - ESLint 9 flat config with Next.js + Prettier integration
+
+## Agent Teams Guidelines
+
+- All teammates: read this CLAUDE.md before starting work.
+- Code style: [your style guide reference]
+- Test command: `npm test` / `pytest` / etc.
+- Build command: `npm run build` / `make` / etc.
+- Branch strategy: create feature branches, never push to main directly.
+- When in doubt about architecture decisions, message the lead instead of guessing.
