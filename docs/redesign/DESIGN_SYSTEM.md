@@ -1,58 +1,100 @@
-# niotebook Design System v2.0
+# Niotebook Design System v2.0
 
-> Inspired by Claude.ai/code + Claude Cowork macOS
+> **Status:** Implemented (superseded v1)
+> **Source of truth:** `src/app/globals.css`
+> **Brief:** `docs/redesign/REDESIGN_BRIEF.md`
+> **Inspired by:** Claude.ai/code + Claude Cowork macOS
 
 ---
 
 ## Core Principles
 
-1. **Calm & Focused** — Reduce visual noise, let content breathe
-2. **Premium Feel** — Every pixel should feel intentional
-3. **Warm Dark Mode** — Not cold/sterile, but cozy and professional
-4. **Subtle Depth** — Use shadows and layering sparingly but effectively
+1. **Claude Warmth** — Warm color temperatures, soft depth, parchment-like quality
+2. **Calm Focus** — Reduce visual noise, generous whitespace, unhurried density
+3. **Premium Craft** — Every pixel intentional, every micro-interaction polished
+4. **Futuristic Identity** — Orbitron typeface as the brand fingerprint
 
 ---
 
 ## Color Palette
 
-### Backgrounds (Layered System)
+### Light Theme (`:root`)
 
 ```css
---bg-base:        #1a1a1a;   /* Deepest background */
---bg-surface:     #232323;   /* Cards, panels */
---bg-elevated:    #2a2a2a;   /* Modals, dropdowns, hover states */
---bg-hover:       #333333;   /* Interactive hover */
---bg-active:      #3d3d3d;   /* Active/selected state */
+/* Backgrounds */
+--background:      #F4F3EE;   /* Pampas — base background */
+--surface:         #FAF9F7;   /* Warm white — cards, panels */
+--surface-muted:   #EDEAE4;   /* Soft cream — elevated surfaces */
+--surface-strong:  #1C1917;   /* Charcoal — code blocks, footer */
+
+/* Text */
+--foreground:      #1C1917;   /* Near black — primary text */
+--text-muted:      #78716C;   /* Warm gray — secondary text */
+--text-subtle:     #A8A29E;   /* Light warm gray — placeholders */
+
+/* Accent (Claude terracotta) */
+--accent:            #C15F3C;                  /* Crail — primary actions */
+--accent-foreground: #FFFFFF;                  /* Text on accent */
+--accent-muted:      rgba(193, 95, 60, 0.10); /* Accent backgrounds */
+--accent-border:     rgba(193, 95, 60, 0.25); /* Accent borders */
+--accent-hover:      #A8512F;                  /* Darker on hover */
+
+/* Status (warm-tinted) */
+--status-success:  #5A8A5E;
+--status-warning:  #B5882C;
+--status-error:    #C24B3A;
+--status-info:     #5B7FA5;
+
+/* Borders */
+--border:          #DDD8D0;   /* Warm beige */
+--border-muted:    #EDEAE4;   /* Warm tan */
 ```
 
-### Text Colors
+### Dark Theme (`[data-theme="dark"]`)
 
 ```css
---text-primary:   #f5f5f5;   /* Main content, headings */
---text-secondary: #a3a3a3;   /* Supporting text, labels */
---text-muted:     #737373;   /* Placeholder, disabled */
---text-inverse:   #1a1a1a;   /* Text on light backgrounds */
+/* Backgrounds */
+--background:      #1C1917;   /* Rich warm charcoal */
+--surface:         #252220;   /* Elevated warm dark */
+--surface-muted:   #2E2A27;   /* Higher warm dark */
+--surface-strong:  #141210;   /* Deepest dark */
+
+/* Text */
+--foreground:      #F4F3EE;   /* Warm white */
+--text-muted:      #A8A29E;   /* Warm muted */
+--text-subtle:     #78716C;   /* Dim warm gray */
+
+/* Accent (lighter terracotta for dark contrast) */
+--accent:            #DA7756;
+--accent-foreground: #1C1917;
+--accent-muted:      rgba(218, 119, 86, 0.15);
+--accent-border:     rgba(218, 119, 86, 0.30);
+--accent-hover:      #E8906E;
+
+/* Status (brighter for dark backgrounds) */
+--status-success:  #6DA072;
+--status-warning:  #D4A748;
+--status-error:    #E06B5A;
+--status-info:     #7A9FC0;
+
+/* Borders */
+--border:          #3A3531;
+--border-muted:    #2E2A27;
 ```
 
-### Accent Colors
+### Workspace Tokens (always-dark code surfaces)
 
 ```css
---accent-primary:    #d97706;   /* Orange/amber — primary actions */
---accent-hover:      #f59e0b;   /* Lighter on hover */
---accent-subtle:     rgba(217, 119, 6, 0.15);  /* Accent backgrounds */
-
---accent-success:    #22c55e;   /* Green — success states */
---accent-warning:    #eab308;   /* Yellow — warnings */
---accent-error:      #ef4444;   /* Red — errors */
---accent-info:       #3b82f6;   /* Blue — info */
-```
-
-### Borders
-
-```css
---border-default:    #2e2e2e;   /* Subtle dividers */
---border-strong:     #404040;   /* More visible borders */
---border-focus:      #d97706;   /* Focus rings */
+--workspace-editor:        #1C1917;
+--workspace-sidebar:       #1C1917;
+--workspace-terminal:      #1C1917;
+--workspace-tabbar:        #252220;
+--workspace-border:        #3A3531;
+--workspace-border-muted:  #2E2A27;
+--workspace-text:          #F4F3EE;
+--workspace-text-muted:    #A8A29E;
+--workspace-accent:        <theme-dependent>;  /* #C15F3C (light) / #DA7756 (dark) */
+--workspace-accent-muted:  <theme-dependent>;
 ```
 
 ---
@@ -61,342 +103,219 @@
 
 ### Font Stack
 
-```css
---font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
---font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+| Role          | Font          | CSS Variable         | Usage                                      |
+|---------------|---------------|----------------------|--------------------------------------------|
+| **Display**   | Orbitron      | `--font-display`     | Wordmark, page titles, section headers     |
+| **Body/UI**   | Geist Sans    | `--font-body`        | Body text, labels, buttons, nav, chat      |
+| **Code**      | Geist Mono    | `--font-code`        | Code editor, terminal, inline code         |
+
+### Loading (layout.tsx)
+
+```tsx
+import { Geist, Geist_Mono, Orbitron } from "next/font/google";
+
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+const orbitron = Orbitron({ variable: "--font-orbitron", subsets: ["latin"], weight: ["400","500","600","700"] });
 ```
 
-### Type Scale
-
-| Name      | Size   | Weight | Line Height | Use Case |
-|-----------|--------|--------|-------------|----------|
-| `xs`      | 11px   | 400    | 1.4         | Badges, captions |
-| `sm`      | 13px   | 400    | 1.5         | Secondary text, labels |
-| `base`    | 14px   | 400    | 1.6         | Body text |
-| `md`      | 15px   | 500    | 1.5         | Emphasized body |
-| `lg`      | 17px   | 600    | 1.4         | Section headers |
-| `xl`      | 20px   | 600    | 1.3         | Page titles |
-| `2xl`     | 24px   | 700    | 1.2         | Hero text |
-
-### Font Weights
+### Tailwind Mapping
 
 ```css
---font-normal:   400;
---font-medium:   500;
---font-semibold: 600;
---font-bold:     700;
+--font-sans: var(--font-body);    /* Geist Sans — `font-sans` utility */
+--font-mono: var(--font-code);    /* Geist Mono — `font-mono` utility */
+--font-display: var(--font-orbitron);  /* Orbitron — `font-display` utility */
 ```
 
 ---
 
 ## Spacing Scale
 
-Based on 4px grid:
+4px base grid (uses standard Tailwind spacing):
 
-```css
---space-0:    0;
---space-1:    4px;
---space-2:    8px;
---space-3:    12px;
---space-4:    16px;
---space-5:    20px;
---space-6:    24px;
---space-8:    32px;
---space-10:   40px;
---space-12:   48px;
---space-16:   64px;
-```
-
-### Component Spacing Guidelines
-
-| Context              | Padding        | Gap           |
-|----------------------|----------------|---------------|
-| Page padding         | 24-32px        | —             |
-| Card padding         | 16-20px        | —             |
-| Button padding       | 8px 16px       | 8px (icons)   |
-| Input padding        | 10px 12px      | —             |
-| List items           | 12px 16px      | 4px           |
-| Section gap          | —              | 24-32px       |
+| Token | Value  | Tailwind Class |
+|-------|--------|----------------|
+| 1     | 4px    | `p-1`          |
+| 2     | 8px    | `p-2`          |
+| 3     | 12px   | `p-3`          |
+| 4     | 16px   | `p-4`          |
+| 5     | 20px   | `p-5`          |
+| 6     | 24px   | `p-6`          |
+| 8     | 32px   | `p-8`          |
+| 10    | 40px   | `p-10`         |
+| 12    | 48px   | `p-12`         |
+| 16    | 64px   | `p-16`         |
 
 ---
 
 ## Border Radius
 
 ```css
---radius-none:   0;
---radius-sm:     4px;    /* Buttons, inputs */
---radius-md:     8px;    /* Cards, modals */
---radius-lg:     12px;   /* Large containers */
---radius-xl:     16px;   /* Hero sections */
---radius-full:   9999px; /* Pills, avatars */
+--radius-sm:   6px;    /* Inputs, badges, small cards */
+--radius-md:   8px;    /* Buttons, cards, panels */
+--radius-lg:   12px;   /* Modals, drawers, large cards */
+--radius-xl:   16px;   /* Hero elements, feature cards */
+--radius-full: 9999px; /* Pills, avatars, toggles */
 ```
 
 ---
 
 ## Shadows
 
-Subtle, warm shadows — not harsh:
+Warm, subtle depth — warm undertones in light mode, deeper in dark mode.
+
+### Light Mode
 
 ```css
---shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.3);
---shadow-md:   0 4px 6px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.2);
---shadow-lg:   0 10px 15px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2);
---shadow-xl:   0 20px 25px rgba(0, 0, 0, 0.35), 0 8px 10px rgba(0, 0, 0, 0.2);
+--shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.05);
+--shadow-md: 0 4px 6px -1px rgba(28, 25, 23, 0.07);
+--shadow-lg: 0 10px 15px -3px rgba(28, 25, 23, 0.08);
+```
 
-/* Glow for focus states */
---shadow-focus: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent-primary);
+### Dark Mode
+
+```css
+--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.20);
+--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.30);
+--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
 ```
 
 ---
 
 ## Transitions
 
-Consistent, snappy animations:
-
 ```css
---duration-fast:   100ms;
---duration-normal: 150ms;
---duration-slow:   250ms;
+--duration-fast:   100ms;   /* Hover states, opacity shifts */
+--duration-normal: 180ms;   /* Most transitions */
+--duration-slow:   250ms;   /* Drawers, panels, modals */
+--duration-spring: 300ms;   /* Playful micro-interactions */
 
---ease-default:    cubic-bezier(0.4, 0, 0.2, 1);
---ease-in:         cubic-bezier(0.4, 0, 1, 1);
---ease-out:        cubic-bezier(0, 0, 0.2, 1);
---ease-bounce:     cubic-bezier(0.34, 1.56, 0.64, 1);
-```
-
-### Default Transition
-
-```css
-transition: all var(--duration-normal) var(--ease-default);
+--ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+--ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
 ```
 
 ---
 
-## Component Specifications
+## Background Pattern
 
-### Buttons
+Subtle grid overlay (Claude Cowork signature). Barely perceptible.
 
-**Primary Button**
 ```css
-.btn-primary {
-  background: var(--accent-primary);
-  color: var(--text-inverse);
-  padding: 10px 20px;
-  border-radius: var(--radius-sm);
-  font-weight: var(--font-medium);
-  font-size: 14px;
-  transition: all var(--duration-normal) var(--ease-default);
+.nio-pattern::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--pattern-color) 1px, transparent 1px);
+  background-size: 24px 24px;
+  z-index: 1;
 }
-.btn-primary:hover {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-}
+
+/* Light mode: --pattern-opacity: 0.018 */
+/* Dark mode:  --pattern-opacity: 0.02  */
 ```
 
-**Secondary Button**
-```css
-.btn-secondary {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  border: 1px solid var(--border-default);
-  /* Same padding/radius as primary */
-}
-.btn-secondary:hover {
-  background: var(--bg-hover);
-  border-color: var(--border-strong);
-}
-```
+Applied on `<body>` via `nio-pattern` class in `layout.tsx`.
 
-**Ghost Button**
-```css
-.btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
-}
-.btn-ghost:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-```
+---
 
-### Cards
+## Focus States
+
+Global warm accent focus ring:
 
 ```css
-.card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-5);
-}
-.card:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
-}
-```
-
-### Inputs
-
-```css
-.input {
-  background: var(--bg-base);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  color: var(--text-primary);
-  font-size: 14px;
-}
-.input:focus {
-  border-color: var(--accent-primary);
-  box-shadow: var(--shadow-focus);
-  outline: none;
-}
-.input::placeholder {
-  color: var(--text-muted);
-}
-```
-
-### Sidebar Navigation
-
-```css
-.nav-item {
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-size: 14px;
-  transition: all var(--duration-fast) var(--ease-default);
-}
-.nav-item:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-.nav-item.active {
-  background: var(--accent-subtle);
-  color: var(--accent-primary);
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 ```
 
 ---
 
-## Icons
+## Skeleton Loaders
 
-- **Style:** Outline/stroke icons (not filled)
-- **Size:** 16px (sm), 20px (md), 24px (lg)
+### Standard (theme-aware)
+
+```css
+.nio-shimmer {
+  background: linear-gradient(90deg, var(--surface-muted) 25%, var(--surface) 50%, var(--surface-muted) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+```
+
+### Workspace (always-dark code surfaces)
+
+```css
+.nio-shimmer-workspace {
+  background: linear-gradient(90deg, var(--workspace-border-muted) 25%, var(--workspace-border) 50%, var(--workspace-border-muted) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+```
+
+---
+
+## Theme System
+
+- **Mechanism:** `data-theme` attribute on `<html>` element
+- **Options:** `light`, `dark`, system preference (default)
+- **Blocking script** in `<head>` prevents flash — reads `localStorage("niotebook.theme")` or `prefers-color-scheme`
+- **Landing page:** Capsule ThemeToggle component (dark/light/system)
+- **Workspace:** Always dark via `workspace-*` tokens (no theme switching)
+- **Tailwind 4:** `@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));`
+
+---
+
+## Tailwind 4 Integration
+
+No `tailwind.config.js` — uses `@theme inline` in `globals.css`:
+
+```css
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-accent: var(--accent);
+  /* ... all tokens mapped to Tailwind utilities */
+
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-code);
+  --font-display: var(--font-orbitron);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+}
+```
+
+---
+
+## Icon System
+
+- **Library:** Phosphor Icons (existing)
+- **Style:** Outline/stroke (not filled)
+- **Sizes:** 16px (sm), 20px (md), 24px (lg)
 - **Stroke Width:** 1.5-2px
-- **Library Recommendation:** Lucide Icons or Heroicons (outline)
 
 ---
 
-## Micro-interactions
+## Key Files
 
-### Hover States
-- Subtle background color shift
-- Optional: slight translateY(-1px) lift for clickable cards
-- Border color intensifies
-
-### Focus States
-- Remove default outline
-- Add custom focus ring (2px accent color with gap)
-
-### Loading States
-- Skeleton screens with subtle shimmer animation
-- Spinner: simple rotating circle, not complex
-
-### Transitions to Implement
-- Page transitions: subtle fade (150ms)
-- Modal: fade + slight scale from 0.95 to 1
-- Dropdown: fade + translateY from -4px to 0
-- Toast: slide in from bottom-right
-
----
-
-## Tailwind Config
-
-```js
-// tailwind.config.js
-module.exports = {
-  theme: {
-    extend: {
-      colors: {
-        // Backgrounds
-        'nio-base': '#1a1a1a',
-        'nio-surface': '#232323',
-        'nio-elevated': '#2a2a2a',
-        'nio-hover': '#333333',
-        'nio-active': '#3d3d3d',
-
-        // Text
-        'nio-text': '#f5f5f5',
-        'nio-text-secondary': '#a3a3a3',
-        'nio-text-muted': '#737373',
-
-        // Accent
-        'nio-accent': '#d97706',
-        'nio-accent-hover': '#f59e0b',
-
-        // Borders
-        'nio-border': '#2e2e2e',
-        'nio-border-strong': '#404040',
-
-        // Status
-        'nio-success': '#22c55e',
-        'nio-warning': '#eab308',
-        'nio-error': '#ef4444',
-        'nio-info': '#3b82f6',
-      },
-      fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
-      },
-      borderRadius: {
-        'nio-sm': '4px',
-        'nio-md': '8px',
-        'nio-lg': '12px',
-      },
-      boxShadow: {
-        'nio-sm': '0 1px 2px rgba(0, 0, 0, 0.3)',
-        'nio-md': '0 4px 6px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.2)',
-        'nio-lg': '0 10px 15px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2)',
-        'nio-focus': '0 0 0 2px #1a1a1a, 0 0 0 4px #d97706',
-      },
-      transitionDuration: {
-        'fast': '100ms',
-        'normal': '150ms',
-        'slow': '250ms',
-      },
-    },
-  },
-}
-```
-
----
-
-## File Structure for Implementation
-
-```
-src/
-├── styles/
-│   ├── globals.css         # CSS variables, base styles
-│   └── components.css      # Reusable component classes (optional)
-├── components/
-│   ├── ui/                  # Primitive components
-│   │   ├── Button.tsx
-│   │   ├── Card.tsx
-│   │   ├── Input.tsx
-│   │   ├── Badge.tsx
-│   │   └── ...
-│   └── layout/             # Layout components
-│       ├── Sidebar.tsx
-│       ├── Header.tsx
-│       └── PageContainer.tsx
-```
-
----
-
-## Next Steps
-
-1. [ ] Update `tailwind.config.js` with new design tokens
-2. [ ] Create base component library (`Button`, `Card`, `Input`)
-3. [ ] Design Dashboard/Home mockup
-4. [ ] Design Course Browser mockup
-5. [ ] Design Settings mockup
-6. [ ] Apply theme to Learning Workspace
+| File | Purpose |
+|------|---------|
+| `src/app/globals.css` | Canonical token definitions + base styles |
+| `src/app/layout.tsx` | Font loading, theme script, body classes |
+| `src/ui/landing/ThemeToggle.tsx` | Capsule theme toggle component |
+| `src/ui/landing/NotebookFrame.tsx` | 3-layer binder frame component |
+| `src/ui/brand/Wordmark.tsx` | Text-based Orbitron wordmark |
+| `docs/redesign/REDESIGN_BRIEF.md` | Design direction and decisions |
+| `docs/redesign/PROGRESS.md` | Phase-by-phase implementation log |

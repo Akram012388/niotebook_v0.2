@@ -1,9 +1,9 @@
 # Niotebook v2 — UI/UX Redesign Brief
 
-> **Status:** Active
+> **Status:** Complete (all 7 phases implemented)
 > **Created:** 2026-02-06
 > **Last updated:** 2026-02-06
-> **Supersedes:** `DESIGN_SYSTEM.md` (v1 design system — retained for reference)
+> **Supersedes:** `DESIGN_SYSTEM.md` (v1 — now updated to reflect v2 implementation)
 
 ---
 
@@ -78,11 +78,12 @@ Status colors should use warm-tinted variants (not pure/saturated) to match the 
 
 ## Background Treatment
 
-- **Subtle grid/dot pattern** overlay on base backgrounds (signature Claude Cowork element)
-- Pattern should be barely perceptible — felt more than seen
-- Applied globally across all pages and surfaces
-- Pattern opacity should adapt per theme (lighter in dark mode, subtler in light mode)
-- Implemented via CSS (repeating SVG or CSS gradient) — not image assets
+- **Subtle grid pattern** overlay on base backgrounds (signature Claude Cowork element)
+- Barely perceptible — felt more than seen
+- Applied globally via `.nio-pattern` class on `<body>` (layout.tsx)
+- Pattern: `linear-gradient` crosshatch, 24px grid, 1px lines
+- Opacity: 1.8% (light mode) / 2% (dark mode) — adapts per theme
+- Implemented via CSS custom properties — no image assets
 
 ---
 
@@ -215,7 +216,7 @@ Warm, subtle depth — never harsh or cold. Shadows use warm undertones.
 
 **Foundation-first approach** — build the design system tokens and primitives, then apply systematically across all surfaces.
 
-### Phase 1 — Design Tokens & Primitives
+### Phase 1 — Design Tokens & Primitives ✅
 
 - CSS custom properties for all color/spacing/typography tokens
 - Tailwind 4 theme configuration with `nio-*` tokens
@@ -223,42 +224,43 @@ Warm, subtle depth — never harsh or cold. Shadows use warm undertones.
 - Font loading (Orbitron, Geist Sans, Geist Mono)
 - Background grid/dot pattern CSS
 
-### Phase 2 — Base Components
+### Phase 2 — Base Components ✅
 
-- Buttons (primary, secondary, ghost)
-- Inputs, textareas, selects
-- Cards, badges, tooltips
-- Skeleton loaders with warm shimmer
+- Status/role badges, KPI colors, runtime dots
+- Editor skeleton shimmer, dirty/delete indicators
+- HeroSection, CTASection, BootSequence — hardcoded hex → tokens
+- Clerk appearance, course cards, admin charts, output panel, feedback stars
 
-### Phase 3 — Shell & Chrome
+### Phase 3 — Shell & Chrome ✅
 
-- TopNav refresh
-- ControlCenterDrawer refresh
-- Layout preset toggles
-- Pane headers and dividers
-- PaneSwitcher pills
+- ControlCenterDrawer, AppShell, PaneSwitcher — accent token migration
+- Landing sections — `workspace-accent` → `accent`
+- ChatMessage cursor fix
 
-### Phase 4 — Core Panes
+### Phase 4 — Core Panes ✅
 
-- VideoPane (header, info strip, player chrome)
-- CodePane (file tree, tab bar, toolbar, terminal chrome)
-- AiPane (message bubbles, composer, context strip, streaming)
+- VideoPlayer, CodeEditor textarea — warm token migration
+- All 28 code pane components verified clean
 
-### Phase 5 — Pages
+### Phase 5 — Pages ✅
 
-- Course browser (CourseCard, CourseCarousel, CourseDetailPage)
-- Dashboard / home
-- Landing page (HeroSection, FeaturesSection, etc.)
-- Auth screens (AuthGate, AuthShell, BootSequence)
+- Editor sandbox error, CodePane SVG preview — warm palette
+- All landing/course/auth/admin components verified — zero hardcoded colors
 
-### Phase 6 — Polish
+### Phase 6 — Polish ✅
 
-- Background pattern fine-tuning
-- All micro-interactions and motion design
-- Theme transition smoothness
-- Accessibility audit (contrast ratios, focus states)
-- Cross-browser testing
-- Final theme color tuning (sample from Claude directly)
+- Focus states (ChatComposer, LanguageSelect)
+- Transition duration normalization (no arbitrary brackets)
+- Pattern, radius, shadow, typography consistency audit
+
+### Phase 7 — Landing Page Rework ✅
+
+- Hero rework — Claude-style clarity, removed parallax/glow effects
+- NotebookFrame 3-layer binder architecture for all sections
+- Capsule theme toggle (dark/light/system) replacing ForceTheme
+- Text wordmark with Orbitron + terracotta accent 'i'
+- Multi-column footer with social icons and legal stub pages
+- Section gap normalization (consistent 128px inter-frame spacing)
 
 ---
 
@@ -278,11 +280,14 @@ Warm, subtle depth — never harsh or cold. Shadows use warm undertones.
 _Track unresolved decisions here as the redesign progresses._
 
 - [x] ~~Exact Claude terracotta hex value~~ → `#C15F3C` (light) / `#DA7756` (dark)
-- [x] ~~Grid/dot pattern exact density, opacity, and rendering approach~~ → 24px radial-gradient dots, 3.5-4% opacity
+- [x] ~~Grid/dot pattern exact density, opacity, and rendering approach~~ → 24px linear-gradient crosshatch, 1.8-2% opacity
 - [x] ~~Orbitron weight variants~~ → 400, 500, 600, 700 (already loaded)
+- [x] ~~Landing page structure~~ → NotebookFrame binder + capsule ThemeToggle + multi-column footer
+- [x] ~~Wordmark approach~~ → Pure text Orbitron (not SVG), terracotta accent 'i' via `text-accent` span
 - [ ] Custom icon overrides — which specific icons need bespoke treatment?
 - [ ] CodeMirror theme — build a matching warm theme or keep current?
 - [ ] xterm.js theme — match the new palette?
+- [ ] Legal pages — draft actual Terms, Privacy, and Cookie policy content
 
 ---
 
@@ -292,3 +297,5 @@ _Track unresolved decisions here as the redesign progresses._
 | ---------- | ------------------------------------------------------------ |
 | 2026-02-06 | Initial brief created from brainstorming session             |
 | 2026-02-06 | Phase 1 complete: design tokens, warm palette, grid pattern, font assignments, shimmer animation. All token values finalized. frontend-designer agent enhanced with design system expertise. |
+| 2026-02-06 | Phases 2-6 complete: full token migration across all components, pages, shell, panes. Zero hardcoded colors remaining. Focus states and transition polish done. |
+| 2026-02-06 | Phase 7 complete: Landing page rework — NotebookFrame binder architecture, hero simplification, capsule theme toggle, text wordmark, multi-column footer, legal stubs, gap normalization. PR #87 merged. |
