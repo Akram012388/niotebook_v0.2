@@ -165,7 +165,7 @@
   /* Typography */
   --font-sans: var(--font-body);
   --font-mono: var(--font-code);
-  --font-display: var(--font-display);
+  --font-display: var(--font-orbitron);
   --font-logo: var(--font-orbitron);
 
   /* Shadows */
@@ -219,13 +219,14 @@ button:disabled {
 
 .nio-pattern::before {
   content: "";
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle, var(--pattern-color) 1px, transparent 1px);
-  background-size: 24px 24px;
-  z-index: 0;
+    linear-gradient(var(--pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--pattern-color) 1px, transparent 1px);
+  background-size: 14px 14px;
+  z-index: 1;
 }
 
 /* ==========================================================================

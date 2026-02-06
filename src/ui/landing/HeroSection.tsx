@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export function HeroSection(): ReactElement {
   return (
-    <section className="relative flex flex-col items-center justify-center overflow-hidden px-6 sm:px-8 pt-32 sm:pt-40 md:pt-48 pb-16 sm:pb-20 bg-background">
+    <section className="relative flex flex-col items-center justify-center overflow-hidden px-6 sm:px-8 pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-20">
       <div className="relative z-10 max-w-4xl mx-auto text-center">
         {/* Badge */}
         <motion.div
