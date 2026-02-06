@@ -80,7 +80,9 @@
 }
 
 /* --------------------------------------------------------------------------
-   Dark theme
+   Dark theme — single source of truth.
+   The blocking <script> in layout.tsx sets data-theme before first paint
+   (from localStorage or system preference), so no @media fallback is needed.
    -------------------------------------------------------------------------- */
 [data-theme="dark"] {
   --background: #1C1917;
@@ -123,43 +125,6 @@
 
   --pattern-opacity: 0.04;
   --pattern-color: rgba(244, 243, 238, var(--pattern-opacity));
-}
-
-/* --------------------------------------------------------------------------
-   System preference fallback (when no explicit data-theme is set)
-   -------------------------------------------------------------------------- */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --background: #1C1917;
-    --foreground: #F4F3EE;
-    --surface: #252220;
-    --surface-muted: #2E2A27;
-    --surface-strong: #141210;
-    --surface-strong-foreground: #F4F3EE;
-    --border: #3A3531;
-    --border-muted: #2E2A27;
-
-    --text-muted: #A8A29E;
-    --text-subtle: #78716C;
-
-    --accent: #DA7756;
-    --accent-foreground: #1C1917;
-    --accent-muted: rgba(218, 119, 86, 0.15);
-    --accent-border: rgba(218, 119, 86, 0.30);
-    --accent-hover: #E8906E;
-
-    --status-success: #6DA072;
-    --status-warning: #D4A748;
-    --status-error: #E06B5A;
-    --status-info: #7A9FC0;
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.20);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.30);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
-
-    --pattern-opacity: 0.04;
-    --pattern-color: rgba(244, 243, 238, var(--pattern-opacity));
-  }
 }
 
 /* ==========================================================================
@@ -372,8 +337,8 @@ button:disabled {
   margin: 0.5em 0;
   padding: 0.75em 1em;
   border-radius: var(--radius-md);
-  background: #1C1917;
-  color: #E7E0D8;
+  background: var(--surface-strong);
+  color: var(--surface-strong-foreground);
   overflow-x: auto;
   font-size: 0.8125rem;
   line-height: 1.6;
