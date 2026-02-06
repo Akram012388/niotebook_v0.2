@@ -134,7 +134,7 @@ function FeatureCard({
 }): ReactElement {
   return (
     <motion.div
-      className="group relative p-6 sm:p-8 rounded-2xl border border-border bg-surface transition-all duration-300 hover:border-workspace-accent/30 hover:shadow-xl hover:shadow-workspace-accent/5"
+      className="group relative p-6 sm:p-8 rounded-2xl border border-border bg-surface transition-all duration-300 hover:border-accent/30 hover:shadow-xl hover:shadow-accent/5"
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
@@ -154,11 +154,11 @@ function FeatureCard({
       <div
         className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         style={{
-          background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 255, 102, 0.04), transparent 60%)`,
+          background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--accent-muted), transparent 60%)`,
         }}
       />
       <div className="relative">
-        <div className="mb-4 text-workspace-accent">{feature.icon}</div>
+        <div className="mb-4 text-accent">{feature.icon}</div>
         <h3 className="text-base sm:text-lg font-semibold mb-2">
           {feature.title}
         </h3>
@@ -189,7 +189,7 @@ export function FeaturesSection(): ReactElement {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-xs font-mono uppercase tracking-[0.2em] mb-4 text-workspace-accent/60">
+          <p className="text-xs font-mono uppercase tracking-[0.2em] mb-4 text-accent/60">
             How it works
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">

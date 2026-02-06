@@ -84,7 +84,7 @@ function StreamingContent({ content }: { content: string }): ReactElement {
         {visibleContent}
       </ReactMarkdown>
       <span
-        className="ml-0.5 inline-block h-4 w-[2px] align-text-bottom bg-foreground dark:bg-workspace-accent"
+        className="ml-0.5 inline-block h-4 w-[2px] align-text-bottom bg-foreground dark:bg-accent"
         style={{ animation: "blink 1s step-end infinite" }}
         aria-hidden="true"
       />

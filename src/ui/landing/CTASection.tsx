@@ -18,7 +18,7 @@ export function CTASection(): ReactElement {
         <div className="inline-block font-mono text-xs px-4 py-2 rounded-lg mb-8 border border-border bg-surface-muted">
           <span className="text-text-muted">$</span>{" "}
           <span className="text-foreground">niotebook</span>{" "}
-          <span className="text-workspace-accent">--start</span>{" "}
+          <span className="text-accent">--start</span>{" "}
           <span className="text-text-subtle">your-cs-journey</span>
         </div>
 
