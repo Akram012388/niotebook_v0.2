@@ -135,7 +135,7 @@ function FeatureCard({
 }): ReactElement {
   return (
     <motion.div
-      className="group relative p-6 sm:p-8 rounded-2xl border border-border bg-surface/50 transition-all duration-200 hover:border-accent/30 hover:shadow-md"
+      className="group relative p-6 sm:p-8 rounded-2xl border border-border bg-surface transition-all duration-200 hover:border-accent/30 hover:shadow-md"
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
@@ -154,8 +154,8 @@ function FeatureCard({
 
 export function FeaturesSection(): ReactElement {
   return (
-    <section className="relative py-16 sm:py-20 px-4 sm:px-6">
-      <div className="max-w-5xl mx-auto">
+    <section className="relative py-12 sm:py-16 px-4 sm:px-6">
+      <div className="max-w-4xl mx-auto">
         <motion.div
           className="text-center mb-10 sm:mb-12"
           initial={{ opacity: 0, y: 16 }}

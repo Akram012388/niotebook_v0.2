@@ -8,8 +8,8 @@ const UNIVERSITIES = ["Harvard", "MIT", "Yale", "Stanford"] as const;
 
 export function StatsSection(): ReactElement {
   return (
-    <section className="relative py-10 sm:py-14 px-4 sm:px-6">
-      <div className="max-w-3xl mx-auto">
+    <section className="relative py-12 sm:py-16 px-4 sm:px-6">
+      <div className="max-w-4xl mx-auto">
         <NotebookFrame>
           <motion.div
             className="text-center"

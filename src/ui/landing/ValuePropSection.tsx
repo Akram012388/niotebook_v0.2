@@ -29,8 +29,8 @@ const VALUE_PROPS: ValueProp[] = [
 
 export function ValuePropSection(): ReactElement {
   return (
-    <section className="relative py-16 sm:py-20 px-4 sm:px-6">
-      <div className="max-w-3xl mx-auto">
+    <section className="relative py-12 sm:py-16 px-4 sm:px-6">
+      <div className="max-w-4xl mx-auto">
         <NotebookFrame>
           <motion.div
             className="text-center mb-10 sm:mb-12"
