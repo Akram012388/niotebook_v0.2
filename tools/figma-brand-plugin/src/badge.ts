@@ -1,5 +1,6 @@
 import {
   loadLogoFont,
+  getLogoFont,
   getOrCreatePage,
   solidPaint,
   COLORS,
@@ -14,7 +15,7 @@ export async function buildBadge() {
   const page = getOrCreatePage("Logo System");
   figma.currentPage = page;
 
-  const FONT: FontName = { family: "Orbitron", style: "Bold" };
+  const FONT = getLogoFont();
   const FONT_SIZE = 14;
   const HEIGHT = 28;
   const PADDING = 8;

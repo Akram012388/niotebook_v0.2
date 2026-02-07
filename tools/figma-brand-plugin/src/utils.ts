@@ -220,10 +220,37 @@ export function svgExport(): ExportSettingsSVG {
 // Logo building blocks
 // ---------------------------------------------------------------------------
 
-const LOGO_FONT: FontName = { family: "Orbitron", style: "Bold" };
+const LOGO_FONTS: FontName[] = [
+  { family: "Orbitron", style: "Bold" },
+  { family: "Orbitron", style: "Regular" },
+  { family: "Inter", style: "Bold" },
+];
 
-export async function loadLogoFont() {
-  await figma.loadFontAsync(LOGO_FONT);
+let _loadedLogoFont: FontName | null = null;
+
+export async function loadLogoFont(): Promise<FontName> {
+  if (_loadedLogoFont) return _loadedLogoFont;
+
+  for (const font of LOGO_FONTS) {
+    try {
+      console.log(`[niotebook] trying font: ${font.family} ${font.style}`);
+      await figma.loadFontAsync(font);
+      _loadedLogoFont = font;
+      console.log(`[niotebook] loaded font: ${font.family} ${font.style}`);
+      return font;
+    } catch {
+      console.log(`[niotebook] font not available: ${font.family} ${font.style}`);
+    }
+  }
+
+  throw new Error(
+    "No logo font available. Install Orbitron (Google Fonts) in Figma or on your system.",
+  );
+}
+
+export function getLogoFont(): FontName {
+  if (!_loadedLogoFont) throw new Error("Call loadLogoFont() first");
+  return _loadedLogoFont;
 }
 
 /**
@@ -234,8 +261,9 @@ export function buildLogoGroup(
   label: string,
   fontSize: number,
 ): { frame: FrameNode; text: TextNode; bar: RectangleNode } {
+  const font = getLogoFont();
   const text = figma.createText();
-  text.fontName = LOGO_FONT;
+  text.fontName = font;
   text.fontSize = fontSize;
   text.characters = label;
   text.textAlignHorizontal = "CENTER";
