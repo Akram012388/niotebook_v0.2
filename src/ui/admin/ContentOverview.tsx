@@ -55,18 +55,23 @@ const ContentOverview = (): ReactElement => {
       <h1 className="text-2xl font-semibold text-foreground">Content</h1>
 
       {data === undefined ? (
-        <p className="text-sm text-muted">Loading…</p>
+        <div className="flex items-center gap-3 py-8">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-accent" />
+          <p className="text-sm text-text-muted">Loading...</p>
+        </div>
       ) : data.length === 0 ? (
-        <p className="text-sm text-muted">No courses found.</p>
+        <div className="rounded-2xl border border-dashed border-border bg-surface-muted px-6 py-12 text-center">
+          <p className="text-sm text-text-muted">No courses found.</p>
+        </div>
       ) : (
         data.map((course) => (
           <div
             key={course.id}
-            className="rounded-lg border border-border bg-surface"
+            className="rounded-2xl border border-border bg-surface transition-all duration-200 hover:border-accent/20 hover:shadow-md"
           >
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
               <h2 className="font-medium text-foreground">{course.title}</h2>
-              <span className="font-mono text-xs text-muted">
+              <span className="rounded-full bg-accent-muted px-2.5 py-0.5 font-mono text-xs font-medium text-accent">
                 {course.lessonCount} lessons
               </span>
             </div>
@@ -74,22 +79,22 @@ const ContentOverview = (): ReactElement => {
               <table className="w-full text-xs">
                 <thead className="border-b border-border bg-surface-muted">
                   <tr>
-                    <th className="px-4 py-2 text-left font-mono font-medium text-muted">
+                    <th className="px-4 py-3 text-left font-mono text-xs font-medium text-text-muted">
                       #
                     </th>
-                    <th className="px-4 py-2 text-left font-mono font-medium text-muted">
+                    <th className="px-4 py-3 text-left font-mono text-xs font-medium text-text-muted">
                       Title
                     </th>
-                    <th className="px-4 py-2 text-left font-mono font-medium text-muted">
+                    <th className="px-4 py-3 text-left font-mono text-xs font-medium text-text-muted">
                       Duration
                     </th>
-                    <th className="px-4 py-2 text-left font-mono font-medium text-muted">
+                    <th className="px-4 py-3 text-left font-mono text-xs font-medium text-text-muted">
                       Transcript
                     </th>
-                    <th className="px-4 py-2 text-right font-mono font-medium text-muted">
+                    <th className="px-4 py-3 text-right font-mono text-xs font-medium text-text-muted">
                       Completions
                     </th>
-                    <th className="px-4 py-2 text-right font-mono font-medium text-muted">
+                    <th className="px-4 py-3 text-right font-mono text-xs font-medium text-text-muted">
                       Events
                     </th>
                   </tr>
@@ -98,28 +103,28 @@ const ContentOverview = (): ReactElement => {
                   {course.lessons.map((lesson) => (
                     <tr
                       key={lesson.id}
-                      className="border-b border-border last:border-0"
+                      className="border-b border-border last:border-0 transition-colors duration-100 hover:bg-surface-muted/50"
                     >
-                      <td className="px-4 py-2 font-mono text-muted">
+                      <td className="px-4 py-2.5 font-mono text-text-muted">
                         {lesson.order}
                       </td>
-                      <td className="px-4 py-2 text-foreground">
+                      <td className="px-4 py-2.5 text-foreground">
                         {lesson.title}
                       </td>
-                      <td className="px-4 py-2 font-mono text-muted">
+                      <td className="px-4 py-2.5 font-mono text-text-muted">
                         {formatDuration(lesson.durationSec)}
                       </td>
-                      <td className="px-4 py-2">
+                      <td className="px-4 py-2.5">
                         <span
                           className={`font-mono ${statusColor(lesson.transcriptStatus)}`}
                         >
                           {lesson.transcriptStatus ?? "—"}
                         </span>
                       </td>
-                      <td className="px-4 py-2 text-right font-mono text-foreground">
+                      <td className="px-4 py-2.5 text-right font-mono text-foreground">
                         {lesson.completionCount}
                       </td>
-                      <td className="px-4 py-2 text-right font-mono text-foreground">
+                      <td className="px-4 py-2.5 text-right font-mono text-foreground">
                         {lesson.eventCount}
                       </td>
                     </tr>

@@ -23,17 +23,19 @@ const formatTime = (ms: number): string =>
   });
 
 const ActivityFeed = ({ events }: ActivityFeedProps): ReactElement => (
-  <div className="rounded-lg border border-border bg-surface">
-    <div className="border-b border-border px-4 py-3">
-      <h3 className="text-xs font-medium tracking-wide text-muted uppercase">
+  <div className="rounded-2xl border border-border bg-surface transition-all duration-200 hover:border-accent/20 hover:shadow-md">
+    <div className="border-b border-border px-5 py-3.5">
+      <h3 className="text-xs font-semibold font-mono uppercase tracking-[0.15em] text-accent">
         Recent Activity
       </h3>
     </div>
-    <div className="max-h-64 overflow-y-auto">
+    <div className="max-h-72 overflow-y-auto">
       {events === undefined ? (
-        <p className="px-4 py-6 text-center text-sm text-muted">Loading…</p>
+        <p className="px-5 py-8 text-center text-sm text-text-muted">
+          Loading...
+        </p>
       ) : events.length === 0 ? (
-        <p className="px-4 py-6 text-center text-sm text-muted">
+        <p className="px-5 py-8 text-center text-sm text-text-muted">
           No events yet.
         </p>
       ) : (
@@ -44,15 +46,15 @@ const ActivityFeed = ({ events }: ActivityFeedProps): ReactElement => (
                 key={event.id}
                 className="border-b border-border last:border-0"
               >
-                <td className="px-4 py-2">
-                  <span className="rounded bg-surface-muted px-1.5 py-0.5 font-mono text-foreground">
+                <td className="px-5 py-2.5">
+                  <span className="rounded-md bg-accent-muted px-2 py-0.5 font-mono text-accent">
                     {event.type}
                   </span>
                 </td>
-                <td className="px-4 py-2 font-mono text-muted">
+                <td className="px-5 py-2.5 font-mono text-text-muted">
                   {event.userId ? event.userId.slice(0, 8) : "—"}
                 </td>
-                <td className="px-4 py-2 text-muted">
+                <td className="px-5 py-2.5 text-text-muted">
                   {formatTime(event.createdAt)}
                 </td>
               </tr>

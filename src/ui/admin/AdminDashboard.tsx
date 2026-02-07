@@ -83,18 +83,19 @@ const AdminDashboard = (): ReactElement => {
   const eventLog = useQuery(eventLogRef, { limit: 20 });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
-        <div className="flex gap-1 rounded-lg border border-border bg-surface p-0.5">
+        <div className="flex gap-1 rounded-xl border border-border bg-surface p-1">
           {(["1d", "7d", "30d"] as TimeRange[]).map((r) => (
             <button
               key={r}
               onClick={() => setRange(r)}
-              className={`rounded-md px-3 py-1 font-mono text-xs font-medium transition-colors ${
+              className={`rounded-lg px-3 py-1.5 font-mono text-xs font-medium transition-colors duration-150 ${
                 range === r
-                  ? "bg-foreground text-background"
-                  : "text-muted hover:text-foreground"
+                  ? "bg-accent text-white shadow-sm"
+                  : "text-text-muted hover:text-foreground hover:bg-surface-muted"
               }`}
             >
               {r}
@@ -103,25 +104,39 @@ const AdminDashboard = (): ReactElement => {
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-4">
-        <KpiCard label="Active Users" value={activeUsers} />
-        <KpiCard label="Sessions" value={sessions} />
-        <KpiCard label="AI Requests" value={aiRequests} />
-        <KpiCard label="Code Runs" value={codeExecs} />
-        <KpiCard label="Total Lessons" value={totalLessons} />
-      </div>
+      {/* KPI Section */}
+      <section className="space-y-3">
+        <p className="text-xs font-semibold font-mono uppercase tracking-[0.15em] text-accent">
+          Overview
+        </p>
+        <div className="grid grid-cols-5 gap-4">
+          <KpiCard label="Active Users" value={activeUsers} />
+          <KpiCard label="Sessions" value={sessions} />
+          <KpiCard label="AI Requests" value={aiRequests} />
+          <KpiCard label="Code Runs" value={codeExecs} />
+          <KpiCard label="Total Lessons" value={totalLessons} />
+        </div>
+      </section>
 
-      <div className="grid grid-cols-2 gap-4">
-        <DauChart data={dauSeries} />
-        <AiUsageChart data={aiSeries} />
-      </div>
+      {/* Charts Section */}
+      <section className="space-y-3">
+        <p className="text-xs font-semibold font-mono uppercase tracking-[0.15em] text-accent">
+          Trends
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          <DauChart data={dauSeries} />
+          <AiUsageChart data={aiSeries} />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <UserGrowthChart data={userGrowth} />
+          <TopLessonsChart data={topLessons} />
+        </div>
+      </section>
 
-      <div className="grid grid-cols-2 gap-4">
-        <UserGrowthChart data={userGrowth} />
-        <TopLessonsChart data={topLessons} />
-      </div>
-
-      <ActivityFeed events={eventLog} />
+      {/* Activity Section */}
+      <section className="space-y-3">
+        <ActivityFeed events={eventLog} />
+      </section>
     </div>
   );
 };
