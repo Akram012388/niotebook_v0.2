@@ -14,7 +14,7 @@ export async function buildAppIcon() {
   await loadLogoFont();
 
   const page = getOrCreatePage("App Icons");
-  figma.currentPage = page;
+  await figma.setCurrentPageAsync(page);
 
   const SIZE = 1024;
   const RADIUS = 180;

@@ -27,7 +27,7 @@ export async function buildFavicons() {
   await loadLogoFont();
 
   const page = getOrCreatePage("App Icons");
-  figma.currentPage = page;
+  await figma.setCurrentPageAsync(page);
 
   let offsetX = 1200; // after app icon master
 

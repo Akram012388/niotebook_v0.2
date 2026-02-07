@@ -13,7 +13,7 @@ export async function buildWordmark() {
   await loadLogoFont();
 
   const page = getOrCreatePage("Logo System");
-  figma.currentPage = page;
+  await figma.setCurrentPageAsync(page);
 
   const FONT_SIZE = 120;
   const variants: ("Light" | "Dark")[] = ["Light", "Dark"];
