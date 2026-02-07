@@ -1,5 +1,6 @@
 import {
   loadLogoFont,
+  getLogoFont,
   getOrCreatePage,
   solidPaint,
   COLORS,
@@ -15,7 +16,7 @@ export async function buildEmailSig() {
   figma.currentPage = page;
 
   const WIDTH = 300;
-  const FONT: FontName = { family: "Orbitron", style: "Bold" };
+  const FONT = getLogoFont();
 
   const frame = figma.createFrame();
   frame.name = "Email/niotebook-email-sig";

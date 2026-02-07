@@ -51,15 +51,44 @@ async function buildGuide() {
   await buildBrandGuide();
 }
 
+async function runStep(name: string, fn: () => Promise<void>): Promise<boolean> {
+  try {
+    console.log("[niotebook] step " + name + ": starting…");
+    await fn();
+    console.log("[niotebook] step " + name + ": done");
+    return true;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : "";
+    console.error("[niotebook] step " + name + " FAILED:", msg);
+    console.error("[niotebook] STACK:", stack);
+    figma.notify("⚠ " + name + " failed: " + msg, { error: true });
+    return false;
+  }
+}
+
 async function buildAll() {
   console.log("[niotebook] buildAll: starting…");
   figma.notify("Building Niotebook brand system v2…");
-  await buildStyles();
-  await buildLogos();
-  await buildSocial();
-  await buildIcons();
-  await buildGuide();
-  figma.notify("✓ Brand system v2 complete!");
+
+  const results = {
+    styles: await runStep("Styles", buildStyles),
+    logos: await runStep("Logos", buildLogos),
+    social: await runStep("Social", buildSocial),
+    icons: await runStep("Icons", buildIcons),
+    guide: await runStep("Guide", buildGuide),
+  };
+
+  const passed = Object.values(results).filter(Boolean).length;
+  const total = Object.keys(results).length;
+
+  if (passed === total) {
+    figma.notify("✓ Brand system v2 complete! (" + total + "/" + total + " steps)");
+  } else {
+    figma.notify("⚠ Brand system: " + passed + "/" + total + " steps succeeded — check console", {
+      error: true,
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------

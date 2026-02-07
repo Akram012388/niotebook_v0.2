@@ -1,4 +1,4 @@
-import { loadLogoFont, getOrCreatePage, solidPaint, COLORS } from "./utils";
+import { loadLogoFont, getLogoFont, getOrCreatePage, solidPaint, COLORS } from "./utils";
 import { COLOR_TOKENS } from "./tokens";
 
 // ---------------------------------------------------------------------------
@@ -62,14 +62,14 @@ export async function buildBrandGuide() {
       headingFont = { family: "Geist", style: "SemiBold" };
       await figma.loadFontAsync(headingFont);
     } catch {
-      headingFont = { family: "Orbitron", style: "Bold" };
+      headingFont = getLogoFont();
     }
   }
 
   const page = getOrCreatePage("Brand Guide");
   figma.currentPage = page;
 
-  const LOGO_FONT: FontName = { family: "Orbitron", style: "Bold" };
+  const LOGO_FONT = getLogoFont();
   const SECTION_GAP = 120;
   const PAGE_WIDTH = 1440;
   const SWATCH_SIZE = 64;
