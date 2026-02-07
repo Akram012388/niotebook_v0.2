@@ -1,4 +1,4 @@
-import { memo, type ReactElement } from "react";
+import { memo, useMemo, type ReactElement } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -12,42 +12,45 @@ type ChatMessageProps = {
 const remarkPlugins = [remarkGfm];
 const rehypePlugins = [rehypeHighlight];
 
-/** Full markdown render — used for completed messages. */
-const RenderedMarkdown = memo(function RenderedMarkdown({
-  content,
-}: {
-  content: string;
-}) {
-  return (
-    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins}>
-      {content}
-    </ReactMarkdown>
-  );
-});
+/**
+ * Close any open markdown constructs so react-markdown doesn't break
+ * on partial streaming content. Handles unclosed code fences.
+ */
+const closePartialMarkdown = (text: string): string => {
+  // Count triple-backtick fences (``` with optional language tag)
+  const fencePattern = /^```/gm;
+  const matches = text.match(fencePattern);
+  const fenceCount = matches?.length ?? 0;
+
+  // Odd fence count means one is unclosed — close it
+  if (fenceCount % 2 !== 0) {
+    return text + "\n```";
+  }
+
+  return text;
+};
 
 /**
- * Assistant message display:
- * - While streaming: show plain text as tokens arrive (immediate, no buffer)
- * - After stream completes: parse and render full markdown
+ * Progressive markdown render — used during streaming AND after completion.
+ * During streaming, unclosed code fences are auto-closed before rendering
+ * so partial code blocks render correctly with syntax highlighting.
  */
-const AssistantContent = memo(function AssistantContent({
+const StreamingMarkdown = memo(function StreamingMarkdown({
   content,
   isStreaming,
 }: {
   content: string;
   isStreaming?: boolean;
 }) {
+  const safeContent = useMemo(
+    () => (isStreaming ? closePartialMarkdown(content) : content),
+    [content, isStreaming],
+  );
+
   return (
-    <div
-      className="nio-markdown w-full text-sm leading-6 text-foreground"
-      data-testid="chat-message"
-    >
-      {isStreaming ? (
-        <span className="whitespace-pre-wrap">{content}</span>
-      ) : (
-        <RenderedMarkdown content={content} />
-      )}
-    </div>
+    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins}>
+      {safeContent}
+    </ReactMarkdown>
   );
 });
 
@@ -82,27 +85,15 @@ const ChatMessage = memo(function ChatMessage({
         }
       >
         {isThinking ? (
-          <div className="flex items-center pl-4 py-2">
-            <div className="relative flex items-center justify-center">
-              {/* Pulse rings (background layers) */}
-              <span
-                className="nio-thinking-ring-1 absolute h-2.5 w-2.5 rounded-full bg-accent"
-                aria-hidden="true"
-              />
-              <span
-                className="nio-thinking-ring-2 absolute h-2.5 w-2.5 rounded-full bg-accent"
-                aria-hidden="true"
-              />
-              <span
-                className="nio-thinking-ring-3 absolute h-2.5 w-2.5 rounded-full bg-accent"
-                aria-hidden="true"
-              />
-              {/* Core dot (foreground) */}
-              <span
-                className="nio-thinking relative h-2.5 w-2.5 rounded-full bg-accent opacity-70"
-                aria-hidden="true"
-              />
-            </div>
+          <div className="flex items-center pl-1 py-2">
+            <canvas
+              className="nio-thinking-orb"
+              width={80}
+              height={80}
+              style={{ width: 40, height: 40 }}
+              aria-label="Assistant is thinking"
+              role="img"
+            />
           </div>
         ) : isUser ? (
           <div className="max-w-[80%] rounded-xl border px-3 py-2 text-sm leading-6 border-border bg-surface-muted text-foreground dark:bg-surface-strong">
@@ -111,10 +102,15 @@ const ChatMessage = memo(function ChatMessage({
             </p>
           </div>
         ) : (
-          <AssistantContent
-            content={message.content}
-            isStreaming={isStreamingWithContent}
-          />
+          <div
+            className="nio-markdown w-full text-sm leading-6 text-foreground"
+            data-testid="chat-message"
+          >
+            <StreamingMarkdown
+              content={message.content}
+              isStreaming={isStreamingWithContent}
+            />
+          </div>
         )}
         {message.badge ? (
           <button
