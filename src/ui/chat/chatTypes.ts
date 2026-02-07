@@ -8,9 +8,7 @@ type ChatMessage = {
   timestampSec: number;
   createdAt: number;
   isStreaming?: boolean;
-  /** Typewriter reveal in progress (stream may still be filling content). */
-  isRevealing?: boolean;
-  /** Set when a streaming message finishes — triggers typewriter reveal. */
+  /** Set when a streaming message finishes — triggers markdown parse. */
   wasStreaming?: boolean;
   requestId?: string;
 };

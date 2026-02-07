@@ -4,12 +4,13 @@ import {
   useCallback,
   useMemo,
   useEffect,
+  useRef,
   type ReactElement,
 } from "react";
 import { useQuery } from "convex/react";
 import { ChatComposer } from "../chat/ChatComposer";
 import { ChatMessage } from "../chat/ChatMessage";
-import { ChatScroll } from "../chat/ChatScroll";
+import { ChatScroll, type ChatScrollHandle } from "../chat/ChatScroll";
 import { useChatThread } from "../chat/useChatThread";
 import { useTranscriptWindow } from "../transcript/useTranscriptWindow";
 import type { CodeSnapshotSummary } from "../../domain/resume";
@@ -62,6 +63,7 @@ const AiPane = ({
   }, [lectureNumber]);
   const { messages, sendMessage, threadId, streamState, streamError } =
     useChatThread(lessonId, lectureLabel);
+  const chatScrollRef = useRef<ChatScrollHandle>(null);
   const transcriptWindow = useTranscriptWindow(lessonId, videoTimeSec);
 
   const transcriptPayload = useMemo(
@@ -104,6 +106,11 @@ const AiPane = ({
           transcriptUrl: lesson?.transcriptUrl,
         },
         lastError: lastRunError ?? undefined,
+      });
+
+      // Instant scroll to bottom so user sees their message
+      requestAnimationFrame(() => {
+        chatScrollRef.current?.scrollToBottom();
       });
     },
     [
@@ -160,12 +167,7 @@ const AiPane = ({
         </p>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
-        <ChatScroll
-          isStreaming={
-            streamState === "streaming" ||
-            messages.some((m) => m.isRevealing)
-          }
-        >
+        <ChatScroll ref={chatScrollRef}>
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} onSeek={onSeek} />
           ))}
