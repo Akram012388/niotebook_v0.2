@@ -13,6 +13,8 @@ import { ArrowDown } from "@phosphor-icons/react";
 
 type ChatScrollProps = {
   children: ReactNode;
+  /** When true, runs a continuous smooth scroll loop (lerp interpolation). */
+  isStreaming?: boolean;
 };
 
 type ChatScrollHandle = {
@@ -20,29 +22,74 @@ type ChatScrollHandle = {
 };
 
 const BOTTOM_THRESHOLD = 60;
+/** Lerp factor — higher = faster catch-up. 0.12 gives smooth ChatGPT-like follow. */
+const SCROLL_LERP = 0.12;
 
 const ChatScroll = forwardRef<ChatScrollHandle, ChatScrollProps>(
-  function ChatScroll({ children }, ref) {
+  function ChatScroll({ children, isStreaming = false }, ref) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [atBottom, setAtBottom] = useState(true);
     const atBottomRef = useRef(true);
-
-    const checkAtBottom = useCallback((el: HTMLElement): boolean => {
-      return el.scrollHeight - el.scrollTop - el.clientHeight < BOTTOM_THRESHOLD;
-    }, []);
+    const lerpRafRef = useRef<number | null>(null);
 
     const handleScroll = useCallback((): void => {
       const el = containerRef.current;
       if (!el) return;
-      const bottom = checkAtBottom(el);
+      const bottom =
+        el.scrollHeight - el.scrollTop - el.clientHeight < BOTTOM_THRESHOLD;
       atBottomRef.current = bottom;
       setAtBottom(bottom);
-    }, [checkAtBottom]);
+    }, []);
 
-    // Scroll-follow via synchronous callback — no RAF delay.
-    // ResizeObserver fires once per frame (part of rendering pipeline).
-    // MutationObserver catches text changes that don't alter box size.
-    // Both scroll immediately so content + scroll update paint in the same frame.
+    // Lerp scroll loop — runs continuously during streaming.
+    // Each frame, interpolates scrollTop toward scrollHeight by SCROLL_LERP factor.
+    // This creates buttery smooth following: content grows in small text-node
+    // increments, scroll smoothly catches up each frame. No discrete jumps.
+    useEffect(() => {
+      if (!isStreaming) {
+        // Not streaming — cancel any running loop
+        if (lerpRafRef.current !== null) {
+          cancelAnimationFrame(lerpRafRef.current);
+          lerpRafRef.current = null;
+        }
+        // Snap to bottom on stream end to ensure final position is exact
+        const el = containerRef.current;
+        if (el && atBottomRef.current) {
+          el.scrollTop = el.scrollHeight;
+        }
+        return;
+      }
+
+      const tick = (): void => {
+        const el = containerRef.current;
+        if (!el || !atBottomRef.current) {
+          lerpRafRef.current = requestAnimationFrame(tick);
+          return;
+        }
+
+        const target = el.scrollHeight - el.clientHeight;
+        const diff = target - el.scrollTop;
+
+        if (diff > 1) {
+          el.scrollTop += diff * SCROLL_LERP;
+        }
+
+        lerpRafRef.current = requestAnimationFrame(tick);
+      };
+
+      lerpRafRef.current = requestAnimationFrame(tick);
+
+      return () => {
+        if (lerpRafRef.current !== null) {
+          cancelAnimationFrame(lerpRafRef.current);
+          lerpRafRef.current = null;
+        }
+      };
+    }, [isStreaming]);
+
+    // Fallback: ResizeObserver for non-streaming content changes (new messages
+    // loading from Convex, initial render). Only active when NOT streaming
+    // (the lerp loop handles streaming).
     useEffect(() => {
       const container = containerRef.current;
       if (!container) return;
@@ -50,26 +97,14 @@ const ChatScroll = forwardRef<ChatScrollHandle, ChatScrollProps>(
       const content = container.firstElementChild as HTMLElement | null;
       if (!content) return;
 
-      const scrollToEnd = (): void => {
-        if (!atBottomRef.current) return;
+      const observer = new ResizeObserver(() => {
+        if (isStreaming || !atBottomRef.current) return;
         container.scrollTop = container.scrollHeight;
-      };
-
-      const resizeObs = new ResizeObserver(scrollToEnd);
-      resizeObs.observe(content);
-
-      const mutationObs = new MutationObserver(scrollToEnd);
-      mutationObs.observe(content, {
-        childList: true,
-        subtree: true,
-        characterData: true,
       });
 
-      return () => {
-        resizeObs.disconnect();
-        mutationObs.disconnect();
-      };
-    }, []);
+      observer.observe(content);
+      return () => observer.disconnect();
+    }, [isStreaming]);
 
     const scrollToBottom = useCallback((): void => {
       const el = containerRef.current;

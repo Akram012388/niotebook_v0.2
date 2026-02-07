@@ -233,6 +233,34 @@ button:disabled {
    Animations
    ========================================================================== */
 
+/* Thinking pulse dot — simple terracotta circle, ChatGPT-style */
+@keyframes nio-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 1;
+  }
+}
+
+.nio-pulse-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  animation: nio-pulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nio-pulse-dot {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
 @keyframes blink {
   50% {
     opacity: 0;

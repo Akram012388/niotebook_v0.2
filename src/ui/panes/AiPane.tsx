@@ -167,7 +167,7 @@ const AiPane = ({
         </p>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
-        <ChatScroll ref={chatScrollRef}>
+        <ChatScroll ref={chatScrollRef} isStreaming={streamState === "streaming"}>
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} onSeek={onSeek} />
           ))}
