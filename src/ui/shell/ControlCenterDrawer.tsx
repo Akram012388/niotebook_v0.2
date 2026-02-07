@@ -297,7 +297,7 @@ const ControlCenterDrawer = ({
               onClick={() => handleTabChange("lectures")}
               className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                 activeTab === "lectures"
-                  ? "dark:border-accent/40 dark:bg-accent-muted border-foreground/20 bg-accent-muted text-foreground"
+                  ? "border-accent/40 bg-accent-muted text-accent"
                   : "border-transparent text-text-muted hover:bg-surface-muted"
               }`}
             >
@@ -309,7 +309,7 @@ const ControlCenterDrawer = ({
               onClick={() => handleTabChange("courses")}
               className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                 activeTab === "courses"
-                  ? "dark:border-accent/40 dark:bg-accent-muted border-foreground/20 bg-accent-muted text-foreground"
+                  ? "border-accent/40 bg-accent-muted text-accent"
                   : "border-transparent text-text-muted hover:bg-surface-muted"
               }`}
             >
@@ -350,8 +350,8 @@ const ControlCenterDrawer = ({
                               onClick={() => onSelectLesson(lesson.id)}
                               className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-left text-xs transition-all duration-200 ${
                                 isActive
-                                  ? "dark:border-accent/50 dark:bg-accent-muted border-foreground/30 bg-accent-muted text-foreground dark:shadow-md dark:shadow-accent/10 dark:ring-1 dark:ring-accent/20"
-                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md dark:hover:border-accent/20 hover:border-foreground/20 hover:bg-surface-muted hover:text-foreground"
+                                  ? "border-accent/50 bg-accent-muted text-foreground shadow-md shadow-accent/10 ring-1 ring-accent/20"
+                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md hover:border-accent/20 hover:bg-surface-muted hover:text-foreground"
                               }`}
                             >
                               <div className="flex flex-col">
@@ -407,8 +407,8 @@ const ControlCenterDrawer = ({
                               }}
                               className={`flex flex-col gap-1 rounded-xl border px-3 py-2.5 text-left text-xs transition-all duration-200 ${
                                 isActive
-                                  ? "dark:border-accent/50 dark:bg-accent-muted border-foreground/30 bg-accent-muted text-foreground dark:shadow-md dark:shadow-accent/10 dark:ring-1 dark:ring-accent/20"
-                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md dark:hover:border-accent/20 hover:border-foreground/20 hover:bg-surface-muted hover:text-foreground"
+                                  ? "border-accent/50 bg-accent-muted text-foreground shadow-md shadow-accent/10 ring-1 ring-accent/20"
+                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md hover:border-accent/20 hover:bg-surface-muted hover:text-foreground"
                               }`}
                             >
                               <span className="text-sm text-foreground">
@@ -450,7 +450,7 @@ const ControlCenterDrawer = ({
                     onClick={() => handleSettingsCardToggle("share")}
                     className={`flex items-center justify-between rounded-xl border border-border px-3 py-2 text-xs font-medium transition ${
                       activeSettingsCard === "share"
-                        ? "bg-surface text-foreground"
+                        ? "bg-accent-muted text-accent border-accent/40"
                         : "bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
                     }`}
                   >
@@ -547,7 +547,7 @@ const ControlCenterDrawer = ({
                     onClick={() => handleSettingsCardToggle("feedback")}
                     className={`flex items-center justify-between rounded-xl border border-border px-3 py-2 text-xs font-medium transition ${
                       activeSettingsCard === "feedback"
-                        ? "bg-surface text-foreground"
+                        ? "bg-accent-muted text-accent border-accent/40"
                         : "bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
                     }`}
                   >
@@ -715,7 +715,7 @@ const ControlCenterDrawer = ({
                   onClick={() => handlePanelToggle("user")}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                     panelView === "user"
-                      ? "border-border bg-surface text-foreground"
+                      ? "border-accent/40 bg-accent-muted text-accent"
                       : "border-transparent text-text-muted hover:bg-surface-muted"
                   }`}
                 >
@@ -727,7 +727,7 @@ const ControlCenterDrawer = ({
                   onClick={() => handlePanelToggle("settings")}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                     panelView === "settings"
-                      ? "border-border bg-surface text-foreground"
+                      ? "border-accent/40 bg-accent-muted text-accent"
                       : "border-transparent text-text-muted hover:bg-surface-muted"
                   }`}
                 >
