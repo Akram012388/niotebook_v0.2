@@ -30,9 +30,11 @@ scenes:
 ## Scene Types
 
 ### 1. Brand Reveal
+
 Logo/wordmark appearance to establish identity.
 
 **Pattern:**
+
 - Duration: 2-3s
 - Motion: Spring fade-in or notification-style slide
 - SFX: Subtle ping or chime
@@ -41,9 +43,11 @@ Logo/wordmark appearance to establish identity.
 **Recording needed:** None (use brand assets)
 
 ### 2. Interface Entrance
+
 Workspace UI sliding into frame.
 
 **Pattern:**
+
 - Duration: 1-2s
 - Motion: Spring slide from edge (direction matches layout)
 - SFX: Soft whoosh or none
@@ -52,9 +56,11 @@ Workspace UI sliding into frame.
 **Recording needed:** Static screenshot or video of UI in start state
 
 ### 3. Layout Transition
+
 Switching between 1/2/3 pane configurations.
 
 **Pattern:**
+
 - Duration: 0.5-1s
 - Motion: Panels slide to new positions
 - SFX: Click or tap sound
@@ -63,9 +69,11 @@ Switching between 1/2/3 pane configurations.
 **Recording needed:** Video showing each layout state
 
 ### 4. Feature Focus
+
 Zooming into specific UI element to highlight capability.
 
 **Pattern:**
+
 - Duration: 3-5s (zoom in + hold + zoom out)
 - Motion: Smooth zoom with smart framing
 - SFX: Subtle ping at key moment
@@ -74,9 +82,11 @@ Zooming into specific UI element to highlight capability.
 **Recording needed:** Detailed recording of the feature in action
 
 ### 5. Action Sequence
+
 Showing actual usage (typing, clicking, results).
 
 **Pattern:**
+
 - Duration: 3-8s depending on action
 - Motion: Smart zoom follows action, may pan
 - SFX: Keyboard clicks, UI feedback sounds
@@ -85,9 +95,11 @@ Showing actual usage (typing, clicking, results).
 **Recording needed:** Screen recording of complete action
 
 ### 6. Montage Cut
+
 Quick cuts between multiple views/features.
 
 **Pattern:**
+
 - Duration: 0.5-1s per cut
 - Motion: Hard cuts or quick crossfades
 - SFX: Rhythmic clicks synced to cuts
@@ -96,9 +108,11 @@ Quick cuts between multiple views/features.
 **Recording needed:** Multiple short clips
 
 ### 7. Loop Return
+
 Transitioning back to start state for seamless loop.
 
 **Pattern:**
+
 - Duration: 1-2s
 - Motion: Match end state to start state
 - SFX: Final ping that sets up loop

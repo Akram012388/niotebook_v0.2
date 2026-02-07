@@ -1,4 +1,8 @@
-import type { RuntimeExecutor, RuntimeRunInput, RuntimeRunResult } from "./types";
+import type {
+  RuntimeExecutor,
+  RuntimeRunInput,
+  RuntimeRunResult,
+} from "./types";
 
 /* ------------------------------------------------------------------ */
 /*  WebR types — only what we use from the public API                 */
@@ -51,13 +55,21 @@ const WEBR_SCRIPT_URL = `${WEBR_CDN}webr.mjs`;
 const WEBR_LOAD_TIMEOUT_MS = 60_000;
 const WEBR_EVAL_TIMEOUT_MS = 30_000;
 
-let webrPromise: Promise<{ webr: WebRInstance; shelter: Shelter }> | null = null;
+let webrPromise: Promise<{ webr: WebRInstance; shelter: Shelter }> | null =
+  null;
 
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> {
   return Promise.race([
     promise,
     new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms),
+      setTimeout(
+        () => reject(new Error(`${label} timed out after ${ms}ms`)),
+        ms,
+      ),
     ),
   ]);
 }
@@ -85,7 +97,8 @@ function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
             globalThis.__webr_loaded__ = true;
             document.dispatchEvent(new Event("webr-loaded"));
           `;
-          script.onerror = () => reject(new Error("Failed to load WebR script"));
+          script.onerror = () =>
+            reject(new Error("Failed to load WebR script"));
 
           const onLoaded = () => {
             document.removeEventListener("webr-loaded", onLoaded);
@@ -100,7 +113,11 @@ function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
       if (!WebR) throw new Error("WebR module did not export WebR class");
 
       const channelType = g.ChannelType?.PostMessage ?? 3;
-      const webr = new WebR({ baseUrl: WEBR_CDN, interactive: false, channelType });
+      const webr = new WebR({
+        baseUrl: WEBR_CDN,
+        interactive: false,
+        channelType,
+      });
       await webr.init();
 
       // Create a shelter for captureR — must be constructed async
@@ -112,7 +129,9 @@ function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
     "WebR load",
   );
 
-  webrPromise.catch(() => { webrPromise = null; });
+  webrPromise.catch(() => {
+    webrPromise = null;
+  });
   return webrPromise;
 }
 
@@ -127,9 +146,17 @@ function mountRFiles(
   for (const file of allFiles) {
     const dir = file.path.substring(0, file.path.lastIndexOf("/"));
     if (dir && dir !== "/") {
-      try { webr.FS.mkdirTree(dir); } catch { /* exists */ }
+      try {
+        webr.FS.mkdirTree(dir);
+      } catch {
+        /* exists */
+      }
     }
-    try { webr.FS.writeFile(file.path, file.content); } catch { /* skip */ }
+    try {
+      webr.FS.writeFile(file.path, file.content);
+    } catch {
+      /* skip */
+    }
   }
 }
 
@@ -176,7 +203,11 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
         }
 
         // Clean up shelter objects
-        try { shelter.purge(); } catch { /* ignore */ }
+        try {
+          shelter.purge();
+        } catch {
+          /* ignore */
+        }
 
         return {
           stdout,

@@ -5,27 +5,27 @@
  * Preview: Copy this into a React playground or run in Next.js
  */
 
-import React from 'react';
+import React from "react";
 
 // ============================================
 // DESIGN TOKENS (inline for portability)
 // ============================================
 const tokens = {
   colors: {
-    bgBase: '#1a1a1a',
-    bgSurface: '#232323',
-    bgElevated: '#2a2a2a',
-    bgHover: '#333333',
-    textPrimary: '#f5f5f5',
-    textSecondary: '#a3a3a3',
-    textMuted: '#737373',
-    accent: '#d97706',
-    accentHover: '#f59e0b',
-    accentSubtle: 'rgba(217, 119, 6, 0.15)',
-    border: '#2e2e2e',
-    borderStrong: '#404040',
-    success: '#22c55e',
-    warning: '#eab308',
+    bgBase: "#1a1a1a",
+    bgSurface: "#232323",
+    bgElevated: "#2a2a2a",
+    bgHover: "#333333",
+    textPrimary: "#f5f5f5",
+    textSecondary: "#a3a3a3",
+    textMuted: "#737373",
+    accent: "#d97706",
+    accentHover: "#f59e0b",
+    accentSubtle: "rgba(217, 119, 6, 0.15)",
+    border: "#2e2e2e",
+    borderStrong: "#404040",
+    success: "#22c55e",
+    warning: "#eab308",
   },
 };
 
@@ -33,11 +33,11 @@ const tokens = {
 // BASE COMPONENTS
 // ============================================
 
-const Card = ({ children, className = '', hoverable = false }) => (
+const Card = ({ children, className = "", hoverable = false }) => (
   <div
     className={`
       bg-[#232323] border border-[#2e2e2e] rounded-lg p-5
-      ${hoverable ? 'hover:border-[#404040] hover:shadow-lg transition-all duration-150 cursor-pointer' : ''}
+      ${hoverable ? "hover:border-[#404040] hover:shadow-lg transition-all duration-150 cursor-pointer" : ""}
       ${className}
     `}
   >
@@ -45,32 +45,43 @@ const Card = ({ children, className = '', hoverable = false }) => (
   </div>
 );
 
-const Button = ({ children, variant = 'primary', size = 'md', className = '' }) => {
+const Button = ({
+  children,
+  variant = "primary",
+  size = "md",
+  className = "",
+}) => {
   const variants = {
-    primary: 'bg-[#d97706] hover:bg-[#f59e0b] text-[#1a1a1a] font-medium',
-    secondary: 'bg-[#2a2a2a] hover:bg-[#333333] text-[#f5f5f5] border border-[#2e2e2e] hover:border-[#404040]',
-    ghost: 'bg-transparent hover:bg-[#333333] text-[#a3a3a3] hover:text-[#f5f5f5]',
+    primary: "bg-[#d97706] hover:bg-[#f59e0b] text-[#1a1a1a] font-medium",
+    secondary:
+      "bg-[#2a2a2a] hover:bg-[#333333] text-[#f5f5f5] border border-[#2e2e2e] hover:border-[#404040]",
+    ghost:
+      "bg-transparent hover:bg-[#333333] text-[#a3a3a3] hover:text-[#f5f5f5]",
   };
   const sizes = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
+    sm: "px-3 py-1.5 text-xs",
+    md: "px-4 py-2 text-sm",
+    lg: "px-6 py-3 text-base",
   };
   return (
-    <button className={`rounded transition-all duration-150 ${variants[variant]} ${sizes[size]} ${className}`}>
+    <button
+      className={`rounded transition-all duration-150 ${variants[variant]} ${sizes[size]} ${className}`}
+    >
       {children}
     </button>
   );
 };
 
-const Badge = ({ children, variant = 'default' }) => {
+const Badge = ({ children, variant = "default" }) => {
   const variants = {
-    default: 'bg-[#2a2a2a] text-[#a3a3a3]',
-    accent: 'bg-[rgba(217,119,6,0.15)] text-[#d97706]',
-    success: 'bg-[rgba(34,197,94,0.15)] text-[#22c55e]',
+    default: "bg-[#2a2a2a] text-[#a3a3a3]",
+    accent: "bg-[rgba(217,119,6,0.15)] text-[#d97706]",
+    success: "bg-[rgba(34,197,94,0.15)] text-[#22c55e]",
   };
   return (
-    <span className={`px-2 py-0.5 rounded text-xs font-medium ${variants[variant]}`}>
+    <span
+      className={`px-2 py-0.5 rounded text-xs font-medium ${variants[variant]}`}
+    >
       {children}
     </span>
   );
@@ -128,9 +139,10 @@ const NavItem = ({ icon, label, active = false }) => (
     href="#"
     className={`
       flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-100
-      ${active
-        ? 'bg-[rgba(217,119,6,0.15)] text-[#d97706]'
-        : 'text-[#a3a3a3] hover:bg-[#333333] hover:text-[#f5f5f5]'
+      ${
+        active
+          ? "bg-[rgba(217,119,6,0.15)] text-[#d97706]"
+          : "text-[#a3a3a3] hover:bg-[#333333] hover:text-[#f5f5f5]"
       }
     `}
   >
@@ -170,13 +182,17 @@ const ContinueLearningCard = ({ course, lesson, progress }) => (
       </div>
       <div className="flex items-center gap-4">
         <ProgressBar value={progress} />
-        <span className="text-xs text-[#737373] whitespace-nowrap">{progress}%</span>
+        <span className="text-xs text-[#737373] whitespace-nowrap">
+          {progress}%
+        </span>
       </div>
     </div>
 
     {/* Action */}
     <div className="flex items-center">
-      <Button variant="primary" size="sm">Resume</Button>
+      <Button variant="primary" size="sm">
+        Resume
+      </Button>
     </div>
   </Card>
 );
@@ -205,7 +221,9 @@ const CourseGrid = ({ title, courses }) => (
   <section className="mb-8">
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-lg font-semibold text-[#f5f5f5]">{title}</h2>
-      <Button variant="ghost" size="sm">View all →</Button>
+      <Button variant="ghost" size="sm">
+        View all →
+      </Button>
     </div>
     <div className="grid grid-cols-3 gap-4">
       {courses.map((course, i) => (
@@ -237,7 +255,9 @@ const CourseCard = ({ emoji, title, lessons, duration, progress }) => (
         <span className="text-xs text-[#737373]">{progress}%</span>
       </div>
     ) : (
-      <Button variant="secondary" size="sm" className="w-full">Start Course</Button>
+      <Button variant="secondary" size="sm" className="w-full">
+        Start Course
+      </Button>
     )}
   </Card>
 );
@@ -248,15 +268,48 @@ const CourseCard = ({ emoji, title, lessons, duration, progress }) => (
 
 export default function Dashboard() {
   const inProgressCourses = [
-    { emoji: '🐍', title: 'Python Fundamentals', lessons: 24, duration: '4h 30m', progress: 65 },
-    { emoji: '⚛️', title: 'React for Beginners', lessons: 18, duration: '3h 15m', progress: 40 },
-    { emoji: '🗄️', title: 'SQL Essentials', lessons: 12, duration: '2h 45m', progress: 20 },
+    {
+      emoji: "🐍",
+      title: "Python Fundamentals",
+      lessons: 24,
+      duration: "4h 30m",
+      progress: 65,
+    },
+    {
+      emoji: "⚛️",
+      title: "React for Beginners",
+      lessons: 18,
+      duration: "3h 15m",
+      progress: 40,
+    },
+    {
+      emoji: "🗄️",
+      title: "SQL Essentials",
+      lessons: 12,
+      duration: "2h 45m",
+      progress: 20,
+    },
   ];
 
   const recommendedCourses = [
-    { emoji: '🌐', title: 'Web Development Basics', lessons: 30, duration: '5h 00m' },
-    { emoji: '📊', title: 'Data Visualization', lessons: 15, duration: '2h 30m' },
-    { emoji: '🤖', title: 'Intro to Machine Learning', lessons: 20, duration: '4h 00m' },
+    {
+      emoji: "🌐",
+      title: "Web Development Basics",
+      lessons: 30,
+      duration: "5h 00m",
+    },
+    {
+      emoji: "📊",
+      title: "Data Visualization",
+      lessons: 15,
+      duration: "2h 30m",
+    },
+    {
+      emoji: "🤖",
+      title: "Intro to Machine Learning",
+      lessons: 20,
+      duration: "4h 00m",
+    },
   ];
 
   return (
@@ -269,7 +322,9 @@ export default function Dashboard() {
 
           {/* Continue Learning */}
           <section className="mb-8">
-            <h2 className="text-lg font-semibold text-[#f5f5f5] mb-4">Continue Learning</h2>
+            <h2 className="text-lg font-semibold text-[#f5f5f5] mb-4">
+              Continue Learning
+            </h2>
             <ContinueLearningCard
               course="Python Fundamentals"
               lesson="Lesson 16: Working with Files"
@@ -282,7 +337,10 @@ export default function Dashboard() {
 
           {/* Course Grids */}
           <CourseGrid title="In Progress" courses={inProgressCourses} />
-          <CourseGrid title="Recommended for You" courses={recommendedCourses} />
+          <CourseGrid
+            title="Recommended for You"
+            courses={recommendedCourses}
+          />
         </div>
       </main>
     </div>

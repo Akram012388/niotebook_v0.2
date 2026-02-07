@@ -463,7 +463,11 @@ const WorkspaceGrid = (): ReactElement => {
               codeHash={codeHash ?? undefined}
               showInfoStrip
               headerExtras={
-                <PaneSwitcher options={VC_OPTIONS} active="video" onSelect={handleSelectSingle} />
+                <PaneSwitcher
+                  options={VC_OPTIONS}
+                  active="video"
+                  onSelect={handleSelectSingle}
+                />
               }
             />
           </div>
@@ -474,7 +478,11 @@ const WorkspaceGrid = (): ReactElement => {
               lessonId={activeLessonId}
               onSnapshot={handleSnapshot}
               headerExtras={
-                <PaneSwitcher options={VC_OPTIONS} active="code" onSelect={handleSelectSingle} />
+                <PaneSwitcher
+                  options={VC_OPTIONS}
+                  active="code"
+                  onSelect={handleSelectSingle}
+                />
               }
             />
           </div>
@@ -493,12 +501,16 @@ const WorkspaceGrid = (): ReactElement => {
                 lessonId={activeLessonId}
                 seekRequest={seekRequest}
                 onTimeChange={handleVideoTime}
-              onTimeUpdate={handleVideoDisplayTime}
+                onTimeUpdate={handleVideoDisplayTime}
                 threadId={threadId ?? undefined}
                 codeHash={codeHash ?? undefined}
                 showInfoStrip
                 headerExtras={
-                  <PaneSwitcher options={VC_OPTIONS} active="video" onSelect={handleSelectLeft} />
+                  <PaneSwitcher
+                    options={VC_OPTIONS}
+                    active="video"
+                    onSelect={handleSelectLeft}
+                  />
                 }
               />
             ) : null}
@@ -507,7 +519,11 @@ const WorkspaceGrid = (): ReactElement => {
                 lessonId={activeLessonId}
                 onSnapshot={handleSnapshot}
                 headerExtras={
-                  <PaneSwitcher options={VC_OPTIONS} active="code" onSelect={handleSelectLeft} />
+                  <PaneSwitcher
+                    options={VC_OPTIONS}
+                    active="code"
+                    onSelect={handleSelectLeft}
+                  />
                 }
               />
             ) : null}
@@ -522,7 +538,12 @@ const WorkspaceGrid = (): ReactElement => {
                 codeSnapshot={codeSnapshot}
                 onThreadChange={handleThreadChange}
                 headerExtras={
-                  <PaneSwitcher options={AC_OPTIONS} active="chat" onSelect={handleSelectRight} disabledValues={rightDisabled} />
+                  <PaneSwitcher
+                    options={AC_OPTIONS}
+                    active="chat"
+                    onSelect={handleSelectRight}
+                    disabledValues={rightDisabled}
+                  />
                 }
               />
             ) : null}
@@ -531,7 +552,12 @@ const WorkspaceGrid = (): ReactElement => {
                 lessonId={activeLessonId}
                 onSnapshot={handleSnapshot}
                 headerExtras={
-                  <PaneSwitcher options={AC_OPTIONS} active="code" onSelect={handleSelectRight} disabledValues={rightDisabled} />
+                  <PaneSwitcher
+                    options={AC_OPTIONS}
+                    active="code"
+                    onSelect={handleSelectRight}
+                    disabledValues={rightDisabled}
+                  />
                 }
               />
             ) : null}
@@ -547,7 +573,7 @@ const WorkspaceGrid = (): ReactElement => {
         lessonId={activeLessonId}
         seekRequest={seekRequest}
         onTimeChange={handleVideoTime}
-              onTimeUpdate={handleVideoDisplayTime}
+        onTimeUpdate={handleVideoDisplayTime}
         threadId={threadId ?? undefined}
         codeHash={codeHash ?? undefined}
         showInfoStrip

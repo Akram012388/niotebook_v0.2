@@ -14,9 +14,11 @@ cp assets/remotion-templates/brand.ts my-remotion-project/src/
 ## Components
 
 ### brand.ts
+
 Brand constants, spring configs, and timing values.
 
 ### LogoReveal.tsx
+
 Notification-style logo animation for video intros.
 
 ```tsx
@@ -24,6 +26,7 @@ Notification-style logo animation for video intros.
 ```
 
 ### WorkspaceSlide.tsx
+
 Slides workspace UI into frame with spring physics.
 
 ```tsx
@@ -35,14 +38,15 @@ Slides workspace UI into frame with spring physics.
 ```
 
 ### SmartZoom.tsx
+
 Zooms into specific UI areas while maintaining context.
 
 ```tsx
 <SmartZoom
   videoSrc="recordings/workspace.mp4"
   zoomInFrame={180}
-  targetX={0.7}  // Right side (code pane)
-  targetY={0.5}  // Vertically centered
+  targetX={0.7} // Right side (code pane)
+  targetY={0.5} // Vertically centered
   maxZoom={1.5}
 />
 ```

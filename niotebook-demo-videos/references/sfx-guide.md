@@ -7,6 +7,7 @@ Sound design for niotebook's "effortless" aesthetic.
 **Core principle:** Sounds should feel like natural extensions of the UI — present but not distracting. Think iOS system sounds: functional, pleasant, almost subliminal.
 
 **Characteristics:**
+
 - Clean, digital but warm
 - Short duration (50-300ms)
 - Mid-to-high frequency (no deep bass)
@@ -19,6 +20,7 @@ Sound design for niotebook's "effortless" aesthetic.
 For logo appearances, important moments.
 
 **Sound profile:**
+
 - Bright, clear tone
 - Single note or short chord
 - 150-250ms duration
@@ -27,6 +29,7 @@ For logo appearances, important moments.
 **Reference:** iOS notification ping, Slack mention sound
 
 **When to use:**
+
 - Logo/brand reveal
 - Key moment highlight
 - Success confirmation
@@ -36,6 +39,7 @@ For logo appearances, important moments.
 For button presses, selections, layout switches.
 
 **Sound profile:**
+
 - Crisp, tactile
 - Very short (30-80ms)
 - Subtle low-mid thud + high click
@@ -44,6 +48,7 @@ For button presses, selections, layout switches.
 **Reference:** macOS button click, keyboard key press
 
 **When to use:**
+
 - Layout transitions
 - Menu selections
 - Any discrete UI action
@@ -53,6 +58,7 @@ For button presses, selections, layout switches.
 For panel movements, transitions.
 
 **Sound profile:**
+
 - Soft, airy
 - 200-400ms duration
 - Directional feel (left-right matches visual)
@@ -61,6 +67,7 @@ For panel movements, transitions.
 **Reference:** iOS page swipe, macOS window minimize
 
 **When to use:**
+
 - Panel slide-ins
 - Content transitions
 - Zoom movements
@@ -70,6 +77,7 @@ For panel movements, transitions.
 For text input sequences.
 
 **Sound profile:**
+
 - Mechanical but soft
 - Varied pitch per keystroke (avoid repetition)
 - 20-50ms per key
@@ -78,6 +86,7 @@ For text input sequences.
 **Reference:** Apple Magic Keyboard (not mechanical)
 
 **When to use:**
+
 - User typing in chat
 - Code being written
 - Search input
@@ -87,6 +96,7 @@ For text input sequences.
 For code execution, AI response complete.
 
 **Sound profile:**
+
 - Ascending tone or chord
 - Satisfying resolution
 - 200-400ms
@@ -95,6 +105,7 @@ For code execution, AI response complete.
 **Reference:** iOS payment success, achievement unlock
 
 **When to use:**
+
 - Code runs successfully
 - AI finishes responding
 - Task completion
@@ -104,6 +115,7 @@ For code execution, AI response complete.
 When generating SFX with AI tools (ElevenLabs, etc.):
 
 **Prompt template:**
+
 ```
 Create a UI sound effect for [action type].
 Style: Clean, digital, minimal, Apple-like.
@@ -115,6 +127,7 @@ No reverb, dry signal, suitable for looping video.
 **Example prompts:**
 
 Notification ping:
+
 ```
 Create a UI notification sound. Style: Clean, digital, minimal, like iOS.
 Duration: 200ms. A bright, clear two-note ascending tone.
@@ -122,6 +135,7 @@ Gentle attack, quick decay. Warm but digital. No reverb.
 ```
 
 Click:
+
 ```
 Create a UI click sound. Style: Clean, tactile, like macOS button.
 Duration: 50ms. A soft, satisfying tap with subtle low-end thud.
@@ -130,13 +144,13 @@ Dry signal, no reverb or echo.
 
 ## Mixing Guidelines
 
-| Sound Type | Relative Volume | Pan |
-|------------|-----------------|-----|
-| Notification | 100% | Center |
-| Click | 60-70% | Match visual position |
-| Whoosh | 40-50% | Follow motion direction |
-| Typing | 50-60% | Center or slight spread |
-| Success | 80-90% | Center |
+| Sound Type   | Relative Volume | Pan                     |
+| ------------ | --------------- | ----------------------- |
+| Notification | 100%            | Center                  |
+| Click        | 60-70%          | Match visual position   |
+| Whoosh       | 40-50%          | Follow motion direction |
+| Typing       | 50-60%          | Center or slight spread |
+| Success      | 80-90%          | Center                  |
 
 ## Timing Rules
 
@@ -149,6 +163,7 @@ Dry signal, no reverb or echo.
 ## Quality Checklist
 
 Before final render:
+
 - [ ] All sounds are normalized to consistent levels
 - [ ] No clipping or distortion
 - [ ] Sounds sync precisely with visuals
@@ -159,6 +174,7 @@ Before final render:
 ## File Specifications
 
 For bundled SFX assets:
+
 - Format: WAV (uncompressed) or high-bitrate MP3
 - Sample rate: 48kHz
 - Bit depth: 24-bit

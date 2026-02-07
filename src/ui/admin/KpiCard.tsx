@@ -8,7 +8,11 @@ type KpiCardProps = {
   previousValue?: number;
 };
 
-const KpiCard = ({ label, value, previousValue }: KpiCardProps): ReactElement => {
+const KpiCard = ({
+  label,
+  value,
+  previousValue,
+}: KpiCardProps): ReactElement => {
   const delta =
     value !== undefined && previousValue !== undefined && previousValue > 0
       ? ((value - previousValue) / previousValue) * 100

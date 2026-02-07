@@ -9,15 +9,15 @@
 
 ## Phase Overview
 
-| Phase | Description | Status | Branch | Commit |
-|-------|-------------|--------|--------|--------|
-| **1** | Design Tokens & Primitives | **Done** | `redesign/phase-1-tokens` | `3bbbd62` |
-| **2** | Base Components | **Done** | `redesign/phase-2-components` | `ada381d` |
-| **3** | Shell & Chrome | **Done** | `redesign/phase-3-shell` | `e09aed3` |
-| **4** | Core Panes | **Done** | `redesign/phase-4-panes` | `1f0b0d3` |
-| **5** | Pages | **Done** | `redesign/phase-5-pages` | `9b85b96` |
-| **6** | Polish | **Done** | `redesign/phase-6-polish` | `2d71060` |
-| **7** | Landing Page Rework | **Done** | `feat/landing-hero-rework` | `418f0f8` (merge) |
+| Phase | Description                | Status   | Branch                        | Commit            |
+| ----- | -------------------------- | -------- | ----------------------------- | ----------------- |
+| **1** | Design Tokens & Primitives | **Done** | `redesign/phase-1-tokens`     | `3bbbd62`         |
+| **2** | Base Components            | **Done** | `redesign/phase-2-components` | `ada381d`         |
+| **3** | Shell & Chrome             | **Done** | `redesign/phase-3-shell`      | `e09aed3`         |
+| **4** | Core Panes                 | **Done** | `redesign/phase-4-panes`      | `1f0b0d3`         |
+| **5** | Pages                      | **Done** | `redesign/phase-5-pages`      | `9b85b96`         |
+| **6** | Polish                     | **Done** | `redesign/phase-6-polish`     | `2d71060`         |
+| **7** | Landing Page Rework        | **Done** | `feat/landing-hero-rework`    | `418f0f8` (merge) |
 
 ---
 
@@ -26,6 +26,7 @@
 **Commit**: `3bbbd62` on `redesign/phase-1-tokens`
 
 ### Deliverables
+
 - [x] Warm Claude palette — Pampas `#F4F3EE` / Charcoal `#1C1917`
 - [x] Terracotta accent — Crail `#C15F3C` (light) / `#DA7756` (dark)
 - [x] Dual-theme tokens (light + dark) with system preference default
@@ -50,6 +51,7 @@
 **Files changed**: 26 (237 insertions, 92 deletions)
 
 ### Deliverables
+
 - [x] Status badges — `bg-status-*/10 text-status-*` (InviteManagement, UserManagement)
 - [x] Role badges — accent-muted for admin, status-info for user, surface-muted for guest
 - [x] KPI delta colors — `text-status-success` / `text-status-error`
@@ -79,6 +81,7 @@
 **Files changed**: 9
 
 ### Deliverables
+
 - [x] ControlCenterDrawer — `workspace-accent` to `accent` (6 refs, tabs, active lessons, course buttons)
 - [x] AppShell — fallback wordmark uses `font-display` (Orbitron)
 - [x] PaneSwitcher — active pill `bg-accent-muted text-accent shadow-sm font-semibold`
@@ -97,6 +100,7 @@
 **Files changed**: 3
 
 ### Deliverables
+
 - [x] VideoPlayer — `bg-black` to `bg-surface-strong`, overlay text to `text-surface-strong-foreground`
 - [x] CodeEditor textarea — `bg-black text-slate-100 caret-slate-100` to `bg-workspace-editor text-workspace-text caret-workspace-text`; removed inverted dark classes
 - [x] ChatMessage — verified clean
@@ -112,6 +116,7 @@
 **Files changed**: 3
 
 ### Deliverables
+
 - [x] Editor sandbox error — `#f87171` to `var(--status-error)`
 - [x] CodePane SVG preview iframe — `#0A0A0A` to `#1C1917` (warm dark)
 - [x] All landing page components (8 files) — verified clean
@@ -129,6 +134,7 @@
 **Files changed**: 5
 
 ### Deliverables
+
 - [x] ChatComposer — `focus-within:border-accent/40 focus-within:ring-1 focus-within:ring-accent/40`
 - [x] LanguageSelect — `focus-visible:ring-2 focus-visible:ring-accent/40`
 - [x] ControlCenterDrawer — normalized `duration-[120ms]` to `duration-100`, `duration-[180ms]` to `duration-200`
@@ -151,11 +157,13 @@
 ### Deliverables
 
 #### Hero & Navigation
+
 - [x] HeroSection — stripped to Claude-style clarity (removed parallax orbs, glow effects, animated badge)
 - [x] ThemeToggle — replaced `ForceTheme` with capsule toggle (dark/light/system) in LandingNav
 - [x] Wordmark — converted from SVG to pure text `font-display` (Orbitron) with terracotta accent 'i'
 
 #### Section Architecture
+
 - [x] NotebookFrame component — 3-layer binder architecture: rails (z-0) + CSS radial-gradient mask strip (z-1) + content (z-2)
 - [x] All sections wrapped in NotebookFrame for cohesive "notebook page" feel
 - [x] StatsSection merged into ValuePropSection (reduced section count, tighter layout)
@@ -163,6 +171,7 @@
 - [x] Compact spacing: removed inter-section dividers, tuned grid dot size
 
 #### Footer & Legal
+
 - [x] LandingFooter — multi-column layout (Product / Resources / Legal / Connect)
 - [x] Social icons (X, GitHub, Discord, Email) with inline SVGs
 - [x] Wordmark + copyright bar at footer bottom
@@ -170,6 +179,7 @@
 - [x] Legal stub pages — `/terms`, `/privacy`, `/cookies` (placeholder content, ForceTheme dark)
 
 #### Bug Fixes
+
 - [x] Section gaps normalized — all inter-frame gaps consistent at 128px
 - [x] FeaturesSection heading moved inside NotebookFrame
 - [x] Footer columns centered with `md:justify-items-center`

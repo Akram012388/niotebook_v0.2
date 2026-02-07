@@ -3,19 +3,13 @@
     "convex": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "convex",
-        "mcp",
-        "start"
-      ],
+      "args": ["convex", "mcp", "start"],
       "env": {}
     },
     "playwright": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "@playwright/mcp@latest"
-      ],
+      "args": ["@playwright/mcp@latest"],
       "env": {}
     },
     "figma": {

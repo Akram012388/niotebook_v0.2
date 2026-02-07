@@ -49,7 +49,8 @@ export const SpeedVideo: React.FC<SpeedVideoProps> = ({
       config: SPRING_CONFIGS.smooth,
     });
 
-    const slideAmount = slideFrom === "left" || slideFrom === "right" ? width : height;
+    const slideAmount =
+      slideFrom === "left" || slideFrom === "right" ? width : height;
     const direction = slideFrom === "left" || slideFrom === "top" ? -1 : 1;
     const offset = (1 - slideProgress) * slideAmount * direction;
 
@@ -78,7 +79,7 @@ export const SpeedVideo: React.FC<SpeedVideoProps> = ({
       zoomInProgress - zoomOutProgress,
       [0, 1],
       [1, zoom.scale],
-      { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+      { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
     );
 
     const offsetX = (0.5 - zoom.targetX) * width * (currentScale - 1);
@@ -87,7 +88,9 @@ export const SpeedVideo: React.FC<SpeedVideoProps> = ({
     zoomTransform = `scale(${currentScale}) translate(${offsetX / currentScale}px, ${offsetY / currentScale}px)`;
   }
 
-  const combinedTransform = [slideTransform, zoomTransform].filter(Boolean).join(" ");
+  const combinedTransform = [slideTransform, zoomTransform]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <AbsoluteFill style={{ opacity }}>

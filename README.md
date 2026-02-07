@@ -18,14 +18,14 @@ Layout presets and keyboard shortcuts let you switch between different pane arra
 
 Code runs entirely in the browser via WebAssembly and sandboxed runtimes:
 
-| Language | Runtime |
-|----------|---------|
-| JavaScript | `new Function()` sandbox |
-| Python | Pyodide (WASM) |
-| C / C++ | JSCPP + Wasmer/WASIX (isolated iframe with COOP/COEP) |
-| HTML / CSS | iframe preview |
-| SQL | sql.js (WASM) |
-| R | WebR (WASM) |
+| Language   | Runtime                                               |
+| ---------- | ----------------------------------------------------- |
+| JavaScript | `new Function()` sandbox                              |
+| Python     | Pyodide (WASM)                                        |
+| C / C++    | JSCPP + Wasmer/WASIX (isolated iframe with COOP/COEP) |
+| HTML / CSS | iframe preview                                        |
+| SQL        | sql.js (WASM)                                         |
+| R          | WebR (WASM)                                           |
 
 Each lesson can define its own environment config—starter files, language presets, and available packages—so the editor adapts to the lecture content automatically.
 
@@ -36,6 +36,7 @@ An in-memory file tree persisted to IndexedDB via Zustand. Supports multi-file p
 ### AI Chat with Full Context
 
 The AI assistant receives:
+
 - Current transcript window around the video playback position
 - The learner's code from the active editor
 - Video timestamp and lesson metadata
@@ -59,22 +60,22 @@ Clerk-based invite-only alpha. Clerk issues JWTs consumed by Convex for identity
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Framework | Next.js 16 (App Router, Turbopack) |
-| UI | React 19, Tailwind CSS 4 |
-| Language | TypeScript (strict mode) |
-| Backend | Convex 1.31 (serverless DB, real-time subscriptions) |
-| Auth | Clerk (@clerk/nextjs 6.37) |
-| Editor | CodeMirror 6 (JS, Python, C++, HTML, CSS, SQL, R) |
-| Terminal | xterm.js 5.5 |
-| State | Zustand 5 (client), Convex React hooks (remote) |
-| AI | Google Gemini (primary), Groq (fallback) |
-| WASM Runtimes | Pyodide, Wasmer/WASIX, sql.js, WebR, JSCPP |
-| Icons | Phosphor Icons |
-| Monitoring | Sentry |
-| Testing | Vitest, Playwright, Testing Library |
-| Package Manager | Bun 1.1 |
+| Layer           | Technology                                           |
+| --------------- | ---------------------------------------------------- |
+| Framework       | Next.js 16 (App Router, Turbopack)                   |
+| UI              | React 19, Tailwind CSS 4                             |
+| Language        | TypeScript (strict mode)                             |
+| Backend         | Convex 1.31 (serverless DB, real-time subscriptions) |
+| Auth            | Clerk (@clerk/nextjs 6.37)                           |
+| Editor          | CodeMirror 6 (JS, Python, C++, HTML, CSS, SQL, R)    |
+| Terminal        | xterm.js 5.5                                         |
+| State           | Zustand 5 (client), Convex React hooks (remote)      |
+| AI              | Google Gemini (primary), Groq (fallback)             |
+| WASM Runtimes   | Pyodide, Wasmer/WASIX, sql.js, WebR, JSCPP           |
+| Icons           | Phosphor Icons                                       |
+| Monitoring      | Sentry                                               |
+| Testing         | Vitest, Playwright, Testing Library                  |
+| Package Manager | Bun 1.1                                              |
 
 ## Project Structure
 
@@ -107,16 +108,16 @@ Auth is Clerk invite-only for the alpha. See `docs/clerk-auth-alpha.md`.
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Next.js dev server (Turbopack) |
-| `bun run dev:convex` | Convex backend dev server |
-| `bun run build` | Production build |
-| `bun run lint` | ESLint 9 + Prettier |
-| `bun run typecheck` | TypeScript strict check |
-| `bun run format` | Prettier format |
-| `bun run test` | Unit tests (Vitest) |
-| `bun run test:e2e` | E2E tests (Playwright) |
+| Command                | Description                                     |
+| ---------------------- | ----------------------------------------------- |
+| `bun run dev`          | Next.js dev server (Turbopack)                  |
+| `bun run dev:convex`   | Convex backend dev server                       |
+| `bun run build`        | Production build                                |
+| `bun run lint`         | ESLint 9 + Prettier                             |
+| `bun run typecheck`    | TypeScript strict check                         |
+| `bun run format`       | Prettier format                                 |
+| `bun run test`         | Unit tests (Vitest)                             |
+| `bun run test:e2e`     | E2E tests (Playwright)                          |
 | `bun run ingest:cs50x` | Seed CS50x 2026 lessons/transcripts into Convex |
 
 Run a single test: `bunx vitest run path/to/test.ts` or `bunx playwright test path/to/test.ts`.
@@ -137,19 +138,19 @@ See `.env.example` for the full list. Key groups:
 
 ## Documentation
 
-| Doc | Description |
-|-----|-------------|
-| `docs/PRD.md` | Product requirements |
-| `docs/specs.md` | Technical specifications |
-| `docs/plan.md` | Project plan |
-| `docs/dev-workflow.md` | Development workflow |
-| `docs/env-requirements.md` | Environment setup & secrets |
-| `docs/clerk-auth-alpha.md` | Auth gate plan |
-| `docs/ui-ux-contract.md` | Binding UI/UX contract |
-| `docs/ui-reference.md` | UI component reference |
+| Doc                              | Description                     |
+| -------------------------------- | ------------------------------- |
+| `docs/PRD.md`                    | Product requirements            |
+| `docs/specs.md`                  | Technical specifications        |
+| `docs/plan.md`                   | Project plan                    |
+| `docs/dev-workflow.md`           | Development workflow            |
+| `docs/env-requirements.md`       | Environment setup & secrets     |
+| `docs/clerk-auth-alpha.md`       | Auth gate plan                  |
+| `docs/ui-ux-contract.md`         | Binding UI/UX contract          |
+| `docs/ui-reference.md`           | UI component reference          |
 | `docs/code-editor-tier2-plan.md` | Code editor implementation plan |
-| `docs/editor-support-r-sql.md` | R & SQL language support |
-| `docs/landing-page.md` | Landing page specs |
-| `docs/guidelines.md` | Code guidelines |
-| `docs/CHANGELOG.md` | Version history |
-| `docs/ADR-*.md` | Architecture decision records |
+| `docs/editor-support-r-sql.md`   | R & SQL language support        |
+| `docs/landing-page.md`           | Landing page specs              |
+| `docs/guidelines.md`             | Code guidelines                 |
+| `docs/CHANGELOG.md`              | Version history                 |
+| `docs/ADR-*.md`                  | Architecture decision records   |

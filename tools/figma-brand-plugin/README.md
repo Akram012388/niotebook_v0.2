@@ -28,14 +28,14 @@ Open any Figma file, then run the plugin from **Plugins → Development → Niot
 
 ### Commands
 
-| Command | What it creates |
-|---|---|
-| **Build All** | Everything below |
-| **Colors & Text Styles** | 8 paint styles (`nio/*`) + 3 text style families |
-| **Logo System** | Wordmark (Light/Dark) + Nio Mark (Light/Dark/Accent) components + badge |
-| **Social Assets** | 11 platform frames (OG, Twitter, LinkedIn, GitHub, Discord, YouTube, Facebook, Instagram, TikTok, ProductHunt, profile pic) |
-| **App Icons & Favicons** | 1024px master icon + favicon frames (180, 192, 512, 32, 16) + email sig |
-| **Brand Guide Page** | Color swatches, typography specimens, rules reference |
+| Command                  | What it creates                                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| **Build All**            | Everything below                                                                                                            |
+| **Colors & Text Styles** | 8 paint styles (`nio/*`) + 3 text style families                                                                            |
+| **Logo System**          | Wordmark (Light/Dark) + Nio Mark (Light/Dark/Accent) components + badge                                                     |
+| **Social Assets**        | 11 platform frames (OG, Twitter, LinkedIn, GitHub, Discord, YouTube, Facebook, Instagram, TikTok, ProductHunt, profile pic) |
+| **App Icons & Favicons** | 1024px master icon + favicon frames (180, 192, 512, 32, 16) + email sig                                                     |
+| **Brand Guide Page**     | Color swatches, typography specimens, rules reference                                                                       |
 
 ### Exporting Assets
 

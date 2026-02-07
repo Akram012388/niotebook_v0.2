@@ -6,10 +6,16 @@
 > **Base:** `main`
 > **Head commit:** `9d11205` (prerequisite: shared component moves)
 >
-> **Phase 8 branches (pending merge to redesign-v2):**
-> - `redesign/sidebar-courses` — `691a3f5` (sidebar shell + courses layout)
-> - `redesign/signin` — `239e2f9` (sign-in/sign-up redesign)
-> - `redesign/course-detail-cards` — `c7757bf` (lecture cards + animation alignment)
+> **Phase 8 branches (merged to redesign-v2):**
+>
+> - `redesign/sidebar-courses` — `691a3f5` (sidebar shell + courses layout) ✅ merged
+> - `redesign/signin` — `239e2f9` (sign-in/sign-up redesign) ✅ merged
+> - `redesign/course-detail-cards` — `c7757bf` (lecture cards + animation alignment) ✅ merged
+>
+> **Post-Phase 8 (nav refactor):**
+>
+> - `refactor/courses-navbar-layout` — Replaces SidebarShell with shared SiteNav top nav.
+>   Deletes SidebarShell, CourseCarousel, re-export shims. Creates SiteNav + CoursesNavActions.
 
 ---
 
@@ -24,6 +30,7 @@ The `redesign-v2` branch contains a complete visual refresh of Niotebook's front
 ## What Changed (vs main)
 
 ### Design Token System (`src/app/globals.css`)
+
 - Full dual-theme CSS custom property system (`:root` + `[data-theme="dark"]`)
 - Light: Pampas `#F4F3EE` bg, Crail `#C15F3C` accent
 - Dark: Charcoal `#1C1917` bg, Terracotta `#DA7756` accent
@@ -39,12 +46,14 @@ The `redesign-v2` branch contains a complete visual refresh of Niotebook's front
 - Tailwind 4 `@theme inline` mapping all tokens to utility classes
 
 ### Font System (`src/app/layout.tsx`)
+
 - Orbitron (display) — `--font-display` / `font-display`
 - Geist Sans (body) — `--font-body` / `font-sans`
 - Geist Mono (code) — `--font-code` / `font-mono`
 - Loaded via `next/font/google`, applied as CSS variables on `<body>`
 
 ### Theme System
+
 - `data-theme` attribute on `<html>` (not class-based)
 - Blocking `<script>` in `<head>` reads localStorage or `prefers-color-scheme`
 - Tailwind 4: `@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));`
@@ -52,22 +61,24 @@ The `redesign-v2` branch contains a complete visual refresh of Niotebook's front
 - Workspace: always dark via `workspace-*` tokens
 
 ### Component Token Migration (Phases 2-6)
+
 All hardcoded Tailwind color classes replaced with design tokens across **all** components:
 
-| Area | Files | Key Changes |
-|------|-------|-------------|
-| Admin | 10 files | Chart accents, status badges, KPI colors |
-| Auth | 3 files | BootSequence, Clerk appearance |
-| Code | 8 files | Editor bg/text, skeleton, runtime dots, output panel |
-| Chat | 2 files | Cursor color, stream error styling |
-| Courses | 4 files | Card accents, status colors |
-| Landing | 8 files | Complete rework (see Phase 7) |
-| Shell | 3 files | ControlCenterDrawer, AppShell, PaneSwitcher |
-| Video | 1 file | Player bg/overlay text |
-| Layout | 1 file | WorkspaceGrid border |
-| Panes | 2 files | AiPane, CodePane |
+| Area    | Files    | Key Changes                                          |
+| ------- | -------- | ---------------------------------------------------- |
+| Admin   | 10 files | Chart accents, status badges, KPI colors             |
+| Auth    | 3 files  | BootSequence, Clerk appearance                       |
+| Code    | 8 files  | Editor bg/text, skeleton, runtime dots, output panel |
+| Chat    | 2 files  | Cursor color, stream error styling                   |
+| Courses | 4 files  | Card accents, status colors                          |
+| Landing | 8 files  | Complete rework (see Phase 7)                        |
+| Shell   | 3 files  | ControlCenterDrawer, AppShell, PaneSwitcher          |
+| Video   | 1 file   | Player bg/overlay text                               |
+| Layout  | 1 file   | WorkspaceGrid border                                 |
+| Panes   | 2 files  | AiPane, CodePane                                     |
 
 ### Landing Page Rework (Phase 7)
+
 - **HeroSection** — Claude-style clarity, removed parallax/glow effects
 - **NotebookFrame** — New component, 3-layer binder architecture (rails + mask + content)
 - **ThemeToggle** — Capsule toggle replacing ForceTheme
@@ -82,6 +93,7 @@ All hardcoded Tailwind color classes replaced with design tokens across **all** 
 ## File Inventory (52 changed files)
 
 ### New Files (7)
+
 ```
 src/app/(landing)/cookies/page.tsx
 src/app/(landing)/privacy/page.tsx
@@ -93,11 +105,13 @@ docs/redesign/REDESIGN_BRIEF.md
 ```
 
 ### Deleted Files (1)
+
 ```
 src/ui/landing/StatsSection.tsx
 ```
 
 ### Modified Files (44)
+
 ```
 .claude/agent-memory/frontend-designer/MEMORY.md
 .claude/agents/frontend-designer.md
@@ -153,28 +167,32 @@ src/ui/video/VideoPlayer.tsx
 - [ ] CodeMirror theme — build a matching warm theme or keep current?
 - [ ] xterm.js theme — match the new palette?
 - [ ] Legal pages — draft actual Terms, Privacy, Cookie policy content
+- [ ] Legal pages SiteNav wiring — currently using inline Wordmark + ForceTheme dark (deferred from nav refactor)
 - [ ] Final PR: `redesign-v2` to `main`
+- [ ] Nav refactor: merge `refactor/courses-navbar-layout` into `redesign-v2`
 
 ---
 
 ## Verification State
 
-| Check | Last Run | Result |
-|-------|----------|--------|
-| `bun run typecheck` | Phase 7 | Pass |
-| `bun run lint` | Phase 7 | Pass |
-| `bun run test` | Phase 6 | 153/153 pass |
+| Check               | Last Run | Result       |
+| ------------------- | -------- | ------------ |
+| `bun run typecheck` | Phase 7  | Pass         |
+| `bun run lint`      | Phase 7  | Pass         |
+| `bun run test`      | Phase 6  | 153/153 pass |
 
 ---
 
 ## Key Reference Files
 
-| File | Purpose |
-|------|---------|
-| `src/app/globals.css` | Canonical token definitions (source of truth) |
-| `src/app/layout.tsx` | Font loading, theme script, body classes |
-| `docs/redesign/REDESIGN_BRIEF.md` | Design direction, decisions, rationale |
-| `docs/redesign/PROGRESS.md` | Phase-by-phase implementation log |
-| `docs/redesign/DESIGN_SYSTEM.md` | Design system reference (v2, updated) |
-| `docs/redesign/STATE.md` | This file — cross-session state persistence |
-| `.claude/agent-memory/frontend-designer/MEMORY.md` | Frontend agent design knowledge |
+| File                                               | Purpose                                       |
+| -------------------------------------------------- | --------------------------------------------- |
+| `src/app/globals.css`                              | Canonical token definitions (source of truth) |
+| `src/app/layout.tsx`                               | Font loading, theme script, body classes      |
+| `docs/redesign/REDESIGN_BRIEF.md`                  | Design direction, decisions, rationale        |
+| `docs/redesign/PROGRESS.md`                        | Phase-by-phase implementation log             |
+| `docs/redesign/DESIGN_SYSTEM.md`                   | Design system reference (v2, updated)         |
+| `docs/redesign/STATE.md`                           | This file — cross-session state persistence   |
+| `.claude/agent-memory/frontend-designer/MEMORY.md` | Frontend agent design knowledge               |
+| `docs/architecture/SITENAV_ROUTE_AUDIT.md`         | SiteNav route audit + file boundary plan      |
+| `docs/architecture/COURSES_LAYOUT_REFACTOR.md`     | Courses nav refactor analysis + resolution    |

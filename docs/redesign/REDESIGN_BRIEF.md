@@ -15,22 +15,22 @@ A **complete visual refresh** of Niotebook's frontend, replicating the warmth, c
 
 ## Design Philosophy
 
-| Principle             | Description                                                                         |
-| --------------------- | ----------------------------------------------------------------------------------- |
-| **Claude Warmth**     | Warm color temperatures, soft depth, parchment-like quality — never cold or clinical |
-| **Calm Focus**        | Reduce visual noise, generous whitespace, unhurried density                          |
-| **Premium Craft**     | Every pixel intentional, every micro-interaction polished, no detail too small        |
+| Principle               | Description                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| **Claude Warmth**       | Warm color temperatures, soft depth, parchment-like quality — never cold or clinical |
+| **Calm Focus**          | Reduce visual noise, generous whitespace, unhurried density                          |
+| **Premium Craft**       | Every pixel intentional, every micro-interaction polished, no detail too small       |
 | **Futuristic Identity** | Orbitron typeface as the brand fingerprint — geometric, distinctive, forward-looking |
 
 ---
 
 ## Typography System
 
-| Role              | Font              | Usage                                                                      |
-| ----------------- | ----------------- | -------------------------------------------------------------------------- |
-| **Display/Brand** | **Orbitron**      | Wordmark, page titles, major headings, section headers, key UI accents     |
-| **UI/Body**       | **Geist Sans**    | Body text, labels, buttons, navigation items, form inputs, chat messages   |
-| **Code**          | **Geist Mono**    | Code editor, terminal, inline code, file names, timestamps                 |
+| Role              | Font           | Usage                                                                    |
+| ----------------- | -------------- | ------------------------------------------------------------------------ |
+| **Display/Brand** | **Orbitron**   | Wordmark, page titles, major headings, section headers, key UI accents   |
+| **UI/Body**       | **Geist Sans** | Body text, labels, buttons, navigation items, form inputs, chat messages |
+| **Code**          | **Geist Mono** | Code editor, terminal, inline code, file names, timestamps               |
 
 ### Rationale
 
@@ -44,18 +44,18 @@ Orbitron is a geometric, futuristic display font that gives Niotebook a distinct
 
 ### Core Tokens (Finalized in Phase 1)
 
-| Token              | Light Mode                        | Dark Mode                          |
-| ------------------ | --------------------------------- | ---------------------------------- |
-| **bg-base**        | Pampas `#F4F3EE`                  | Rich warm charcoal `#1C1917`       |
-| **bg-surface**     | Warm white `#FAF9F7`              | Elevated warm dark `#252220`|
-| **bg-elevated**    | Soft cream `#EDEAE4`              | Higher warm dark `#2E2A27`         |
-| **text-primary**   | Near black `#1C1917`              | Warm white `#F4F3EE`              |
-| **text-secondary** | Warm gray `#78716C`               | Warm muted `#A8A29E`              |
-| **text-muted**     | Light warm gray `#A8A29E`         | Dim warm gray `#78716C`           |
-| **accent**         | Crail `#C15F3C`                   | Lighter terracotta `#DA7756`      |
-| **accent-subtle**  | `rgba(193,95,60,0.10)`            | `rgba(218,119,86,0.15)`           |
-| **border-default** | Warm beige `#DDD8D0`              | Warm dark `#3A3531`               |
-| **border-strong**  | Warm tan `#EDEAE4`                | Warm dark divider `#2E2A27`       |
+| Token              | Light Mode                | Dark Mode                    |
+| ------------------ | ------------------------- | ---------------------------- |
+| **bg-base**        | Pampas `#F4F3EE`          | Rich warm charcoal `#1C1917` |
+| **bg-surface**     | Warm white `#FAF9F7`      | Elevated warm dark `#252220` |
+| **bg-elevated**    | Soft cream `#EDEAE4`      | Higher warm dark `#2E2A27`   |
+| **text-primary**   | Near black `#1C1917`      | Warm white `#F4F3EE`         |
+| **text-secondary** | Warm gray `#78716C`       | Warm muted `#A8A29E`         |
+| **text-muted**     | Light warm gray `#A8A29E` | Dim warm gray `#78716C`      |
+| **accent**         | Crail `#C15F3C`           | Lighter terracotta `#DA7756` |
+| **accent-subtle**  | `rgba(193,95,60,0.10)`    | `rgba(218,119,86,0.15)`      |
+| **border-default** | Warm beige `#DDD8D0`      | Warm dark `#3A3531`          |
+| **border-strong**  | Warm tan `#EDEAE4`        | Warm dark divider `#2E2A27`  |
 
 > **Phase 1 complete:** All hex values finalized. See `src/app/globals.css` for the canonical token definitions.
 
@@ -96,19 +96,19 @@ Status colors should use warm-tinted variants (not pure/saturated) to match the 
 
 ### Scale
 
-| Token  | Value |
-| ------ | ----- |
-| `0`    | 0px   |
-| `1`    | 4px   |
-| `2`    | 8px   |
-| `3`    | 12px  |
-| `4`    | 16px  |
-| `5`    | 20px  |
-| `6`    | 24px  |
-| `8`    | 32px  |
-| `10`   | 40px  |
-| `12`   | 48px  |
-| `16`   | 64px  |
+| Token | Value |
+| ----- | ----- |
+| `0`   | 0px   |
+| `1`   | 4px   |
+| `2`   | 8px   |
+| `3`   | 12px  |
+| `4`   | 16px  |
+| `5`   | 20px  |
+| `6`   | 24px  |
+| `8`   | 32px  |
+| `10`  | 40px  |
+| `12`  | 48px  |
+| `16`  | 64px  |
 
 ---
 
@@ -116,13 +116,13 @@ Status colors should use warm-tinted variants (not pure/saturated) to match the 
 
 Softer, warmer corners than v1 — closer to Claude's rounded-but-not-pill aesthetic.
 
-| Token   | Value | Usage                        |
-| ------- | ----- | ---------------------------- |
-| `sm`    | 6px   | Inputs, badges, small cards  |
-| `md`    | 8px   | Buttons, cards, panels       |
-| `lg`    | 12px  | Modals, drawers, large cards |
-| `xl`    | 16px  | Hero elements, feature cards |
-| `full`  | 9999px| Pills, avatars, toggles      |
+| Token  | Value  | Usage                        |
+| ------ | ------ | ---------------------------- |
+| `sm`   | 6px    | Inputs, badges, small cards  |
+| `md`   | 8px    | Buttons, cards, panels       |
+| `lg`   | 12px   | Modals, drawers, large cards |
+| `xl`   | 16px   | Hero elements, feature cards |
+| `full` | 9999px | Pills, avatars, toggles      |
 
 ---
 
@@ -130,36 +130,36 @@ Softer, warmer corners than v1 — closer to Claude's rounded-but-not-pill aesth
 
 Warm, subtle depth — never harsh or cold. Shadows use warm undertones.
 
-| Token       | Light Mode                                         | Dark Mode                                          |
-| ----------- | -------------------------------------------------- | -------------------------------------------------- |
-| `shadow-sm` | `0 1px 2px rgba(28, 25, 23, 0.05)`                | `0 1px 2px rgba(0, 0, 0, 0.2)`                    |
-| `shadow-md` | `0 4px 6px -1px rgba(28, 25, 23, 0.07)`           | `0 4px 6px -1px rgba(0, 0, 0, 0.3)`               |
-| `shadow-lg` | `0 10px 15px -3px rgba(28, 25, 23, 0.08)`         | `0 10px 15px -3px rgba(0, 0, 0, 0.35)`            |
+| Token       | Light Mode                                | Dark Mode                              |
+| ----------- | ----------------------------------------- | -------------------------------------- |
+| `shadow-sm` | `0 1px 2px rgba(28, 25, 23, 0.05)`        | `0 1px 2px rgba(0, 0, 0, 0.2)`         |
+| `shadow-md` | `0 4px 6px -1px rgba(28, 25, 23, 0.07)`   | `0 4px 6px -1px rgba(0, 0, 0, 0.3)`    |
+| `shadow-lg` | `0 10px 15px -3px rgba(28, 25, 23, 0.08)` | `0 10px 15px -3px rgba(0, 0, 0, 0.35)` |
 
 ---
 
 ## Motion & Micro-interactions
 
-| Element                | Treatment                                                    |
-| ---------------------- | ------------------------------------------------------------ |
-| **Panel transitions**  | Spring-based easing, smooth pane switching                   |
-| **Hover states**       | Gentle opacity/background shifts, not abrupt                 |
-| **Loading states**     | Elegant skeleton screens with warm shimmer                   |
-| **Streaming text**     | Smooth character-by-character with subtle cursor             |
-| **Drawer open/close**  | Fluid slide + fade (refine current 180ms/120ms timing)       |
-| **Theme transitions**  | Smooth cross-fade between dark and light                     |
-| **Focus rings**        | Warm accent glow, not harsh blue outlines                    |
-| **Button press**       | Subtle scale-down (0.98) + opacity shift                     |
-| **Card hover**         | Gentle lift via shadow elevation                             |
+| Element               | Treatment                                              |
+| --------------------- | ------------------------------------------------------ |
+| **Panel transitions** | Spring-based easing, smooth pane switching             |
+| **Hover states**      | Gentle opacity/background shifts, not abrupt           |
+| **Loading states**    | Elegant skeleton screens with warm shimmer             |
+| **Streaming text**    | Smooth character-by-character with subtle cursor       |
+| **Drawer open/close** | Fluid slide + fade (refine current 180ms/120ms timing) |
+| **Theme transitions** | Smooth cross-fade between dark and light               |
+| **Focus rings**       | Warm accent glow, not harsh blue outlines              |
+| **Button press**      | Subtle scale-down (0.98) + opacity shift               |
+| **Card hover**        | Gentle lift via shadow elevation                       |
 
 ### Timing
 
-| Token    | Duration | Easing                          | Usage                        |
-| -------- | -------- | ------------------------------- | ---------------------------- |
-| `fast`   | 100ms    | `cubic-bezier(0.4, 0, 0.2, 1)` | Hover states, opacity shifts |
-| `normal` | 180ms    | `cubic-bezier(0.4, 0, 0.2, 1)` | Most transitions             |
-| `slow`   | 250ms    | `cubic-bezier(0.4, 0, 0.2, 1)` | Drawers, panels, modals      |
-| `spring` | 300ms    | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Playful micro-interactions |
+| Token    | Duration | Easing                              | Usage                        |
+| -------- | -------- | ----------------------------------- | ---------------------------- |
+| `fast`   | 100ms    | `cubic-bezier(0.4, 0, 0.2, 1)`      | Hover states, opacity shifts |
+| `normal` | 180ms    | `cubic-bezier(0.4, 0, 0.2, 1)`      | Most transitions             |
+| `slow`   | 250ms    | `cubic-bezier(0.4, 0, 0.2, 1)`      | Drawers, panels, modals      |
+| `spring` | 300ms    | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Playful micro-interactions   |
 
 ---
 
@@ -266,12 +266,12 @@ Warm, subtle depth — never harsh or cold. Shadows use warm undertones.
 
 ## Reference Touchstones
 
-| Reference                | What to take from it                                              |
-| ------------------------ | ----------------------------------------------------------------- |
-| **Claude.ai/code**       | Warmth, color palette, spacing rhythm, calm focus                 |
-| **Claude Cowork (macOS)**| Grid/dot pattern, panel transitions, premium native feel          |
-| **Geist font family**    | Body/code typography — clean, modern, Vercel-native               |
-| **Orbitron**             | Brand display font — geometric, futuristic identity fingerprint   |
+| Reference                 | What to take from it                                            |
+| ------------------------- | --------------------------------------------------------------- |
+| **Claude.ai/code**        | Warmth, color palette, spacing rhythm, calm focus               |
+| **Claude Cowork (macOS)** | Grid/dot pattern, panel transitions, premium native feel        |
+| **Geist font family**     | Body/code typography — clean, modern, Vercel-native             |
+| **Orbitron**              | Brand display font — geometric, futuristic identity fingerprint |
 
 ---
 
@@ -293,9 +293,9 @@ _Track unresolved decisions here as the redesign progresses._
 
 ## Changelog
 
-| Date       | Change                                                       |
-| ---------- | ------------------------------------------------------------ |
-| 2026-02-06 | Initial brief created from brainstorming session             |
-| 2026-02-06 | Phase 1 complete: design tokens, warm palette, grid pattern, font assignments, shimmer animation. All token values finalized. frontend-designer agent enhanced with design system expertise. |
-| 2026-02-06 | Phases 2-6 complete: full token migration across all components, pages, shell, panes. Zero hardcoded colors remaining. Focus states and transition polish done. |
+| Date       | Change                                                                                                                                                                                                   |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-02-06 | Initial brief created from brainstorming session                                                                                                                                                         |
+| 2026-02-06 | Phase 1 complete: design tokens, warm palette, grid pattern, font assignments, shimmer animation. All token values finalized. frontend-designer agent enhanced with design system expertise.             |
+| 2026-02-06 | Phases 2-6 complete: full token migration across all components, pages, shell, panes. Zero hardcoded colors remaining. Focus states and transition polish done.                                          |
 | 2026-02-06 | Phase 7 complete: Landing page rework — NotebookFrame binder architecture, hero simplification, capsule theme toggle, text wordmark, multi-column footer, legal stubs, gap normalization. PR #87 merged. |

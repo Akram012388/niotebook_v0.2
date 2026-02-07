@@ -22,79 +22,79 @@
 
 ```css
 /* Backgrounds */
---background:      #F4F3EE;   /* Pampas — base background */
---surface:         #FAF9F7;   /* Warm white — cards, panels */
---surface-muted:   #EDEAE4;   /* Soft cream — elevated surfaces */
---surface-strong:  #1C1917;   /* Charcoal — code blocks, footer */
+--background: #f4f3ee; /* Pampas — base background */
+--surface: #faf9f7; /* Warm white — cards, panels */
+--surface-muted: #edeae4; /* Soft cream — elevated surfaces */
+--surface-strong: #1c1917; /* Charcoal — code blocks, footer */
 
 /* Text */
---foreground:      #1C1917;   /* Near black — primary text */
---text-muted:      #78716C;   /* Warm gray — secondary text */
---text-subtle:     #A8A29E;   /* Light warm gray — placeholders */
+--foreground: #1c1917; /* Near black — primary text */
+--text-muted: #78716c; /* Warm gray — secondary text */
+--text-subtle: #a8a29e; /* Light warm gray — placeholders */
 
 /* Accent (Claude terracotta) */
---accent:            #C15F3C;                  /* Crail — primary actions */
---accent-foreground: #FFFFFF;                  /* Text on accent */
---accent-muted:      rgba(193, 95, 60, 0.10); /* Accent backgrounds */
---accent-border:     rgba(193, 95, 60, 0.25); /* Accent borders */
---accent-hover:      #A8512F;                  /* Darker on hover */
+--accent: #c15f3c; /* Crail — primary actions */
+--accent-foreground: #ffffff; /* Text on accent */
+--accent-muted: rgba(193, 95, 60, 0.1); /* Accent backgrounds */
+--accent-border: rgba(193, 95, 60, 0.25); /* Accent borders */
+--accent-hover: #a8512f; /* Darker on hover */
 
 /* Status (warm-tinted) */
---status-success:  #5A8A5E;
---status-warning:  #B5882C;
---status-error:    #C24B3A;
---status-info:     #5B7FA5;
+--status-success: #5a8a5e;
+--status-warning: #b5882c;
+--status-error: #c24b3a;
+--status-info: #5b7fa5;
 
 /* Borders */
---border:          #DDD8D0;   /* Warm beige */
---border-muted:    #EDEAE4;   /* Warm tan */
+--border: #ddd8d0; /* Warm beige */
+--border-muted: #edeae4; /* Warm tan */
 ```
 
 ### Dark Theme (`[data-theme="dark"]`)
 
 ```css
 /* Backgrounds */
---background:      #1C1917;   /* Rich warm charcoal */
---surface:         #252220;   /* Elevated warm dark */
---surface-muted:   #2E2A27;   /* Higher warm dark */
---surface-strong:  #141210;   /* Deepest dark */
+--background: #1c1917; /* Rich warm charcoal */
+--surface: #252220; /* Elevated warm dark */
+--surface-muted: #2e2a27; /* Higher warm dark */
+--surface-strong: #141210; /* Deepest dark */
 
 /* Text */
---foreground:      #F4F3EE;   /* Warm white */
---text-muted:      #A8A29E;   /* Warm muted */
---text-subtle:     #78716C;   /* Dim warm gray */
+--foreground: #f4f3ee; /* Warm white */
+--text-muted: #a8a29e; /* Warm muted */
+--text-subtle: #78716c; /* Dim warm gray */
 
 /* Accent (lighter terracotta for dark contrast) */
---accent:            #DA7756;
---accent-foreground: #1C1917;
---accent-muted:      rgba(218, 119, 86, 0.15);
---accent-border:     rgba(218, 119, 86, 0.30);
---accent-hover:      #E8906E;
+--accent: #da7756;
+--accent-foreground: #1c1917;
+--accent-muted: rgba(218, 119, 86, 0.15);
+--accent-border: rgba(218, 119, 86, 0.3);
+--accent-hover: #e8906e;
 
 /* Status (brighter for dark backgrounds) */
---status-success:  #6DA072;
---status-warning:  #D4A748;
---status-error:    #E06B5A;
---status-info:     #7A9FC0;
+--status-success: #6da072;
+--status-warning: #d4a748;
+--status-error: #e06b5a;
+--status-info: #7a9fc0;
 
 /* Borders */
---border:          #3A3531;
---border-muted:    #2E2A27;
+--border: #3a3531;
+--border-muted: #2e2a27;
 ```
 
 ### Workspace Tokens (always-dark code surfaces)
 
 ```css
---workspace-editor:        #1C1917;
---workspace-sidebar:       #1C1917;
---workspace-terminal:      #1C1917;
---workspace-tabbar:        #252220;
---workspace-border:        #3A3531;
---workspace-border-muted:  #2E2A27;
---workspace-text:          #F4F3EE;
---workspace-text-muted:    #A8A29E;
---workspace-accent:        <theme-dependent>;  /* #C15F3C (light) / #DA7756 (dark) */
---workspace-accent-muted:  <theme-dependent>;
+--workspace-editor: #1c1917;
+--workspace-sidebar: #1c1917;
+--workspace-terminal: #1c1917;
+--workspace-tabbar: #252220;
+--workspace-border: #3a3531;
+--workspace-border-muted: #2e2a27;
+--workspace-text: #f4f3ee;
+--workspace-text-muted: #a8a29e;
+--workspace-accent: <theme-dependent>; /* #C15F3C (light) / #DA7756 (dark) */
+--workspace-accent-muted: <theme-dependent>;
 ```
 
 ---
@@ -103,11 +103,11 @@
 
 ### Font Stack
 
-| Role          | Font          | CSS Variable         | Usage                                      |
-|---------------|---------------|----------------------|--------------------------------------------|
-| **Display**   | Orbitron      | `--font-display`     | Wordmark, page titles, section headers     |
-| **Body/UI**   | Geist Sans    | `--font-body`        | Body text, labels, buttons, nav, chat      |
-| **Code**      | Geist Mono    | `--font-code`        | Code editor, terminal, inline code         |
+| Role        | Font       | CSS Variable     | Usage                                  |
+| ----------- | ---------- | ---------------- | -------------------------------------- |
+| **Display** | Orbitron   | `--font-display` | Wordmark, page titles, section headers |
+| **Body/UI** | Geist Sans | `--font-body`    | Body text, labels, buttons, nav, chat  |
+| **Code**    | Geist Mono | `--font-code`    | Code editor, terminal, inline code     |
 
 ### Loading (layout.tsx)
 
@@ -115,16 +115,23 @@
 import { Geist, Geist_Mono, Orbitron } from "next/font/google";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-const orbitron = Orbitron({ variable: "--font-orbitron", subsets: ["latin"], weight: ["400","500","600","700"] });
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+const orbitron = Orbitron({
+  variable: "--font-orbitron",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 ```
 
 ### Tailwind Mapping
 
 ```css
---font-sans: var(--font-body);    /* Geist Sans — `font-sans` utility */
---font-mono: var(--font-code);    /* Geist Mono — `font-mono` utility */
---font-display: var(--font-orbitron);  /* Orbitron — `font-display` utility */
+--font-sans: var(--font-body); /* Geist Sans — `font-sans` utility */
+--font-mono: var(--font-code); /* Geist Mono — `font-mono` utility */
+--font-display: var(--font-orbitron); /* Orbitron — `font-display` utility */
 ```
 
 ---
@@ -133,28 +140,28 @@ const orbitron = Orbitron({ variable: "--font-orbitron", subsets: ["latin"], wei
 
 4px base grid (uses standard Tailwind spacing):
 
-| Token | Value  | Tailwind Class |
-|-------|--------|----------------|
-| 1     | 4px    | `p-1`          |
-| 2     | 8px    | `p-2`          |
-| 3     | 12px   | `p-3`          |
-| 4     | 16px   | `p-4`          |
-| 5     | 20px   | `p-5`          |
-| 6     | 24px   | `p-6`          |
-| 8     | 32px   | `p-8`          |
-| 10    | 40px   | `p-10`         |
-| 12    | 48px   | `p-12`         |
-| 16    | 64px   | `p-16`         |
+| Token | Value | Tailwind Class |
+| ----- | ----- | -------------- |
+| 1     | 4px   | `p-1`          |
+| 2     | 8px   | `p-2`          |
+| 3     | 12px  | `p-3`          |
+| 4     | 16px  | `p-4`          |
+| 5     | 20px  | `p-5`          |
+| 6     | 24px  | `p-6`          |
+| 8     | 32px  | `p-8`          |
+| 10    | 40px  | `p-10`         |
+| 12    | 48px  | `p-12`         |
+| 16    | 64px  | `p-16`         |
 
 ---
 
 ## Border Radius
 
 ```css
---radius-sm:   6px;    /* Inputs, badges, small cards */
---radius-md:   8px;    /* Buttons, cards, panels */
---radius-lg:   12px;   /* Modals, drawers, large cards */
---radius-xl:   16px;   /* Hero elements, feature cards */
+--radius-sm: 6px; /* Inputs, badges, small cards */
+--radius-md: 8px; /* Buttons, cards, panels */
+--radius-lg: 12px; /* Modals, drawers, large cards */
+--radius-xl: 16px; /* Hero elements, feature cards */
 --radius-full: 9999px; /* Pills, avatars, toggles */
 ```
 
@@ -175,8 +182,8 @@ Warm, subtle depth — warm undertones in light mode, deeper in dark mode.
 ### Dark Mode
 
 ```css
---shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.20);
---shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.30);
+--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
 --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
 ```
 
@@ -185,13 +192,13 @@ Warm, subtle depth — warm undertones in light mode, deeper in dark mode.
 ## Transitions
 
 ```css
---duration-fast:   100ms;   /* Hover states, opacity shifts */
---duration-normal: 180ms;   /* Most transitions */
---duration-slow:   250ms;   /* Drawers, panels, modals */
---duration-spring: 300ms;   /* Playful micro-interactions */
+--duration-fast: 100ms; /* Hover states, opacity shifts */
+--duration-normal: 180ms; /* Most transitions */
+--duration-slow: 250ms; /* Drawers, panels, modals */
+--duration-spring: 300ms; /* Playful micro-interactions */
 
 --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
---ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+--ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 ```
 
 ---
@@ -240,7 +247,12 @@ Global warm accent focus ring:
 
 ```css
 .nio-shimmer {
-  background: linear-gradient(90deg, var(--surface-muted) 25%, var(--surface) 50%, var(--surface-muted) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--surface-muted) 25%,
+    var(--surface) 50%,
+    var(--surface-muted) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
@@ -250,7 +262,12 @@ Global warm accent focus ring:
 
 ```css
 .nio-shimmer-workspace {
-  background: linear-gradient(90deg, var(--workspace-border-muted) 25%, var(--workspace-border) 50%, var(--workspace-border-muted) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--workspace-border-muted) 25%,
+    var(--workspace-border) 50%,
+    var(--workspace-border-muted) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
 }
@@ -310,12 +327,12 @@ No `tailwind.config.js` — uses `@theme inline` in `globals.css`:
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `src/app/globals.css` | Canonical token definitions + base styles |
-| `src/app/layout.tsx` | Font loading, theme script, body classes |
-| `src/ui/landing/ThemeToggle.tsx` | Capsule theme toggle component |
-| `src/ui/landing/NotebookFrame.tsx` | 3-layer binder frame component |
-| `src/ui/brand/Wordmark.tsx` | Text-based Orbitron wordmark |
-| `docs/redesign/REDESIGN_BRIEF.md` | Design direction and decisions |
-| `docs/redesign/PROGRESS.md` | Phase-by-phase implementation log |
+| File                               | Purpose                                   |
+| ---------------------------------- | ----------------------------------------- |
+| `src/app/globals.css`              | Canonical token definitions + base styles |
+| `src/app/layout.tsx`               | Font loading, theme script, body classes  |
+| `src/ui/landing/ThemeToggle.tsx`   | Capsule theme toggle component            |
+| `src/ui/landing/NotebookFrame.tsx` | 3-layer binder frame component            |
+| `src/ui/brand/Wordmark.tsx`        | Text-based Orbitron wordmark              |
+| `docs/redesign/REDESIGN_BRIEF.md`  | Design direction and decisions            |
+| `docs/redesign/PROGRESS.md`        | Phase-by-phase implementation log         |

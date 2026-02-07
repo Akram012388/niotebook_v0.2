@@ -23,12 +23,14 @@ Niotebook v0.2 is an impressively architected AI-native learning workspace with 
 **Impact:** Cannot validate complete user journeys without this
 
 **Actions:**
+
 - [ ] Run CS50 ingest script against your Convex deployment
 - [ ] Create E2E seed data via `scripts/e2eSeed.ts`
 - [ ] Setup admin role user for admin page E2E tests
 - [ ] Unskip and verify all 10 E2E tests pass
 
 **Files:**
+
 - `scripts/ingest-cs50-courses.ts`
 - `scripts/e2eSeed.ts`
 - `tests/e2e/*.e2e.ts`
@@ -39,6 +41,7 @@ Niotebook v0.2 is an impressively architected AI-native learning workspace with 
 **Impact:** Users will encounter unpolished UI
 
 **Critical Views to Review:**
+
 - [ ] `/courses` — Carousel layout, responsive behavior, Netflix-style sliding
 - [ ] `/courses/[courseId]` — Progress bars, lecture list ordering
 - [ ] `/workspace` — Pane layouts, resizing, terminal integration
@@ -53,6 +56,7 @@ Niotebook v0.2 is an impressively architected AI-native learning workspace with 
 **Impact:** Empty courses page for new users
 
 **Actions:**
+
 - [ ] Verify all 5 CS50 courses appear in `/courses`
 - [ ] Test lesson loading in workspace for each course type
 - [ ] Validate environment presets match course content (C for CS50x weeks 1-5, Python for later)
@@ -69,6 +73,7 @@ Niotebook v0.2 is an impressively architected AI-native learning workspace with 
 **Impact:** Harder for future developers to understand AI chat contract
 
 **Recommendations:**
+
 - Create `/docs/api-reference.md` documenting:
   - SSE event types (`meta`, `token`, `done`, `error`)
   - Request/response schemas
@@ -82,12 +87,14 @@ Niotebook v0.2 is an impressively architected AI-native learning workspace with 
 **Impact:** Difficult to debug issues in production
 
 **Improvements:**
+
 ```typescript
 // Current: "Provider stream error."
 // Better: "Gemini stream error: timeout after 10s. Falling back to Groq."
 ```
 
 **Actions:**
+
 - [ ] Add retry suggestions to error messages
 - [ ] Implement structured logging (consider Pino)
 - [ ] Add timestamps to console logs
@@ -111,6 +118,7 @@ const completions = await Promise.all(
 ```
 
 **Other Optimizations:**
+
 - [ ] Add caching layer for transcript resolution (currently 3-layer fallback)
 - [ ] Profile Pyodide/WASM warm-up times
 - [ ] Consider lazy loading for CodeMirror extensions
@@ -121,6 +129,7 @@ const completions = await Promise.all(
 **Issue:** Request size and message length unbounded
 
 **Actions:**
+
 - [ ] Add max request body size (suggest: 500KB)
 - [ ] Limit `userMessage` length (suggest: 10,000 chars)
 - [ ] Validate `recentMessages` array depth
@@ -134,6 +143,7 @@ const completions = await Promise.all(
 
 **Good:** Skip-to-content links present
 **Needs Review:**
+
 - [ ] Keyboard navigation through course carousels
 - [ ] Screen reader announcements for streaming chat
 - [ ] Focus management in modal drawers
@@ -146,6 +156,7 @@ const completions = await Promise.all(
 **Opportunity:** Improve the "friendly message" for mobile users
 
 **Suggestions:**
+
 - [ ] Add clear CTA to return on desktop
 - [ ] Allow course browsing on mobile (already planned)
 - [ ] Consider read-only transcript view for mobile
@@ -154,6 +165,7 @@ const completions = await Promise.all(
 
 **Current:** KPI cards with basic metrics
 **Improvements:**
+
 - [ ] Add date range selector beyond 1d/7d/30d
 - [ ] Export functionality (CSV for metrics)
 - [ ] Trend lines on charts
@@ -163,6 +175,7 @@ const completions = await Promise.all(
 
 **Current:** Sentry for errors
 **Additions:**
+
 - [ ] Add performance monitoring (Sentry Performance or Vercel Analytics)
 - [ ] Create Convex scheduled function for health checks
 - [ ] Add uptime monitoring for AI provider endpoints
@@ -180,9 +193,9 @@ const completions = await Promise.all(
 ```typescript
 // Suggested structure
 const rateLimits = {
-  free: { requests: 20, window: '10m' },
-  alpha: { requests: 50, window: '10m' },
-  admin: { requests: 100, window: '10m' }
+  free: { requests: 20, window: "10m" },
+  alpha: { requests: 50, window: "10m" },
+  admin: { requests: 100, window: "10m" },
 };
 ```
 
@@ -192,6 +205,7 @@ const rateLimits = {
 **Action:** Complete Wasmer bridge for actual C compilation
 
 **Files:**
+
 - `src/infra/runtime/wasmer/WasmerBridge.ts`
 - `src/app/editor-sandbox/page.tsx`
 
@@ -208,6 +222,7 @@ const rateLimits = {
 
 **Current:** Out of scope for v0.2
 **Future Consideration:**
+
 - Service worker for course/lesson metadata
 - IndexedDB already used for VFS — extend for offline code editing
 - Queue chat messages for sync when online
@@ -217,6 +232,7 @@ const rateLimits = {
 ## Security Checklist
 
 ### Already Implemented ✅
+
 - [x] Prompt injection neutralization (12 regex patterns)
 - [x] Role-based access control (admin/user/guest)
 - [x] JWT validation with Clerk → Convex
@@ -225,6 +241,7 @@ const rateLimits = {
 - [x] Dev auth bypass requires env check
 
 ### Verify Before Alpha
+
 - [ ] Ensure `NIOTEBOOK_DEV_AUTH_BYPASS` cannot leak to production
 - [ ] Verify rate limit bypass is not possible via header manipulation
 - [ ] Test admin route protection with non-admin JWT
@@ -236,18 +253,21 @@ const rateLimits = {
 ## Testing Gaps to Address
 
 ### Unit Tests — Missing Coverage
+
 - [ ] Markdown rendering component tests
 - [ ] Admin mutation edge cases (concurrent role changes)
 - [ ] Runtime executor timeout handling
 - [ ] VFS edge cases (max file size, nested paths)
 
 ### E2E Tests — Expansion Ideas
+
 - [ ] Resume flow: leave workspace → return → verify state
 - [ ] Chat: send message → verify streamed response → verify markdown
 - [ ] Multi-language: switch languages → verify context updates
 - [ ] Error states: simulate provider failure → verify fallback
 
 ### Integration Tests — Consider Adding
+
 - [ ] Full AI flow with mocked provider
 - [ ] Transcript resolution fallback chain
 - [ ] Rate limit enforcement end-to-end
@@ -257,12 +277,14 @@ const rateLimits = {
 ## Documentation Recommendations
 
 ### Current Strengths
+
 - 24 comprehensive markdown docs
 - ADR pattern well-established (5 ADRs)
 - HANDOFF.md excellent for session continuity
 - Clear phase-based execution plans
 
 ### Additions for Alpha
+
 - [ ] **User Guide** — Brief onboarding doc for alpha testers
 - [ ] **Known Limitations** — Transparent list of alpha constraints
 - [ ] **Feedback Process** — How to report issues, expected response time
@@ -274,6 +296,7 @@ const rateLimits = {
 ## Deployment Checklist
 
 ### Pre-Launch
+
 - [ ] Verify all environment variables set in Vercel
 - [ ] Confirm Convex production deployment configured
 - [ ] Test Clerk invite flow end-to-end
@@ -282,6 +305,7 @@ const rateLimits = {
 - [ ] Run full E2E suite against preview deployment
 
 ### Launch Day
+
 - [ ] Deploy to production
 - [ ] Send first batch of invites
 - [ ] Monitor error rates in Sentry
@@ -289,6 +313,7 @@ const rateLimits = {
 - [ ] Be ready to adjust rate limits if needed
 
 ### Post-Launch Monitoring
+
 - [ ] Daily check of active users vs sessions
 - [ ] Weekly review of feedback submissions
 - [ ] Monitor Gemini/Groq API costs
@@ -299,18 +324,21 @@ const rateLimits = {
 ## Prioritized Action Plan
 
 ### Week 1 — Foundation
+
 1. Run CS50 ingest against Convex
 2. Activate and verify all E2E tests
 3. Complete visual QA pass
 4. Deploy to preview and test
 
 ### Week 2 — Polish
+
 1. Address P1 improvements (error handling, input validation)
 2. Write API reference documentation
 3. Create alpha user guide
 4. Security checklist verification
 
 ### Week 3 — Launch
+
 1. Final E2E pass on production
 2. Generate invite codes
 3. Deploy to production
@@ -321,21 +349,22 @@ const rateLimits = {
 
 ## Metrics to Track Post-Alpha
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Activation Rate | >60% | Sign up → First lesson started |
-| Session Duration | >15 min | Average time in workspace |
-| Return Rate (D7) | >40% | Users returning within 7 days |
-| AI Usage | >3 msgs/session | Chat messages per session |
-| Lesson Completion | >20% | Lessons marked complete |
-| Error Rate | <1% | Errors / total requests |
-| Fallback Rate | <10% | Groq fallback / AI requests |
+| Metric            | Target          | Measurement                    |
+| ----------------- | --------------- | ------------------------------ |
+| Activation Rate   | >60%            | Sign up → First lesson started |
+| Session Duration  | >15 min         | Average time in workspace      |
+| Return Rate (D7)  | >40%            | Users returning within 7 days  |
+| AI Usage          | >3 msgs/session | Chat messages per session      |
+| Lesson Completion | >20%            | Lessons marked complete        |
+| Error Rate        | <1%             | Errors / total requests        |
+| Fallback Rate     | <10%            | Groq fallback / AI requests    |
 
 ---
 
 ## Summary
 
 **Strengths:**
+
 - Excellent architecture and code organization
 - Comprehensive test coverage (151 unit tests)
 - Strong documentation culture
@@ -343,6 +372,7 @@ const rateLimits = {
 - Clear separation of concerns
 
 **Key Gaps for Alpha:**
+
 1. E2E test activation (blocked on data seeding)
 2. Visual QA pass (never done in-browser)
 3. Content pipeline verification
@@ -353,4 +383,4 @@ const rateLimits = {
 
 ---
 
-*This analysis was generated in Plan Mode. No code changes were made.*
+_This analysis was generated in Plan Mode. No code changes were made._

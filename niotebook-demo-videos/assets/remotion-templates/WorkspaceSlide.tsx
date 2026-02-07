@@ -54,7 +54,8 @@ export const WorkspaceSlide: React.FC<WorkspaceSlideProps> = ({
 
   // Calculate offset based on direction
   const getOffset = (progress: number) => {
-    const distance = direction === "left" || direction === "right" ? width : height;
+    const distance =
+      direction === "left" || direction === "right" ? width : height;
     const inverse = direction === "left" || direction === "top" ? -1 : 1;
     return distance * inverse * (1 - progress);
   };

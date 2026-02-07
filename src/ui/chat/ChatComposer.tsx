@@ -1,12 +1,7 @@
 "use client";
 
 import { PaperPlaneRight } from "@phosphor-icons/react";
-import {
-  useCallback,
-  useRef,
-  useState,
-  type ReactElement,
-} from "react";
+import { useCallback, useRef, useState, type ReactElement } from "react";
 
 type ChatComposerProps = {
   onSend?: (message: string) => void;
