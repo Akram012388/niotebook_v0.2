@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import type { ChatMessage as ChatMessageType } from "./chatTypes";
+import { ThinkingOrb } from "./ThinkingOrb";
 
 type ChatMessageProps = {
   message: ChatMessageType;
@@ -86,14 +87,7 @@ const ChatMessage = memo(function ChatMessage({
       >
         {isThinking ? (
           <div className="flex items-center pl-1 py-2">
-            <canvas
-              className="nio-thinking-orb"
-              width={80}
-              height={80}
-              style={{ width: 40, height: 40 }}
-              aria-label="Assistant is thinking"
-              role="img"
-            />
+            <ThinkingOrb />
           </div>
         ) : isUser ? (
           <div className="max-w-[80%] rounded-xl border px-3 py-2 text-sm leading-6 border-border bg-surface-muted text-foreground dark:bg-surface-strong">
