@@ -103,6 +103,20 @@
 - **Loading state**: spinner `animate-spin border-2 border-border border-t-accent` + text
 - **Access denied**: lock icon in `bg-accent-muted` container + text
 
+## Figma Brand Plugin (tools/figma-brand-plugin/)
+- **Build**: `bun run build` (esbuild, target es2017)
+- **Manifest**: `documentAccess: "dynamic-page"` -- all Figma APIs must be async
+- **Core helper**: `buildWordmarkText(label, fontSize, mode)` creates text with terracotta 'i'
+- **Wordmark identity**: 'i' at char index 1 in both "niotebook" and "nio"
+  - Light: black text (#1c1917), 'i' = #c15f3c
+  - Dark: white text (#f4f3ee), 'i' = #da7756
+  - Accent: all terracotta (#c15f3c)
+- **No gray bar** -- removed in v2 rewrite
+- **clearPage()**: removes all children; use on Social/Brand Guide pages; do NOT use on shared pages (Logo System, App Icons)
+- **Pages**: Logo System (wordmark + nio mark + badge), Social, App Icons (icon + favicons + email), Brand Guide
+- **Font loading**: `loadLogoFont()` tries Orbitron Bold -> Regular -> Inter Bold
+- **Brand Guide**: master frame 1440px wide, dark bg, cursorY cursor tracking prevents overlaps
+
 ## File Locations
 - Globals CSS: `src/app/globals.css` (tokens, theme, patterns)
 - Layout: `src/app/layout.tsx` (font loading, body classes)
