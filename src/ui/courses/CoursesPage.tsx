@@ -126,7 +126,7 @@ function CoursesPage(): ReactElement {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.5 }}
         >
-          <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-accent/60">
+          <p className="text-xs font-semibold font-mono uppercase tracking-[0.2em] text-accent">
             Continue Learning
           </p>
           <div className="flex gap-4 overflow-x-auto overflow-y-visible pb-4 pt-4 -mb-2 -mt-2 px-2 -mx-2">
@@ -146,7 +146,7 @@ function CoursesPage(): ReactElement {
       {/* Harvard CS50 Library — active courses */}
       <section className="flex flex-col gap-5">
         <div className="flex flex-col gap-1">
-          <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-accent/60">
+          <p className="text-xs font-semibold font-mono uppercase tracking-[0.2em] text-accent">
             Harvard University
           </p>
           <p className="text-xs text-text-muted">
@@ -184,7 +184,7 @@ function CoursesPage(): ReactElement {
       {/* Coming Soon — grouped by provider */}
       {filteredComingSoon.map((group) => (
         <section key={group.provider} className="flex flex-col gap-5">
-          <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-accent/60">
+          <p className="text-xs font-semibold font-mono uppercase tracking-[0.2em] text-accent">
             {group.provider}
           </p>
           <motion.div
