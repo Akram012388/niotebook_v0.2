@@ -67,7 +67,7 @@ export async function buildBrandGuide() {
   }
 
   const page = getOrCreatePage("Brand Guide");
-  figma.currentPage = page;
+  await figma.setCurrentPageAsync(page);
 
   const LOGO_FONT = getLogoFont();
   const SECTION_GAP = 120;

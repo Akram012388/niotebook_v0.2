@@ -115,7 +115,7 @@ export async function buildSocialAssets() {
   await loadLogoFont();
 
   const page = getOrCreatePage("Social");
-  figma.currentPage = page;
+  await figma.setCurrentPageAsync(page);
 
   let offsetX = 0;
 

@@ -13,7 +13,7 @@ export async function buildBadge() {
   await loadLogoFont();
 
   const page = getOrCreatePage("Logo System");
-  figma.currentPage = page;
+  await figma.setCurrentPageAsync(page);
 
   const FONT = getLogoFont();
   const FONT_SIZE = 14;

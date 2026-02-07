@@ -13,7 +13,7 @@ export async function buildEmailSig() {
   await loadLogoFont();
 
   const page = getOrCreatePage("App Icons");
-  figma.currentPage = page;
+  await figma.setCurrentPageAsync(page);
 
   const WIDTH = 300;
   const FONT = getLogoFont();
