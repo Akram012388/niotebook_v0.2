@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactElement, type ReactNode } from "react";
+import { type ReactElement, type ReactNode, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { meRef } from "@/ui/auth/convexAuth";
@@ -13,6 +13,13 @@ const AdminGuard = ({ children }: AdminGuardProps): ReactElement => {
   const isE2ePreview = process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true";
   const me = useQuery(meRef);
   const router = useRouter();
+
+  const denied =
+    !isE2ePreview && me !== undefined && (me === null || me.role !== "admin");
+
+  useEffect(() => {
+    if (denied) router.replace("/");
+  }, [denied, router]);
 
   if (isE2ePreview) {
     return <>{children}</>;
@@ -28,8 +35,7 @@ const AdminGuard = ({ children }: AdminGuardProps): ReactElement => {
     );
   }
 
-  if (me === null || me.role !== "admin") {
-    router.replace("/");
+  if (denied) {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-muted">
