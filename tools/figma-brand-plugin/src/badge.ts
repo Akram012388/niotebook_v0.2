@@ -21,8 +21,8 @@ export async function buildBadge() {
 
   const frame = figma.createFrame();
   frame.name = "Badge/niotebook-badge";
-  frame.fills = [solidPaint(COLORS.gray900)];
-  frame.cornerRadius = 4;
+  frame.fills = [solidPaint(COLORS.surfaceStrong)];
+  frame.cornerRadius = 6; // radius-sm
   frame.clipsContent = true;
 
   // "nio" mark
@@ -30,14 +30,14 @@ export async function buildBadge() {
   nioText.fontName = FONT;
   nioText.fontSize = FONT_SIZE;
   nioText.characters = "nio";
-  nioText.fills = [solidPaint(COLORS.green)];
+  nioText.fills = [solidPaint(COLORS.accent)];
   nioText.x = PADDING;
   nioText.y = (HEIGHT - FONT_SIZE) / 2;
 
   // separator
   const sep = figma.createRectangle();
   sep.resize(1, HEIGHT * 0.6);
-  sep.fills = [solidPaint(COLORS.gray700)];
+  sep.fills = [solidPaint(COLORS.textMuted)];
   sep.x = nioText.x + nioText.width + PADDING;
   sep.y = HEIGHT * 0.2;
 
@@ -46,7 +46,7 @@ export async function buildBadge() {
   restText.fontName = FONT;
   restText.fontSize = FONT_SIZE;
   restText.characters = "tebook";
-  restText.fills = [solidPaint(COLORS.white)];
+  restText.fills = [solidPaint(COLORS.wsText)];
   restText.x = sep.x + sep.width + PADDING;
   restText.y = (HEIGHT - FONT_SIZE) / 2;
 
