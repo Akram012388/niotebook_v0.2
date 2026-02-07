@@ -34,18 +34,83 @@ const formatDate = (ms: number): string =>
     minute: "2-digit",
   });
 
-const RatingStars = ({ rating }: { rating: number }): ReactElement => {
+const RatingStars = ({ rating }: { rating: number }): ReactElement => (
+  <div className="flex items-center gap-1.5">
+    {Array.from({ length: 5 }, (_, i) => (
+      <span
+        key={i}
+        className={`text-sm ${i < rating ? "text-accent" : "text-text-subtle"}`}
+      >
+        ★
+      </span>
+    ))}
+  </div>
+);
+
+const FeedbackCard = ({ entry }: { entry: FeedbackEntry }): ReactElement => {
+  const categories = entry.category.split(", ").filter(Boolean);
+
   return (
-    <span className="text-sm">
-      {Array.from({ length: 5 }, (_, i) => (
-        <span
-          key={i}
-          className={i < rating ? "text-status-warning" : "text-text-muted"}
-        >
-          ★
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-accent/20 hover:shadow-md">
+      {/* Header — user + date */}
+      <div className="flex items-center justify-between">
+        <span className="font-mono text-xs text-text-muted">
+          {entry.userId.slice(0, 12)}…
         </span>
-      ))}
-    </span>
+        <span className="text-xs text-text-muted">
+          {formatDate(entry.createdAt)}
+        </span>
+      </div>
+
+      {/* Rating */}
+      <div className="flex flex-col gap-1.5">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+          Experience rating
+        </div>
+        <RatingStars rating={entry.rating} />
+      </div>
+
+      {/* Categories */}
+      <div className="flex flex-col gap-1.5">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+          Category
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {categories.map((label) => (
+            <span
+              key={label}
+              className="rounded-full border border-accent bg-accent px-3 py-1 text-xs text-white shadow-sm"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Notes */}
+      {entry.notes && entry.notes.trim().length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+            Notes
+          </div>
+          <div className="whitespace-pre-wrap rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs text-foreground">
+            {entry.notes}
+          </div>
+        </div>
+      )}
+
+      {/* Lesson context (if present) */}
+      {entry.lessonId && (
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+            Lesson
+          </span>
+          <span className="font-mono text-xs text-text-muted">
+            {entry.lessonId}
+          </span>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -55,11 +120,13 @@ const FeedbackDashboard = (): ReactElement => {
   const feedback = useQuery(listAllRef);
 
   const categories = feedback
-    ? [...new Set(feedback.map((f) => f.category))]
+    ? [...new Set(feedback.flatMap((f) => f.category.split(", ")))]
     : [];
 
   const filtered = feedback?.filter(
-    (f) => surfaceFilter === "all" || f.category === surfaceFilter,
+    (f) =>
+      surfaceFilter === "all" ||
+      f.category.split(", ").includes(surfaceFilter),
   );
 
   return (
@@ -87,70 +154,15 @@ const FeedbackDashboard = (): ReactElement => {
             Feedback events will appear here once users submit feedback.
           </p>
         </div>
+      ) : filtered === undefined ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />
+        </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border">
-          <table className="w-full text-sm">
-            <thead className="border-b border-border bg-surface-muted">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
-                  User
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
-                  Category
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
-                  Rating
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
-                  Notes
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
-                  Lesson
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
-                  Date
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered === undefined ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-8 text-center text-text-muted"
-                  >
-                    Loading...
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((entry) => (
-                  <tr
-                    key={entry._id}
-                    className="border-b border-border last:border-0 transition-colors duration-100 hover:bg-surface-muted/50"
-                  >
-                    <td className="px-4 py-2.5 font-mono text-xs text-foreground">
-                      {entry.userId}
-                    </td>
-                    <td className="px-4 py-2.5 text-foreground">
-                      {entry.category}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <RatingStars rating={entry.rating} />
-                    </td>
-                    <td className="max-w-xs truncate px-4 py-2.5 text-text-muted">
-                      {entry.notes ?? "—"}
-                    </td>
-                    <td className="px-4 py-2.5 font-mono text-xs text-text-muted">
-                      {entry.lessonId ?? "—"}
-                    </td>
-                    <td className="px-4 py-2.5 text-text-muted">
-                      {formatDate(entry.createdAt)}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((entry) => (
+            <FeedbackCard key={entry._id} entry={entry} />
+          ))}
         </div>
       )}
     </div>
