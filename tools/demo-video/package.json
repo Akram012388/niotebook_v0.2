@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "studio": "remotion studio src/index.ts",
-    "render": "remotion render src/index.ts DemoVideo out/demo.mp4 --overwrite --video-bitrate 5M --color-space bt709",
-    "render:intro": "remotion render src/index.ts IntroPreview out/intro-preview.mp4 --overwrite --video-bitrate 5M --color-space bt709"
+    "render": "remotion render src/index.ts DemoVideo out/niotebook-demo-v2-final.mp4 --overwrite --video-bitrate 35M --color-space bt709 --codec h264",
+    "render:intro": "remotion render src/index.ts IntroPreview out/intro-preview.mp4 --overwrite --video-bitrate 35M --color-space bt709 --codec h264"
   },
   "dependencies": {
     "remotion": "^4.0.0",

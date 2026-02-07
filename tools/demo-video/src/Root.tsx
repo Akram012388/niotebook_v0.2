@@ -4,8 +4,8 @@ import { DemoVideo } from "./DemoVideo";
 import { Intro } from "./Intro";
 import { VIDEO, TIMING } from "./constants";
 
-const DEFAULT_RECORDING_SECONDS = 60;
-const RECORDING_FRAMES = DEFAULT_RECORDING_SECONDS * VIDEO.fps;
+// Recording: niotebook-demo-v2-body.mp4 — 3840x2160 @ 60fps, 50.65s
+const RECORDING_FRAMES = 3039;
 
 export const RemotionRoot: React.FC = () => {
   const fullDuration =
@@ -22,7 +22,7 @@ export const RemotionRoot: React.FC = () => {
         width={VIDEO.width}
         height={VIDEO.height}
         defaultProps={{
-          recordingSrc: "recording.mp4",
+          recordingSrc: "niotebook-demo-v2-body.mp4",
           recordingDurationInFrames: RECORDING_FRAMES,
         }}
       />
@@ -31,7 +31,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="IntroPreview"
         component={Intro}
-        durationInFrames={TIMING.introTotal + 30}
+        durationInFrames={TIMING.introTotal + 60}
         fps={VIDEO.fps}
         width={VIDEO.width}
         height={VIDEO.height}
