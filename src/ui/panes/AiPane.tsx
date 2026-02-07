@@ -1,6 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useEffect, type ReactElement } from "react";
+import {
+  useCallback,
+  useMemo,
+  useEffect,
+  type ReactElement,
+} from "react";
 import { useQuery } from "convex/react";
 import { ChatComposer } from "../chat/ChatComposer";
 import { ChatMessage } from "../chat/ChatMessage";
@@ -155,7 +160,12 @@ const AiPane = ({
         </p>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
-        <ChatScroll isStreaming={streamState === "streaming"}>
+        <ChatScroll
+          isStreaming={
+            streamState === "streaming" ||
+            messages.some((m) => m.isRevealing)
+          }
+        >
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} onSeek={onSeek} />
           ))}

@@ -455,8 +455,13 @@ const useChatThread = (
         const decoder = new TextDecoder();
         let buffer = "";
         let tokenBuffer = "";
+        let totalChars = 0;
+        let revealStarted = false;
         let receivedDone = false;
         let receivedError = false;
+
+        // Start typewriter reveal once enough content is buffered
+        const REVEAL_THRESHOLD = 200;
 
         const flushTokens = (): void => {
           if (!tokenBuffer) {
@@ -465,9 +470,22 @@ const useChatThread = (
 
           const chunk = tokenBuffer;
           tokenBuffer = "";
+          totalChars += chunk.length;
+
+          // Once buffer threshold is hit, transition from thinking dot
+          // to typewriter reveal (stream continues filling content)
+          const shouldStartReveal =
+            !revealStarted && totalChars >= REVEAL_THRESHOLD;
+          if (shouldStartReveal) {
+            revealStarted = true;
+          }
+
           updateLocalMessage(assistantTempId, (message) => ({
             ...message,
             content: message.content + chunk,
+            ...(shouldStartReveal
+              ? { isStreaming: false, isRevealing: true, wasStreaming: true }
+              : {}),
           }));
         };
 
@@ -511,6 +529,8 @@ const useChatThread = (
                   ...message,
                   content: event.finalText,
                   isStreaming: false,
+                  isRevealing: false,
+                  wasStreaming: true,
                 }));
               }
 
@@ -521,6 +541,7 @@ const useChatThread = (
                   ...message,
                   content: event.message,
                   isStreaming: false,
+                  isRevealing: false,
                 }));
                 setStreamError(event.message);
               }
@@ -534,6 +555,7 @@ const useChatThread = (
               ...message,
               content: message.content || "Connection to assistant lost.",
               isStreaming: false,
+              isRevealing: false,
             }));
             setStreamError("Connection to assistant lost.");
           }
@@ -546,6 +568,7 @@ const useChatThread = (
             ...message,
             content: message.content || "Assistant response interrupted.",
             isStreaming: false,
+            isRevealing: false,
           }));
           setStreamError("Assistant response interrupted.");
         }
