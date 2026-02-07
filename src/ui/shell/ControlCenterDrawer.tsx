@@ -6,18 +6,17 @@ import {
   FacebookLogo,
   Gear,
   ListNumbers,
-  Moon,
   PaperPlaneTilt,
   Star,
   Stack,
   ShareNetwork,
-  Sun,
   XLogo,
   LinkedinLogo,
   SignOut,
   UserCircle,
   X,
 } from "@phosphor-icons/react";
+import { ThemeToggle } from "../shared/ThemeToggle";
 import {
   useCallback,
   useMemo,
@@ -45,8 +44,6 @@ type ControlCenterDrawerProps = {
   courseOptions: CourseSummary[];
   lessonId: string | null;
   lessonOptions: LessonSummary[];
-  theme: "light" | "dark";
-  onToggleTheme: () => void;
   onShare: () => void;
   onFeedback: () => void;
   onSelectLesson: (lessonId: string | null) => void;
@@ -73,8 +70,6 @@ const ControlCenterDrawer = ({
   courseOptions,
   lessonId,
   lessonOptions,
-  theme,
-  onToggleTheme,
   onShare,
   onFeedback,
   onSelectLesson,
@@ -441,21 +436,12 @@ const ControlCenterDrawer = ({
                 )
               ) : panelView === "settings" ? (
                 <div className="flex flex-col gap-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                    Theme
+                  <div className="flex items-center justify-between">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                      Theme
+                    </div>
+                    <ThemeToggle />
                   </div>
-                  <button
-                    type="button"
-                    onClick={onToggleTheme}
-                    className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
-                  >
-                    <span>{theme === "light" ? "Light" : "Dark"}</span>
-                    {theme === "light" ? (
-                      <Sun size={14} weight="regular" />
-                    ) : (
-                      <Moon size={14} weight="regular" />
-                    )}
-                  </button>
                   <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
                     Actions
                   </div>
