@@ -8,11 +8,9 @@ type ChatMessage = {
   timestampSec: number;
   createdAt: number;
   isStreaming?: boolean;
-  /** Set when a streaming message finishes — triggers markdown parse. */
-  wasStreaming?: boolean;
   requestId?: string;
 };
 
-type ChatStreamState = "idle" | "streaming" | "error";
+type ChatStreamState = "idle" | "streaming";
 
 export type { ChatMessage, ChatRole, ChatStreamState };
