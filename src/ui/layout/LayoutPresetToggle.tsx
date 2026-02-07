@@ -84,7 +84,7 @@ const LayoutPresetToggle = (): ReactElement => {
           data-testid="layout-toggle"
           className={`flex h-7 w-7 items-center justify-center rounded-full transition ${
             activePreset === preset.id
-              ? "bg-accent-muted text-accent shadow-sm"
+              ? "bg-accent text-white shadow-sm"
               : "text-text-muted hover:bg-surface hover:text-foreground"
           }`}
           onClick={() => setPreset(preset.id)}
