@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------------------
 // Figma Variable Collections for Niotebook v2 Design Tokens
 // Creates semantic color + size variables with light/dark modes.
+// Uses async API methods required by "documentAccess": "dynamic-page".
 // ---------------------------------------------------------------------------
 
 import { COLOR_TOKENS, SIZE_TOKENS } from "./tokens";
@@ -25,8 +26,8 @@ const SIZE_COLLECTION_NAME = "Niotebook/Size";
  * Remove existing collections by name so the plugin is idempotent.
  * Running "Build All" twice won't duplicate collections.
  */
-function removeExistingCollections() {
-  const locals = figma.variables.getLocalVariableCollections();
+async function removeExistingCollections() {
+  const locals = await figma.variables.getLocalVariableCollectionsAsync();
   for (const c of locals) {
     if (
       c.name === COLOR_COLLECTION_NAME ||
@@ -34,7 +35,7 @@ function removeExistingCollections() {
     ) {
       // Remove all variables in the collection first
       for (const varId of c.variableIds) {
-        const v = figma.variables.getVariableById(varId);
+        const v = await figma.variables.getVariableByIdAsync(varId);
         if (v) v.remove();
       }
       c.remove();
@@ -48,8 +49,8 @@ function removeExistingCollections() {
  * - **Niotebook/Color** — ~30 semantic color tokens with Light + Dark modes
  * - **Niotebook/Size** — 5 border-radius tokens
  */
-export function createDesignTokenVariables(): VariableRefs {
-  removeExistingCollections();
+export async function createDesignTokenVariables(): Promise<VariableRefs> {
+  await removeExistingCollections();
 
   // ── Color Collection ──
   const colorCollection = figma.variables.createVariableCollection(

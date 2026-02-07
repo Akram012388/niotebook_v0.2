@@ -11,7 +11,8 @@ import { buildEmailSig } from "./email";
 import { buildBrandGuide } from "./brandGuide";
 
 async function buildTokens() {
-  const refs = createDesignTokenVariables();
+  console.log("[niotebook] buildTokens: starting…");
+  const refs = await createDesignTokenVariables();
   figma.notify(
     `✓ ${refs.colorVars.size} color + ${refs.sizeVars.size} size variables created`,
   );
@@ -19,33 +20,39 @@ async function buildTokens() {
 }
 
 async function buildStyles() {
-  const refs = createDesignTokenVariables();
-  createColorStyles(refs);
+  console.log("[niotebook] buildStyles: starting…");
+  const refs = await createDesignTokenVariables();
+  await createColorStyles(refs);
   await createTextStyles();
   figma.notify("✓ Design tokens, color & text styles created");
 }
 
 async function buildLogos() {
+  console.log("[niotebook] buildLogos: starting…");
   await buildWordmark();
   await buildNioMark();
   await buildBadge();
 }
 
 async function buildSocial() {
+  console.log("[niotebook] buildSocial: starting…");
   await buildSocialAssets();
 }
 
 async function buildIcons() {
+  console.log("[niotebook] buildIcons: starting…");
   await buildAppIcon();
   await buildFavicons();
   await buildEmailSig();
 }
 
 async function buildGuide() {
+  console.log("[niotebook] buildGuide: starting…");
   await buildBrandGuide();
 }
 
 async function buildAll() {
+  console.log("[niotebook] buildAll: starting…");
   figma.notify("Building Niotebook brand system v2…");
   await buildStyles();
   await buildLogos();
@@ -60,6 +67,7 @@ async function buildAll() {
 // ---------------------------------------------------------------------------
 
 figma.on("run", async ({ command }: RunEvent) => {
+  console.log("[niotebook] plugin loaded, command:", command);
   try {
     switch (command) {
       case "buildAll":
@@ -87,8 +95,11 @@ figma.on("run", async ({ command }: RunEvent) => {
         figma.notify(`Unknown command: ${command}`, { error: true });
     }
   } catch (err) {
-    figma.notify(`Error: ${(err as Error).message}`, { error: true });
-    console.error(err);
+    const msg = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : "";
+    console.error("[niotebook] ERROR:", msg);
+    console.error("[niotebook] STACK:", stack);
+    figma.notify(`Error: ${msg}`, { error: true });
   } finally {
     figma.closePlugin();
   }
