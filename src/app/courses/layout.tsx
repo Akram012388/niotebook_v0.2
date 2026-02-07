@@ -1,8 +1,7 @@
-"use client";
-
 import { type ReactElement, type ReactNode } from "react";
 
-import { SidebarShell } from "@/ui/shell/SidebarShell";
+import { SiteNav } from "@/ui/shared/SiteNav";
+import { CoursesNavActions } from "@/ui/courses/CoursesNavActions";
 
 interface CoursesLayoutProps {
   children: ReactNode;
@@ -11,5 +10,12 @@ interface CoursesLayoutProps {
 export default function CoursesLayout({
   children,
 }: CoursesLayoutProps): ReactElement {
-  return <SidebarShell>{children}</SidebarShell>;
+  return (
+    <>
+      <SiteNav wordmarkHref="/courses">
+        <CoursesNavActions />
+      </SiteNav>
+      <main className="pt-[72px]">{children}</main>
+    </>
+  );
 }
