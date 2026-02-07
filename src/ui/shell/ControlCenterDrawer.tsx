@@ -6,18 +6,17 @@ import {
   FacebookLogo,
   Gear,
   ListNumbers,
-  Moon,
   PaperPlaneTilt,
   Star,
   Stack,
   ShareNetwork,
-  Sun,
   XLogo,
   LinkedinLogo,
   SignOut,
   UserCircle,
   X,
 } from "@phosphor-icons/react";
+import { ThemeToggle } from "../shared/ThemeToggle";
 import {
   useCallback,
   useMemo,
@@ -45,8 +44,6 @@ type ControlCenterDrawerProps = {
   courseOptions: CourseSummary[];
   lessonId: string | null;
   lessonOptions: LessonSummary[];
-  theme: "light" | "dark";
-  onToggleTheme: () => void;
   onShare: () => void;
   onFeedback: () => void;
   onSelectLesson: (lessonId: string | null) => void;
@@ -73,8 +70,6 @@ const ControlCenterDrawer = ({
   courseOptions,
   lessonId,
   lessonOptions,
-  theme,
-  onToggleTheme,
   onShare,
   onFeedback,
   onSelectLesson,
@@ -302,7 +297,7 @@ const ControlCenterDrawer = ({
               onClick={() => handleTabChange("lectures")}
               className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                 activeTab === "lectures"
-                  ? "dark:border-accent/40 dark:bg-accent-muted border-foreground/20 bg-accent-muted text-foreground"
+                  ? "border-accent/40 bg-accent-muted text-accent"
                   : "border-transparent text-text-muted hover:bg-surface-muted"
               }`}
             >
@@ -314,7 +309,7 @@ const ControlCenterDrawer = ({
               onClick={() => handleTabChange("courses")}
               className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                 activeTab === "courses"
-                  ? "dark:border-accent/40 dark:bg-accent-muted border-foreground/20 bg-accent-muted text-foreground"
+                  ? "border-accent/40 bg-accent-muted text-accent"
                   : "border-transparent text-text-muted hover:bg-surface-muted"
               }`}
             >
@@ -355,8 +350,8 @@ const ControlCenterDrawer = ({
                               onClick={() => onSelectLesson(lesson.id)}
                               className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-left text-xs transition-all duration-200 ${
                                 isActive
-                                  ? "dark:border-accent/50 dark:bg-accent-muted border-foreground/30 bg-accent-muted text-foreground dark:shadow-md dark:shadow-accent/10 dark:ring-1 dark:ring-accent/20"
-                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md dark:hover:border-accent/20 hover:border-foreground/20 hover:bg-surface-muted hover:text-foreground"
+                                  ? "border-accent/50 bg-accent-muted text-foreground shadow-md shadow-accent/10 ring-1 ring-accent/20"
+                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md hover:border-accent/20 hover:bg-surface-muted hover:text-foreground"
                               }`}
                             >
                               <div className="flex flex-col">
@@ -412,8 +407,8 @@ const ControlCenterDrawer = ({
                               }}
                               className={`flex flex-col gap-1 rounded-xl border px-3 py-2.5 text-left text-xs transition-all duration-200 ${
                                 isActive
-                                  ? "dark:border-accent/50 dark:bg-accent-muted border-foreground/30 bg-accent-muted text-foreground dark:shadow-md dark:shadow-accent/10 dark:ring-1 dark:ring-accent/20"
-                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md dark:hover:border-accent/20 hover:border-foreground/20 hover:bg-surface-muted hover:text-foreground"
+                                  ? "border-accent/50 bg-accent-muted text-foreground shadow-md shadow-accent/10 ring-1 ring-accent/20"
+                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md hover:border-accent/20 hover:bg-surface-muted hover:text-foreground"
                               }`}
                             >
                               <span className="text-sm text-foreground">
@@ -441,21 +436,12 @@ const ControlCenterDrawer = ({
                 )
               ) : panelView === "settings" ? (
                 <div className="flex flex-col gap-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                    Theme
+                  <div className="flex items-center justify-between">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                      Theme
+                    </div>
+                    <ThemeToggle />
                   </div>
-                  <button
-                    type="button"
-                    onClick={onToggleTheme}
-                    className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
-                  >
-                    <span>{theme === "light" ? "Light" : "Dark"}</span>
-                    {theme === "light" ? (
-                      <Sun size={14} weight="regular" />
-                    ) : (
-                      <Moon size={14} weight="regular" />
-                    )}
-                  </button>
                   <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
                     Actions
                   </div>
@@ -464,7 +450,7 @@ const ControlCenterDrawer = ({
                     onClick={() => handleSettingsCardToggle("share")}
                     className={`flex items-center justify-between rounded-xl border border-border px-3 py-2 text-xs font-medium transition ${
                       activeSettingsCard === "share"
-                        ? "bg-surface text-foreground"
+                        ? "bg-accent-muted text-accent border-accent/40"
                         : "bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
                     }`}
                   >
@@ -517,7 +503,7 @@ const ControlCenterDrawer = ({
                         <button
                           type="button"
                           onClick={() => void handleShareVia()}
-                          className="flex items-center justify-center gap-2 rounded-lg border border-border bg-foreground px-3 py-2 text-xs font-semibold text-background"
+                          className="flex items-center justify-center gap-2 rounded-lg border border-accent bg-accent px-3 py-2 text-xs font-semibold text-white"
                         >
                           <PaperPlaneTilt size={14} weight="regular" />
                           Share...
@@ -561,7 +547,7 @@ const ControlCenterDrawer = ({
                     onClick={() => handleSettingsCardToggle("feedback")}
                     className={`flex items-center justify-between rounded-xl border border-border px-3 py-2 text-xs font-medium transition ${
                       activeSettingsCard === "feedback"
-                        ? "bg-surface text-foreground"
+                        ? "bg-accent-muted text-accent border-accent/40"
                         : "bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
                     }`}
                   >
@@ -594,8 +580,8 @@ const ControlCenterDrawer = ({
                               onClick={() => setFeedbackRating(index + 1)}
                               className={`transition ${
                                 index < feedbackRating
-                                  ? "text-foreground"
-                                  : "text-text-subtle hover:text-foreground"
+                                  ? "text-accent"
+                                  : "text-text-subtle hover:text-accent"
                               }`}
                               aria-label={`Rate ${index + 1} stars`}
                             >
@@ -633,7 +619,7 @@ const ControlCenterDrawer = ({
                               }
                               className={`rounded-full border px-3 py-1 text-xs transition ${
                                 feedbackCategories.includes(label)
-                                  ? "border-foreground bg-surface text-foreground shadow-sm"
+                                  ? "border-accent bg-accent-muted text-accent shadow-sm"
                                   : "border-border bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
                               }`}
                             >
@@ -669,7 +655,7 @@ const ControlCenterDrawer = ({
                           onClick={() => void handleSubmitFeedback()}
                           className={`rounded-full px-4 py-1 text-xs font-semibold transition ${
                             isFeedbackDirty
-                              ? "bg-foreground text-background"
+                              ? "bg-accent text-white"
                               : "bg-surface-muted text-text-subtle"
                           }`}
                         >
@@ -729,7 +715,7 @@ const ControlCenterDrawer = ({
                   onClick={() => handlePanelToggle("user")}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                     panelView === "user"
-                      ? "border-border bg-surface text-foreground"
+                      ? "border-accent/40 bg-accent-muted text-accent"
                       : "border-transparent text-text-muted hover:bg-surface-muted"
                   }`}
                 >
@@ -741,7 +727,7 @@ const ControlCenterDrawer = ({
                   onClick={() => handlePanelToggle("settings")}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                     panelView === "settings"
-                      ? "border-border bg-surface text-foreground"
+                      ? "border-accent/40 bg-accent-muted text-accent"
                       : "border-transparent text-text-muted hover:bg-surface-muted"
                   }`}
                 >

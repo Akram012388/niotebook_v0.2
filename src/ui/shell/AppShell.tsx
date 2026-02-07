@@ -22,7 +22,7 @@ const AppShellFrame = ({ children }: AppShellProps): ReactElement => {
   }, [activePreset]);
 
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground">
+    <div className="relative z-[2] flex h-screen flex-col bg-background text-foreground">
       <Suspense
         fallback={
           <div className="border-b border-border bg-surface">

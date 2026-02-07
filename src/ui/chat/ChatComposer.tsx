@@ -72,7 +72,7 @@ const ChatComposer = ({
         disabled={!isReady}
         className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold transition ${
           isReady
-            ? "border-foreground bg-foreground text-background hover:opacity-90"
+            ? "border-accent bg-accent text-white hover:opacity-90"
             : "border-border bg-surface-muted text-text-subtle"
         }`}
         aria-label="Send message"
