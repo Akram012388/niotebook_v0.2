@@ -1,11 +1,18 @@
 "use client";
 
-import { useCallback, useMemo, useEffect, type ReactElement } from "react";
+import {
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+  type ReactElement,
+} from "react";
 import { useQuery } from "convex/react";
 import { ChatComposer } from "../chat/ChatComposer";
 import { ChatMessage } from "../chat/ChatMessage";
-import { ChatScroll } from "../chat/ChatScroll";
+import { ChatScroll, type ChatScrollHandle } from "../chat/ChatScroll";
 import { useChatThread } from "../chat/useChatThread";
+import type { StreamingTextHandle } from "../chat/StreamingText";
 import { useTranscriptWindow } from "../transcript/useTranscriptWindow";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 import { getLessonRef } from "../content/convexContent";
@@ -55,8 +62,41 @@ const AiPane = ({
 
     return "Lecture";
   }, [lectureNumber]);
-  const { messages, sendMessage, threadId, streamState, streamError } =
-    useChatThread(lessonId, lectureLabel);
+  const {
+    messages,
+    sendMessage,
+    threadId,
+    streamState,
+    streamError,
+    onStreamTokenRef,
+  } = useChatThread(lessonId, lectureLabel);
+  const chatScrollRef = useRef<ChatScrollHandle>(null);
+  const streamingTextRef = useRef<StreamingTextHandle>(null);
+
+  // Wire the streaming token callback to the StreamingText component
+  useEffect(() => {
+    onStreamTokenRef.current = (token: string) => {
+      streamingTextRef.current?.append(token);
+    };
+    return () => {
+      onStreamTokenRef.current = null;
+    };
+  }, [onStreamTokenRef]);
+
+  // Scroll to bottom when the streaming placeholder message appears.
+  // The placeholder is added inside the async sendMessage (after Convex calls),
+  // so the scrollToBottom in handleSend fires too early. This catches the moment
+  // the placeholder actually enters the DOM.
+  const prevMsgCountRef = useRef(messages.length);
+  useEffect(() => {
+    if (
+      messages.length > prevMsgCountRef.current &&
+      streamState === "streaming"
+    ) {
+      chatScrollRef.current?.scrollToBottom();
+    }
+    prevMsgCountRef.current = messages.length;
+  }, [messages.length, streamState]);
   const transcriptWindow = useTranscriptWindow(lessonId, videoTimeSec);
 
   const transcriptPayload = useMemo(
@@ -99,6 +139,11 @@ const AiPane = ({
           transcriptUrl: lesson?.transcriptUrl,
         },
         lastError: lastRunError ?? undefined,
+      });
+
+      // Instant scroll to bottom so user sees their message
+      requestAnimationFrame(() => {
+        chatScrollRef.current?.scrollToBottom();
       });
     },
     [
@@ -155,9 +200,14 @@ const AiPane = ({
         </p>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
-        <ChatScroll isStreaming={streamState === "streaming"}>
+        <ChatScroll ref={chatScrollRef} isStreaming={streamState === "streaming"}>
           {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} onSeek={onSeek} />
+            <ChatMessage
+              key={message.id}
+              message={message}
+              onSeek={onSeek}
+              streamingTextRef={message.isStreaming ? streamingTextRef : undefined}
+            />
           ))}
         </ChatScroll>
         {streamError ? (

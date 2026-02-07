@@ -96,14 +96,14 @@ export function HeroSection(): ReactElement {
       {/* Demo video */}
       <motion.div
         className="relative z-10 w-full max-w-5xl mt-12 sm:mt-16 lg:mt-20 rounded-2xl overflow-hidden shadow-2xl shadow-accent/5 border border-border bg-surface-strong"
-        style={{ aspectRatio: "3320 / 2160" }}
+        style={{ aspectRatio: "16 / 9" }}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 1.1 }}
       >
         <video
           className="absolute inset-0 w-full h-full object-cover"
-          src="https://bmsvebvrbefdj0lp.public.blob.vercel-storage.com/videos/niotebook-demo-final.mp4"
+          src="https://bmsvebvrbefdj0lp.public.blob.vercel-storage.com/videos/niotebook-demo-v2-final-pCWph04qFrJSOUDTBpsSU5EThVfTXG.mp4"
           autoPlay
           loop
           muted
