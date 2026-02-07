@@ -19,34 +19,38 @@ type ChatScrollHandle = {
   scrollToBottom: () => void;
 };
 
+const BOTTOM_THRESHOLD = 60;
+
 const ChatScroll = forwardRef<ChatScrollHandle, ChatScrollProps>(
   function ChatScroll({ children }, ref) {
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const anchorRef = useRef<HTMLDivElement | null>(null);
     const [atBottom, setAtBottom] = useState(true);
     const atBottomRef = useRef(true);
     const rafRef = useRef<number | null>(null);
 
-    const handleScroll = useCallback((): void => {
-      const element = containerRef.current;
-
-      if (!element) {
-        return;
-      }
-
-      const distanceFromBottom =
-        element.scrollHeight - element.scrollTop - element.clientHeight;
-      const isAtBottom = distanceFromBottom < 60;
-      atBottomRef.current = isAtBottom;
-      setAtBottom(isAtBottom);
+    const isAtBottom = useCallback((el: HTMLElement): boolean => {
+      return el.scrollHeight - el.scrollTop - el.clientHeight < BOTTOM_THRESHOLD;
     }, []);
 
-    // Auto-scroll when content grows if user is at bottom.
-    // Works during streaming AND non-streaming — the atBottom guard
-    // ensures we only auto-follow when the user hasn't scrolled up.
+    const handleScroll = useCallback((): void => {
+      const el = containerRef.current;
+      if (!el) return;
+
+      const bottom = isAtBottom(el);
+      atBottomRef.current = bottom;
+      setAtBottom(bottom);
+    }, [isAtBottom]);
+
+    // Auto-follow: when content height grows while user is at bottom,
+    // snap scrollTop to the new bottom immediately. No smooth animation —
+    // the smoothness comes from content growing gradually via RAF-batched tokens.
+    // This avoids the overlapping-smooth-scroll bug entirely.
     useEffect(() => {
       const container = containerRef.current;
       if (!container) return;
+
+      const content = container.firstElementChild as HTMLElement | null;
+      if (!content) return;
 
       const observer = new ResizeObserver(() => {
         if (!atBottomRef.current) return;
@@ -57,16 +61,14 @@ const ChatScroll = forwardRef<ChatScrollHandle, ChatScrollProps>(
 
         rafRef.current = requestAnimationFrame(() => {
           rafRef.current = null;
-          const anchor = anchorRef.current;
-          if (!anchor) return;
-          anchor.scrollIntoView({ block: "end", behavior: "smooth" });
+          const el = containerRef.current;
+          if (!el) return;
+          // Direct scrollTop assignment — instant, no animation conflicts
+          el.scrollTop = el.scrollHeight;
         });
       });
 
-      const content = container.firstElementChild as HTMLElement | null;
-      if (content) {
-        observer.observe(content);
-      }
+      observer.observe(content);
 
       return () => {
         observer.disconnect();
@@ -77,26 +79,24 @@ const ChatScroll = forwardRef<ChatScrollHandle, ChatScrollProps>(
       };
     }, []);
 
+    // Instant scroll — used on message send so user sees their message immediately
     const scrollToBottom = useCallback((): void => {
-      const anchor = anchorRef.current;
-      if (!anchor) return;
-
-      // Immediate scroll (no smooth) so user sees their message instantly
-      anchor.scrollIntoView({ block: "end", behavior: "instant" as ScrollBehavior });
+      const el = containerRef.current;
+      if (!el) return;
+      el.scrollTop = el.scrollHeight;
       atBottomRef.current = true;
       setAtBottom(true);
     }, []);
 
     useImperativeHandle(ref, () => ({ scrollToBottom }), [scrollToBottom]);
 
+    // Smooth scroll — used for the floating "scroll to bottom" button
     const handleScrollToBottom = useCallback((): void => {
-      const anchor = anchorRef.current;
-
-      if (!anchor) {
-        return;
-      }
-
-      anchor.scrollIntoView({ block: "end", behavior: "smooth" });
+      const el = containerRef.current;
+      if (!el) return;
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+      atBottomRef.current = true;
+      setAtBottom(true);
     }, []);
 
     return (
@@ -110,8 +110,6 @@ const ChatScroll = forwardRef<ChatScrollHandle, ChatScrollProps>(
           <div className="space-y-4 pb-4">
             {children}
           </div>
-          {/* Scroll anchor — always at the bottom of content */}
-          <div ref={anchorRef} className="h-px" aria-hidden="true" />
         </div>
         {!atBottom ? (
           <button
