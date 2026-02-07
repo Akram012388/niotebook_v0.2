@@ -1,7 +1,6 @@
 import {
   loadLogoFont,
-  buildLogoGroup,
-  applyVariantColors,
+  buildWordmarkText,
   getOrCreatePage,
   solidPaint,
   COLORS,
@@ -23,17 +22,26 @@ const FAVICONS: FaviconSpec[] = [
   { name: "favicon-16", size: 16, padding: 2 },
 ];
 
+/**
+ * Build favicon frames at standard platform sizes.
+ *
+ * Each is a dark bg square with centered "nio" mark in Dark mode
+ * (white text, terracotta 'i').
+ */
 export async function buildFavicons() {
   await loadLogoFont();
 
   const page = getOrCreatePage("App Icons");
   await figma.setCurrentPageAsync(page);
 
-  let offsetX = 1200; // after app icon master
+  // Position favicons after the 1024px app icon master + 200px gap
+  let offsetX = 1300;
 
-  for (const spec of FAVICONS) {
+  for (let f = 0; f < FAVICONS.length; f++) {
+    const spec = FAVICONS[f];
+
     const frame = figma.createFrame();
-    frame.name = `Favicon/${spec.name}`;
+    frame.name = "Favicon/" + spec.name;
     frame.resize(spec.size, spec.size);
     frame.fills = [solidPaint(COLORS.foreground)];
     frame.clipsContent = true;
@@ -43,18 +51,18 @@ export async function buildFavicons() {
     const innerSize = spec.size - spec.padding * 2;
     const fontSize = Math.round(innerSize / (0.65 * 3));
 
-    if (fontSize >= 8) {
-      const { frame: logoFrame, text, bar } = buildLogoGroup("nio", fontSize);
-      applyVariantColors(text, bar, "Dark");
-      logoFrame.x = (spec.size - logoFrame.width) / 2;
-      logoFrame.y = (spec.size - logoFrame.height) / 2;
-      frame.appendChild(logoFrame);
+    // Only add text if fontSize is legible (>= 6px)
+    if (fontSize >= 6) {
+      const text = buildWordmarkText("nio", fontSize, "Dark");
+      text.x = (spec.size - text.width) / 2;
+      text.y = (spec.size - text.height) / 2;
+      frame.appendChild(text);
     }
 
-    addExports(frame, [pngExport(1)]);
+    addExports(frame, [pngExport(1, "-" + spec.name)]);
     page.appendChild(frame);
     offsetX += spec.size + 40;
   }
 
-  figma.notify(`✓ ${FAVICONS.length} favicon frames created`);
+  figma.notify(FAVICONS.length + " favicon frames created");
 }

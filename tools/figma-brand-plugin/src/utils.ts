@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Shared helpers for the Niotebook brand plugin (v2)
+// Shared helpers for the Niotebook brand plugin (v2 -- clean wordmark)
 // ---------------------------------------------------------------------------
 
 /** Convert hex (#RRGGBB) to Figma RGB (0-1 range). */
@@ -23,7 +23,7 @@ export function solidPaint(hex: string): SolidPaint {
 }
 
 // ---------------------------------------------------------------------------
-// Brand tokens (v2 — warm terracotta palette)
+// Brand tokens (v2 -- warm terracotta palette)
 // ---------------------------------------------------------------------------
 
 export const COLORS = {
@@ -124,7 +124,7 @@ export const COLOR_STYLES: {
   {
     name: "nio/accent",
     hex: COLORS.accent,
-    description: "Primary accent — CTAs, active states",
+    description: "Primary accent -- CTAs, active states",
     tokenName: "accent",
   },
   {
@@ -190,6 +190,13 @@ export function getOrCreatePage(name: string): PageNode {
   return page;
 }
 
+/** Remove all children from a page (clean slate before rebuilding). */
+export function clearPage(page: PageNode) {
+  while (page.children.length > 0) {
+    page.children[0].remove();
+  }
+}
+
 /** Add export settings to a node. */
 export function addExports(
   node: SceneNode & ExportMixin,
@@ -202,7 +209,7 @@ export function addExports(
 export function pngExport(scale: number, suffix?: string): ExportSettingsPNG {
   return {
     format: "PNG",
-    suffix: suffix ?? (scale === 1 ? "" : `@${scale}x`),
+    suffix: suffix !== undefined ? suffix : (scale === 1 ? "" : "@" + scale + "x"),
     constraint: { type: "SCALE", value: scale },
   } as ExportSettingsPNG;
 }
@@ -217,7 +224,7 @@ export function svgExport(): ExportSettingsSVG {
 }
 
 // ---------------------------------------------------------------------------
-// Logo building blocks
+// Logo font loading
 // ---------------------------------------------------------------------------
 
 const LOGO_FONTS: FontName[] = [
@@ -233,13 +240,13 @@ export async function loadLogoFont(): Promise<FontName> {
 
   for (const font of LOGO_FONTS) {
     try {
-      console.log(`[niotebook] trying font: ${font.family} ${font.style}`);
+      console.log("[niotebook] trying font: " + font.family + " " + font.style);
       await figma.loadFontAsync(font);
       _loadedLogoFont = font;
-      console.log(`[niotebook] loaded font: ${font.family} ${font.style}`);
+      console.log("[niotebook] loaded font: " + font.family + " " + font.style);
       return font;
     } catch {
-      console.log(`[niotebook] font not available: ${font.family} ${font.style}`);
+      console.log("[niotebook] font not available: " + font.family + " " + font.style);
     }
   }
 
@@ -253,70 +260,49 @@ export function getLogoFont(): FontName {
   return _loadedLogoFont;
 }
 
+// ---------------------------------------------------------------------------
+// Wordmark text builder (v2 -- terracotta 'i', no gray bar)
+// ---------------------------------------------------------------------------
+
 /**
- * Create a text + gray bar group for the given string.
- * Returns { frame, text, bar } so the caller can adjust colors per variant.
+ * Create a "niotebook" or "nio" text node with the 'i' colored in terracotta.
+ *
+ * - Light: black text (#1c1917), terracotta 'i' (#c15f3c)
+ * - Dark: white text (#f4f3ee), terracotta 'i' (#da7756)
+ * - Accent: all terracotta (#c15f3c) -- 'i' same color as rest
  */
-export function buildLogoGroup(
-  label: string,
+export function buildWordmarkText(
+  label: "niotebook" | "nio",
   fontSize: number,
-): { frame: FrameNode; text: TextNode; bar: RectangleNode } {
+  mode: "Light" | "Dark" | "Accent",
+): TextNode {
   const font = getLogoFont();
   const text = figma.createText();
   text.fontName = font;
   text.fontSize = fontSize;
   text.characters = label;
-  text.textAlignHorizontal = "CENTER";
 
-  const capHeight = fontSize * 0.72; // Orbitron cap height ≈ 72% of fontSize
-  const barHeight = capHeight * 0.4;
-  const barOvershoot = text.width * 0.08;
-
-  const bar = figma.createRectangle();
-  bar.resize(text.width + barOvershoot * 2, barHeight);
-  bar.y = text.y + fontSize - capHeight + (capHeight - barHeight) / 2;
-  bar.x = text.x - barOvershoot;
-
-  const frame = figma.createFrame();
-  frame.name = label;
-  frame.clipsContent = false;
-  frame.fills = [];
-  frame.resize(
-    bar.width,
-    fontSize * 1.2, // line-height
-  );
-
-  // Center text horizontally in frame
-  text.x = barOvershoot;
-  bar.x = 0;
-  bar.y = text.y + fontSize - capHeight + (capHeight - barHeight) / 2;
-
-  frame.appendChild(bar);
-  frame.appendChild(text); // text on top
-
-  return { frame, text, bar };
-}
-
-/**
- * Apply variant colors to a logo group (v2 palette).
- */
-export function applyVariantColors(
-  text: TextNode,
-  bar: RectangleNode,
-  variant: "Light" | "Dark" | "Accent",
-) {
-  switch (variant) {
-    case "Light":
-      text.fills = [solidPaint(COLORS.foreground)];
-      bar.fills = [solidPaint(COLORS.textMuted)];
-      break;
-    case "Dark":
-      text.fills = [solidPaint(COLORS.wsText)];
-      bar.fills = [solidPaint(COLORS.wsTextMuted)];
-      break;
-    case "Accent":
-      text.fills = [solidPaint(COLORS.accent)];
-      bar.fills = [solidPaint(COLORS.surfaceStrong)];
-      break;
+  // Base color for all characters
+  let baseColor: string;
+  if (mode === "Light") {
+    baseColor = COLORS.foreground;
+  } else if (mode === "Dark") {
+    baseColor = COLORS.wsText;
+  } else {
+    baseColor = COLORS.accent;
   }
+  text.fills = [solidPaint(baseColor)];
+
+  // Color the 'i' in terracotta (index 1 in both "niotebook" and "nio")
+  if (mode !== "Accent") {
+    let terracotta: string;
+    if (mode === "Light") {
+      terracotta = COLORS.accent;
+    } else {
+      terracotta = COLORS.accentDark;
+    }
+    text.setRangeFills(1, 2, [solidPaint(terracotta)]);
+  }
+
+  return text;
 }
