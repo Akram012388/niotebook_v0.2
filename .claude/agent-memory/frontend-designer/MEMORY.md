@@ -85,6 +85,18 @@
 - Write files -> `git add` immediately -> commit ASAP
 - Verify branch before each git operation
 
+### React Compiler Lint: No Ref Writes During Render (2026-02-07)
+- `react-hooks/refs` rule forbids `someRef.current = value` in the render body
+- Move ref writes into `useEffect`: `useEffect(() => { ref.current = value }, [value])`
+- For RAF loops reading latest prop values: use `useEffect` to sync prop -> ref, RAF reads ref
+- Effect order: React runs effects after render, RAF runs before next paint -- timing is fine
+
+### RevealContent Typewriter Pattern (2026-02-07)
+- RAF loops that depend on growing content must NOT use content length in `useEffect` deps
+- Store cursor in `useRef`, content length in `useRef`, run RAF loop once on mount (`[]` deps)
+- The loop reads `contentLenRef.current` each tick -- always sees latest value
+- Guard with `Math.min(cursor, target)` in case content ever shrinks
+
 ## Admin Console Pattern (redesigned 2026-02-07)
 - **Layout**: Sidebar (w-60) + main content (max-w-[1200px] mx-auto)
 - **Sidebar**: Wordmark (h=24) + "Admin" pill badge, nav items with icons, ThemeToggle at bottom, "Back to app" link
