@@ -1,12 +1,15 @@
-import { memo, type ReactElement } from "react";
+import { memo, type ReactElement, type RefObject } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import type { ChatMessage as ChatMessageType } from "./chatTypes";
+import { StreamingText, type StreamingTextHandle } from "./StreamingText";
 
 type ChatMessageProps = {
   message: ChatMessageType;
   onSeek?: (timestampSec: number) => void;
+  /** Ref to the StreamingText imperative handle (only for the active streaming message). */
+  streamingTextRef?: RefObject<StreamingTextHandle | null>;
 };
 
 const remarkPlugins = [remarkGfm];
@@ -28,12 +31,9 @@ const RenderedMarkdown = memo(function RenderedMarkdown({
 const ChatMessage = memo(function ChatMessage({
   message,
   onSeek,
+  streamingTextRef,
 }: ChatMessageProps): ReactElement {
   const isUser = message.role === "user";
-  const isThinking = Boolean(message.isStreaming && !message.content);
-  const isStreamingWithContent = Boolean(
-    message.isStreaming && message.content,
-  );
 
   const handleSeek = (): void => {
     onSeek?.(message.timestampSec);
@@ -55,11 +55,7 @@ const ChatMessage = memo(function ChatMessage({
           isUser ? "flex items-center gap-2 flex-row-reverse" : "w-full"
         }
       >
-        {isThinking ? (
-          <div className="flex items-center pl-1 py-3">
-            <span className="nio-pulse-dot" aria-label="Assistant is thinking" />
-          </div>
-        ) : isUser ? (
+        {isUser ? (
           <div className="max-w-[80%] rounded-xl border px-3 py-2 text-sm leading-6 border-border bg-surface-muted text-foreground dark:bg-surface-strong">
             <p className="whitespace-pre-wrap" data-testid="chat-message">
               {message.content}
@@ -70,8 +66,8 @@ const ChatMessage = memo(function ChatMessage({
             className="nio-markdown w-full text-sm leading-6 text-foreground"
             data-testid="chat-message"
           >
-            {isStreamingWithContent ? (
-              <p className="whitespace-pre-wrap">{message.content}</p>
+            {message.isStreaming ? (
+              <StreamingText ref={streamingTextRef} />
             ) : (
               <RenderedMarkdown content={message.content} />
             )}

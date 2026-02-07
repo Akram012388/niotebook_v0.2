@@ -1,45 +1,47 @@
-# Chat Stream Rendering Review -- 2026-02-07
+# Chat Stream Architecture Review (updated 2026-02-07, post-overhaul)
 
-## Files reviewed
-- `src/ui/chat/ChatMessage.tsx` -- RevealContent, AssistantContent, ChatMessage (memo'd)
-- `src/ui/chat/ChatScroll.tsx` -- ResizeObserver scroll, disabled during streaming
-- `src/ui/chat/useChatThread.ts` -- SSE stream processing, buffer threshold, state transitions
-- `src/ui/panes/AiPane.tsx` -- isStreaming prop includes isRevealing check
-- `src/ui/chat/chatTypes.ts` -- isRevealing, wasStreaming fields added
+Previous review covered the typewriter/RevealContent system. That has been entirely removed.
+The current architecture (commit 72a08f1) is simpler: plain text during streaming, markdown after done.
 
-## State machine trace (normal path, >=200 chars)
-1. User sends -> placeholder created: `isStreaming: true`
-2. Tokens arrive, RAF flushes content (thinking dot shown, content buffered but hidden)
-3. At 200 chars: `isStreaming: false, isRevealing: true, wasStreaming: true`
-4. AssistantContent mounts with `wasStreaming: true` -> `revealed = false` -> RevealContent renders
-5. More tokens arrive during reveal (stream still open), contentLenRef.current grows
-6. `done` event: `isStreaming: false, isRevealing: false, wasStreaming: true, content: finalText`
-7. RevealContent cursor catches up to finalText.length -> `onRevealDone` fires -> `revealed: true`
-8. RenderedMarkdown renders final content
+## Current Architecture
 
-## Bug: contentVisibility applied during active reveal (step 6-7)
-When `done` sets `isRevealing: false`, `isActive` becomes false, and CSS `contentVisibility: "auto"`
-is applied. The typewriter animation is still running internally in AssistantContent/RevealContent.
-If message is near viewport edge, browser may skip rendering it.
+### Client pipeline
+1. `AiPane.tsx` -- wires `useChatThread` + `ChatScroll` + `ChatComposer`
+2. `useChatThread.ts` -- core hook: manages messages, streaming fetch, RAF token batching
+3. `ChatMessage.tsx` -- memo'd component: plain `<span>` during streaming, `<ReactMarkdown>` after
+4. `ChatScroll.tsx` -- ResizeObserver auto-scroll + "scroll to bottom" button
+5. `ChatComposer.tsx` -- textarea + send button, disabled during streaming
 
-## Edge case: short response (<200 chars)
-- Thinking dot shown entire time (content buffered but isStreaming:true hides it)
-- `done` event transitions directly to wasStreaming:true
-- Typewriter runs over full short content (completes in ~300ms)
-- UX gap: no incremental feedback for slow-but-short responses
+### Server pipeline
+1. `route.ts` (POST /api/nio) -- validates, rate-limits, builds context, streams SSE
+2. `geminiStream.ts` / `groqStream.ts` -- async generator wrappers for AI providers
+3. `nioSse.ts` -- encode/decode SSE events (meta, token, done, error)
+4. `fallbackGate.ts` -- decides when to fall back from Gemini to Groq
 
-## Edge case: empty response (0 tokens)
-- `done` with empty `finalText` -> RevealContent mounts with `contentLenRef.current = 0`
-- Early guard fires onRevealDone immediately -> switches to RenderedMarkdown with empty string
-- Works correctly
+### Key patterns
+- **Token batching**: `tokenBuffer` + RAF-scheduled `flushTokens()` in useChatThread
+- **Three-layer dedup**: remote (Convex) > cached (localStorage) > local (React state)
+- **Provider fallback**: Gemini first, read first token with timeout, fall to Groq if needed
+- **State machine**: `streamState` is "idle" | "streaming" (the "error" variant is dead code)
+- **Error display**: separate `streamError` string state shown as warning banner
+- **Content rendering**: `isStreaming` true -> plain text; false -> ReactMarkdown
+- **Auto-scroll**: ResizeObserver on content wrapper, atBottom ref guard
+- **`wasStreaming`**: set on done event but NEVER READ -- dead data from old typewriter system
+- **Stuck stream guard**: 30s timeout allows force-sending a new message
 
-## Edge case: error during stream
-- Error events set `isStreaming: false, isRevealing: false` but NOT `wasStreaming: true`
-- Error message renders as immediate markdown, no typewriter. Intentional.
+## Known issues (2026-02-07 review)
 
-## React.memo effectiveness
-- ChatMessage is memo'd but `mergedMessages` creates new objects for ALL messages on each recompute
-- `toChatMessage()` and `fromCachedMessage()` create new objects unconditionally
-- Only the streaming message content changes, but all messages get new references
-- Memo'd ChatMessage still re-renders for all messages during streaming
-- Fix: compare prev/next per-message and reuse old reference when unchanged
+### Critical
+- **No AbortController on client fetch** -- streams not cancellable, leak on lesson change/unmount
+- **Gemini API key logged in debug output** (requestUrl includes `?key=`)
+- **Regex /g flag on module-level patterns** in promptInjection.ts causes `.test()` lastIndex bugs
+
+### Warnings
+- `ChatStreamState` "error" variant is defined but never set
+- `mergedMessages` creates new object refs for ALL messages on every recompute (defeats memo)
+- Server-side iterators never explicitly cancelled on abort (TCP connection leak)
+- Gemini generator has no mid-stream timeout (stall after first token hangs indefinitely)
+- Concurrent streams possible after 30s stuck guard (shared rafRef contention)
+- localStorage cache effect runs on every RAF frame during streaming (unnecessary JSON.stringify)
+- SSE parser .trim() on data lines is latent bug for multi-line JSON
+- `wasStreaming` field set but never consumed (dead code from old typewriter)
