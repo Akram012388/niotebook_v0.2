@@ -145,7 +145,7 @@ const AdminLayout = ({ children }: AdminLayoutProps): ReactElement => {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="relative z-[2] flex h-screen bg-background">
       {/* Sidebar */}
       <aside className="flex w-60 flex-col border-r border-border bg-surface">
         {/* Sidebar header — wordmark + admin label */}
