@@ -232,24 +232,93 @@ button:disabled {
 /* ==========================================================================
    Animations
    ========================================================================== */
-@keyframes nio-thinking {
-  0% {
-    transform: scale(0.9);
-    opacity: 0.55;
+
+/* Thinking pulse dot — simple terracotta circle, ChatGPT-style */
+@keyframes nio-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
   }
   50% {
-    transform: scale(1.25);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(0.9);
-    opacity: 0.55;
+    transform: scale(1.6);
+    opacity: 1;
   }
 }
 
-.nio-thinking {
+.nio-pulse-dot {
   display: inline-block;
-  animation: nio-thinking 1s ease-in-out infinite;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  animation: nio-pulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nio-pulse-dot {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* Thinking dots — pulsing indicator before first token arrives */
+.nio-thinking-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.nio-thinking-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  animation: nio-dot-pulse 1.4s ease-in-out infinite;
+}
+
+.nio-thinking-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.nio-thinking-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes nio-dot-pulse {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nio-thinking-dot {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* Streaming text cursor — thin blinking line like ChatGPT */
+.nio-stream-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  background-color: var(--accent);
+  border-radius: 1px;
+  animation: nio-cursor-blink 0.6s step-end infinite;
+}
+
+@keyframes nio-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nio-stream-cursor {
+    animation: none;
+    opacity: 0.7;
+  }
 }
 
 @keyframes blink {
