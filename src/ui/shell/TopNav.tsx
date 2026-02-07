@@ -24,10 +24,7 @@ import {
 import { LayoutPresetToggle } from "../layout/LayoutPresetToggle";
 import { ControlCenterDrawer } from "./ControlCenterDrawer";
 
-const STORAGE_KEY = "niotebook.theme";
 const LESSON_STORAGE_KEY = "niotebook.lesson";
-
-type ThemeMode = "light" | "dark";
 
 const TopNav = (): ReactElement => {
   const router = useRouter();
@@ -36,10 +33,6 @@ const TopNav = (): ReactElement => {
   const { user: clerkUser } = useUser();
   const { signOut } = useClerk();
   const meData = useQuery(meRef);
-  const [theme, setTheme] = useState<ThemeMode>(() => {
-    const stored = storageAdapter.getItem(STORAGE_KEY);
-    return stored === "dark" ? "dark" : "light";
-  });
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDrawerMounted, setIsDrawerMounted] = useState(false);
@@ -85,18 +78,6 @@ const TopNav = (): ReactElement => {
       process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true" ||
       process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true"
     );
-  }, []);
-
-  useEffect((): void => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
-
-  const handleToggleTheme = useCallback((): void => {
-    setTheme((prev) => {
-      const nextTheme: ThemeMode = prev === "light" ? "dark" : "light";
-      storageAdapter.setItem(STORAGE_KEY, nextTheme);
-      return nextTheme;
-    });
   }, []);
 
   const updateLesson = useCallback(
@@ -290,8 +271,6 @@ const TopNav = (): ReactElement => {
         courseOptions={courseOptions}
         lessonId={lessonId}
         lessonOptions={lessonOptions}
-        theme={theme}
-        onToggleTheme={handleToggleTheme}
         onShare={handleShare}
         onFeedback={handleFeedback}
         onSelectLesson={handleSelectLesson}
