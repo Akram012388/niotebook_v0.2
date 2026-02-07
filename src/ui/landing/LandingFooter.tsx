@@ -77,6 +77,7 @@ interface FooterLink {
   label: string;
   href: string;
   external?: boolean;
+  muted?: boolean;
   icon?: ReactElement;
 }
 
@@ -89,25 +90,25 @@ const FOOTER_COLUMNS: FooterColumn[] = [
   {
     heading: "Product",
     links: [
-      { label: "About", href: "#" },
-      { label: "Courses", href: "#" },
-      { label: "Docs", href: "#" },
+      { label: "About", href: "/info#about" },
+      { label: "Courses", href: "/info#courses" },
+      { label: "Docs", href: "/info#docs" },
     ],
   },
   {
     heading: "Resources",
     links: [
-      { label: "Blog", href: "#" },
-      { label: "Changelog", href: "#" },
-      { label: "Status", href: "#" },
+      { label: "Blog", href: "/info#blog" },
+      { label: "Changelog", href: "/info#changelog" },
+      { label: "Status", href: "/info#status" },
     ],
   },
   {
     heading: "Legal",
     links: [
-      { label: "Terms", href: "/terms" },
-      { label: "Privacy", href: "/privacy" },
-      { label: "Cookies", href: "/cookies" },
+      { label: "Terms", href: "/info#terms" },
+      { label: "Privacy", href: "/info#privacy" },
+      { label: "Cookies", href: "/info#cookies" },
     ],
   },
   {
@@ -115,25 +116,25 @@ const FOOTER_COLUMNS: FooterColumn[] = [
     links: [
       {
         label: "Twitter/X",
-        href: "https://x.com/niotebook",
+        href: "https://x.com/CodeAkram",
         external: true,
         icon: <XIcon />,
       },
       {
         label: "GitHub",
-        href: "https://github.com/niotebook",
-        external: true,
+        href: "#",
+        muted: true,
         icon: <GitHubIcon />,
       },
       {
         label: "Discord",
         href: "#",
-        external: true,
+        muted: true,
         icon: <DiscordIcon />,
       },
       {
         label: "Email",
-        href: "mailto:hello@niotebook.com",
+        href: "mailto:niotebook@gmail.com",
         external: true,
         icon: <MailIcon />,
       },
@@ -167,7 +168,13 @@ export function LandingFooter(): ReactElement {
               <ul className="flex flex-col gap-3" role="list">
                 {col.links.map((link) => (
                   <li key={link.label}>
-                    {link.external ? (
+                    {link.muted ? (
+                      <span className="inline-flex items-center gap-2 text-sm text-surface-strong-foreground/70 opacity-50 cursor-default pointer-events-none">
+                        {link.icon}
+                        {link.label}
+                        <span className="text-xs">(coming soon)</span>
+                      </span>
+                    ) : link.external ? (
                       <a
                         href={link.href}
                         className="inline-flex items-center gap-2 text-sm text-surface-strong-foreground/70 transition-colors hover:text-accent"
