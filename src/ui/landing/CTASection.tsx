@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { type ReactElement } from "react";
 import { motion } from "framer-motion";
-import { NotebookFrame } from "./NotebookFrame";
+import { NotebookFrame } from "@/ui/shared/NotebookFrame";
 
 export function CTASection(): ReactElement {
   return (

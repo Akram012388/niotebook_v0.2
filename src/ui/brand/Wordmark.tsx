@@ -5,6 +5,8 @@ type WordmarkProps = {
   /** Height in pixels — font-size scales proportionally */
   height?: number;
   className?: string;
+  /** Link destination — defaults to "/" */
+  href?: string;
 };
 
 /**
@@ -14,13 +16,14 @@ type WordmarkProps = {
 export function Wordmark({
   height = 28,
   className,
+  href = "/",
 }: WordmarkProps): ReactElement {
   // Orbitron at ~85% of container height for a bolder, more prominent mark
   const fontSize = Math.round(height * 0.85);
 
   return (
     <Link
-      href="/"
+      href={href}
       className={`inline-flex shrink-0 items-center ${className ?? ""}`}
       aria-label="niotebook — home"
       style={{ height }}

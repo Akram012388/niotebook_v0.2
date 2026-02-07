@@ -22,6 +22,9 @@ const BINDER_LEFT = 20;
 const HOLE_D = 6;
 const HOLE_SPACING = 12;
 
+/** Total width consumed by the binder from the left frame edge */
+const BINDER_RIGHT_EDGE = BINDER_LEFT + RAIL_W + RAIL_GAP + RAIL_W;
+
 export function NotebookFrame({
   children,
   className = "",
@@ -50,9 +53,13 @@ export function NotebookFrame({
     width: containerW,
   };
 
-  const paddingClass = compact
-    ? "px-6 sm:px-8 py-6 sm:py-8"
-    : "px-8 sm:px-12 md:px-16 py-10 sm:py-14";
+  /* Content padding — left side accounts for binder so visual gap from
+     binder-right-edge to content equals the right padding (content to frame edge).
+     Right padding: compact 32px, regular 48px.
+     Left padding: BINDER_RIGHT_EDGE (26px) + same right value. */
+  const rightPad = compact ? 32 : 48;
+  const leftPad = BINDER_RIGHT_EDGE + rightPad;
+  const verticalClass = compact ? "py-6 sm:py-8" : "py-10 sm:py-14";
 
   return (
     <div
@@ -90,11 +97,11 @@ export function NotebookFrame({
       {/* Layer 3 — Frame content (z-2).
           No background — the wrapper's bg-surface is the fill.
           Sits above both the rails and the mask strip. */}
-      <div
-        className="relative"
-        style={{ zIndex: 2 }}
-      >
-        <div className={`relative ${paddingClass}`}>
+      <div className="relative" style={{ zIndex: 2 }}>
+        <div
+          className={`relative ${verticalClass}`}
+          style={{ paddingLeft: leftPad, paddingRight: rightPad }}
+        >
           {children}
         </div>
       </div>
