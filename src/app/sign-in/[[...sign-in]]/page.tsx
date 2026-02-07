@@ -6,6 +6,7 @@ import { useEffect, type ReactElement } from "react";
 import { AuthShell } from "@/ui/auth/AuthShell";
 import { BootSequence } from "@/ui/auth/BootSequence";
 import { clerkAppearance } from "@/ui/auth/clerkAppearance";
+import { MobileGate } from "@/ui/shared/MobileGate";
 
 const fadeUpSlow = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -25,6 +26,7 @@ const SignInPage = (): ReactElement => {
   }, []);
 
   return (
+    <MobileGate>
     <AuthShell
       title="Sign in"
       subtitle="Niotebook alpha is invite-only. Use the email code from your invite to continue."
@@ -70,6 +72,7 @@ const SignInPage = (): ReactElement => {
         </div>
       </motion.div>
     </AuthShell>
+    </MobileGate>
   );
 };
 
