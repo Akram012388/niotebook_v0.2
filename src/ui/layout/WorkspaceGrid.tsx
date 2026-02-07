@@ -94,7 +94,7 @@ const PaneSwitcher = memo(function PaneSwitcher({
             disabled={isDisabled}
             className={`rounded-full px-2 py-1 text-[11px] transition ${
               isActive
-                ? "bg-accent-muted text-accent shadow-sm font-semibold"
+                ? "bg-accent text-white shadow-sm font-semibold"
                 : isDisabled
                   ? "text-text-subtle"
                   : "text-text-muted hover:bg-surface hover:text-foreground"

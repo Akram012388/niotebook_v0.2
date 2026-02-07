@@ -152,7 +152,7 @@ export function ThemeToggle(): ReactElement {
           aria-checked={active === opt.id}
           className={`flex h-7 w-7 items-center justify-center rounded-full transition ${
             active === opt.id
-              ? "bg-accent-muted text-accent shadow-sm"
+              ? "bg-accent text-white shadow-sm"
               : "text-text-muted hover:bg-surface hover:text-foreground"
           }`}
           onClick={() => handleSelect(opt.id)}

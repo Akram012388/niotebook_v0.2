@@ -35,10 +35,8 @@ function CoursesPage(): ReactElement {
   const normalized = searchQuery.trim().toLowerCase();
 
   const cs50Courses = useMemo(() => {
-    const all = (courses ?? []).filter(
-      (c) =>
-        CS50_TITLES.some((t) => c.title.includes(t)) &&
-        c.title !== "CS50x 2026", // filter duplicate stub (bare title, no subtitle)
+    const all = (courses ?? []).filter((c) =>
+      CS50_TITLES.some((t) => c.title.includes(t)),
     );
     if (!normalized) return all;
     return all.filter(
