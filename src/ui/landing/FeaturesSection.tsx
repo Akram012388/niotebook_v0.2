@@ -2,7 +2,7 @@
 
 import { type ReactElement } from "react";
 import { motion } from "framer-motion";
-import { NotebookFrame } from "./NotebookFrame";
+import { NotebookFrame } from "@/ui/shared/NotebookFrame";
 
 interface Feature {
   icon: ReactElement;

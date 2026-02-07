@@ -37,7 +37,11 @@ const lectureCardVariants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: Math.min(i * 0.1, 0.8), duration: 0.5, ease: "easeOut" as const },
+    transition: {
+      delay: Math.min(i * 0.1, 0.8),
+      duration: 0.5,
+      ease: "easeOut" as const,
+    },
   }),
 };
 
@@ -119,7 +123,7 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
           {course.title}
         </h1>
         {course.description && (
-          <p className="max-w-lg text-sm leading-relaxed text-text-muted">
+          <p className="text-sm leading-relaxed text-text-muted">
             {course.description}
           </p>
         )}
@@ -241,9 +245,7 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
                     {!isCompleted && (
                       <button
                         type="button"
-                        onClick={() =>
-                          handleMarkComplete(lesson.id as string)
-                        }
+                        onClick={() => handleMarkComplete(lesson.id as string)}
                         className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-muted transition hover:border-accent/30 hover:text-foreground"
                       >
                         Mark Complete

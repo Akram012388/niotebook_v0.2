@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useSyncExternalStore, type ReactElement, type ReactNode } from "react";
-import { Wordmark } from "@/ui/brand/Wordmark";
 import { NotebookFrame } from "@/ui/shared/NotebookFrame";
+import { SiteNav } from "@/ui/shared/SiteNav";
 import { ThemeToggle } from "@/ui/shared/ThemeToggle";
 
 interface AuthShellProps {
@@ -35,30 +35,16 @@ const AuthShell = ({
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
-      {/* Top bar — matches LandingNav pattern */}
-      <nav
-        aria-label="Auth navigation"
-        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-6 py-4 backdrop-blur-md"
-        style={{
-          background: "color-mix(in srgb, var(--background) 80%, transparent)",
-          borderBottom: "1px solid var(--border)",
-        }}
-      >
-        <Wordmark height={40} />
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <Link
-            href="/"
-            className="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-            style={{
-              background: "var(--surface-muted)",
-              color: "var(--foreground)",
-            }}
-          >
-            &larr; Home
-          </Link>
-        </div>
-      </nav>
+      {/* Top bar — shared SiteNav component */}
+      <SiteNav ariaLabel="Auth navigation">
+        <ThemeToggle />
+        <Link
+          href="/"
+          className="rounded-lg bg-surface-muted px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-border-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:px-4 sm:py-2"
+        >
+          &larr; Home
+        </Link>
+      </SiteNav>
 
       {/* Main content — z-[2] to sit above the nio-pattern grid (z-1) */}
       <div className="relative z-[2] mx-auto flex min-h-screen w-full max-w-4xl flex-col justify-center px-4 sm:px-6 pt-24 pb-12">
