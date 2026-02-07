@@ -33,7 +33,7 @@ const OutputPanel = ({
           <pre className="whitespace-pre-wrap">{output.stdout}</pre>
         ) : null}
         {hasStderr ? (
-          <pre className="whitespace-pre-wrap text-red-300 dark:text-red-600">
+          <pre className="whitespace-pre-wrap text-status-error">
             {output.stderr}
           </pre>
         ) : null}
@@ -51,7 +51,7 @@ const OutputPanel = ({
         <pre className="whitespace-pre-wrap">{output.stdout}</pre>
       ) : null}
       {hasStderr ? (
-        <pre className="whitespace-pre-wrap text-red-300 dark:text-red-600">
+        <pre className="whitespace-pre-wrap text-status-error">
           {output.stderr}
         </pre>
       ) : null}

@@ -26,7 +26,15 @@ const LANGUAGE_LABELS: Record<RuntimeLanguage, string> = {
   r: "R",
 };
 
-const LANGUAGE_ORDER: RuntimeLanguage[] = ["js", "python", "c", "html", "css", "sql", "r"];
+const LANGUAGE_ORDER: RuntimeLanguage[] = [
+  "js",
+  "python",
+  "c",
+  "html",
+  "css",
+  "sql",
+  "r",
+];
 
 const LanguageSelect = ({
   value,
@@ -132,7 +140,7 @@ const LanguageSelect = ({
           onKeyDown={hasOptions ? handleButtonKeyDown : undefined}
           aria-haspopup="menu"
           aria-expanded={isExpanded}
-          className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition hover:bg-surface"
+          className="rounded-full bg-surface px-2 py-1 text-[11px] text-foreground transition hover:bg-surface focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
         >
           {LANGUAGE_LABELS[value]}
         </button>

@@ -19,25 +19,29 @@ All 5 P0 items are **VALIDATED** as genuine alpha-blocking issues. Each has been
 **Evidence from code:**
 
 `jsExecutor.ts` (lines 152-155):
+
 ```typescript
 const stop = (): void => {
-  aborted = true;  // Just sets a flag - doesn't terminate anything
+  aborted = true; // Just sets a flag - doesn't terminate anything
 };
 ```
 
 `pythonExecutor.ts` (lines 212-214):
+
 ```typescript
 const stop = (): void => {
-  return;  // NO-OP!
+  return; // NO-OP!
 };
 ```
 
 **Analysis:**
+
 - JS runs in a sandboxed iframe via `runInSandboxedIframe()`, but `stop()` merely sets an `aborted` flag that nothing checks during execution
 - Python uses `Promise.race` with a timeout, but the actual Pyodide execution continues running even after timeout
 - An infinite `while(true){}` in JS or Python will freeze the UI or consume resources until timeout resolves
 
 **Recommendation Refinements:**
+
 1. **JS:** Destroy and recreate the iframe on `stop()` — this is the only reliable termination method for iframes
 2. **Python:** Use `pyodide.setInterruptBuffer()` which enables cooperative cancellation via SharedArrayBuffer (requires COOP/COEP headers — already present for Wasmer)
 3. Consider adding execution status to terminal UI ("Running...", "Cancelling...")
@@ -53,6 +57,7 @@ const stop = (): void => {
 **Evidence from code:**
 
 `nioContextBuilder.ts` (lines 124-127):
+
 ```typescript
 // Already supports fileName in code payload
 const fileNamePart = code.fileName ? ` • ${code.fileName}` : "";
@@ -61,6 +66,7 @@ const codeLabel = code.codeHash
 ```
 
 `AiPane.tsx` (lines 73-80):
+
 ```typescript
 const codePayload = useMemo(
   () => ({
@@ -74,12 +80,14 @@ const codePayload = useMemo(
 ```
 
 **Analysis:**
+
 - The infrastructure exists in `nioContextBuilder.ts` to handle `fileName` and `lastError`
 - But `AiPane.tsx` does NOT pass `fileName` in the `codePayload`
 - `lastError` is accepted by the context builder but not tracked/passed from terminal
 - Context strip shows `Code: JS (modified)` but not the actual filename
 
 **Recommendation Refinements:**
+
 1. Add `fileName` to `CodeSnapshotSummary` type
 2. Source it from active VFS tab path in `useEditorStore`
 3. Track `lastRunError` in `useTerminalStore` on non-zero exit
@@ -87,6 +95,7 @@ const codePayload = useMemo(
 5. Context strip should show: `Lecture 3 │ 12:34 │ main.py (modified)`
 
 **Files to change:**
+
 - `src/domain/resume.ts` — add `fileName` to `CodeSnapshotSummary`
 - `convex/schema.ts` — add `fileName` to `codeSnapshots` table
 - `src/ui/panes/AiPane.tsx` — populate `fileName` and `lastError`
@@ -103,6 +112,7 @@ const codePayload = useMemo(
 **Evidence from code:**
 
 `convex/content.ts` `getCourses` (lines 68-74):
+
 ```typescript
 const getCourses = query({
   args: {},
@@ -117,11 +127,13 @@ const getCourses = query({
 `CourseSummary` type does NOT include `lessonCount`.
 
 `CourseCard.tsx` expects `lessonCount` prop (line 13):
+
 ```typescript
 lessonCount: number;
 ```
 
 **Analysis:**
+
 - `getCourses` returns course summaries WITHOUT lesson counts
 - Frontend must either:
   - Call separate `getLessonsByCourse` for EACH course (N+1)
@@ -129,6 +141,7 @@ lessonCount: number;
 - There IS `getCompletionCountsByCourses` for completions, but no equivalent for lesson counts
 
 **Recommendation Refinements:**
+
 1. Add `getCoursesWithCounts` query that returns:
    ```typescript
    { ...course, lessonCount: number }
@@ -137,6 +150,7 @@ lessonCount: number;
 3. Could extend `CourseSummary` type or create `CourseCardData` type
 
 **Implementation approach:**
+
 ```typescript
 // convex/content.ts
 const getCoursesWithCounts = query({
@@ -151,7 +165,7 @@ const getCoursesWithCounts = query({
       countsByCourse.set(key, (countsByCourse.get(key) ?? 0) + 1);
     }
 
-    return courses.map(c => ({
+    return courses.map((c) => ({
       ...toCourseSummary(c),
       lessonCount: countsByCourse.get(c._id as string) ?? 0,
     }));
@@ -168,6 +182,7 @@ const getCoursesWithCounts = query({
 ### Verdict: ✅ CONFIRMED — Not Implemented
 
 **⚠️ Threshold Discrepancy:**
+
 - **plan.md (line 219):** "Define lesson completion trigger (video ≥80% OR ≥1 successful code run)"
 - **Your spec:** "Video ≥90%"
 
@@ -176,6 +191,7 @@ const getCoursesWithCounts = query({
 **Evidence from code:**
 
 `VideoPlayer.tsx` (lines 201-212):
+
 ```typescript
 if (event.data === state.ENDED) {
   setPlayState("paused");
@@ -189,11 +205,13 @@ if (event.data === state.ENDED) {
 - Manual "Mark Complete" button exists in `CourseDetailPage` but no auto-trigger
 
 **Analysis:**
+
 - The mutation `setLessonCompleted` exists and accepts `completionMethod: "video" | "code"`
 - But nothing calls it automatically
 - Need to compute `currentTimeSec / durationSec` and trigger at ≥0.8
 
 **Recommendation Refinements:**
+
 1. Add `durationSec` as a prop to `VideoPlayer` or workspace context
 2. Compute progress in `onTimeUpdate` callback
 3. Call `setLessonCompleted` when `progress >= 0.8` (per PRD, not 0.9)
@@ -213,6 +231,7 @@ if (event.data === state.ENDED) {
 **Evidence from code:**
 
 `ChatMessage.tsx` (lines 161-170):
+
 ```typescript
 {isUser ? (
   <button
@@ -226,16 +245,19 @@ if (event.data === state.ENDED) {
 ```
 
 **Analysis:**
+
 - User messages show a clickable timestamp badge
 - Assistant messages show NO badge
 - PRD states "Badge per message" — this includes assistant responses
 
 **Recommendation Refinements:**
+
 1. Render badge for BOTH roles
 2. Keep same seek behavior (clicking seeks video)
 3. Position badge consistently (left for assistant, right for user maintains visual alignment)
 
 **Simple fix:**
+
 ```typescript
 // Always show badge, not just for user
 <button
@@ -256,6 +278,7 @@ if (event.data === state.ENDED) {
 ### N+1 Query Pattern in Completions
 
 `convex/lessonCompletions.ts` `getCompletionsByCourse` (lines 142-167):
+
 ```typescript
 for (const lesson of lessons) {
   const completion = await ctx.db.query("lessonCompletions")...
@@ -264,13 +287,14 @@ for (const lesson of lessons) {
 ```
 
 **Recommendation:** Batch query with indexed lookup:
+
 ```typescript
 const allCompletions = await ctx.db
   .query("lessonCompletions")
   .withIndex("by_userId", (q) => q.eq("userId", userId))
   .collect();
-const lessonIds = new Set(lessons.map(l => l._id));
-return allCompletions.filter(c => lessonIds.has(c.lessonId));
+const lessonIds = new Set(lessons.map((l) => l._id));
+return allCompletions.filter((c) => lessonIds.has(c.lessonId));
 ```
 
 ---
@@ -279,13 +303,13 @@ return allCompletions.filter(c => lessonIds.has(c.lessonId));
 
 Based on effort vs. impact:
 
-| Order | Item | Effort | Impact | Notes |
-|-------|------|--------|--------|-------|
-| 1 | P0-5: Assistant badges | 15 min | High | Quick win, PRD compliance |
-| 2 | P0-3: Course counts | 1 hr | High | Users see broken UI |
-| 3 | P0-2: Learning Pulse | 2 hr | High | Core feature, multiple files |
-| 4 | P0-4: Auto completion | 2 hr | Medium | Feature gap, not broken |
-| 5 | P0-1: Execution isolation | 4 hr | Critical | Complex, but rare edge case |
+| Order | Item                      | Effort | Impact   | Notes                        |
+| ----- | ------------------------- | ------ | -------- | ---------------------------- |
+| 1     | P0-5: Assistant badges    | 15 min | High     | Quick win, PRD compliance    |
+| 2     | P0-3: Course counts       | 1 hr   | High     | Users see broken UI          |
+| 3     | P0-2: Learning Pulse      | 2 hr   | High     | Core feature, multiple files |
+| 4     | P0-4: Auto completion     | 2 hr   | Medium   | Feature gap, not broken      |
+| 5     | P0-1: Execution isolation | 4 hr   | Critical | Complex, but rare edge case  |
 
 **Recommendation:** Start with P0-5 → P0-3 → P0-2 for quick momentum, then tackle P0-4 → P0-1.
 
@@ -317,4 +341,4 @@ The codebase architecture is solid — these are feature completions, not fundam
 
 ---
 
-*This review was generated from direct code analysis. All line numbers reference actual source files.*
+_This review was generated from direct code analysis. All line numbers reference actual source files._

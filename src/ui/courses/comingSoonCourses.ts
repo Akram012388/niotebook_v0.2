@@ -56,8 +56,7 @@ const STANFORD_COURSES: readonly ComingSoonCourse[] = [
     provider: "Stanford",
     description:
       "Recursion, data abstraction, classic algorithms and data structures in C++.",
-    sourceUrl:
-      "https://web.stanford.edu/class/archive/cs/cs106b/cs106b.1248/",
+    sourceUrl: "https://web.stanford.edu/class/archive/cs/cs106b/cs106b.1248/",
     license: "CC BY 2.5",
   },
 ];

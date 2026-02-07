@@ -17,7 +17,7 @@ type TopLessonsChartProps = {
   data: TopLesson[] | undefined;
 };
 
-const ACCENT = "#00FF66";
+const ACCENT = "var(--accent)";
 
 const TopLessonsChart = ({ data }: TopLessonsChartProps): ReactElement => (
   <ChartCard title="Top Lessons by Events">
@@ -26,7 +26,7 @@ const TopLessonsChart = ({ data }: TopLessonsChartProps): ReactElement => (
         <BarChart data={data} layout="vertical">
           <XAxis
             type="number"
-            tick={{ fontSize: 10, fill: "#666" }}
+            tick={{ fontSize: 10, fill: "var(--text-subtle)" }}
             axisLine={false}
             tickLine={false}
             allowDecimals={false}
@@ -34,7 +34,7 @@ const TopLessonsChart = ({ data }: TopLessonsChartProps): ReactElement => (
           <YAxis
             type="category"
             dataKey="title"
-            tick={{ fontSize: 10, fill: "#999" }}
+            tick={{ fontSize: 10, fill: "var(--text-muted)" }}
             width={120}
             axisLine={false}
             tickLine={false}
@@ -44,13 +44,13 @@ const TopLessonsChart = ({ data }: TopLessonsChartProps): ReactElement => (
           />
           <Tooltip
             contentStyle={{
-              background: "#111",
-              border: "1px solid #333",
+              background: "var(--surface-strong)",
+              border: "1px solid var(--border)",
               borderRadius: 6,
               fontSize: 12,
               fontFamily: "monospace",
             }}
-            labelStyle={{ color: "#999" }}
+            labelStyle={{ color: "var(--text-muted)" }}
           />
           <Bar dataKey="eventCount" fill={ACCENT} radius={[0, 3, 3, 0]} />
         </BarChart>

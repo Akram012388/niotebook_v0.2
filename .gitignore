@@ -64,3 +64,4 @@ next-env.d.ts
 /niotebook-demo-videos/remotion/node_modules/
 /niotebook-demo-videos/remotion/out/
 /public/videos/
+.playwright-mcp/

@@ -18,6 +18,7 @@ You are a senior engineer executing a disciplined Git commit workflow. Follow th
 ## 3. Determine Commit Type
 
 Based on the changes, select the appropriate conventional commit prefix:
+
 - `feat:` — New feature or capability
 - `fix:` — Bug fix
 - `refactor:` — Code restructuring without behavior change
@@ -36,6 +37,7 @@ Based on the changes, select the appropriate conventional commit prefix:
 ## 5. Create the Commit
 
 - Write a clear conventional commit message following this format:
+
   ```
   type(scope): concise description
 
@@ -43,6 +45,7 @@ Based on the changes, select the appropriate conventional commit prefix:
 
   Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
   ```
+
 - Keep the first line under 72 characters.
 - Use imperative mood ("add" not "added", "fix" not "fixed").
 - Use HEREDOC format for the commit command to preserve formatting.

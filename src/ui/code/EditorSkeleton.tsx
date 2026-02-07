@@ -11,7 +11,7 @@ const EditorSkeleton = (): ReactElement => (
     {Array.from({ length: SKELETON_LINES }, (_, i) => (
       <div
         key={i}
-        className="h-4 animate-pulse rounded bg-workspace-border"
+        className="h-4 rounded nio-shimmer-workspace"
         style={{ width: `${40 + ((i * 17) % 50)}%` }}
       />
     ))}

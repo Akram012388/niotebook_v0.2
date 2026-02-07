@@ -385,15 +385,13 @@ const CodePane = ({
       if (result.stdout?.includes("\x00__plot_svg__")) {
         const svgData = result.stdout.split("\x00__plot_svg__")[1];
         if (svgData) {
-          const container = document.getElementById(
-            "niotebook-runtime-frame",
-          );
+          const container = document.getElementById("niotebook-runtime-frame");
           if (container) {
             const frame = document.createElement("iframe");
             frame.style.width = "100%";
             frame.style.height = "100%";
             frame.style.border = "none";
-            frame.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;display:flex;align-items:center;justify-content:center;background:#0A0A0A;min-height:100vh}svg{max-width:100%;max-height:100vh}</style></head><body>${svgData}</body></html>`;
+            frame.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;display:flex;align-items:center;justify-content:center;background:#1C1917;min-height:100vh}svg{max-width:100%;max-height:100vh}</style></head><body>${svgData}</body></html>`;
             container.replaceChildren(frame);
           }
         }
@@ -402,7 +400,9 @@ const CodePane = ({
       if (result.timedOut) {
         useTerminalStore.getState().setLastRunError("Runtime timed out");
       } else if (result.stderr) {
-        useTerminalStore.getState().setLastRunError(result.stderr.slice(0, 500));
+        useTerminalStore
+          .getState()
+          .setLastRunError(result.stderr.slice(0, 500));
       } else {
         useTerminalStore.getState().setLastRunError(null);
       }
@@ -462,9 +462,7 @@ const CodePane = ({
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">
       <header className="flex h-14 items-center justify-between border-b border-border-muted px-4 py-3">
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <p className="truncate text-sm font-semibold text-foreground">
-            Code
-          </p>
+          <p className="truncate text-sm font-semibold text-foreground">Code</p>
         </div>
         <div className="flex shrink-0 items-center gap-3 text-xs">
           <LanguageSelect

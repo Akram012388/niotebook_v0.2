@@ -1,9 +1,16 @@
 "use client";
 
-import { type ReactElement, useState } from "react";
+import { type ReactElement, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
 import type { FunctionReference } from "convex/server";
+
+type UserRow = {
+  id: string;
+  email?: string;
+  role: string;
+  createdAt: number;
+};
 
 type FeedbackEntry = {
   _id: string;
@@ -25,6 +32,10 @@ const listAllRef = makeFunctionReference<"query">(
   FeedbackEntry[]
 >;
 
+const usersListAllRef = makeFunctionReference<"query">(
+  "users:listAll",
+) as FunctionReference<"query", "public", Record<string, never>, UserRow[]>;
+
 const formatDate = (ms: number): string =>
   new Date(ms).toLocaleDateString("en-US", {
     month: "short",
@@ -34,15 +45,96 @@ const formatDate = (ms: number): string =>
     minute: "2-digit",
   });
 
-const RatingStars = ({ rating }: { rating: number }): ReactElement => {
+const RatingStars = ({ rating }: { rating: number }): ReactElement => (
+  <div className="flex items-center gap-1.5">
+    {Array.from({ length: 5 }, (_, i) => (
+      <span
+        key={i}
+        className={`text-sm ${i < rating ? "text-accent" : "text-text-subtle"}`}
+      >
+        ★
+      </span>
+    ))}
+  </div>
+);
+
+const FeedbackCard = ({
+  entry,
+  email,
+}: {
+  entry: FeedbackEntry;
+  email?: string;
+}): ReactElement => {
+  const categories = entry.category.split(", ").filter(Boolean);
+
   return (
-    <span className="text-sm">
-      {Array.from({ length: 5 }, (_, i) => (
-        <span key={i} className={i < rating ? "text-yellow-500" : "text-muted"}>
-          ★
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-accent/20 hover:shadow-md">
+      {/* Header — user + date */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col gap-0.5 truncate">
+          {email && (
+            <span className="truncate text-xs font-medium text-foreground">
+              {email}
+            </span>
+          )}
+          <span className="font-mono text-[10px] text-text-subtle">
+            {entry.userId.slice(0, 12)}…
+          </span>
+        </div>
+        <span className="text-xs text-text-muted">
+          {formatDate(entry.createdAt)}
         </span>
-      ))}
-    </span>
+      </div>
+
+      {/* Rating */}
+      <div className="flex flex-col gap-1.5">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+          Experience rating
+        </div>
+        <RatingStars rating={entry.rating} />
+      </div>
+
+      {/* Categories */}
+      <div className="flex flex-col gap-1.5">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+          Category
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {categories.map((label) => (
+            <span
+              key={label}
+              className="rounded-full border border-accent bg-accent px-3 py-1 text-xs text-white shadow-sm"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Notes */}
+      {entry.notes && entry.notes.trim().length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+            Notes
+          </div>
+          <div className="whitespace-pre-wrap rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs text-foreground">
+            {entry.notes}
+          </div>
+        </div>
+      )}
+
+      {/* Lesson context (if present) */}
+      {entry.lessonId && (
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+            Lesson
+          </span>
+          <span className="font-mono text-xs text-text-muted">
+            {entry.lessonId}
+          </span>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -50,13 +142,26 @@ const FeedbackDashboard = (): ReactElement => {
   const [surfaceFilter, setSurfaceFilter] = useState<string>("all");
 
   const feedback = useQuery(listAllRef);
+  const users = useQuery(usersListAllRef);
+
+  const emailMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (users) {
+      for (const u of users) {
+        if (u.email) map.set(u.id, u.email);
+      }
+    }
+    return map;
+  }, [users]);
 
   const categories = feedback
-    ? [...new Set(feedback.map((f) => f.category))]
+    ? [...new Set(feedback.flatMap((f) => f.category.split(", ")))]
     : [];
 
   const filtered = feedback?.filter(
-    (f) => surfaceFilter === "all" || f.category === surfaceFilter,
+    (f) =>
+      surfaceFilter === "all" ||
+      f.category.split(", ").includes(surfaceFilter),
   );
 
   return (
@@ -66,7 +171,7 @@ const FeedbackDashboard = (): ReactElement => {
         <select
           value={surfaceFilter}
           onChange={(e) => setSurfaceFilter(e.target.value)}
-          className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-foreground"
+          className="rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground transition-colors duration-150 focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
         >
           <option value="all">All categories</option>
           {categories.map((s) => (
@@ -78,73 +183,25 @@ const FeedbackDashboard = (): ReactElement => {
       </div>
 
       {feedback !== undefined && feedback.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border bg-surface-muted px-6 py-12 text-center">
-          <p className="text-sm text-muted">No feedback submitted yet.</p>
-          <p className="mt-1 text-xs text-muted">
+        <div className="rounded-2xl border border-dashed border-border bg-surface-muted px-6 py-12 text-center">
+          <p className="text-sm text-text-muted">No feedback submitted yet.</p>
+          <p className="mt-1 text-xs text-text-muted">
             Feedback events will appear here once users submit feedback.
           </p>
         </div>
+      ) : filtered === undefined ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />
+        </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
-          <table className="w-full text-sm">
-            <thead className="border-b border-border bg-surface-muted">
-              <tr>
-                <th className="px-4 py-2 text-left font-medium text-muted">
-                  User
-                </th>
-                <th className="px-4 py-2 text-left font-medium text-muted">
-                  Category
-                </th>
-                <th className="px-4 py-2 text-left font-medium text-muted">
-                  Rating
-                </th>
-                <th className="px-4 py-2 text-left font-medium text-muted">
-                  Notes
-                </th>
-                <th className="px-4 py-2 text-left font-medium text-muted">
-                  Lesson
-                </th>
-                <th className="px-4 py-2 text-left font-medium text-muted">
-                  Date
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered === undefined ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-muted">
-                    Loading...
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((entry) => (
-                  <tr
-                    key={entry._id}
-                    className="border-b border-border last:border-0"
-                  >
-                    <td className="px-4 py-2 font-mono text-xs text-foreground">
-                      {entry.userId}
-                    </td>
-                    <td className="px-4 py-2 text-foreground">
-                      {entry.category}
-                    </td>
-                    <td className="px-4 py-2">
-                      <RatingStars rating={entry.rating} />
-                    </td>
-                    <td className="px-4 py-2 text-muted">
-                      {entry.notes ?? "—"}
-                    </td>
-                    <td className="px-4 py-2 font-mono text-xs text-muted">
-                      {entry.lessonId ?? "—"}
-                    </td>
-                    <td className="px-4 py-2 text-muted">
-                      {formatDate(entry.createdAt)}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((entry) => (
+            <FeedbackCard
+              key={entry._id}
+              entry={entry}
+              email={emailMap.get(entry.userId)}
+            />
+          ))}
         </div>
       )}
     </div>

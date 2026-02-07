@@ -62,7 +62,12 @@ const VideoPane = ({
       title: lesson?.title,
       order: lesson?.order,
     });
-  }, [lesson?.order, lesson?.subtitlesUrl, lesson?.title, lesson?.transcriptUrl]);
+  }, [
+    lesson?.order,
+    lesson?.subtitlesUrl,
+    lesson?.title,
+    lesson?.transcriptUrl,
+  ]);
 
   const checkAutoCompletion = useAutoCompletion({
     lessonId,
@@ -81,9 +86,9 @@ const VideoPane = ({
         : null;
     let topicPart = lesson?.title ?? null;
     if (topicPart && lecturePart) {
-      topicPart = topicPart
-        .replace(/^Lecture\s+\d+\s*[:\u2014—\-–]\s*/i, "")
-        .trim() || null;
+      topicPart =
+        topicPart.replace(/^Lecture\s+\d+\s*[:\u2014—\-–]\s*/i, "").trim() ||
+        null;
     }
     const secondaryParts = [lecturePart, topicPart].filter(Boolean).join(": ");
     return {
@@ -135,6 +140,7 @@ const VideoPane = ({
   const lastPersistedRef = useRef<number | null>(null);
   const videoAreaRef = useRef<HTMLDivElement | null>(null);
   const videoWrapRef = useRef<HTMLDivElement | null>(null);
+  const infoStripRef = useRef<HTMLDivElement | null>(null);
   const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
     null,
   );
@@ -144,7 +150,6 @@ const VideoPane = ({
       onTimeChange?.(frame.videoTimeSec);
     }
   }, [frame?.videoTimeSec, onTimeChange]);
-
 
   // Size the video wrapper via direct DOM writes to avoid state-driven
   // re-render loops that caused jitter with the previous setState approach.
@@ -159,6 +164,8 @@ const VideoPane = ({
       if (!wrap || areaW <= 0 || areaH <= 0) return;
       const optimal = Math.round(Math.min(areaW, areaH * (16 / 9)));
       wrap.style.width = `${optimal}px`;
+      const strip = infoStripRef.current;
+      if (strip) strip.style.width = `${optimal}px`;
     };
 
     const observer = new ResizeObserver((entries) => {
@@ -231,7 +238,6 @@ const VideoPane = ({
         >
           {lesson ? (
             <div ref={videoWrapRef} className="w-full max-w-full aspect-video">
-
               <VideoPlayer
                 videoId={lesson.videoId}
                 initialTimeSec={initialTimeSec}
@@ -250,7 +256,7 @@ const VideoPane = ({
           )}
         </div>
         {showInfoStrip && infoItems.length > 0 ? (
-          <div className="mt-3 rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] text-text-muted">
+          <div ref={infoStripRef} className="mx-auto mt-3 rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] text-text-muted">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               {infoItems.map((item) => (
                 <div key={item.label} className="flex items-center gap-1">

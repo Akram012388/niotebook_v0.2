@@ -1,44 +1,78 @@
 "use client";
 
 import { SignIn } from "@clerk/nextjs";
-import type { ReactElement } from "react";
+import { motion } from "framer-motion";
+import { useEffect, type ReactElement } from "react";
+import { AuthShell } from "@/ui/auth/AuthShell";
 import { BootSequence } from "@/ui/auth/BootSequence";
 import { clerkAppearance } from "@/ui/auth/clerkAppearance";
-import { Wordmark } from "@/ui/brand/Wordmark";
-import { ForceTheme } from "@/ui/ForceTheme";
+import { MobileGate } from "@/ui/shared/MobileGate";
+
+const fadeUpSlow = (delay = 0) => ({
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.6, delay },
+});
 
 const SignInPage = (): ReactElement => {
+  /* Suppress the browser's native "Please fill out this field" tooltip.
+     The `invalid` event does NOT bubble, so we must listen at the document
+     level in capture phase to intercept it before the tooltip renders.
+     Preventing default stops the tooltip; Clerk handles its own errors. */
+  useEffect(() => {
+    const suppress = (e: Event) => e.preventDefault();
+    document.addEventListener("invalid", suppress, true);
+    return () => document.removeEventListener("invalid", suppress, true);
+  }, []);
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
-      <ForceTheme theme="dark" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.18),_transparent_55%)]" />
-      <div className="relative mx-auto flex min-h-screen w-full max-w-[1200px] flex-col justify-center px-6 py-12">
-        <div className="mb-6">
-          <Wordmark height={28} />
-          <h1 className="mt-3 text-3xl font-semibold text-foreground">
-            Sign in
-          </h1>
-          <p className="mt-2 max-w-md text-sm text-text-muted">
-            Niotebook alpha is invite-only. Use the email code from your invite
-            to continue.
+    <MobileGate>
+    <AuthShell
+      title="Sign in"
+      subtitle="Niotebook alpha is invite-only. Use the email code from your invite to continue."
+      sideContent={
+        <motion.div className="flex flex-1" {...fadeUpSlow(0.3)}>
+          <BootSequence />
+        </motion.div>
+      }
+    >
+      <motion.div
+        className="flex flex-col rounded-2xl border border-border dark:border-accent-border bg-surface shadow-sm overflow-hidden"
+        {...fadeUpSlow(0.2)}
+      >
+        <div className="flex-1">
+          <SignIn
+            appearance={clerkAppearance}
+            routing="path"
+            path="/sign-in"
+            signUpUrl=""
+            fallbackRedirectUrl="/courses"
+          />
+        </div>
+        <div className="border-t border-border-muted px-6 py-4 text-center">
+          <div className="flex items-center justify-center gap-1.5 text-xs text-text-subtle">
+            <span>Secured by</span>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M12.596 3.904a1.6 1.6 0 0 0-.544-.384 5.6 5.6 0 0 0-8.104 0 1.6 1.6 0 0 0-.544.384A5.6 5.6 0 0 0 8 14.4a5.6 5.6 0 0 0 4.596-10.496ZM8 12.8a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"
+                fill="currentColor"
+              />
+            </svg>
+            <span className="font-medium">clerk</span>
+          </div>
+          <p className="mt-1 text-[10px] font-medium text-accent">
+            Development mode
           </p>
         </div>
-        <div className="flex items-start gap-8">
-          <div className="w-full max-w-md">
-            <SignIn
-              appearance={clerkAppearance}
-              routing="path"
-              path="/sign-in"
-              signUpUrl=""
-              fallbackRedirectUrl="/courses"
-            />
-          </div>
-          <div className="hidden w-full max-w-sm md:block">
-            <BootSequence />
-          </div>
-        </div>
-      </div>
-    </div>
+      </motion.div>
+    </AuthShell>
+    </MobileGate>
   );
 };
 
