@@ -20,8 +20,10 @@ const AdminGuard = ({ children }: AdminGuardProps): ReactElement => {
 
   if (me === undefined) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted">Loading...</p>
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background">
+        {/* Spinner */}
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent" />
+        <p className="text-sm text-text-muted">Loading...</p>
       </div>
     );
   }
@@ -29,8 +31,28 @@ const AdminGuard = ({ children }: AdminGuardProps): ReactElement => {
   if (me === null || me.role !== "admin") {
     router.replace("/");
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted">Access denied. Redirecting...</p>
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-muted">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-accent"
+            aria-hidden="true"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </div>
+        <div className="text-center">
+          <p className="text-sm font-medium text-foreground">Access denied</p>
+          <p className="mt-1 text-xs text-text-muted">Redirecting...</p>
+        </div>
       </div>
     );
   }
