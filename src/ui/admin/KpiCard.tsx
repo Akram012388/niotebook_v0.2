@@ -19,8 +19,8 @@ const KpiCard = ({
       : null;
 
   return (
-    <div className="rounded-lg border border-border bg-surface p-4">
-      <p className="text-xs font-medium tracking-wide text-muted uppercase">
+    <div className="rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-accent/20 hover:shadow-md">
+      <p className="text-xs font-medium tracking-wide text-text-muted uppercase">
         {label}
       </p>
       <div className="mt-2 flex items-end gap-2">

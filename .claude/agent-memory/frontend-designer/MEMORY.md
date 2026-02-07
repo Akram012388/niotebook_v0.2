@@ -85,6 +85,24 @@
 - Write files -> `git add` immediately -> commit ASAP
 - Verify branch before each git operation
 
+## Admin Console Pattern (redesigned 2026-02-07)
+- **Layout**: Sidebar (w-60) + main content (max-w-[1200px] mx-auto)
+- **Sidebar**: Wordmark (h=24) + "Admin" pill badge, nav items with icons, ThemeToggle at bottom, "Back to app" link
+- **Active nav**: `bg-accent text-white font-medium shadow-sm` on `rounded-xl`
+- **Inactive nav**: `text-text-muted hover:bg-surface-muted hover:text-foreground`
+- **Cards**: `rounded-2xl border border-border bg-surface p-5` + `hover:border-accent/20 hover:shadow-md transition-all duration-200`
+- **Section labels**: `text-xs font-semibold font-mono uppercase tracking-[0.15em] text-accent`
+- **Toggle groups**: `rounded-xl border border-border bg-surface p-1` container, `rounded-lg` buttons with `bg-accent text-white` active
+- **Input pattern**: `rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-text-subtle transition-colors duration-150 focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20`
+- **Table containers**: `rounded-2xl border border-border` outer
+- **Table headers**: `bg-surface-muted` with `py-3 text-xs font-medium text-text-muted`
+- **Table rows**: `hover:bg-surface-muted/50 transition-colors duration-100`
+- **Event badges**: `rounded-md bg-accent-muted px-2 py-0.5 font-mono text-accent` (not plain bg-surface-muted)
+- **Status badges**: `rounded-full px-2.5 py-0.5 text-xs font-medium` with status color bg/text
+- **Generate button**: `rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-accent-hover`
+- **Loading state**: spinner `animate-spin border-2 border-border border-t-accent` + text
+- **Access denied**: lock icon in `bg-accent-muted` container + text
+
 ## File Locations
 - Globals CSS: `src/app/globals.css` (tokens, theme, patterns)
 - Layout: `src/app/layout.tsx` (font loading, body classes)

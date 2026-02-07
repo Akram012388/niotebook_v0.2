@@ -45,7 +45,7 @@ const RoleBadge = ({ role }: { role: string }): ReactElement => {
 
   return (
     <span
-      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${colors[role] ?? "bg-surface-muted text-text-muted"}`}
+      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[role] ?? "bg-surface-muted text-text-muted"}`}
     >
       {role}
     </span>
@@ -85,12 +85,12 @@ const UserManagement = (): ReactElement => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by email..."
-          className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-foreground"
+          className="rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-text-subtle transition-colors duration-150 focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
         />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as Role | "all")}
-          className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-foreground"
+          className="rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground transition-colors duration-150 focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
         >
           <option value="all">All roles</option>
           <option value="admin">Admin</option>
@@ -99,23 +99,23 @@ const UserManagement = (): ReactElement => {
         </select>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border">
+      <div className="overflow-x-auto rounded-2xl border border-border">
         <table className="w-full text-sm">
           <thead className="border-b border-border bg-surface-muted">
             <tr>
-              <th className="px-4 py-2 text-left font-medium text-muted">
+              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
                 Email
               </th>
-              <th className="px-4 py-2 text-left font-medium text-muted">
+              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
                 Role
               </th>
-              <th className="px-4 py-2 text-left font-medium text-muted">
+              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
                 Batch
               </th>
-              <th className="px-4 py-2 text-left font-medium text-muted">
+              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
                 Joined
               </th>
-              <th className="px-4 py-2 text-left font-medium text-muted">
+              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
                 Change Role
               </th>
             </tr>
@@ -123,13 +123,19 @@ const UserManagement = (): ReactElement => {
           <tbody>
             {filtered === undefined ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
+                <td
+                  colSpan={5}
+                  className="px-4 py-8 text-center text-text-muted"
+                >
                   Loading...
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted">
+                <td
+                  colSpan={5}
+                  className="px-4 py-8 text-center text-text-muted"
+                >
                   No users found.
                 </td>
               </tr>
@@ -137,27 +143,27 @@ const UserManagement = (): ReactElement => {
               filtered.map((user) => (
                 <tr
                   key={user.id}
-                  className="border-b border-border last:border-0"
+                  className="border-b border-border last:border-0 transition-colors duration-100 hover:bg-surface-muted/50"
                 >
-                  <td className="px-4 py-2 text-foreground">
+                  <td className="px-4 py-2.5 text-foreground">
                     {user.email ?? "—"}
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2.5">
                     <RoleBadge role={user.role} />
                   </td>
-                  <td className="px-4 py-2 text-muted">
+                  <td className="px-4 py-2.5 text-text-muted">
                     {user.inviteBatchId ?? "—"}
                   </td>
-                  <td className="px-4 py-2 text-muted">
+                  <td className="px-4 py-2.5 text-text-muted">
                     {formatDate(user.createdAt)}
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-2.5">
                     <select
                       value={user.role}
                       onChange={(e) =>
                         handleRoleChange(user.id, e.target.value as Role)
                       }
-                      className="rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
+                      className="rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-foreground transition-colors duration-150 focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
                     >
                       <option value="admin">Admin</option>
                       <option value="user">User</option>
