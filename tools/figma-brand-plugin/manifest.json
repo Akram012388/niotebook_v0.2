@@ -1,6 +1,6 @@
 {
   "name": "Niotebook Brand System",
-  "id": "niotebook-brand-system",
+  "id": "niotebook-brand-system-v2",
   "api": "1.0.0",
   "main": "dist/code.js",
   "editorType": ["figma"],
@@ -9,6 +9,7 @@
   "menu": [
     { "name": "Build All", "command": "buildAll" },
     { "separator": true },
+    { "name": "Design Tokens (Variables)", "command": "buildTokens" },
     { "name": "Colors & Text Styles", "command": "buildStyles" },
     { "name": "Logo System", "command": "buildLogos" },
     { "name": "Social Assets", "command": "buildSocial" },

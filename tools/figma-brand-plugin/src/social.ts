@@ -1,8 +1,8 @@
 import {
   loadLogoFont,
-  buildLogoGroup,
-  applyVariantColors,
+  buildWordmarkText,
   getOrCreatePage,
+  clearPage,
   solidPaint,
   COLORS,
   addExports,
@@ -13,7 +13,7 @@ interface PlatformSpec {
   name: string;
   width: number;
   height: number;
-  /** 'wordmark' or 'nio' */
+  /** 'wordmark' uses full "niotebook", 'nio' uses short mark */
   logo: "wordmark" | "nio";
   /** Fraction of frame width the logo should occupy */
   logoScale: number;
@@ -111,38 +111,53 @@ const PLATFORMS: PlatformSpec[] = [
   },
 ];
 
+/**
+ * Build social media asset frames.
+ *
+ * Each frame has a dark background (#1c1917) with a centered wordmark or
+ * nio mark. White text with terracotta 'i'. Safe-zone guides at 20% inset.
+ *
+ * Clears the Social page first to remove stale assets.
+ */
 export async function buildSocialAssets() {
   await loadLogoFont();
 
   const page = getOrCreatePage("Social");
-  figma.currentPage = page;
+  await figma.setCurrentPageAsync(page);
+
+  // Clean slate -- remove old assets
+  clearPage(page);
 
   let offsetX = 0;
+  const ROW_GAP = 100;
 
-  for (const spec of PLATFORMS) {
+  for (let p = 0; p < PLATFORMS.length; p++) {
+    const spec = PLATFORMS[p];
+
     const frame = figma.createFrame();
-    frame.name = `Social/${spec.name}`;
+    frame.name = "Social/" + spec.name;
     frame.resize(spec.width, spec.height);
-    frame.fills = [solidPaint(COLORS.black)];
+    frame.fills = [solidPaint(COLORS.foreground)];
+    frame.clipsContent = true;
     frame.x = offsetX;
     frame.y = 0;
 
-    // Determine logo font size to hit target width
+    // Determine the target logo width and compute font size
+    const label: "niotebook" | "nio" = spec.logo === "wordmark" ? "niotebook" : "nio";
     const targetWidth = spec.width * spec.logoScale;
-    const label = spec.logo === "wordmark" ? "niotebook" : "nio";
-    // Rough: Orbitron Bold at fontSize N produces width ≈ N * 0.65 * label.length
-    const estFontSize = targetWidth / (0.65 * label.length);
+    // Orbitron Bold at fontSize N produces width ~ N * 0.65 * charCount
+    const charCount = label.length;
+    const estFontSize = targetWidth / (0.65 * charCount);
     const fontSize = Math.round(Math.max(estFontSize, 24));
 
-    const { frame: logoFrame, text, bar } = buildLogoGroup(label, fontSize);
-    applyVariantColors(text, bar, "Dark");
+    const text = buildWordmarkText(label, fontSize, "Dark");
 
-    // Center in frame
-    logoFrame.x = (spec.width - logoFrame.width) / 2;
-    logoFrame.y = (spec.height - logoFrame.height) / 2;
-    frame.appendChild(logoFrame);
+    // Center the text in the frame
+    text.x = (spec.width - text.width) / 2;
+    text.y = (spec.height - text.height) / 2;
+    frame.appendChild(text);
 
-    // Safe zone grid (inner 60%)
+    // Safe zone guides (inner 60%)
     frame.guides = [
       { axis: "X", offset: spec.width * 0.2 },
       { axis: "X", offset: spec.width * 0.8 },
@@ -150,11 +165,11 @@ export async function buildSocialAssets() {
       { axis: "Y", offset: spec.height * 0.8 },
     ];
 
-    addExports(frame, [pngExport(1)]);
+    addExports(frame, [pngExport(1, "-" + spec.exportPath)]);
 
     page.appendChild(frame);
-    offsetX += spec.width + 100;
+    offsetX += spec.width + ROW_GAP;
   }
 
-  figma.notify(`✓ ${PLATFORMS.length} social frames created`);
+  figma.notify(PLATFORMS.length + " social frames created");
 }

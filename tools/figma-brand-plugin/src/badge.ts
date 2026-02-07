@@ -1,68 +1,60 @@
 import {
   loadLogoFont,
+  getLogoFont,
   getOrCreatePage,
   solidPaint,
   COLORS,
   addExports,
   svgExport,
+  pngExport,
 } from "./utils";
 
-/** Create a ~200×28 README badge with nio mark + "niotebook" text. */
+/**
+ * Create a ~200x28 README badge with "niotebook" text on dark bg.
+ *
+ * The 'i' is terracotta, other characters are white.
+ * Simple pill shape, clean and minimal.
+ */
 export async function buildBadge() {
   await loadLogoFont();
 
   const page = getOrCreatePage("Logo System");
-  figma.currentPage = page;
+  await figma.setCurrentPageAsync(page);
 
-  const FONT: FontName = { family: "Orbitron", style: "Bold" };
+  const FONT = getLogoFont();
   const FONT_SIZE = 14;
   const HEIGHT = 28;
-  const PADDING = 8;
+  const PADDING_H = 12;
+  const PADDING_V = (HEIGHT - FONT_SIZE) / 2;
 
   const frame = figma.createFrame();
   frame.name = "Badge/niotebook-badge";
-  frame.fills = [solidPaint(COLORS.gray900)];
-  frame.cornerRadius = 4;
+  frame.fills = [solidPaint(COLORS.surfaceStrong)];
+  frame.cornerRadius = 6;
   frame.clipsContent = true;
 
-  // "nio" mark
-  const nioText = figma.createText();
-  nioText.fontName = FONT;
-  nioText.fontSize = FONT_SIZE;
-  nioText.characters = "nio";
-  nioText.fills = [solidPaint(COLORS.green)];
-  nioText.x = PADDING;
-  nioText.y = (HEIGHT - FONT_SIZE) / 2;
+  // "niotebook" text with colored 'i'
+  const text = figma.createText();
+  text.fontName = FONT;
+  text.fontSize = FONT_SIZE;
+  text.characters = "niotebook";
+  text.fills = [solidPaint(COLORS.wsText)];
+  // Color the 'i' terracotta (index 1)
+  text.setRangeFills(1, 2, [solidPaint(COLORS.accentDark)]);
 
-  // separator
-  const sep = figma.createRectangle();
-  sep.resize(1, HEIGHT * 0.6);
-  sep.fills = [solidPaint(COLORS.gray700)];
-  sep.x = nioText.x + nioText.width + PADDING;
-  sep.y = HEIGHT * 0.2;
+  text.x = PADDING_H;
+  text.y = PADDING_V;
 
-  // "tebook" text
-  const restText = figma.createText();
-  restText.fontName = FONT;
-  restText.fontSize = FONT_SIZE;
-  restText.characters = "tebook";
-  restText.fills = [solidPaint(COLORS.white)];
-  restText.x = sep.x + sep.width + PADDING;
-  restText.y = (HEIGHT - FONT_SIZE) / 2;
-
-  const totalWidth = restText.x + restText.width + PADDING;
+  const totalWidth = PADDING_H + text.width + PADDING_H;
   frame.resize(totalWidth, HEIGHT);
+  frame.appendChild(text);
 
-  frame.appendChild(nioText);
-  frame.appendChild(sep);
-  frame.appendChild(restText);
+  addExports(frame, [svgExport(), pngExport(1), pngExport(2)]);
 
-  addExports(frame, [svgExport()]);
-
-  // Position away from other logo system elements
+  // Position below the logo system component sets
   frame.x = 0;
-  frame.y = 600;
+  frame.y = 800;
 
   page.appendChild(frame);
-  figma.notify("✓ Badge created");
+  figma.notify("Badge created");
 }

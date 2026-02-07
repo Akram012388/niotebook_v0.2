@@ -1,40 +1,53 @@
 import {
   loadLogoFont,
-  buildLogoGroup,
-  applyVariantColors,
+  buildWordmarkText,
   getOrCreatePage,
   addExports,
   pngExport,
   svgExport,
+  COLORS,
+  solidPaint,
 } from "./utils";
 
-/** Build the wordmark component set with Light/Dark variants + export settings. */
+/**
+ * Build the wordmark component set with Light/Dark variants + export settings.
+ *
+ * The wordmark is "niotebook" in Orbitron Bold with the 'i' colored terracotta.
+ * No gray bar -- just clean text.
+ */
 export async function buildWordmark() {
   await loadLogoFont();
 
   const page = getOrCreatePage("Logo System");
-  figma.currentPage = page;
+  await figma.setCurrentPageAsync(page);
 
   const FONT_SIZE = 120;
   const variants: ("Light" | "Dark")[] = ["Light", "Dark"];
   const components: ComponentNode[] = [];
 
-  for (const variant of variants) {
-    const { frame, text, bar } = buildLogoGroup("niotebook", FONT_SIZE);
-    applyVariantColors(text, bar, variant);
+  for (let v = 0; v < variants.length; v++) {
+    const variant = variants[v];
+    const text = buildWordmarkText("niotebook", FONT_SIZE, variant);
 
-    // Wrap in component
+    // Create component to hold the text
     const comp = figma.createComponent();
-    comp.name = `Mode=${variant}`;
-    comp.resize(frame.width, frame.height);
+    comp.name = "Mode=" + variant;
+    comp.resize(text.width + 8, FONT_SIZE * 1.2);
     comp.fills = [];
     comp.clipsContent = false;
 
-    // Move children from frame into component
-    while (frame.children.length) {
-      comp.appendChild(frame.children[0]);
+    // Center text vertically within component
+    text.x = 4;
+    text.y = (comp.height - text.height) / 2;
+
+    comp.appendChild(text);
+
+    // Preview background: light bg for Light variant, dark bg for Dark
+    if (variant === "Light") {
+      comp.fills = [solidPaint(COLORS.background)];
+    } else {
+      comp.fills = [solidPaint(COLORS.foreground)];
     }
-    frame.remove();
 
     // Export settings
     addExports(comp, [svgExport(), pngExport(1), pngExport(2), pngExport(4)]);
@@ -49,11 +62,13 @@ export async function buildWordmark() {
 
   // Lay out variants vertically with spacing
   let y = 0;
-  for (const child of set.children) {
-    (child as SceneNode).y = y;
-    y += (child as SceneNode).height + 80;
+  for (let i = 0; i < set.children.length; i++) {
+    const child = set.children[i] as SceneNode;
+    child.y = y;
+    child.x = 0;
+    y += child.height + 80;
   }
   set.resize(set.children[0].width, y - 80);
 
-  figma.notify("✓ Wordmark component created");
+  figma.notify("Wordmark component created");
 }
