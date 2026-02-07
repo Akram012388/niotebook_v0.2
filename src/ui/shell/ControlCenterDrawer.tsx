@@ -242,7 +242,10 @@ const ControlCenterDrawer = ({
   }, [lectureQuery, lessonOptions]);
 
   const filteredCourses = useMemo(() => {
-    const sorted = [...courseOptions].sort((left, right) =>
+    const real = courseOptions.filter(
+      (course) => course.sourcePlaylistId !== "local-dev",
+    );
+    const sorted = [...real].sort((left, right) =>
       left.title.localeCompare(right.title),
     );
     const normalized = courseQuery.trim().toLowerCase();
