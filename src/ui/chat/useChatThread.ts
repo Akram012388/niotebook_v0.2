@@ -29,6 +29,9 @@ import {
 
 const STUCK_STREAM_TIMEOUT_MS = 30_000;
 
+/** Callback invoked for each token during streaming (bypasses React state). */
+type OnStreamToken = (token: string) => void;
+
 type ChatSendContext = {
   videoTimeSec: number;
   transcript: {
@@ -58,6 +61,8 @@ type UseChatThreadResult = {
   streamState: ChatStreamState;
   streamError: string | null;
   sendMessage: (content: string, context: ChatSendContext) => Promise<void>;
+  /** Mutable ref — set this to a callback to receive tokens without React state. */
+  onStreamTokenRef: MutableRefObject<OnStreamToken | null>;
 };
 
 const PAGE_LIMIT = 20;
@@ -267,7 +272,6 @@ const useChatThread = (
     };
   }, [lessonId, mergedMessages]);
 
-  const rafRef = useRef<number | null>(null);
   const streamStartedAtRef = useRef<number>(0);
   const mergedMessagesRef: MutableRefObject<ChatMessage[]> =
     useRef(mergedMessages);
@@ -275,13 +279,8 @@ const useChatThread = (
   const streamStateRef: MutableRefObject<ChatStreamState> = useRef(streamState);
   streamStateRef.current = streamState;
 
-  useEffect(() => {
-    return () => {
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-      }
-    };
-  }, []);
+  /** Mutable callback ref — AiPane wires this to StreamingText.append(). */
+  const onStreamTokenRef = useRef<OnStreamToken | null>(null);
 
   const updateLocalMessage = useCallback(
     (id: string, updater: (message: ChatMessage) => ChatMessage): void => {
@@ -301,12 +300,6 @@ const useChatThread = (
         }
         // Force-reset stuck stream state
         setStreamState("idle");
-      }
-
-      // Cancel any pending RAF flush from a previous stream
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
       }
 
       // Finalize any still-streaming local messages
@@ -468,34 +461,9 @@ const useChatThread = (
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
-        let tokenBuffer = "";
+        let fullText = ""; // accumulate full response outside React state
         let receivedDone = false;
         let receivedError = false;
-
-        const flushTokens = (): void => {
-          if (!tokenBuffer) {
-            return;
-          }
-
-          const chunk = tokenBuffer;
-          tokenBuffer = "";
-
-          updateLocalMessage(assistantTempId, (message) => ({
-            ...message,
-            content: message.content + chunk,
-          }));
-        };
-
-        const scheduleFlush = (): void => {
-          if (rafRef.current !== null) {
-            return;
-          }
-
-          rafRef.current = window.requestAnimationFrame(() => {
-            rafRef.current = null;
-            flushTokens();
-          });
-        };
 
         try {
           while (true) {
@@ -515,13 +483,14 @@ const useChatThread = (
               }
 
               if (event.type === "token") {
-                tokenBuffer += event.token;
-                scheduleFlush();
+                fullText += event.token;
+                // Push token directly to StreamingText — no React state
+                onStreamTokenRef.current?.(event.token);
               }
 
               if (event.type === "done") {
-                flushTokens();
                 receivedDone = true;
+                // Single React state update with final text
                 updateLocalMessage(assistantTempId, (message) => ({
                   ...message,
                   content: event.finalText,
@@ -530,7 +499,6 @@ const useChatThread = (
               }
 
               if (event.type === "error") {
-                flushTokens();
                 receivedError = true;
                 updateLocalMessage(assistantTempId, (message) => ({
                   ...message,
@@ -544,10 +512,9 @@ const useChatThread = (
         } catch {
           // SSE read loop failed (network error, aborted stream)
           if (!receivedDone && !receivedError) {
-            flushTokens();
             updateLocalMessage(assistantTempId, (message) => ({
               ...message,
-              content: message.content || "Connection to assistant lost.",
+              content: fullText || "Connection to assistant lost.",
               isStreaming: false,
             }));
             setStreamError("Connection to assistant lost.");
@@ -556,10 +523,9 @@ const useChatThread = (
         }
 
         if (!receivedDone && !receivedError) {
-          flushTokens();
           updateLocalMessage(assistantTempId, (message) => ({
             ...message,
-            content: message.content || "Assistant response interrupted.",
+            content: fullText || "Assistant response interrupted.",
             isStreaming: false,
           }));
           setStreamError("Assistant response interrupted.");
@@ -590,6 +556,7 @@ const useChatThread = (
     streamState,
     streamError,
     sendMessage,
+    onStreamTokenRef,
   };
 };
 
