@@ -1,3 +1,4 @@
+import { createDesignTokenVariables } from "./variables";
 import { createColorStyles } from "./colors";
 import { createTextStyles } from "./textStyles";
 import { buildWordmark } from "./wordmark";
@@ -9,10 +10,19 @@ import { buildBadge } from "./badge";
 import { buildEmailSig } from "./email";
 import { buildBrandGuide } from "./brandGuide";
 
+async function buildTokens() {
+  const refs = createDesignTokenVariables();
+  figma.notify(
+    `✓ ${refs.colorVars.size} color + ${refs.sizeVars.size} size variables created`,
+  );
+  return refs;
+}
+
 async function buildStyles() {
-  createColorStyles();
+  const refs = createDesignTokenVariables();
+  createColorStyles(refs);
   await createTextStyles();
-  figma.notify("✓ Color & text styles created");
+  figma.notify("✓ Design tokens, color & text styles created");
 }
 
 async function buildLogos() {
@@ -36,13 +46,13 @@ async function buildGuide() {
 }
 
 async function buildAll() {
-  figma.notify("Building Niotebook brand system…");
+  figma.notify("Building Niotebook brand system v2…");
   await buildStyles();
   await buildLogos();
   await buildSocial();
   await buildIcons();
   await buildGuide();
-  figma.notify("✓ Brand system complete!");
+  figma.notify("✓ Brand system v2 complete!");
 }
 
 // ---------------------------------------------------------------------------
@@ -54,6 +64,9 @@ figma.on("run", async ({ command }: RunEvent) => {
     switch (command) {
       case "buildAll":
         await buildAll();
+        break;
+      case "buildTokens":
+        await buildTokens();
         break;
       case "buildStyles":
         await buildStyles();
