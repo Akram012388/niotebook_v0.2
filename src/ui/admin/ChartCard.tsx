@@ -8,8 +8,8 @@ type ChartCardProps = {
 };
 
 const ChartCard = ({ title, children }: ChartCardProps): ReactElement => (
-  <div className="rounded-lg border border-border bg-surface p-4">
-    <h3 className="mb-3 text-xs font-medium tracking-wide text-muted uppercase">
+  <div className="rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-accent/20 hover:shadow-md">
+    <h3 className="mb-3 text-xs font-semibold font-mono uppercase tracking-[0.15em] text-accent">
       {title}
     </h3>
     <div className="h-52">{children}</div>
