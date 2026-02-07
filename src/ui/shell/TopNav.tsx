@@ -263,11 +263,11 @@ const TopNav = (): ReactElement => {
   }, [isDrawerOpen]);
 
   return (
-    <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-3">
-          <Wordmark height={32} />
-        </div>
+    <header
+      className="flex h-[72px] items-center justify-between border-b border-border bg-background px-4 sm:px-6"
+    >
+      <div className="flex items-center justify-between w-full max-w-[1600px] mx-auto">
+        <Wordmark height={40} />
         <div className="flex items-center gap-3">
           <LayoutPresetToggle />
           <button
