@@ -140,6 +140,7 @@ const VideoPane = ({
   const lastPersistedRef = useRef<number | null>(null);
   const videoAreaRef = useRef<HTMLDivElement | null>(null);
   const videoWrapRef = useRef<HTMLDivElement | null>(null);
+  const infoStripRef = useRef<HTMLDivElement | null>(null);
   const [lastSampleTimeSec, setLastSampleTimeSec] = useState<number | null>(
     null,
   );
@@ -163,6 +164,8 @@ const VideoPane = ({
       if (!wrap || areaW <= 0 || areaH <= 0) return;
       const optimal = Math.round(Math.min(areaW, areaH * (16 / 9)));
       wrap.style.width = `${optimal}px`;
+      const strip = infoStripRef.current;
+      if (strip) strip.style.width = `${optimal}px`;
     };
 
     const observer = new ResizeObserver((entries) => {
@@ -253,7 +256,7 @@ const VideoPane = ({
           )}
         </div>
         {showInfoStrip && infoItems.length > 0 ? (
-          <div className="mt-3 rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] text-text-muted">
+          <div ref={infoStripRef} className="mx-auto mt-3 rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] text-text-muted">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               {infoItems.map((item) => (
                 <div key={item.label} className="flex items-center gap-1">
