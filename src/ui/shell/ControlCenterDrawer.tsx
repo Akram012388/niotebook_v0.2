@@ -517,7 +517,7 @@ const ControlCenterDrawer = ({
                         <button
                           type="button"
                           onClick={() => void handleShareVia()}
-                          className="flex items-center justify-center gap-2 rounded-lg border border-border bg-foreground px-3 py-2 text-xs font-semibold text-background"
+                          className="flex items-center justify-center gap-2 rounded-lg border border-accent bg-accent px-3 py-2 text-xs font-semibold text-white"
                         >
                           <PaperPlaneTilt size={14} weight="regular" />
                           Share...
@@ -594,8 +594,8 @@ const ControlCenterDrawer = ({
                               onClick={() => setFeedbackRating(index + 1)}
                               className={`transition ${
                                 index < feedbackRating
-                                  ? "text-foreground"
-                                  : "text-text-subtle hover:text-foreground"
+                                  ? "text-accent"
+                                  : "text-text-subtle hover:text-accent"
                               }`}
                               aria-label={`Rate ${index + 1} stars`}
                             >
@@ -633,7 +633,7 @@ const ControlCenterDrawer = ({
                               }
                               className={`rounded-full border px-3 py-1 text-xs transition ${
                                 feedbackCategories.includes(label)
-                                  ? "border-foreground bg-surface text-foreground shadow-sm"
+                                  ? "border-accent bg-accent-muted text-accent shadow-sm"
                                   : "border-border bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
                               }`}
                             >
@@ -669,7 +669,7 @@ const ControlCenterDrawer = ({
                           onClick={() => void handleSubmitFeedback()}
                           className={`rounded-full px-4 py-1 text-xs font-semibold transition ${
                             isFeedbackDirty
-                              ? "bg-foreground text-background"
+                              ? "bg-accent text-white"
                               : "bg-surface-muted text-text-subtle"
                           }`}
                         >
