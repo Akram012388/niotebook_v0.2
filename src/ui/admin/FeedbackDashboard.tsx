@@ -1,9 +1,16 @@
 "use client";
 
-import { type ReactElement, useState } from "react";
+import { type ReactElement, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
 import type { FunctionReference } from "convex/server";
+
+type UserRow = {
+  id: string;
+  email?: string;
+  role: string;
+  createdAt: number;
+};
 
 type FeedbackEntry = {
   _id: string;
@@ -24,6 +31,10 @@ const listAllRef = makeFunctionReference<"query">(
   Record<string, never>,
   FeedbackEntry[]
 >;
+
+const usersListAllRef = makeFunctionReference<"query">(
+  "users:listAll",
+) as FunctionReference<"query", "public", Record<string, never>, UserRow[]>;
 
 const formatDate = (ms: number): string =>
   new Date(ms).toLocaleDateString("en-US", {
@@ -47,16 +58,29 @@ const RatingStars = ({ rating }: { rating: number }): ReactElement => (
   </div>
 );
 
-const FeedbackCard = ({ entry }: { entry: FeedbackEntry }): ReactElement => {
+const FeedbackCard = ({
+  entry,
+  email,
+}: {
+  entry: FeedbackEntry;
+  email?: string;
+}): ReactElement => {
   const categories = entry.category.split(", ").filter(Boolean);
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-accent/20 hover:shadow-md">
       {/* Header — user + date */}
-      <div className="flex items-center justify-between">
-        <span className="font-mono text-xs text-text-muted">
-          {entry.userId.slice(0, 12)}…
-        </span>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col gap-0.5 truncate">
+          {email && (
+            <span className="truncate text-xs font-medium text-foreground">
+              {email}
+            </span>
+          )}
+          <span className="font-mono text-[10px] text-text-subtle">
+            {entry.userId.slice(0, 12)}…
+          </span>
+        </div>
         <span className="text-xs text-text-muted">
           {formatDate(entry.createdAt)}
         </span>
@@ -118,6 +142,17 @@ const FeedbackDashboard = (): ReactElement => {
   const [surfaceFilter, setSurfaceFilter] = useState<string>("all");
 
   const feedback = useQuery(listAllRef);
+  const users = useQuery(usersListAllRef);
+
+  const emailMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (users) {
+      for (const u of users) {
+        if (u.email) map.set(u.id, u.email);
+      }
+    }
+    return map;
+  }, [users]);
 
   const categories = feedback
     ? [...new Set(feedback.flatMap((f) => f.category.split(", ")))]
@@ -161,7 +196,11 @@ const FeedbackDashboard = (): ReactElement => {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((entry) => (
-            <FeedbackCard key={entry._id} entry={entry} />
+            <FeedbackCard
+              key={entry._id}
+              entry={entry}
+              email={emailMap.get(entry.userId)}
+            />
           ))}
         </div>
       )}
