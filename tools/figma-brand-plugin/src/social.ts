@@ -123,7 +123,7 @@ export async function buildSocialAssets() {
     const frame = figma.createFrame();
     frame.name = `Social/${spec.name}`;
     frame.resize(spec.width, spec.height);
-    frame.fills = [solidPaint(COLORS.black)];
+    frame.fills = [solidPaint(COLORS.foreground)];
     frame.x = offsetX;
     frame.y = 0;
 

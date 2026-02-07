@@ -35,7 +35,7 @@ export async function buildFavicons() {
     const frame = figma.createFrame();
     frame.name = `Favicon/${spec.name}`;
     frame.resize(spec.size, spec.size);
-    frame.fills = [solidPaint(COLORS.black)];
+    frame.fills = [solidPaint(COLORS.foreground)];
     frame.clipsContent = true;
     frame.x = offsetX;
     frame.y = 0;

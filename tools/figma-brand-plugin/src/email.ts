@@ -28,7 +28,7 @@ export async function buildEmailSig() {
   text.fontName = FONT;
   text.fontSize = fontSize;
   text.characters = "niotebook";
-  text.fills = [solidPaint(COLORS.black)];
+  text.fills = [solidPaint(COLORS.foreground)];
 
   const height = fontSize * 1.4;
   frame.resize(WIDTH, height);

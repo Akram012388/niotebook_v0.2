@@ -23,7 +23,7 @@ export async function buildAppIcon() {
   frame.name = "App Icon/Master";
   frame.resize(SIZE, SIZE);
   frame.cornerRadius = RADIUS;
-  frame.fills = [solidPaint(COLORS.black)];
+  frame.fills = [solidPaint(COLORS.foreground)];
   frame.clipsContent = true;
 
   // nio mark, accent variant, sized to ~60% of frame
