@@ -1,8 +1,10 @@
 /**
  * Niotebook Landing Page Demo Video
  *
- * 1. Record workspace walkthrough in Screen Studio Pro (2560x1440)
- * 2. Export as .mp4 → place in public/recording.mp4
+ * Arc: Intro → hard cut → screen recording → fade-to-bg → (loops)
+ *
+ * 1. Record workspace walkthrough in Screen Studio Pro (3840x2160 @ 60fps)
+ * 2. Export as .mp4 → place in public/niotebook-demo-v2-body.mp4
  * 3. Run `bun run studio` to preview
  * 4. Tweak timing in constants.ts
  * 5. Run `bun run render` to export final video
@@ -52,7 +54,7 @@ export const DemoVideo: React.FC<Props> = ({
         <Intro />
       </Sequence>
 
-      {/* Screen recording */}
+      {/* Screen recording — starts clean after intro */}
       <Sequence
         from={recordingStart}
         durationInFrames={recordingDurationInFrames}

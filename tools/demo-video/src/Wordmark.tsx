@@ -45,20 +45,20 @@ export const Wordmark: React.FC = () => {
     frame < wm.iBounceStart + wm.iBounceDuration;
   const bf = Math.max(0, frame - wm.iBounceStart);
 
-  // Stick: sharp jump up → spring back with overshoot
+  // Stick: sharp jump up → spring back with overshoot (px scaled for 288px font)
   const stickY = isBouncing
-    ? interpolate(bf, [0, 5, 11, 17, 24], [0, -18, 0, 2, 0], {
+    ? interpolate(bf, [0, 10, 22, 34, 48], [0, -41, 0, 5, 0], {
         extrapolateRight: "clamp",
         extrapolateLeft: "clamp",
       })
     : 0;
 
-  // Dot: tracks stick for first 4 frames, then launches way up, springs back
+  // Dot: tracks stick for first 8 frames, then launches way up, springs back
   const dotY = isBouncing
     ? interpolate(
         bf,
-        [0, 4, 5, 9, 15, 19, 22, 24],
-        [0, -14, -26, -48, 5, -2, 1, 0],
+        [0, 8, 10, 18, 30, 38, 44, 48],
+        [0, -32, -59, -108, 12, -5, 3, 0],
         { extrapolateRight: "clamp", extrapolateLeft: "clamp" },
       )
     : 0;
