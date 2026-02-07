@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Shared helpers for the Niotebook brand plugin
+// Shared helpers for the Niotebook brand plugin (v2)
 // ---------------------------------------------------------------------------
 
 /** Convert hex (#RRGGBB) to Figma RGB (0-1 range). */
@@ -12,70 +12,168 @@ export function hexToRgb(hex: string): RGB {
   };
 }
 
+/** Convert hex (#RRGGBB) to Figma RGBA (0-1 range, alpha = 1). */
+export function hexToRgba(hex: string): RGBA {
+  return { ...hexToRgb(hex), a: 1 };
+}
+
 /** Solid fill paint from hex. */
 export function solidPaint(hex: string): SolidPaint {
   return { type: "SOLID", color: hexToRgb(hex) };
 }
 
 // ---------------------------------------------------------------------------
-// Brand tokens
+// Brand tokens (v2 — warm terracotta palette)
 // ---------------------------------------------------------------------------
 
 export const COLORS = {
-  black: "#0A0A0A",
-  white: "#FAFAFA",
-  gray900: "#171717",
-  gray700: "#404040",
-  gray400: "#A3A3A3",
-  gray100: "#F5F5F5",
-  green: "#00FF66",
-  greenDim: "#00CC52",
+  // Light theme backgrounds
+  background: "#f4f3ee",
+  foreground: "#1c1917",
+  surface: "#faf9f7",
+  surfaceMuted: "#edeae4",
+  surfaceStrong: "#1c1917",
+  surfaceStrongFg: "#f4f3ee",
+  // Borders
+  border: "#ddd8d0",
+  borderMuted: "#edeae4",
+  // Text
+  textMuted: "#78716c",
+  textSubtle: "#a8a29e",
+  // Accent (Claude terracotta)
+  accent: "#c15f3c",
+  accentForeground: "#ffffff",
+  accentHover: "#a8512f",
+  accentDark: "#da7756",
+  // Status
+  success: "#5a8a5e",
+  warning: "#b5882c",
+  error: "#c24b3a",
+  info: "#5b7fa5",
+  // Workspace (always dark)
+  wsEditor: "#1c1917",
+  wsTabbar: "#252220",
+  wsBorder: "#3a3531",
+  wsBorderMuted: "#2e2a27",
+  wsText: "#f4f3ee",
+  wsTextMuted: "#a8a29e",
+  wsAccent: "#c15f3c",
 } as const;
 
 export const COLOR_STYLES: {
   name: string;
   hex: string;
   description: string;
+  /** Maps to a token name in VariableRefs.colorVars for variable binding. */
+  tokenName?: string;
 }[] = [
   {
-    name: "nio/black",
-    hex: COLORS.black,
-    description: "Primary background, text on light",
+    name: "nio/background",
+    hex: COLORS.background,
+    description: "Page background",
+    tokenName: "background",
   },
   {
-    name: "nio/white",
-    hex: COLORS.white,
-    description: "Primary text on dark, light backgrounds",
+    name: "nio/foreground",
+    hex: COLORS.foreground,
+    description: "Primary text / icon color",
+    tokenName: "foreground",
   },
   {
-    name: "nio/gray-900",
-    hex: COLORS.gray900,
-    description: "Surfaces, cards (dark mode)",
+    name: "nio/surface",
+    hex: COLORS.surface,
+    description: "Card / panel surface",
+    tokenName: "surface",
   },
   {
-    name: "nio/gray-700",
-    hex: COLORS.gray700,
-    description: "Gray bar (dark mode)",
+    name: "nio/surface-muted",
+    hex: COLORS.surfaceMuted,
+    description: "Muted surface (inputs, code blocks)",
+    tokenName: "surface-muted",
   },
   {
-    name: "nio/gray-400",
-    hex: COLORS.gray400,
-    description: "Secondary text, borders, gray bar (light)",
+    name: "nio/surface-strong",
+    hex: COLORS.surfaceStrong,
+    description: "High-contrast surface",
+    tokenName: "surface-strong",
   },
   {
-    name: "nio/gray-100",
-    hex: COLORS.gray100,
-    description: "Surfaces (light mode)",
+    name: "nio/border",
+    hex: COLORS.border,
+    description: "Default border",
+    tokenName: "border",
   },
   {
-    name: "nio/green",
-    hex: COLORS.green,
-    description: "Primary accent — active states, highlights, CTAs",
+    name: "nio/border-muted",
+    hex: COLORS.borderMuted,
+    description: "Subtle border / divider",
+    tokenName: "border-muted",
   },
   {
-    name: "nio/green-dim",
-    hex: COLORS.greenDim,
-    description: "Accent on light bg (AA contrast)",
+    name: "nio/text-muted",
+    hex: COLORS.textMuted,
+    description: "Secondary text",
+    tokenName: "text-muted",
+  },
+  {
+    name: "nio/text-subtle",
+    hex: COLORS.textSubtle,
+    description: "Tertiary / hint text",
+    tokenName: "text-subtle",
+  },
+  {
+    name: "nio/accent",
+    hex: COLORS.accent,
+    description: "Primary accent — CTAs, active states",
+    tokenName: "accent",
+  },
+  {
+    name: "nio/accent-foreground",
+    hex: COLORS.accentForeground,
+    description: "Text on accent background",
+    tokenName: "accent-foreground",
+  },
+  {
+    name: "nio/accent-hover",
+    hex: COLORS.accentHover,
+    description: "Accent hover / pressed state",
+    tokenName: "accent-hover",
+  },
+  {
+    name: "nio/status-success",
+    hex: COLORS.success,
+    description: "Success green",
+    tokenName: "status-success",
+  },
+  {
+    name: "nio/status-warning",
+    hex: COLORS.warning,
+    description: "Warning amber",
+    tokenName: "status-warning",
+  },
+  {
+    name: "nio/status-error",
+    hex: COLORS.error,
+    description: "Error red",
+    tokenName: "status-error",
+  },
+  {
+    name: "nio/status-info",
+    hex: COLORS.info,
+    description: "Info blue",
+    tokenName: "status-info",
+  },
+  {
+    name: "nio/workspace-editor",
+    hex: COLORS.wsEditor,
+    description: "Workspace editor background (always dark)",
+    tokenName: "workspace-editor",
+  },
+  {
+    name: "nio/workspace-text",
+    hex: COLORS.wsText,
+    description: "Workspace primary text",
+    tokenName: "workspace-text",
   },
 ];
 
@@ -172,7 +270,7 @@ export function buildLogoGroup(
 }
 
 /**
- * Apply variant colors to a logo group.
+ * Apply variant colors to a logo group (v2 palette).
  */
 export function applyVariantColors(
   text: TextNode,
@@ -181,16 +279,16 @@ export function applyVariantColors(
 ) {
   switch (variant) {
     case "Light":
-      text.fills = [solidPaint(COLORS.black)];
-      bar.fills = [solidPaint(COLORS.gray700)];
+      text.fills = [solidPaint(COLORS.foreground)];
+      bar.fills = [solidPaint(COLORS.textMuted)];
       break;
     case "Dark":
-      text.fills = [solidPaint(COLORS.white)];
-      bar.fills = [solidPaint(COLORS.gray400)];
+      text.fills = [solidPaint(COLORS.wsText)];
+      bar.fills = [solidPaint(COLORS.wsTextMuted)];
       break;
     case "Accent":
-      text.fills = [solidPaint(COLORS.green)];
-      bar.fills = [solidPaint(COLORS.gray900)];
+      text.fills = [solidPaint(COLORS.accent)];
+      bar.fills = [solidPaint(COLORS.surfaceStrong)];
       break;
   }
 }
