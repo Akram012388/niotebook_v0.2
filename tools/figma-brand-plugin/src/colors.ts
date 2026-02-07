@@ -2,8 +2,9 @@ import { COLOR_STYLES, solidPaint } from "./utils";
 import type { VariableRefs } from "./variables";
 
 /** Create all nio/* paint styles, optionally bound to Figma Variables. */
-export function createColorStyles(variableRefs?: VariableRefs) {
-  const existing = figma.getLocalPaintStyles().map((s) => s.name);
+export async function createColorStyles(variableRefs?: VariableRefs) {
+  const existingStyles = await figma.getLocalPaintStylesAsync();
+  const existing = existingStyles.map((s) => s.name);
 
   for (const def of COLOR_STYLES) {
     if (existing.includes(def.name)) continue;

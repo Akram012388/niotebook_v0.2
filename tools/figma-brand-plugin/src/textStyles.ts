@@ -1,6 +1,7 @@
 /** Create nio/* text styles (v2 — Geist Sans headings, Geist Mono code). */
 export async function createTextStyles() {
-  const existing = figma.getLocalTextStyles().map((s) => s.name);
+  const existingStyles = await figma.getLocalTextStylesAsync();
+  const existing = existingStyles.map((s) => s.name);
 
   const defs: {
     name: string;
