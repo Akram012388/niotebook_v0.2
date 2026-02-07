@@ -1,47 +1,43 @@
 import type { ReactElement } from "react";
-import Image from "next/image";
 import Link from "next/link";
 
 type WordmarkProps = {
-  /** Height in pixels — width scales proportionally (aspect ratio ~5.22:1) */
+  /** Height in pixels — font-size scales proportionally */
   height?: number;
   className?: string;
+  /** Link destination — defaults to "/" */
+  href?: string;
 };
 
 /**
- * SVG wordmark linked to home. Switches between light/dark variants
- * based on theme. Context-dependent sizing via `height` prop.
+ * Text-based wordmark using Orbitron. The 'i' is rendered in the
+ * accent color (terracotta) as a brand mark. Linked to home.
  */
 export function Wordmark({
   height = 28,
   className,
+  href = "/",
 }: WordmarkProps): ReactElement {
+  // Orbitron at ~85% of container height for a bolder, more prominent mark
+  const fontSize = Math.round(height * 0.85);
+
   return (
     <Link
-      href="/"
+      href={href}
       className={`inline-flex shrink-0 items-center ${className ?? ""}`}
       aria-label="niotebook — home"
+      style={{ height }}
     >
-      {/* Light theme: dark text wordmark */}
-      <Image
-        src="/niotebook-wordmark-light.svg"
-        alt="niotebook"
-        width={Math.round(height * (752 / 144))}
-        height={height}
-        priority
-        className="block dark:hidden"
-        style={{ height, width: "auto" }}
-      />
-      {/* Dark theme: light text wordmark */}
-      <Image
-        src="/niotebook-wordmark-dark.svg"
-        alt="niotebook"
-        width={Math.round(height * (752 / 144))}
-        height={height}
-        priority
-        className="hidden dark:block"
-        style={{ height, width: "auto" }}
-      />
+      <span
+        className="font-display tracking-tight leading-none text-foreground"
+        style={{ fontSize, fontWeight: 700 }}
+      >
+        n
+        <span className="text-accent" style={{ fontSize: fontSize * 1.05 }}>
+          i
+        </span>
+        otebook
+      </span>
     </Link>
   );
 }

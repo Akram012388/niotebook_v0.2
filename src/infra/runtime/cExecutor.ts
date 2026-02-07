@@ -46,8 +46,7 @@ const initCExecutor = async (): Promise<RuntimeExecutor> => {
       "main()",
     );
     if (input.filesystem) {
-      const mainPath =
-        input.filesystem.getMainFilePath() ?? "/project/main.c";
+      const mainPath = input.filesystem.getMainFilePath() ?? "/project/main.c";
       processedCode = resolveIncludes(
         processedCode,
         mainPath,

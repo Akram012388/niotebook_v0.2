@@ -1,168 +1,111 @@
-# Niotebook Brand Guidelines
+# Niotebook Brand System v2
 
 > The interactive notebook for learning to code alongside video.
 
----
+## Source of Truth
 
-## Color Tokens
+All brand assets are generated from the **Figma Brand Plugin** at
+[`tools/figma-brand-plugin/`](../tools/figma-brand-plugin/).
 
-| Token | Hex | Usage |
-|---|---|---|
-| **Black** | `#0A0A0A` | Primary background, text on light |
-| **White** | `#FAFAFA` | Primary text on dark, light backgrounds |
-| **Gray 900** | `#171717` | Surfaces, cards (dark mode) |
-| **Gray 700** | `#404040` | The gray bar element |
-| **Gray 400** | `#A3A3A3` | Secondary text, borders |
-| **Gray 100** | `#F5F5F5` | Surfaces (light mode) |
-| **Acid Green** | `#00FF66` | Primary accent — active states, highlights, CTAs |
-| **Green Dim** | `#00CC52` | Accent on light backgrounds (AA contrast on white) |
+Open any Figma file, import the plugin via `manifest.json`, and run
+**Build All** to generate the complete brand system:
 
-### CSS Custom Properties
+- **Design tokens** (Figma Variables with Light/Dark modes)
+- **Color & text styles** bound to variables
+- **Logo system** (wordmark + nio mark + badge)
+- **Social assets** (11 platforms)
+- **App icons & favicons**
+- **Brand guide page**
 
-```css
-:root {
-  --nio-black: #0A0A0A;
-  --nio-white: #FAFAFA;
-  --nio-gray-900: #171717;
-  --nio-gray-700: #404040;
-  --nio-gray-400: #A3A3A3;
-  --nio-gray-100: #F5F5F5;
-  --nio-green: #00FF66;
-  --nio-green-dim: #00CC52;
-}
-```
+Export assets from Figma into this directory using the structure below.
 
----
-
-## Typography
-
-| Element | Font | Weight | Notes |
-|---|---|---|---|
-| **Logomark / Wordmark** | Orbitron | Bold (700) | Converted to outlines in final assets |
-| **UI Headings** | System / Geist Sans | Semi-Bold (600) | — |
-| **UI Body / Code** | Geist Mono | Regular (400) | Monospace throughout |
-
----
-
-## Logo
+## Brand Identity
 
 ### Wordmark
 
-The full "niotebook" text set in Orbitron Bold with the signature gray bar.
+**"niotebook"** in Orbitron Bold. The character **i** is always
+terracotta; all other characters follow the theme mode.
 
-- **Light variant** — dark text on transparent (for light backgrounds)
-- **Dark variant** — light text on transparent (for dark backgrounds)
+| Mode   | Text color | "i" color          |
+| ------ | ---------- | ------------------ |
+| Light  | `#1c1917`  | `#c15f3c` (accent) |
+| Dark   | `#f4f3ee`  | `#da7756` (accent) |
+| Accent | `#c15f3c`  | `#c15f3c` (accent) |
 
-### nio Mark
+### Color Palette (Warm Terracotta)
 
-The compact `nio` logomark for small contexts: favicons, app icons, profile pictures.
+| Token             | Light     | Dark      | Usage                          |
+| ----------------- | --------- | --------- | ------------------------------ |
+| background        | `#f4f3ee` | `#1c1917` | Page background                |
+| foreground        | `#1c1917` | `#f4f3ee` | Primary text                   |
+| surface           | `#faf9f7` | `#252220` | Cards, panels                  |
+| surface-muted     | `#edeae4` | `#2e2a27` | Inputs, code blocks            |
+| surface-strong    | `#1c1917` | `#f4f3ee` | High-contrast surface          |
+| border            | `#ddd8d0` | `#3a3531` | Default border                 |
+| border-muted      | `#edeae4` | `#2e2a27` | Subtle divider                 |
+| text-muted        | `#78716c` | `#a8a29e` | Secondary text                 |
+| accent            | `#c15f3c` | `#da7756` | CTAs, active states            |
+| accent-foreground | `#ffffff` | `#ffffff` | Text on accent                 |
+| accent-hover      | `#a8512f` | `#c15f3c` | Hover/pressed                  |
+| status-success    | `#5a8a5e` | `#6b9e6f` | Success                        |
+| status-warning    | `#b5882c` | `#c99b3f` | Warning                        |
+| status-error      | `#c24b3a` | `#d4594a` | Error                          |
+| status-info       | `#5b7fa5` | `#6d91b7` | Info                           |
 
-- **Light**, **Dark**, and **Accent** (green) variants available
-- At sizes below 32px, use the pixel-hinted version
+### Typography
 
-### The Gray Bar
-
-A horizontal bar sits behind/below the text. Proportions:
-
-- Height: **40% of cap height**
-- Horizontal overshoot: **8% beyond first and last letter**
-- Color: `--nio-gray-700` (dark mode) / `--nio-gray-400` (light mode)
-
----
-
-## Clear Space & Minimum Size
-
-- **Clear space**: 1× the height of the `n` in "nio" on all sides
-- **Minimum wordmark width**: 120px
-- **Minimum nio mark size**: 16px (use pixel-hinted version)
-
----
-
-## Usage Rules
-
-### Do
-
-- Use provided assets at their original proportions
-- Place on solid backgrounds (black, white, or near-neutral)
-- Use the accent green variant only for interactive/active states
-
-### Don't
-
-- Rotate, skew, or stretch the logo
-- Recolor the logo outside the defined palette
-- Place on busy or patterned backgrounds
-- Remove or modify the gray bar
-- Display the wordmark below minimum size
-- Add drop shadows, glows, or outlines
-
----
+| Element           | Font       | Weight      |
+| ----------------- | ---------- | ----------- |
+| Logo / Wordmark   | Orbitron   | Bold (700)  |
+| UI Headings       | Geist Sans | SemiBold    |
+| UI Body / Code    | Geist Mono | Regular     |
 
 ## Directory Structure
 
+After exporting from Figma, organize assets as:
+
 ```
 branding/
-├── README.md              ← this file
-├── logos/
-│   ├── wordmark/
-│   │   ├── light/         ← SVG + PNG @1x, 2x, 4x (light bg)
-│   │   └── dark/          ← SVG + PNG @1x, 2x, 4x (dark bg)
-│   └── nio-mark/
-│       ├── light/         ← 512 → 16px PNGs
-│       ├── dark/
-│       └── accent/        ← green variant
-├── favicons/              ← .ico, apple-touch-icon, android-chrome
-├── social/
-│   ├── profile/           ← 400x400 circle-safe crops (shared)
-│   ├── banners/           ← cross-platform banners (shared)
-│   ├── og/                ← 1200x630 open graph image
-│   ├── github/            ← repo social preview (1280x640)
-│   ├── twitter/           ← profile pic, header (1500x500)
-│   ├── discord/           ← server icon, banner (960x540)
-│   ├── linkedin/          ← profile pic, banner (1584x396)
-│   ├── youtube/           ← channel icon, banner (2560x1440), thumbnails
-│   ├── instagram/         ← profile pic (320x320), posts (1080x1080), stories (1080x1920)
-│   ├── tiktok/            ← profile pic, video covers (1080x1920)
-│   ├── facebook/          ← profile pic (170x170), cover (820x312), posts
-│   └── producthunt/       ← launch assets, gallery images
-├── icons/
-│   ├── app/               ← 1024x1024 master + platform exports
-│   └── badge/             ← inline SVG badge for READMEs
-├── email/                 ← 300px-wide wordmark PNG
-└── docs/
-    └── checklist.md       ← production asset creation checklist
+  README.md              <- this file
+  logos/
+    wordmark/
+      light/             <- SVG + PNG @1x, 2x, 4x
+      dark/
+    nio-mark/
+      light/
+      dark/
+      accent/
+  icons/
+    app/                 <- 1024px master + platform sizes
+    badge/               <- README badge SVG + PNG
+    favicon/             <- 16, 32, 180, 192, 512px
+  social/
+    og/                  <- 1200x630
+    twitter/             <- 1500x500
+    linkedin/            <- 1584x396
+    github/              <- 1280x640
+    discord/             <- 960x540
+    youtube/             <- 2560x1440
+    facebook/            <- 820x312
+    instagram/           <- 1080x1080
+    tiktok/              <- 1080x1920
+    producthunt/         <- 1270x760
+    profile/             <- 400x400
+  email/                 <- 300px signature
 ```
 
----
+## Usage
 
-## Usage Examples
-
-### Open Graph Meta Tags
+### OG Meta Tags
 
 ```html
 <meta property="og:image" content="/branding/social/og/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:title" content="Niotebook" />
-<meta property="og:description" content="The interactive notebook for learning to code alongside video." />
 ```
 
-### GitHub README Badge
+### README Badge
 
 ```markdown
 ![niotebook](./branding/icons/badge/niotebook-badge.svg)
 ```
-
-### Favicon HTML
-
-```html
-<link rel="icon" href="/favicons/favicon.ico" sizes="32x32" />
-<link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
-<link rel="apple-touch-icon" href="/favicons/apple-touch-icon.png" />
-<link rel="manifest" href="/favicons/site.webmanifest" />
-```
-
----
-
-## Asset Production
-
-See [`docs/checklist.md`](./docs/checklist.md) for the full Photoshop-based production workflow covering all export sizes, formats, and platform requirements.

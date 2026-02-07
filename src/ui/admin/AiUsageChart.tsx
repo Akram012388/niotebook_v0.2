@@ -17,7 +17,7 @@ type AiUsageChartProps = {
   data: AiPoint[] | undefined;
 };
 
-const ACCENT = "#00FF66";
+const ACCENT = "var(--accent)";
 
 const AiUsageChart = ({ data }: AiUsageChartProps): ReactElement => (
   <ChartCard title="AI Requests / Day">
@@ -26,26 +26,26 @@ const AiUsageChart = ({ data }: AiUsageChartProps): ReactElement => (
         <BarChart data={data}>
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 10, fill: "#666" }}
+            tick={{ fontSize: 10, fill: "var(--text-subtle)" }}
             tickFormatter={(v: string) => v.slice(5)}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 10, fill: "#666" }}
+            tick={{ fontSize: 10, fill: "var(--text-subtle)" }}
             axisLine={false}
             tickLine={false}
             allowDecimals={false}
           />
           <Tooltip
             contentStyle={{
-              background: "#111",
-              border: "1px solid #333",
+              background: "var(--surface-strong)",
+              border: "1px solid var(--border)",
               borderRadius: 6,
               fontSize: 12,
               fontFamily: "monospace",
             }}
-            labelStyle={{ color: "#999" }}
+            labelStyle={{ color: "var(--text-muted)" }}
           />
           <Bar dataKey="count" fill={ACCENT} radius={[3, 3, 0, 0]} />
         </BarChart>

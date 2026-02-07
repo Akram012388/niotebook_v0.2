@@ -17,7 +17,7 @@ type DauChartProps = {
   data: DauPoint[] | undefined;
 };
 
-const ACCENT = "#00FF66";
+const ACCENT = "var(--accent)";
 
 const DauChart = ({ data }: DauChartProps): ReactElement => (
   <ChartCard title="Daily Active Users">
@@ -32,26 +32,26 @@ const DauChart = ({ data }: DauChartProps): ReactElement => (
           </defs>
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 10, fill: "#666" }}
+            tick={{ fontSize: 10, fill: "var(--text-subtle)" }}
             tickFormatter={(v: string) => v.slice(5)}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 10, fill: "#666" }}
+            tick={{ fontSize: 10, fill: "var(--text-subtle)" }}
             axisLine={false}
             tickLine={false}
             allowDecimals={false}
           />
           <Tooltip
             contentStyle={{
-              background: "#111",
-              border: "1px solid #333",
+              background: "var(--surface-strong)",
+              border: "1px solid var(--border)",
               borderRadius: 6,
               fontSize: 12,
               fontFamily: "monospace",
             }}
-            labelStyle={{ color: "#999" }}
+            labelStyle={{ color: "var(--text-muted)" }}
           />
           <Area
             type="monotone"

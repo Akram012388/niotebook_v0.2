@@ -35,9 +35,7 @@ const deployOutput = execSync(
 );
 process.stdout.write(deployOutput);
 
-const urlMatch = deployOutput.match(
-  /https:\/\/[a-z0-9-]+\.convex\.cloud/,
-);
+const urlMatch = deployOutput.match(/https:\/\/[a-z0-9-]+\.convex\.cloud/);
 if (urlMatch) {
   writeFileSync(".e2e-convex-url", urlMatch[0], { encoding: "utf8" });
   console.log(`▸ Preview URL: ${urlMatch[0]}`);

@@ -6,18 +6,17 @@ import {
   FacebookLogo,
   Gear,
   ListNumbers,
-  Moon,
   PaperPlaneTilt,
   Star,
   Stack,
   ShareNetwork,
-  Sun,
   XLogo,
   LinkedinLogo,
   SignOut,
   UserCircle,
   X,
 } from "@phosphor-icons/react";
+import { ThemeToggle } from "../shared/ThemeToggle";
 import {
   useCallback,
   useMemo,
@@ -45,8 +44,6 @@ type ControlCenterDrawerProps = {
   courseOptions: CourseSummary[];
   lessonId: string | null;
   lessonOptions: LessonSummary[];
-  theme: "light" | "dark";
-  onToggleTheme: () => void;
   onShare: () => void;
   onFeedback: () => void;
   onSelectLesson: (lessonId: string | null) => void;
@@ -73,8 +70,6 @@ const ControlCenterDrawer = ({
   courseOptions,
   lessonId,
   lessonOptions,
-  theme,
-  onToggleTheme,
   onShare,
   onFeedback,
   onSelectLesson,
@@ -247,7 +242,10 @@ const ControlCenterDrawer = ({
   }, [lectureQuery, lessonOptions]);
 
   const filteredCourses = useMemo(() => {
-    const sorted = [...courseOptions].sort((left, right) =>
+    const real = courseOptions.filter(
+      (course) => course.sourcePlaylistId !== "local-dev",
+    );
+    const sorted = [...real].sort((left, right) =>
       left.title.localeCompare(right.title),
     );
     const normalized = courseQuery.trim().toLowerCase();
@@ -269,7 +267,7 @@ const ControlCenterDrawer = ({
         type="button"
         onClick={onClose}
         tabIndex={-1}
-        className={`absolute inset-0 bg-black/30 transition-opacity duration-[120ms] ${
+        className={`absolute inset-0 bg-black/30 transition-opacity duration-100 ${
           isOpen ? "opacity-100" : "opacity-0"
         }`}
         aria-label="Close control center"
@@ -278,7 +276,7 @@ const ControlCenterDrawer = ({
         ref={drawerRef}
         role="dialog"
         aria-modal="true"
-        className={`absolute right-0 top-0 h-full w-[360px] border-l border-border bg-surface shadow-lg transition-transform duration-[180ms] ease-out ${
+        className={`absolute right-0 top-0 h-full w-[360px] border-l border-border bg-surface shadow-lg transition-transform duration-200 ease-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -302,7 +300,7 @@ const ControlCenterDrawer = ({
               onClick={() => handleTabChange("lectures")}
               className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                 activeTab === "lectures"
-                  ? "dark:border-workspace-accent/40 dark:bg-workspace-accent-muted border-foreground/20 bg-accent-muted text-foreground"
+                  ? "border-accent bg-accent text-white"
                   : "border-transparent text-text-muted hover:bg-surface-muted"
               }`}
             >
@@ -314,7 +312,7 @@ const ControlCenterDrawer = ({
               onClick={() => handleTabChange("courses")}
               className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                 activeTab === "courses"
-                  ? "dark:border-workspace-accent/40 dark:bg-workspace-accent-muted border-foreground/20 bg-accent-muted text-foreground"
+                  ? "border-accent bg-accent text-white"
                   : "border-transparent text-text-muted hover:bg-surface-muted"
               }`}
             >
@@ -355,19 +353,19 @@ const ControlCenterDrawer = ({
                               onClick={() => onSelectLesson(lesson.id)}
                               className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-left text-xs transition-all duration-200 ${
                                 isActive
-                                  ? "dark:border-workspace-accent/50 dark:bg-workspace-accent-muted border-foreground/30 bg-accent-muted text-foreground dark:shadow-md dark:shadow-workspace-accent/10 dark:ring-1 dark:ring-workspace-accent/20"
-                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md dark:hover:border-workspace-accent/20 hover:border-foreground/20 hover:bg-surface-muted hover:text-foreground"
+                                  ? "border-accent bg-accent text-white shadow-md"
+                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md hover:border-accent/20 hover:bg-surface-muted hover:text-foreground"
                               }`}
                             >
                               <div className="flex flex-col">
-                                <span className="text-[10px] uppercase tracking-[0.08em] text-text-subtle">
+                                <span className={`text-[10px] uppercase tracking-[0.08em] ${isActive ? "text-white/70" : "text-text-subtle"}`}>
                                   Lecture {lectureNumber ?? lesson.order}
                                 </span>
-                                <span className="text-sm text-foreground">
+                                <span className={`text-sm ${isActive ? "text-white" : "text-foreground"}`}>
                                   {lesson.title}
                                 </span>
                               </div>
-                              <span className="text-xs text-text-subtle">
+                              <span className={`text-xs ${isActive ? "text-white/70" : "text-text-subtle"}`}>
                                 →
                               </span>
                             </button>
@@ -389,9 +387,7 @@ const ControlCenterDrawer = ({
                       </div>
                       <input
                         value={courseQuery}
-                        onChange={(event) =>
-                          setCourseQuery(event.target.value)
-                        }
+                        onChange={(event) => setCourseQuery(event.target.value)}
                         placeholder="Search courses"
                         className="rounded-xl border border-border bg-surface px-3 py-2 text-xs text-foreground placeholder:text-text-subtle"
                       />
@@ -400,64 +396,55 @@ const ControlCenterDrawer = ({
                       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
                         Courses
                       </div>
-                    <div className="flex flex-col gap-2">
-                      {filteredCourses.map((course) => {
-                        const isActive = course.id === courseId;
-                        return (
-                          <button
-                            key={course.id}
-                            type="button"
-                            onClick={() => {
-                              onSelectCourse(course.id);
-                              setActiveTab("lectures");
-                              setPanelView("content");
-                            }}
-                            className={`flex flex-col gap-1 rounded-xl border px-3 py-2.5 text-left text-xs transition-all duration-200 ${
-                              isActive
-                                ? "dark:border-workspace-accent/50 dark:bg-workspace-accent-muted border-foreground/30 bg-accent-muted text-foreground dark:shadow-md dark:shadow-workspace-accent/10 dark:ring-1 dark:ring-workspace-accent/20"
-                                : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md dark:hover:border-workspace-accent/20 hover:border-foreground/20 hover:bg-surface-muted hover:text-foreground"
-                            }`}
-                          >
-                            <span className="text-sm text-foreground">
-                              {course.title}
-                            </span>
-                            {course.description ? (
-                              <span className="text-xs text-text-subtle">
-                                {course.description}
+                      <div className="flex flex-col gap-2">
+                        {filteredCourses.map((course) => {
+                          const isActive = course.id === courseId;
+                          return (
+                            <button
+                              key={course.id}
+                              type="button"
+                              onClick={() => {
+                                onSelectCourse(course.id);
+                                setActiveTab("lectures");
+                                setPanelView("content");
+                              }}
+                              className={`flex flex-col gap-1 rounded-xl border px-3 py-2.5 text-left text-xs transition-all duration-200 ${
+                                isActive
+                                  ? "border-accent bg-accent text-white shadow-md"
+                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md hover:border-accent/20 hover:bg-surface-muted hover:text-foreground"
+                              }`}
+                            >
+                              <span className={`text-sm ${isActive ? "text-white" : "text-foreground"}`}>
+                                {course.title}
                               </span>
-                            ) : null}
-                            <span className="text-[10px] uppercase tracking-[0.08em] text-text-subtle">
-                              {course.license} · {course.sourceUrl}
-                            </span>
-                          </button>
-                        );
-                      })}
-                      {filteredCourses.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-border bg-surface-muted px-3 py-4 text-xs text-text-muted">
-                          No courses match that search.
-                        </div>
-                      ) : null}
-                    </div>
+                              {course.description ? (
+                                <span className={`text-xs ${isActive ? "text-white/70" : "text-text-subtle"}`}>
+                                  {course.description}
+                                </span>
+                              ) : null}
+                              <span className={`text-[10px] uppercase tracking-[0.08em] ${isActive ? "text-white/70" : "text-text-subtle"}`}>
+                                {course.license} · {course.sourceUrl}
+                              </span>
+                            </button>
+                          );
+                        })}
+                        {filteredCourses.length === 0 ? (
+                          <div className="rounded-xl border border-dashed border-border bg-surface-muted px-3 py-4 text-xs text-text-muted">
+                            No courses match that search.
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 )
               ) : panelView === "settings" ? (
                 <div className="flex flex-col gap-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                    Theme
+                  <div className="flex items-center justify-between">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+                      Theme
+                    </div>
+                    <ThemeToggle />
                   </div>
-                  <button
-                    type="button"
-                    onClick={onToggleTheme}
-                    className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
-                  >
-                    <span>{theme === "light" ? "Light" : "Dark"}</span>
-                    {theme === "light" ? (
-                      <Sun size={14} weight="regular" />
-                    ) : (
-                      <Moon size={14} weight="regular" />
-                    )}
-                  </button>
                   <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
                     Actions
                   </div>
@@ -466,7 +453,7 @@ const ControlCenterDrawer = ({
                     onClick={() => handleSettingsCardToggle("share")}
                     className={`flex items-center justify-between rounded-xl border border-border px-3 py-2 text-xs font-medium transition ${
                       activeSettingsCard === "share"
-                        ? "bg-surface text-foreground"
+                        ? "bg-accent text-white border-accent"
                         : "bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
                     }`}
                   >
@@ -519,7 +506,7 @@ const ControlCenterDrawer = ({
                         <button
                           type="button"
                           onClick={() => void handleShareVia()}
-                          className="flex items-center justify-center gap-2 rounded-lg border border-border bg-foreground px-3 py-2 text-xs font-semibold text-background"
+                          className="flex items-center justify-center gap-2 rounded-lg border border-accent bg-accent px-3 py-2 text-xs font-semibold text-white"
                         >
                           <PaperPlaneTilt size={14} weight="regular" />
                           Share...
@@ -563,7 +550,7 @@ const ControlCenterDrawer = ({
                     onClick={() => handleSettingsCardToggle("feedback")}
                     className={`flex items-center justify-between rounded-xl border border-border px-3 py-2 text-xs font-medium transition ${
                       activeSettingsCard === "feedback"
-                        ? "bg-surface text-foreground"
+                        ? "bg-accent text-white border-accent"
                         : "bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
                     }`}
                   >
@@ -596,8 +583,8 @@ const ControlCenterDrawer = ({
                               onClick={() => setFeedbackRating(index + 1)}
                               className={`transition ${
                                 index < feedbackRating
-                                  ? "text-foreground"
-                                  : "text-text-subtle hover:text-foreground"
+                                  ? "text-accent"
+                                  : "text-text-subtle hover:text-accent"
                               }`}
                               aria-label={`Rate ${index + 1} stars`}
                             >
@@ -635,7 +622,7 @@ const ControlCenterDrawer = ({
                               }
                               className={`rounded-full border px-3 py-1 text-xs transition ${
                                 feedbackCategories.includes(label)
-                                  ? "border-foreground bg-surface text-foreground shadow-sm"
+                                  ? "border-accent bg-accent text-white shadow-sm"
                                   : "border-border bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
                               }`}
                             >
@@ -671,7 +658,7 @@ const ControlCenterDrawer = ({
                           onClick={() => void handleSubmitFeedback()}
                           className={`rounded-full px-4 py-1 text-xs font-semibold transition ${
                             isFeedbackDirty
-                              ? "bg-foreground text-background"
+                              ? "bg-accent text-white"
                               : "bg-surface-muted text-text-subtle"
                           }`}
                         >
@@ -731,7 +718,7 @@ const ControlCenterDrawer = ({
                   onClick={() => handlePanelToggle("user")}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                     panelView === "user"
-                      ? "border-border bg-surface text-foreground"
+                      ? "border-accent bg-accent text-white"
                       : "border-transparent text-text-muted hover:bg-surface-muted"
                   }`}
                 >
@@ -743,7 +730,7 @@ const ControlCenterDrawer = ({
                   onClick={() => handlePanelToggle("settings")}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
                     panelView === "settings"
-                      ? "border-border bg-surface text-foreground"
+                      ? "border-accent bg-accent text-white"
                       : "border-transparent text-text-muted hover:bg-surface-muted"
                   }`}
                 >

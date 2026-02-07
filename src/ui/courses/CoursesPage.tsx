@@ -12,6 +12,7 @@ import { getCompletionCountsByCourseRef } from "./convexCompletions";
 import { CourseCard } from "./CourseCard";
 import { ResumeCard } from "./ResumeCard";
 import { COMING_SOON_GROUPS } from "./comingSoonCourses";
+import { NotebookFrame } from "@/ui/shared/NotebookFrame";
 import type { CourseId } from "@/domain/ids";
 
 const CS50_TITLES = ["CS50x", "CS50P", "CS50AI", "CS50W", "CS50SQL", "CS50R"];
@@ -20,7 +21,7 @@ const sectionVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.06 },
+    transition: { staggerChildren: 0.1 },
   },
 };
 
@@ -68,30 +69,51 @@ function CoursesPage(): ReactElement {
     courseIds.length > 0 ? { courseIds } : "skip",
   );
 
-  const hasResume = resumeData && resumeData.length > 0;
+  const filteredResume = useMemo(
+    () => (resumeData ?? []).filter((e) => e.courseTitle !== "Local course"),
+    [resumeData],
+  );
+  const hasResume = filteredResume.length > 0;
 
-  return (
-    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-14 px-6 py-12">
+  const content = (
+    <div className="flex flex-col gap-14">
       {/* Page header */}
       <motion.div
         className="flex flex-col gap-3"
-        initial={{ opacity: 0, y: -12 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.5 }}
       >
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           Course Catalog
         </h1>
-        <p className="max-w-lg text-sm leading-relaxed text-text-muted">
+        <p className="text-sm leading-relaxed text-text-muted">
           Open-licensed courses from top universities. Watch lectures, code
           along, and get AI help.
         </p>
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search courses"
-          className="mt-1 w-full max-w-md rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-text-subtle transition-colors focus:border-workspace-accent/40 focus:outline-none focus:ring-1 focus:ring-workspace-accent/20"
-        />
+        <div className="relative mt-1 w-full">
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search courses"
+            className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 pr-10 text-sm text-foreground placeholder:text-text-subtle transition-colors focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
+          />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-text-subtle"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+        </div>
       </motion.div>
 
       {/* Continue Learning */}
@@ -100,16 +122,13 @@ function CoursesPage(): ReactElement {
           className="flex flex-col gap-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.4 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
         >
-          <div className="flex items-center gap-3">
-            <div className="h-4 w-1 rounded-full bg-workspace-accent" />
-            <h2 className="text-lg font-semibold text-foreground">
-              Continue Learning
-            </h2>
-          </div>
-          <div className="flex gap-4 overflow-x-auto overflow-y-visible pt-4 pb-4 -mt-2 -mb-2 px-2 -mx-2">
-            {resumeData.map((entry) => (
+          <p className="text-xs font-semibold font-mono uppercase tracking-[0.2em] text-accent">
+            Continue Learning
+          </p>
+          <div className="flex gap-4 overflow-x-auto overflow-y-visible pb-4 pt-4 -mb-2 -mt-2 px-2 -mx-2">
+            {filteredResume.map((entry) => (
               <ResumeCard
                 key={entry.lessonId}
                 courseTitle={entry.courseTitle}
@@ -125,13 +144,10 @@ function CoursesPage(): ReactElement {
       {/* Harvard CS50 Library — active courses */}
       <section className="flex flex-col gap-5">
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-3">
-            <div className="h-4 w-1 rounded-full bg-workspace-accent" />
-            <h2 className="text-lg font-semibold text-foreground">
-              Harvard University
-            </h2>
-          </div>
-          <p className="ml-4 text-xs text-text-muted">
+          <p className="text-xs font-semibold font-mono uppercase tracking-[0.2em] text-accent">
+            Harvard University
+          </p>
+          <p className="text-xs text-text-muted">
             CS50 series — CC BY-NC-SA 4.0
           </p>
         </div>
@@ -144,10 +160,7 @@ function CoursesPage(): ReactElement {
         >
           {courses === undefined
             ? Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-[200px] animate-pulse rounded-2xl bg-surface-muted"
-                />
+                <div key={i} className="h-[200px] nio-shimmer rounded-2xl" />
               ))
             : cs50Courses.map((course, i) => (
                 <CourseCard
@@ -156,12 +169,8 @@ function CoursesPage(): ReactElement {
                   title={course.title}
                   description={course.description}
                   provider="Harvard"
-                  lessonCount={
-                    lessonCounts?.[course.id as string] ?? 0
-                  }
-                  completedCount={
-                    completionCounts?.[course.id as string] ?? 0
-                  }
+                  lessonCount={lessonCounts?.[course.id as string] ?? 0}
+                  completedCount={completionCounts?.[course.id as string] ?? 0}
                   license={course.license}
                   variant="active"
                   index={i}
@@ -173,12 +182,9 @@ function CoursesPage(): ReactElement {
       {/* Coming Soon — grouped by provider */}
       {filteredComingSoon.map((group) => (
         <section key={group.provider} className="flex flex-col gap-5">
-          <div className="flex items-center gap-3">
-            <div className="h-4 w-1 rounded-full bg-border" />
-            <h2 className="text-lg font-semibold text-foreground">
-              {group.provider}
-            </h2>
-          </div>
+          <p className="text-xs font-semibold font-mono uppercase tracking-[0.2em] text-accent">
+            {group.provider}
+          </p>
           <motion.div
             className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
             variants={sectionVariants}
@@ -203,6 +209,15 @@ function CoursesPage(): ReactElement {
           </motion.div>
         </section>
       ))}
+    </div>
+  );
+
+  return (
+    <div className="mx-auto w-full max-w-[1100px] px-6 py-12">
+      <div className="hidden sm:block">
+        <NotebookFrame compact>{content}</NotebookFrame>
+      </div>
+      <div className="sm:hidden">{content}</div>
     </div>
   );
 }

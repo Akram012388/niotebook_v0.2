@@ -11,6 +11,6 @@ type ChatMessage = {
   requestId?: string;
 };
 
-type ChatStreamState = "idle" | "streaming" | "error";
+type ChatStreamState = "idle" | "streaming";
 
 export type { ChatMessage, ChatRole, ChatStreamState };

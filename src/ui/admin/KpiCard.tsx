@@ -8,15 +8,19 @@ type KpiCardProps = {
   previousValue?: number;
 };
 
-const KpiCard = ({ label, value, previousValue }: KpiCardProps): ReactElement => {
+const KpiCard = ({
+  label,
+  value,
+  previousValue,
+}: KpiCardProps): ReactElement => {
   const delta =
     value !== undefined && previousValue !== undefined && previousValue > 0
       ? ((value - previousValue) / previousValue) * 100
       : null;
 
   return (
-    <div className="rounded-lg border border-border bg-surface p-4">
-      <p className="text-xs font-medium tracking-wide text-muted uppercase">
+    <div className="rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-accent/20 hover:shadow-md">
+      <p className="text-xs font-medium tracking-wide text-text-muted uppercase">
         {label}
       </p>
       <div className="mt-2 flex items-end gap-2">
@@ -26,7 +30,7 @@ const KpiCard = ({ label, value, previousValue }: KpiCardProps): ReactElement =>
         {delta !== null && (
           <span
             className={`font-mono text-xs ${
-              delta >= 0 ? "text-green-400" : "text-red-400"
+              delta >= 0 ? "text-status-success" : "text-status-error"
             }`}
           >
             {delta >= 0 ? "↑" : "↓"}

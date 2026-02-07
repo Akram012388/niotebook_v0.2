@@ -3,80 +3,135 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/* ==========================================================================
+   Niotebook v2 Design Tokens
+   Inspired by Claude.ai/code + Cowork warmth
+   See: docs/redesign/REDESIGN_BRIEF.md
+   ========================================================================== */
+
 :root {
-  --background: #FAFAFA;
-  --foreground: #0A0A0A;
-  --surface: #FFFFFF;
-  --surface-muted: #F5F5F5;
-  --surface-strong: #0A0A0A;
-  --surface-strong-foreground: #FAFAFA;
-  --border: #E5E5E5;
-  --border-muted: #F5F5F5;
-  --text-muted: #737373;
-  --text-subtle: #A3A3A3;
-  --accent: #0A0A0A;
-  --accent-foreground: #FAFAFA;
-  --accent-muted: rgba(10, 10, 10, 0.08);
-  --accent-border: rgba(10, 10, 10, 0.15);
-  --workspace-editor: #0A0A0A;
-  --workspace-sidebar: #0A0A0A;
-  --workspace-terminal: #0A0A0A;
-  --workspace-tabbar: #171717;
-  --workspace-border: #404040;
-  --workspace-border-muted: #262626;
-  --workspace-text: #FAFAFA;
-  --workspace-text-muted: #A3A3A3;
-  --workspace-accent: #00FF66;
-  --workspace-accent-muted: rgba(0, 255, 102, 0.15);
+  /* --- Color: Backgrounds --- */
+  --background: #f4f3ee;
+  --foreground: #1c1917;
+  --surface: #faf9f7;
+  --surface-muted: #edeae4;
+  --surface-strong: #1c1917;
+  --surface-strong-foreground: #f4f3ee;
+  --border: #ddd8d0;
+  --border-muted: #edeae4;
+
+  /* --- Color: Text --- */
+  --text-muted: #78716c;
+  --text-subtle: #a8a29e;
+
+  /* --- Color: Accent (Claude terracotta) --- */
+  --accent: #c15f3c;
+  --accent-foreground: #ffffff;
+  --accent-muted: rgba(193, 95, 60, 0.1);
+  --accent-border: rgba(193, 95, 60, 0.25);
+  --accent-hover: #a8512f;
+
+  /* --- Color: Status --- */
+  --status-success: #5a8a5e;
+  --status-warning: #b5882c;
+  --status-error: #c24b3a;
+  --status-info: #5b7fa5;
+
+  /* --- Color: Workspace (code pane - always dark) --- */
+  --workspace-editor: #1c1917;
+  --workspace-sidebar: #1c1917;
+  --workspace-terminal: #1c1917;
+  --workspace-tabbar: #252220;
+  --workspace-border: #3a3531;
+  --workspace-border-muted: #2e2a27;
+  --workspace-text: #f4f3ee;
+  --workspace-text-muted: #a8a29e;
+  --workspace-accent: #c15f3c;
+  --workspace-accent-muted: rgba(193, 95, 60, 0.18);
+
+  /* --- Shadows (warm-tinted) --- */
+  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(28, 25, 23, 0.07);
+  --shadow-lg: 0 10px 15px -3px rgba(28, 25, 23, 0.08);
+
+  /* --- Border Radius --- */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* --- Transitions --- */
+  --duration-fast: 100ms;
+  --duration-normal: 180ms;
+  --duration-slow: 250ms;
+  --duration-spring: 300ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* --- Typography --- */
+  --font-display: var(--font-orbitron);
+  --font-body: var(--font-geist-sans);
+  --font-code: var(--font-geist-mono);
+
+  /* --- Background Pattern --- */
+  --pattern-opacity: 0.018;
+  --pattern-color: rgba(28, 25, 23, var(--pattern-opacity));
 }
 
+/* --------------------------------------------------------------------------
+   Dark theme — single source of truth.
+   The blocking <script> in layout.tsx sets data-theme before first paint
+   (from localStorage or system preference), so no @media fallback is needed.
+   -------------------------------------------------------------------------- */
 [data-theme="dark"] {
-  --background: #0A0A0A;
-  --foreground: #FAFAFA;
-  --surface: #171717;
-  --surface-muted: #171717;
-  --surface-strong: #000000;
-  --surface-strong-foreground: #FAFAFA;
-  --border: #262626;
-  --border-muted: #1A1A1A;
-  --text-muted: #A3A3A3;
-  --text-subtle: #737373;
-  --accent: #FAFAFA;
-  --accent-foreground: #0A0A0A;
-  --accent-muted: rgba(250, 250, 250, 0.08);
-  --accent-border: rgba(250, 250, 250, 0.15);
-  --workspace-editor: #0A0A0A;
-  --workspace-sidebar: #0A0A0A;
-  --workspace-terminal: #0A0A0A;
-  --workspace-tabbar: #171717;
-  --workspace-border: #404040;
-  --workspace-border-muted: #262626;
-  --workspace-text: #FAFAFA;
-  --workspace-text-muted: #A3A3A3;
-  --workspace-accent: #00FF66;
-  --workspace-accent-muted: rgba(0, 255, 102, 0.15);
+  --background: #1c1917;
+  --foreground: #f4f3ee;
+  --surface: #252220;
+  --surface-muted: #2e2a27;
+  --surface-strong: #141210;
+  --surface-strong-foreground: #f4f3ee;
+  --border: #3a3531;
+  --border-muted: #2e2a27;
+
+  --text-muted: #a8a29e;
+  --text-subtle: #78716c;
+
+  --accent: #da7756;
+  --accent-foreground: #1c1917;
+  --accent-muted: rgba(218, 119, 86, 0.15);
+  --accent-border: rgba(218, 119, 86, 0.3);
+  --accent-hover: #e8906e;
+
+  --status-success: #6da072;
+  --status-warning: #d4a748;
+  --status-error: #e06b5a;
+  --status-info: #7a9fc0;
+
+  --workspace-editor: #1c1917;
+  --workspace-sidebar: #1c1917;
+  --workspace-terminal: #1c1917;
+  --workspace-tabbar: #252220;
+  --workspace-border: #3a3531;
+  --workspace-border-muted: #2e2a27;
+  --workspace-text: #f4f3ee;
+  --workspace-text-muted: #a8a29e;
+  --workspace-accent: #da7756;
+  --workspace-accent-muted: rgba(218, 119, 86, 0.18);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
+
+  --pattern-opacity: 0.02;
+  --pattern-color: rgba(244, 243, 238, var(--pattern-opacity));
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --background: #0A0A0A;
-    --foreground: #FAFAFA;
-    --surface: #171717;
-    --surface-muted: #171717;
-    --surface-strong: #000000;
-    --surface-strong-foreground: #FAFAFA;
-    --border: #262626;
-    --border-muted: #1A1A1A;
-    --text-muted: #A3A3A3;
-    --text-subtle: #737373;
-    --accent: #FAFAFA;
-    --accent-foreground: #0A0A0A;
-    --accent-muted: rgba(250, 250, 250, 0.08);
-    --accent-border: rgba(250, 250, 250, 0.15);
-  }
-}
-
+/* ==========================================================================
+   Tailwind 4 Theme — Maps CSS custom properties to utility classes
+   ========================================================================== */
 @theme inline {
+  /* Colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
@@ -91,6 +146,11 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-muted: var(--accent-muted);
   --color-accent-border: var(--accent-border);
+  --color-accent-hover: var(--accent-hover);
+  --color-status-success: var(--status-success);
+  --color-status-warning: var(--status-warning);
+  --color-status-error: var(--status-error);
+  --color-status-info: var(--status-info);
   --color-workspace-editor: var(--workspace-editor);
   --color-workspace-sidebar: var(--workspace-sidebar);
   --color-workspace-terminal: var(--workspace-terminal);
@@ -101,17 +161,36 @@
   --color-workspace-text-muted: var(--workspace-text-muted);
   --color-workspace-accent: var(--workspace-accent);
   --color-workspace-accent-muted: var(--workspace-accent-muted);
-  --font-sans: var(--font-orbitron), var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Typography */
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-code);
+  --font-display: var(--font-orbitron);
   --font-logo: var(--font-orbitron);
+
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  /* Border radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
 }
 
+/* ==========================================================================
+   Base Styles
+   ========================================================================== */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
+/* Warm accent focus ring */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -130,24 +209,116 @@ button:disabled {
   cursor: not-allowed;
 }
 
-@keyframes nio-thinking {
-  0% {
-    transform: scale(0.9);
-    opacity: 0.55;
+/* ==========================================================================
+   Background Pattern — Subtle grid overlay (Claude Cowork signature)
+   Barely perceptible, felt more than seen.
+   ========================================================================== */
+.nio-pattern {
+  position: relative;
+}
+
+.nio-pattern::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--pattern-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--pattern-color) 1px, transparent 1px);
+  background-size: 24px 24px;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+
+/* Thinking pulse dot — simple terracotta circle, ChatGPT-style */
+@keyframes nio-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
   }
   50% {
-    transform: scale(1.25);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(0.9);
-    opacity: 0.55;
+    transform: scale(1.6);
+    opacity: 1;
   }
 }
 
-.nio-thinking {
+.nio-pulse-dot {
   display: inline-block;
-  animation: nio-thinking 1s ease-in-out infinite;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  animation: nio-pulse 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nio-pulse-dot {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* Thinking dots — pulsing indicator before first token arrives */
+.nio-thinking-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.nio-thinking-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  animation: nio-dot-pulse 1.4s ease-in-out infinite;
+}
+
+.nio-thinking-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.nio-thinking-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes nio-dot-pulse {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nio-thinking-dot {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* Streaming text cursor — thin blinking line like ChatGPT */
+.nio-stream-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  background-color: var(--accent);
+  border-radius: 1px;
+  animation: nio-cursor-blink 0.6s step-end infinite;
+}
+
+@keyframes nio-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nio-stream-cursor {
+    animation: none;
+    opacity: 0.7;
+  }
 }
 
 @keyframes blink {
@@ -177,6 +348,39 @@ button:disabled {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Warm shimmer for skeleton loaders */
+.nio-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-muted) 25%,
+    var(--surface) 50%,
+    var(--surface-muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Workspace-context shimmer (always-dark code surfaces) */
+.nio-shimmer-workspace {
+  background: linear-gradient(
+    90deg,
+    var(--workspace-border-muted) 25%,
+    var(--workspace-border) 50%,
+    var(--workspace-border-muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -187,7 +391,9 @@ button:disabled {
   }
 }
 
-/* --- Nio markdown (assistant chat messages) --- */
+/* ==========================================================================
+   Nio markdown (assistant chat messages)
+   ========================================================================== */
 
 .nio-markdown p {
   margin-bottom: 0.5em;
@@ -200,16 +406,16 @@ button:disabled {
 .nio-markdown pre {
   margin: 0.5em 0;
   padding: 0.75em 1em;
-  border-radius: 0.5rem;
-  background: #1e1e2e;
-  color: #cdd6f4;
+  border-radius: var(--radius-md);
+  background: var(--surface-strong);
+  color: var(--surface-strong-foreground);
   overflow-x: auto;
   font-size: 0.8125rem;
   line-height: 1.6;
 }
 
 .nio-markdown code {
-  font-family: var(--font-mono);
+  font-family: var(--font-code);
   font-size: 0.85em;
 }
 
@@ -232,7 +438,7 @@ button:disabled {
 .nio-markdown blockquote {
   margin: 0.5em 0;
   padding-left: 1em;
-  border-left: 3px solid var(--border);
+  border-left: 3px solid var(--accent);
   color: var(--text-muted);
 }
 
@@ -275,6 +481,7 @@ button:disabled {
 }
 
 .nio-markdown a {
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -291,32 +498,63 @@ button:disabled {
   padding: 0;
 }
 
-/* --- Clerk overrides (invite-only alpha) --- */
+/* ==========================================================================
+   Clerk overrides (invite-only alpha)
+   ========================================================================== */
 
-/* Hide "Don't have an account? Sign up" footer */
-.cl-footerAction {
+/* Hide entire Clerk footer ("Secured by Clerk" / "Development mode") */
+.cl-footer {
   display: none !important;
 }
 
-/* Fix button text visibility (white-on-white) */
+/* Strip all internal Clerk card chrome — our wrapper div provides the border/shadow */
+.cl-card,
+.cl-cardBox,
+[class*="cl-card"],
+[class*="cl-cardBox"] {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Clerk validation error styling */
+.cl-formFieldErrorText {
+  color: var(--status-error) !important;
+  font-size: 0.75rem !important;
+}
+
+.cl-alert {
+  color: var(--status-error) !important;
+  background: color-mix(
+    in srgb,
+    var(--status-error) 5%,
+    transparent
+  ) !important;
+  border: 1px solid color-mix(in srgb, var(--status-error) 20%, transparent) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+/* Fix button text visibility */
 .cl-formButtonPrimary {
-  color: var(--background) !important;
+  color: var(--accent-foreground) !important;
+  background: var(--accent) !important;
 }
 
-/* Fix secondary text visibility on dark backgrounds */
-.cl-footerActionText,
-.cl-internal-b1ylls {
-  color: var(--text-muted) !important;
-}
-
-/* Fix OTP code input fields — visible border + white text on dark bg */
+/* Fix OTP code input fields */
 .cl-otpCodeFieldInput {
-  color: #FAFAFA !important;
-  border: 1px solid #525252 !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
   background: var(--surface-muted) !important;
-  caret-color: #FAFAFA !important;
+  caret-color: var(--foreground) !important;
 }
 
+[data-theme="dark"] .cl-otpCodeFieldInput {
+  border-color: var(--accent-border) !important;
+}
+
+/* ==========================================================================
+   Runtime frame
+   ========================================================================== */
 #niotebook-runtime-frame:empty {
   display: none;
 }

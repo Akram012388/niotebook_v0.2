@@ -32,9 +32,7 @@ test.describe("Workspace", () => {
     await page.goto(lessonPath!);
     await expect(page.locator("main")).toBeVisible({ timeout: 15000 });
     // Switch to 3-column layout so the code pane is visible
-    const tripleToggle = page
-      .locator('[data-testid="layout-toggle"]')
-      .nth(2);
+    const tripleToggle = page.locator('[data-testid="layout-toggle"]').nth(2);
     await expect(tripleToggle).toBeVisible({ timeout: 15000 });
     await tripleToggle.click();
     // CodeMirror editor — may take time to initialize

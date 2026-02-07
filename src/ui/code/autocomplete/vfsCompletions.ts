@@ -155,9 +155,7 @@ const SYMBOL_PATTERN_FACTORIES: Record<
   html: [],
   css: [],
   sql: [],
-  r: [
-    { makeRegex: () => /(?:^|\n)(\w+)\s*<-\s*function/g, type: "function" },
-  ],
+  r: [{ makeRegex: () => /(?:^|\n)(\w+)\s*<-\s*function/g, type: "function" }],
 };
 
 function getCrossFileSymbolCompletions(

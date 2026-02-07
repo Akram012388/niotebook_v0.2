@@ -24,7 +24,11 @@ const cardVariants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.06, duration: 0.35, ease: "easeOut" as const },
+    transition: {
+      delay: Math.min(i * 0.1, 0.8),
+      duration: 0.5,
+      ease: "easeOut" as const,
+    },
   }),
 };
 
@@ -118,20 +122,17 @@ const CourseCard = memo(function CourseCard({
     >
       <Link
         href={`/courses/${id as string}`}
-        className="group relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl dark:hover:border-workspace-accent/40 dark:hover:shadow-workspace-accent/5 hover:border-foreground/20 hover:shadow-foreground/5"
+        className="group flex h-full flex-col gap-3 rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-accent/30 hover:shadow-md"
       >
-        {/* Subtle glow on hover (green in dark mode only) */}
-        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-workspace-accent/0 to-workspace-accent/0 transition-all duration-300 dark:group-hover:from-workspace-accent/[0.03] dark:group-hover:to-transparent" />
-
-        <h3 className="relative text-base font-semibold leading-tight text-foreground transition-colors dark:group-hover:text-workspace-accent group-hover:text-[#0A0A0A] group-hover:font-extrabold">
+        <h3 className="text-base font-semibold leading-tight text-foreground transition-colors group-hover:text-accent">
           {title}
         </h3>
         {description && (
-          <p className="relative line-clamp-2 text-sm leading-relaxed text-text-muted">
+          <p className="line-clamp-2 text-sm leading-relaxed text-text-muted">
             {description}
           </p>
         )}
-        <div className="relative mt-auto flex flex-col gap-2 pt-1">
+        <div className="mt-auto flex flex-col gap-2 pt-1">
           <div className="flex items-center gap-2">
             {provider && (
               <span className="inline-block w-fit rounded-full border border-border px-2.5 py-0.5 text-xs text-text-muted">
@@ -151,7 +152,7 @@ const CourseCard = memo(function CourseCard({
             <div className="flex flex-col gap-1">
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
                 <div
-                  className="h-full rounded-full bg-workspace-accent transition-all"
+                  className="h-full rounded-full bg-accent transition-all"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>

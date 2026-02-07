@@ -1,123 +1,39 @@
-import { memo, useEffect, useRef, useState, type ReactElement } from "react";
+import { memo, type ReactElement, type RefObject } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import type { ChatMessage as ChatMessageType } from "./chatTypes";
+import { StreamingText, type StreamingTextHandle } from "./StreamingText";
 
 type ChatMessageProps = {
   message: ChatMessageType;
   onSeek?: (timestampSec: number) => void;
+  /** Ref to the StreamingText imperative handle (only for the active streaming message). */
+  streamingTextRef?: RefObject<StreamingTextHandle | null>;
 };
 
 const remarkPlugins = [remarkGfm];
 const rehypePlugins = [rehypeHighlight];
 
-/** Full markdown render — only used for completed messages. */
+/** Full markdown render — used only for completed (non-streaming) messages. */
 const RenderedMarkdown = memo(function RenderedMarkdown({
   content,
 }: {
   content: string;
 }) {
   return (
-    <ReactMarkdown
-      remarkPlugins={remarkPlugins}
-      rehypePlugins={rehypePlugins}
-    >
+    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins}>
       {content}
     </ReactMarkdown>
   );
 });
 
-/** Chars per frame to emit — tuned for ~60fps smooth typewriter feel. */
-const CHARS_PER_TICK = 2;
-const TICK_MS = 16;
-
-/**
- * Truncate markdown content at a visible character boundary without
- * breaking mid-tag. We slice the raw markdown source which ReactMarkdown
- * can handle even if truncated (unclosed formatting degrades gracefully).
- */
-const truncateMarkdown = (source: string, maxChars: number): string => {
-  if (maxChars >= source.length) return source;
-  return source.slice(0, maxChars);
-};
-
-/**
- * During streaming we render markdown incrementally — characters are
- * revealed with a typewriter effect while still rendering full markdown
- * (code blocks, bold, etc.) so there is no visual "jump" when streaming
- * finishes.
- */
-function StreamingContent({ content }: { content: string }): ReactElement {
-  const [visible, setVisible] = useState(0);
-  const targetRef = useRef(content.length);
-
-  useEffect(() => {
-    targetRef.current = content.length;
-  }, [content.length]);
-
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-
-    const tick = (): void => {
-      setVisible((prev) => {
-        const target = targetRef.current;
-        if (prev >= target) return prev;
-        const next = Math.min(prev + CHARS_PER_TICK, target);
-        timer = setTimeout(tick, TICK_MS);
-        return next;
-      });
-    };
-
-    timer = setTimeout(tick, TICK_MS);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const visibleContent = truncateMarkdown(content, visible);
-
-  return (
-    <>
-      <ReactMarkdown
-        remarkPlugins={remarkPlugins}
-        rehypePlugins={rehypePlugins}
-      >
-        {visibleContent}
-      </ReactMarkdown>
-      <span
-        className="ml-0.5 inline-block h-4 w-[2px] align-text-bottom bg-foreground dark:bg-workspace-accent"
-        style={{ animation: "blink 1s step-end infinite" }}
-        aria-hidden="true"
-      />
-    </>
-  );
-}
-
-const AssistantContent = memo(function AssistantContent({
-  content,
-  isStreaming,
-}: {
-  content: string;
-  isStreaming?: boolean;
-}) {
-  return (
-    <div
-      className="nio-markdown w-full text-sm leading-6 text-foreground"
-      data-testid="chat-message"
-    >
-      {isStreaming ? (
-        <StreamingContent content={content} />
-      ) : (
-        <RenderedMarkdown content={content} />
-      )}
-    </div>
-  );
-});
-
-const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
+const ChatMessage = memo(function ChatMessage({
+  message,
+  onSeek,
+  streamingTextRef,
+}: ChatMessageProps): ReactElement {
   const isUser = message.role === "user";
-  const isThinking = Boolean(
-    message.isStreaming && message.content.length === 0,
-  );
 
   const handleSeek = (): void => {
     onSeek?.(message.timestampSec);
@@ -131,7 +47,7 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
       style={
         message.isStreaming
           ? undefined
-          : { contentVisibility: "auto", containIntrinsicSize: "auto 80px" }
+          : { contentVisibility: "auto", containIntrinsicSize: "auto 200px" }
       }
     >
       <div
@@ -139,24 +55,23 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
           isUser ? "flex items-center gap-2 flex-row-reverse" : "w-full"
         }
       >
-        {isThinking ? (
-          <div className="flex items-center pl-4 py-2">
-            <span
-              className="nio-thinking h-2.5 w-2.5 rounded-full bg-foreground opacity-70"
-              aria-hidden="true"
-            />
-          </div>
-        ) : isUser ? (
+        {isUser ? (
           <div className="max-w-[80%] rounded-xl border px-3 py-2 text-sm leading-6 border-border bg-surface-muted text-foreground dark:bg-surface-strong">
             <p className="whitespace-pre-wrap" data-testid="chat-message">
               {message.content}
             </p>
           </div>
         ) : (
-          <AssistantContent
-            content={message.content}
-            isStreaming={message.isStreaming}
-          />
+          <div
+            className="nio-markdown w-full text-sm leading-6 text-foreground"
+            data-testid="chat-message"
+          >
+            {message.isStreaming ? (
+              <StreamingText ref={streamingTextRef} />
+            ) : (
+              <RenderedMarkdown content={message.content} />
+            )}
+          </div>
         )}
         {message.badge ? (
           <button
@@ -171,6 +86,6 @@ const ChatMessage = ({ message, onSeek }: ChatMessageProps): ReactElement => {
       </div>
     </div>
   );
-};
+});
 
 export { ChatMessage };

@@ -46,20 +46,20 @@ const AnalyticsDashboard = (): ReactElement => {
         <div className="flex items-center gap-3">
           <input
             type="text"
-            placeholder="Filter by type…"
+            placeholder="Filter by type..."
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="rounded-lg border border-border bg-surface px-3 py-1.5 font-mono text-xs text-foreground placeholder:text-muted focus:outline-none focus:ring-1 focus:ring-foreground"
+            className="rounded-xl border border-border bg-surface px-4 py-2 font-mono text-xs text-foreground placeholder:text-text-subtle transition-colors duration-150 focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
           />
-          <div className="flex gap-1 rounded-lg border border-border bg-surface p-0.5">
+          <div className="flex gap-1 rounded-xl border border-border bg-surface p-1">
             {([50, 100, 200] as LimitOption[]).map((l) => (
               <button
                 key={l}
                 onClick={() => setLimit(l)}
-                className={`rounded-md px-3 py-1 font-mono text-xs font-medium transition-colors ${
+                className={`rounded-lg px-3 py-1.5 font-mono text-xs font-medium transition-colors duration-150 ${
                   limit === l
-                    ? "bg-foreground text-background"
-                    : "text-muted hover:text-foreground"
+                    ? "bg-accent text-white shadow-sm"
+                    : "text-text-muted hover:text-foreground hover:bg-surface-muted"
                 }`}
               >
                 {l}
@@ -69,20 +69,20 @@ const AnalyticsDashboard = (): ReactElement => {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border">
+      <div className="overflow-x-auto rounded-2xl border border-border">
         <table className="w-full text-sm">
           <thead className="border-b border-border bg-surface-muted">
             <tr>
-              <th className="px-4 py-2 text-left font-mono text-xs font-medium text-muted">
+              <th className="px-4 py-3 text-left font-mono text-xs font-medium text-text-muted">
                 Type
               </th>
-              <th className="px-4 py-2 text-left font-mono text-xs font-medium text-muted">
+              <th className="px-4 py-3 text-left font-mono text-xs font-medium text-text-muted">
                 User
               </th>
-              <th className="px-4 py-2 text-left font-mono text-xs font-medium text-muted">
+              <th className="px-4 py-3 text-left font-mono text-xs font-medium text-text-muted">
                 Session
               </th>
-              <th className="px-4 py-2 text-left font-mono text-xs font-medium text-muted">
+              <th className="px-4 py-3 text-left font-mono text-xs font-medium text-text-muted">
                 Time
               </th>
             </tr>
@@ -90,13 +90,19 @@ const AnalyticsDashboard = (): ReactElement => {
           <tbody>
             {filtered === undefined ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-muted">
-                  Loading…
+                <td
+                  colSpan={4}
+                  className="px-4 py-8 text-center text-text-muted"
+                >
+                  Loading...
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-muted">
+                <td
+                  colSpan={4}
+                  className="px-4 py-8 text-center text-text-muted"
+                >
                   No events found.
                 </td>
               </tr>
@@ -104,20 +110,20 @@ const AnalyticsDashboard = (): ReactElement => {
               filtered.map((event) => (
                 <tr
                   key={event.id}
-                  className="border-b border-border last:border-0"
+                  className="border-b border-border last:border-0 transition-colors duration-100 hover:bg-surface-muted/50"
                 >
-                  <td className="px-4 py-2">
-                    <span className="rounded bg-surface-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+                  <td className="px-4 py-2.5">
+                    <span className="rounded-md bg-accent-muted px-2 py-0.5 font-mono text-xs text-accent">
                       {event.type}
                     </span>
                   </td>
-                  <td className="px-4 py-2 font-mono text-xs text-muted">
+                  <td className="px-4 py-2.5 font-mono text-xs text-text-muted">
                     {event.userId ?? "—"}
                   </td>
-                  <td className="px-4 py-2 font-mono text-xs text-muted">
+                  <td className="px-4 py-2.5 font-mono text-xs text-text-muted">
                     {event.sessionId ?? "—"}
                   </td>
-                  <td className="px-4 py-2 font-mono text-xs text-muted">
+                  <td className="px-4 py-2.5 font-mono text-xs text-text-muted">
                     {formatDate(event.createdAt)}
                   </td>
                 </tr>

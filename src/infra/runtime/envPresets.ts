@@ -161,7 +161,7 @@ const ENV_PRESETS: Record<EnvPresetId, LessonEnvironment> = {
     },
   },
 
-  "cs50r": {
+  cs50r: {
     id: "cs50r",
     name: "CS50R",
     primaryLanguage: "r",

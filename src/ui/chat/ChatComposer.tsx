@@ -1,12 +1,7 @@
 "use client";
 
 import { PaperPlaneRight } from "@phosphor-icons/react";
-import {
-  useCallback,
-  useRef,
-  useState,
-  type ReactElement,
-} from "react";
+import { useCallback, useRef, useState, type ReactElement } from "react";
 
 type ChatComposerProps = {
   onSend?: (message: string) => void;
@@ -58,7 +53,7 @@ const ChatComposer = ({
   const isReady = value.trim().length > 0 && !disabled;
 
   return (
-    <div className="flex items-end gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
+    <div className="flex items-end gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm transition-colors focus-within:border-accent/40 focus-within:ring-1 focus-within:ring-accent/40">
       <textarea
         ref={textareaRef}
         rows={1}
@@ -77,7 +72,7 @@ const ChatComposer = ({
         disabled={!isReady}
         className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold transition ${
           isReady
-            ? "border-foreground bg-foreground text-background hover:opacity-90"
+            ? "border-accent bg-accent text-white hover:opacity-90"
             : "border-border bg-surface-muted text-text-subtle"
         }`}
         aria-label="Send message"

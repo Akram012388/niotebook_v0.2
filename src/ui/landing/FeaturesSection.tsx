@@ -2,6 +2,7 @@
 
 import { type ReactElement } from "react";
 import { motion } from "framer-motion";
+import { NotebookFrame } from "@/ui/shared/NotebookFrame";
 
 interface Feature {
   icon: ReactElement;
@@ -134,76 +135,51 @@ function FeatureCard({
 }): ReactElement {
   return (
     <motion.div
-      className="group relative p-6 sm:p-8 rounded-2xl border border-border bg-surface transition-all duration-300 hover:border-workspace-accent/30 hover:shadow-xl hover:shadow-workspace-accent/5"
+      className="group relative p-6 sm:p-8 rounded-2xl border border-border bg-surface transition-all duration-200 hover:border-accent/30 hover:shadow-md"
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        e.currentTarget.style.setProperty(
-          "--mouse-x",
-          `${e.clientX - rect.left}px`,
-        );
-        e.currentTarget.style.setProperty(
-          "--mouse-y",
-          `${e.clientY - rect.top}px`,
-        );
-      }}
     >
-      <div
-        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-        style={{
-          background: `radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 255, 102, 0.04), transparent 60%)`,
-        }}
-      />
-      <div className="relative">
-        <div className="mb-4 text-workspace-accent">{feature.icon}</div>
-        <h3 className="text-base sm:text-lg font-semibold mb-2">
-          {feature.title}
-        </h3>
-        <p className="text-sm leading-relaxed text-text-muted">
-          {feature.description}
-        </p>
-      </div>
+      <div className="mb-4 text-accent">{feature.icon}</div>
+      <h3 className="text-base sm:text-lg font-semibold mb-2">
+        {feature.title}
+      </h3>
+      <p className="text-sm leading-relaxed text-text-muted">
+        {feature.description}
+      </p>
     </motion.div>
   );
 }
 
 export function FeaturesSection(): ReactElement {
   return (
-    <section className="relative py-24 sm:py-32 px-4 sm:px-6 overflow-hidden">
-      {/* Grid pattern overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
-        style={{
-          backgroundImage: `linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)`,
-          backgroundSize: "60px 60px",
-        }}
-      />
-      <div className="relative max-w-5xl mx-auto">
-        <motion.div
-          className="text-center mb-16 sm:mb-20"
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <p className="text-xs font-mono uppercase tracking-[0.2em] mb-4 text-workspace-accent/60">
-            How it works
-          </p>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
-            One canvas.
-            <br />
-            Everything you need.
-          </h2>
-        </motion.div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          {FEATURES.map((f, i) => (
-            <FeatureCard key={f.title} feature={f} index={i} />
-          ))}
-        </div>
+    <section className="relative z-[2] py-12 sm:py-16 px-4 sm:px-6">
+      <div className="max-w-4xl mx-auto">
+        <NotebookFrame>
+          <motion.div
+            className="text-center mb-10 sm:mb-12"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <p className="text-[11px] font-mono uppercase tracking-[0.2em] mb-4 text-accent/60">
+              How it works
+            </p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+              One canvas.
+              <br />
+              <span className="text-text-muted">Everything you need.</span>
+            </h2>
+          </motion.div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            {FEATURES.map((f, i) => (
+              <FeatureCard key={f.title} feature={f} index={i} />
+            ))}
+          </div>
+        </NotebookFrame>
       </div>
     </section>
   );

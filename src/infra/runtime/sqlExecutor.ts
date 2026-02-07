@@ -1,4 +1,8 @@
-import type { RuntimeExecutor, RuntimeRunInput, RuntimeRunResult } from "./types";
+import type {
+  RuntimeExecutor,
+  RuntimeRunInput,
+  RuntimeRunResult,
+} from "./types";
 
 type SqlJsStatic = {
   Database: new (data?: ArrayLike<number>) => SqlJsDatabase;
@@ -16,7 +20,9 @@ type SqlJsResult = {
   values: (string | number | null | Uint8Array)[][];
 };
 
-type InitSqlJs = (config?: { locateFile?: (file: string) => string }) => Promise<SqlJsStatic>;
+type InitSqlJs = (config?: {
+  locateFile?: (file: string) => string;
+}) => Promise<SqlJsStatic>;
 
 const SQL_JS_CDN = "https://sql.js.org/dist";
 
@@ -104,8 +110,7 @@ function formatAsciiTable(result: SqlJsResult): string {
     }
   }
 
-  const separator =
-    "+" + widths.map((w) => "-".repeat(w + 2)).join("+") + "+";
+  const separator = "+" + widths.map((w) => "-".repeat(w + 2)).join("+") + "+";
   const header =
     "|" +
     columns.map((col, i) => ` ${col.padEnd(widths[i]!)} `).join("|") +
@@ -197,9 +202,7 @@ async function initSqlExecutor(): Promise<RuntimeExecutor> {
                 db.run(seedContent);
               } catch (seedErr) {
                 const msg =
-                  seedErr instanceof Error
-                    ? seedErr.message
-                    : String(seedErr);
+                  seedErr instanceof Error ? seedErr.message : String(seedErr);
                 stderr += `[${seedName}] ${msg}\n`;
                 input.onStderr?.(`[${seedName}] ${msg}\n`);
               }
@@ -244,8 +247,7 @@ async function initSqlExecutor(): Promise<RuntimeExecutor> {
           runtimeMs,
         };
       } catch (error) {
-        const msg =
-          error instanceof Error ? error.message : String(error);
+        const msg = error instanceof Error ? error.message : String(error);
         stderr += msg + "\n";
         input.onStderr?.(msg + "\n");
         return {
