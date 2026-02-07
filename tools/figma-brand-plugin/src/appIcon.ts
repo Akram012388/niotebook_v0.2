@@ -1,7 +1,6 @@
 import {
   loadLogoFont,
-  buildLogoGroup,
-  applyVariantColors,
+  buildWordmarkText,
   getOrCreatePage,
   solidPaint,
   COLORS,
@@ -9,7 +8,10 @@ import {
   pngExport,
 } from "./utils";
 
-/** Build the 1024×1024 master app icon + platform size exports. */
+/**
+ * Build the 1024x1024 master app icon with rounded corners, dark bg,
+ * and centered "nio" mark in accent colors.
+ */
 export async function buildAppIcon() {
   await loadLogoFont();
 
@@ -26,26 +28,26 @@ export async function buildAppIcon() {
   frame.fills = [solidPaint(COLORS.foreground)];
   frame.clipsContent = true;
 
-  // nio mark, accent variant, sized to ~60% of frame
+  // "nio" mark in Accent mode (~60% of frame width)
   const targetWidth = SIZE * 0.6;
-  const fontSize = Math.round(targetWidth / (0.65 * 3)); // 3 chars "nio"
-  const { frame: logoFrame, text, bar } = buildLogoGroup("nio", fontSize);
-  applyVariantColors(text, bar, "Accent");
+  const fontSize = Math.round(targetWidth / (0.65 * 3));
+  const text = buildWordmarkText("nio", fontSize, "Accent");
 
-  logoFrame.x = (SIZE - logoFrame.width) / 2;
-  logoFrame.y = (SIZE - logoFrame.height) / 2;
-  frame.appendChild(logoFrame);
+  // Center in frame
+  text.x = (SIZE - text.width) / 2;
+  text.y = (SIZE - text.height) / 2;
+  frame.appendChild(text);
 
   // Export presets for all platform sizes
   const sizes = [1024, 512, 192, 180, 152, 144, 120, 96, 72, 48];
-  addExports(
-    frame,
-    sizes.map((s) => {
-      const scale = s / SIZE;
-      return pngExport(scale, `-${s}`);
-    }),
-  );
+  const exports: ExportSettings[] = [];
+  for (let i = 0; i < sizes.length; i++) {
+    const s = sizes[i];
+    const scale = s / SIZE;
+    exports.push(pngExport(scale, "-" + s));
+  }
+  addExports(frame, exports);
 
   page.appendChild(frame);
-  figma.notify("✓ App icon master created");
+  figma.notify("App icon master created");
 }
