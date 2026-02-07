@@ -1,10 +1,4 @@
-import {
-  memo,
-  useEffect,
-  useRef,
-  useState,
-  type ReactElement,
-} from "react";
+import { memo, type ReactElement } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -18,7 +12,7 @@ type ChatMessageProps = {
 const remarkPlugins = [remarkGfm];
 const rehypePlugins = [rehypeHighlight];
 
-/** Full markdown render — only used for completed/revealed messages. */
+/** Full markdown render — used for completed messages. */
 const RenderedMarkdown = memo(function RenderedMarkdown({
   content,
 }: {
@@ -31,107 +25,25 @@ const RenderedMarkdown = memo(function RenderedMarkdown({
   );
 });
 
-/** Chars per tick for the post-stream typewriter reveal. */
-const REVEAL_CHARS_PER_TICK = 3;
-const REVEAL_TICK_MS = 12;
-
 /**
- * Smooth typewriter reveal — runs AFTER the full response has been
- * received from the AI provider. Characters are revealed incrementally
- * as plain text, then once fully revealed the markdown is parsed once.
- *
- * The RAF loop runs once on mount and reads the latest content length
- * from a ref so it never resets the cursor when content grows.
- */
-function RevealContent({
-  content,
-  onRevealDone,
-}: {
-  content: string;
-  onRevealDone: () => void;
-}): ReactElement {
-  const [visible, setVisible] = useState(0);
-  const onDoneRef = useRef(onRevealDone);
-  const contentLenRef = useRef(content.length);
-  const cursorRef = useRef(0);
-
-  useEffect(() => {
-    onDoneRef.current = onRevealDone;
-  }, [onRevealDone]);
-
-  // Keep content length ref in sync whenever content grows
-  useEffect(() => {
-    contentLenRef.current = content.length;
-  }, [content.length]);
-
-  useEffect(() => {
-    // Nothing to reveal yet — wait for content to arrive
-    if (contentLenRef.current === 0) {
-      onDoneRef.current();
-      return;
-    }
-
-    let raf: number | null = null;
-    let last = performance.now();
-
-    const tick = (now: number): void => {
-      const target = contentLenRef.current;
-      const elapsed = now - last;
-      if (elapsed >= REVEAL_TICK_MS) {
-        const chars = Math.max(
-          REVEAL_CHARS_PER_TICK,
-          Math.floor((elapsed / REVEAL_TICK_MS) * REVEAL_CHARS_PER_TICK),
-        );
-        // Guard: clamp cursor in case content ever shrinks
-        cursorRef.current = Math.min(cursorRef.current + chars, target);
-        setVisible(cursorRef.current);
-        last = now;
-
-        if (cursorRef.current >= target) {
-          onDoneRef.current();
-          return;
-        }
-      }
-
-      raf = requestAnimationFrame(tick);
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => {
-      if (raf !== null) cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  return <span className="whitespace-pre-wrap">{content.slice(0, visible)}</span>;
-}
-
-/**
- * Wrapper that handles the two phases of assistant message display:
- * - Stream just finished (`wasStreaming`): smooth typewriter reveal of plain text
- * - Fully revealed (or historical message): full markdown render
- *
- * While streaming, the parent renders the thinking dot instead of this component.
+ * Assistant message display:
+ * - While streaming: show plain text as tokens arrive (immediate, no buffer)
+ * - After stream completes: parse and render full markdown
  */
 const AssistantContent = memo(function AssistantContent({
   content,
-  wasStreaming,
+  isStreaming,
 }: {
   content: string;
-  wasStreaming?: boolean;
+  isStreaming?: boolean;
 }) {
-  const [revealed, setRevealed] = useState(!wasStreaming);
-
-  const handleRevealDone = (): void => {
-    setRevealed(true);
-  };
-
   return (
     <div
       className="nio-markdown w-full text-sm leading-6 text-foreground"
       data-testid="chat-message"
     >
-      {!revealed ? (
-        <RevealContent content={content} onRevealDone={handleRevealDone} />
+      {isStreaming ? (
+        <span className="whitespace-pre-wrap">{content}</span>
       ) : (
         <RenderedMarkdown content={content} />
       )}
@@ -144,11 +56,10 @@ const ChatMessage = memo(function ChatMessage({
   onSeek,
 }: ChatMessageProps): ReactElement {
   const isUser = message.role === "user";
-  // Show thinking dot only while waiting for buffer threshold
-  const isThinking = Boolean(
-    message.isStreaming && !message.isRevealing,
+  const isThinking = Boolean(message.isStreaming && !message.content);
+  const isStreamingWithContent = Boolean(
+    message.isStreaming && message.content,
   );
-  const isActive = message.isStreaming || message.isRevealing;
 
   const handleSeek = (): void => {
     onSeek?.(message.timestampSec);
@@ -160,9 +71,9 @@ const ChatMessage = memo(function ChatMessage({
         isUser ? "items-end" : "items-start"
       }`}
       style={
-        isActive
+        message.isStreaming
           ? undefined
-          : { contentVisibility: "auto", containIntrinsicSize: "auto 80px" }
+          : { contentVisibility: "auto", containIntrinsicSize: "auto 200px" }
       }
     >
       <div
@@ -172,10 +83,26 @@ const ChatMessage = memo(function ChatMessage({
       >
         {isThinking ? (
           <div className="flex items-center pl-4 py-2">
-            <span
-              className="nio-thinking h-2.5 w-2.5 rounded-full bg-accent opacity-70"
-              aria-hidden="true"
-            />
+            <div className="relative flex items-center justify-center">
+              {/* Pulse rings (background layers) */}
+              <span
+                className="nio-thinking-ring-1 absolute h-2.5 w-2.5 rounded-full bg-accent"
+                aria-hidden="true"
+              />
+              <span
+                className="nio-thinking-ring-2 absolute h-2.5 w-2.5 rounded-full bg-accent"
+                aria-hidden="true"
+              />
+              <span
+                className="nio-thinking-ring-3 absolute h-2.5 w-2.5 rounded-full bg-accent"
+                aria-hidden="true"
+              />
+              {/* Core dot (foreground) */}
+              <span
+                className="nio-thinking relative h-2.5 w-2.5 rounded-full bg-accent opacity-70"
+                aria-hidden="true"
+              />
+            </div>
           </div>
         ) : isUser ? (
           <div className="max-w-[80%] rounded-xl border px-3 py-2 text-sm leading-6 border-border bg-surface-muted text-foreground dark:bg-surface-strong">
@@ -186,7 +113,7 @@ const ChatMessage = memo(function ChatMessage({
         ) : (
           <AssistantContent
             content={message.content}
-            wasStreaming={message.wasStreaming}
+            isStreaming={isStreamingWithContent}
           />
         )}
         {message.badge ? (
