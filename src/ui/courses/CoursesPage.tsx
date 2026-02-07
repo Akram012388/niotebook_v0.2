@@ -35,8 +35,10 @@ function CoursesPage(): ReactElement {
   const normalized = searchQuery.trim().toLowerCase();
 
   const cs50Courses = useMemo(() => {
-    const all = (courses ?? []).filter((c) =>
-      CS50_TITLES.some((t) => c.title.includes(t)),
+    const all = (courses ?? []).filter(
+      (c) =>
+        CS50_TITLES.some((t) => c.title.includes(t)) &&
+        c.title !== "CS50x 2026", // filter duplicate stub (bare title, no subtitle)
     );
     if (!normalized) return all;
     return all.filter(
@@ -69,7 +71,11 @@ function CoursesPage(): ReactElement {
     courseIds.length > 0 ? { courseIds } : "skip",
   );
 
-  const hasResume = resumeData && resumeData.length > 0;
+  const filteredResume = useMemo(
+    () => (resumeData ?? []).filter((e) => e.courseTitle !== "Local course"),
+    [resumeData],
+  );
+  const hasResume = filteredResume.length > 0;
 
   const content = (
     <div className="flex flex-col gap-14">
@@ -83,16 +89,33 @@ function CoursesPage(): ReactElement {
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           Course Catalog
         </h1>
-        <p className="max-w-lg text-sm leading-relaxed text-text-muted">
+        <p className="text-sm leading-relaxed text-text-muted">
           Open-licensed courses from top universities. Watch lectures, code
           along, and get AI help.
         </p>
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search courses"
-          className="mt-1 w-full max-w-md rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-text-subtle transition-colors focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
-        />
+        <div className="relative mt-1 w-full">
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search courses"
+            className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 pr-10 text-sm text-foreground placeholder:text-text-subtle transition-colors focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
+          />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-text-subtle"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+        </div>
       </motion.div>
 
       {/* Continue Learning */}
@@ -107,7 +130,7 @@ function CoursesPage(): ReactElement {
             Continue Learning
           </p>
           <div className="flex gap-4 overflow-x-auto overflow-y-visible pb-4 pt-4 -mb-2 -mt-2 px-2 -mx-2">
-            {resumeData.map((entry) => (
+            {filteredResume.map((entry) => (
               <ResumeCard
                 key={entry.lessonId}
                 courseTitle={entry.courseTitle}
@@ -139,10 +162,7 @@ function CoursesPage(): ReactElement {
         >
           {courses === undefined
             ? Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-[200px] nio-shimmer rounded-2xl"
-                />
+                <div key={i} className="h-[200px] nio-shimmer rounded-2xl" />
               ))
             : cs50Courses.map((course, i) => (
                 <CourseCard
@@ -152,9 +172,7 @@ function CoursesPage(): ReactElement {
                   description={course.description}
                   provider="Harvard"
                   lessonCount={lessonCounts?.[course.id as string] ?? 0}
-                  completedCount={
-                    completionCounts?.[course.id as string] ?? 0
-                  }
+                  completedCount={completionCounts?.[course.id as string] ?? 0}
                   license={course.license}
                   variant="active"
                   index={i}
