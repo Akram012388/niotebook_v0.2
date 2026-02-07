@@ -1,9 +1,8 @@
-import { memo, useMemo, type ReactElement } from "react";
+import { memo, type ReactElement } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import type { ChatMessage as ChatMessageType } from "./chatTypes";
-import { ThinkingOrb } from "./ThinkingOrb";
 
 type ChatMessageProps = {
   message: ChatMessageType;
@@ -11,49 +10,17 @@ type ChatMessageProps = {
 };
 
 const remarkPlugins = [remarkGfm];
-const rehypePluginsFull = [rehypeHighlight];
-const rehypePluginsNone: [] = [];
+const rehypePlugins = [rehypeHighlight];
 
-/**
- * Close any open markdown constructs so react-markdown doesn't break
- * on partial streaming content. Handles unclosed code fences.
- */
-const closePartialMarkdown = (text: string): string => {
-  const fencePattern = /^```/gm;
-  const matches = text.match(fencePattern);
-  const fenceCount = matches?.length ?? 0;
-
-  if (fenceCount % 2 !== 0) {
-    return text + "\n```";
-  }
-
-  return text;
-};
-
-/**
- * Progressive markdown render.
- * During streaming: remarkGfm only (no syntax highlighting — saves 5-10ms/frame).
- * After completion: full rehype-highlight applied for syntax colors.
- */
-const StreamingMarkdown = memo(function StreamingMarkdown({
+/** Full markdown render — used only for completed (non-streaming) messages. */
+const RenderedMarkdown = memo(function RenderedMarkdown({
   content,
-  isStreaming,
 }: {
   content: string;
-  isStreaming?: boolean;
 }) {
-  const safeContent = useMemo(
-    () => (isStreaming ? closePartialMarkdown(content) : content),
-    [content, isStreaming],
-  );
-
-  // Skip rehype-highlight during streaming — it's expensive and runs every frame.
-  // Syntax highlighting applies once the stream completes.
-  const rehype = isStreaming ? rehypePluginsNone : rehypePluginsFull;
-
   return (
-    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehype}>
-      {safeContent}
+    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins}>
+      {content}
     </ReactMarkdown>
   );
 });
@@ -89,8 +56,8 @@ const ChatMessage = memo(function ChatMessage({
         }
       >
         {isThinking ? (
-          <div className="flex items-center pl-1 py-2">
-            <ThinkingOrb />
+          <div className="flex items-center pl-1 py-3">
+            <span className="nio-pulse-dot" aria-label="Assistant is thinking" />
           </div>
         ) : isUser ? (
           <div className="max-w-[80%] rounded-xl border px-3 py-2 text-sm leading-6 border-border bg-surface-muted text-foreground dark:bg-surface-strong">
@@ -103,10 +70,11 @@ const ChatMessage = memo(function ChatMessage({
             className="nio-markdown w-full text-sm leading-6 text-foreground"
             data-testid="chat-message"
           >
-            <StreamingMarkdown
-              content={message.content}
-              isStreaming={isStreamingWithContent}
-            />
+            {isStreamingWithContent ? (
+              <p className="whitespace-pre-wrap">{message.content}</p>
+            ) : (
+              <RenderedMarkdown content={message.content} />
+            )}
           </div>
         )}
         {message.badge ? (
