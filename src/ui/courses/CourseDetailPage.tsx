@@ -183,7 +183,7 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
 
       {/* Lecture card grid */}
       <div className="flex flex-col gap-4">
-        <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-accent/60">
+        <p className="text-xs font-semibold font-mono uppercase tracking-[0.2em] text-accent">
           Lectures
         </p>
         <motion.div
