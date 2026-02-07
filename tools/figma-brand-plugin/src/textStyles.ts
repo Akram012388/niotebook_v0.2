@@ -1,53 +1,81 @@
-/** Create nio/* text styles. */
+/** Create nio/* text styles (v2 — Geist Sans headings, Geist Mono code). */
 export async function createTextStyles() {
   const existing = figma.getLocalTextStyles().map((s) => s.name);
 
   const defs: {
     name: string;
-    font: FontName;
+    fonts: FontName[]; // try in order — first loadable wins
     sizes: number[];
     description: string;
   }[] = [
     {
+      name: "nio/display",
+      fonts: [{ family: "Orbitron", style: "Bold" }],
+      sizes: [64, 80],
+      description: "Hero / landing display text",
+    },
+    {
       name: "nio/logo",
-      font: { family: "Orbitron", style: "Bold" },
+      fonts: [{ family: "Orbitron", style: "Bold" }],
       sizes: [48],
       description: "Logo / wordmark text — scales per context",
     },
     {
       name: "nio/heading",
-      font: { family: "Geist", style: "SemiBold" },
+      fonts: [
+        { family: "Geist Sans", style: "SemiBold" },
+        { family: "Geist", style: "SemiBold" },
+      ],
       sizes: [24, 32, 40],
       description: "UI headings",
     },
     {
       name: "nio/body",
-      font: { family: "Geist Mono", style: "Regular" },
+      fonts: [
+        { family: "Geist Sans", style: "Regular" },
+        { family: "Geist", style: "Regular" },
+      ],
       sizes: [14, 16],
-      description: "UI body / code",
+      description: "UI body text",
+    },
+    {
+      name: "nio/code",
+      fonts: [{ family: "Geist Mono", style: "Regular" }],
+      sizes: [12, 14],
+      description: "Code / monospace text",
     },
   ];
 
   for (const def of defs) {
-    // Load the font — will throw if not installed
-    try {
-      await figma.loadFontAsync(def.font);
-    } catch {
-      figma.notify(
-        `⚠ Font "${def.font.family} ${def.font.style}" not found — skipping style "${def.name}"`,
-        { error: true },
-      );
+    // Try each font in order until one loads
+    let loadedFont: FontName | null = null;
+    for (const font of def.fonts) {
+      try {
+        await figma.loadFontAsync(font);
+        loadedFont = font;
+        break;
+      } catch {
+        // Try next font
+      }
+    }
+
+    if (!loadedFont) {
+      const names = def.fonts.map((f) => `${f.family} ${f.style}`).join(", ");
+      figma.notify(`⚠ None of [${names}] found — skipping "${def.name}"`, {
+        error: true,
+      });
       continue;
     }
 
     for (const size of def.sizes) {
-      const styleName = def.sizes.length > 1 ? `${def.name}/${size}` : def.name;
+      const styleName =
+        def.sizes.length > 1 ? `${def.name}/${size}` : def.name;
       if (existing.includes(styleName)) continue;
 
       const style = figma.createTextStyle();
       style.name = styleName;
       style.description = def.description;
-      style.fontName = def.font;
+      style.fontName = loadedFont;
       style.fontSize = size;
     }
   }
