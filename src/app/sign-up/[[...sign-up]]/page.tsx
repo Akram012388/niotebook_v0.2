@@ -4,9 +4,11 @@ import { SignUp } from "@clerk/nextjs";
 import type { ReactElement } from "react";
 import { AuthShell } from "@/ui/auth/AuthShell";
 import { clerkAppearance } from "@/ui/auth/clerkAppearance";
+import { MobileGate } from "@/ui/shared/MobileGate";
 
 const SignUpPage = (): ReactElement => {
   return (
+    <MobileGate>
     <AuthShell
       title="Create your account"
       subtitle="Complete the invite flow with your email code to enter the alpha."
@@ -19,6 +21,7 @@ const SignUpPage = (): ReactElement => {
         signInUrl="/sign-in"
       />
     </AuthShell>
+    </MobileGate>
   );
 };
 
