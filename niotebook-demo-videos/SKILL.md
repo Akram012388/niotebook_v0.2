@@ -45,6 +45,7 @@ For the flagship workspace demo, use [references/flagship-demo.md](references/fl
 ### Phase 2: Recording
 
 Record footage with Screen Studio Pro:
+
 - Resolution: 1920x1080+ at 60fps
 - Window capture (not full screen)
 - Cursor visible with subtle highlight
@@ -119,8 +120,16 @@ export const LogoReveal: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const enter = spring({ frame, fps, config: { damping: 100, stiffness: 80, mass: 0.8 } });
-  const exit = spring({ frame: frame - 60, fps, config: { damping: 100, stiffness: 80 } });
+  const enter = spring({
+    frame,
+    fps,
+    config: { damping: 100, stiffness: 80, mass: 0.8 },
+  });
+  const exit = spring({
+    frame: frame - 60,
+    fps,
+    config: { damping: 100, stiffness: 80 },
+  });
 
   const y = enter * 100 - exit * 100; // Slides down then up
   const opacity = enter - exit;
@@ -141,6 +150,7 @@ export const LogoReveal: React.FC = () => {
 Generate SFX using AI or select from library. See [references/sfx-guide.md](references/sfx-guide.md).
 
 **Sound types needed:**
+
 - Notification ping (logo reveal)
 - Click (layout switches)
 - Whoosh (panel slides)
@@ -150,7 +160,7 @@ Generate SFX using AI or select from library. See [references/sfx-guide.md](refe
 ```tsx
 import { Audio, staticFile } from "remotion";
 
-<Audio src={staticFile("sfx/ping.wav")} startFrom={0} />
+<Audio src={staticFile("sfx/ping.wav")} startFrom={0} />;
 ```
 
 ### Phase 5: Export
@@ -169,17 +179,20 @@ ffmpeg -i out/master.mp4 -vf "scale=1080:1920" out/vertical.mp4
 ## Key Principles
 
 ### The "Effortless" Aesthetic
+
 - Spring physics on everything (no linear motion)
 - Generous timing (slow down when in doubt)
 - One animation at a time (no competing motions)
 - Breathing room between actions
 
 ### Seamless Looping
+
 - End state must match start state
 - No audio bleed across loop point
 - Final scene returns to initial conditions
 
 ### No Text Overlays
+
 - Product speaks for itself
 - Logo only at start
 - UI text is sufficient
@@ -187,30 +200,35 @@ ffmpeg -i out/master.mp4 -vf "scale=1080:1920" out/vertical.mp4
 ## Assets
 
 ### Remotion Templates
+
 Pre-built components in `assets/remotion-templates/`:
+
 - `brand.ts` — Colors, fonts, spring configs, timing constants
 - `LogoReveal.tsx` — Notification-style logo animation
 - `WorkspaceSlide.tsx` — Panel slide-in with spring physics
 - `SmartZoom.tsx` — Context-aware zoom to UI elements
 
 Copy to your Remotion project:
+
 ```bash
 cp assets/remotion-templates/*.tsx src/components/
 cp assets/remotion-templates/brand.ts src/
 ```
 
 ### Brand Assets
+
 Reference existing assets in the project:
+
 - Logos: `branding/logos/`
 - Social templates: `branding/social/`
 - Brand guide: `branding/README.md`
 
 ## References
 
-| File | Purpose |
-|------|---------|
-| [motion-patterns.md](references/motion-patterns.md) | Spring physics, easing, zoom patterns |
-| [platform-presets.md](references/platform-presets.md) | Export specs for all platforms |
-| [storyboarding.md](references/storyboarding.md) | Planning framework and templates |
-| [sfx-guide.md](references/sfx-guide.md) | Sound design guidelines |
-| [flagship-demo.md](references/flagship-demo.md) | Detailed storyboard for workspace demo |
+| File                                                  | Purpose                                |
+| ----------------------------------------------------- | -------------------------------------- |
+| [motion-patterns.md](references/motion-patterns.md)   | Spring physics, easing, zoom patterns  |
+| [platform-presets.md](references/platform-presets.md) | Export specs for all platforms         |
+| [storyboarding.md](references/storyboarding.md)       | Planning framework and templates       |
+| [sfx-guide.md](references/sfx-guide.md)               | Sound design guidelines                |
+| [flagship-demo.md](references/flagship-demo.md)       | Detailed storyboard for workspace demo |

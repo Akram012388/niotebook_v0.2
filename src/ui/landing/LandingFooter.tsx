@@ -195,7 +195,10 @@ export function LandingFooter(): ReactElement {
 
         {/* Wordmark + copyright */}
         <div className="mt-12 pt-8 border-t border-surface-strong-foreground/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Wordmark height={24} className="[&>span]:text-surface-strong-foreground" />
+          <Wordmark
+            height={24}
+            className="[&>span]:text-surface-strong-foreground"
+          />
           <p className="text-xs font-mono text-surface-strong-foreground/40">
             &copy; {new Date().getFullYear()} Niotebook &middot; Built for
             learners who ship

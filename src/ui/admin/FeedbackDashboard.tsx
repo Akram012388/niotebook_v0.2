@@ -38,7 +38,10 @@ const RatingStars = ({ rating }: { rating: number }): ReactElement => {
   return (
     <span className="text-sm">
       {Array.from({ length: 5 }, (_, i) => (
-        <span key={i} className={i < rating ? "text-status-warning" : "text-text-muted"}>
+        <span
+          key={i}
+          className={i < rating ? "text-status-warning" : "text-text-muted"}
+        >
           ★
         </span>
       ))}

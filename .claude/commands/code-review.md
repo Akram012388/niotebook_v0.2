@@ -28,25 +28,31 @@ Determine where the findings come from (in priority order):
 For each finding (F1, F2, F3...):
 
 ### a. Announce
+
 - State: "Addressing F<N>: <description>"
 
 ### b. Investigate
+
 - Read the relevant file(s) to understand the current state.
 - Read `CLAUDE.md` for project conventions if the finding relates to code style or patterns.
 
 ### c. Fix
+
 - Make the minimal change to address the finding.
 - Follow project conventions (TypeScript strict, React 19 patterns, Convex patterns, etc.).
 
 ### d. Confirm
+
 - State: "F<N> addressed: <what was changed>"
 
 ### e. Continue
+
 - Move to the next finding. Do not batch — address one at a time.
 
 ## 4. Verify Build
 
 After all findings are addressed:
+
 - Run `bun run typecheck && bun run lint && bun run test` to verify nothing is broken.
 - If any check fails, diagnose and fix before proceeding.
 

@@ -34,10 +34,7 @@ type VideoPlayerProps = {
 const SAMPLE_INTERVAL_SEC = 3;
 
 /** Module-level cache so remounts (e.g. layout switch) resume from last position. */
-const playbackCache = new Map<
-  string,
-  { timeSec: number; playing: boolean }
->();
+const playbackCache = new Map<string, { timeSec: number; playing: boolean }>();
 
 const VideoPlayer = ({
   videoId,

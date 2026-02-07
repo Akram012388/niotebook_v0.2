@@ -721,11 +721,14 @@ const fetchTranscriptWindow = async (args: {
     return [];
   }
 
-  const segments = await args.client.query(api.transcripts.getTranscriptWindow, {
-    lessonId: args.lessonId as Id<"lessons">,
-    startSec: args.startSec,
-    endSec: args.endSec,
-  });
+  const segments = await args.client.query(
+    api.transcripts.getTranscriptWindow,
+    {
+      lessonId: args.lessonId as Id<"lessons">,
+      startSec: args.startSec,
+      endSec: args.endSec,
+    },
+  );
 
   return segments.map((segment) => segment.textNormalized);
 };
@@ -989,9 +992,7 @@ export const POST = async (request: Request): Promise<Response> => {
         error: err instanceof Error ? err.message : String(err),
       });
     }
-  } else if (
-    !transcriptPayload.lines.some((line) => line.trim().length > 0)
-  ) {
+  } else if (!transcriptPayload.lines.some((line) => line.trim().length > 0)) {
     debugLog("transcript: no SRT fallback available", {
       requestId: validation.data.requestId,
       hasLessonMeta: Boolean(lessonMeta),

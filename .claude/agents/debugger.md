@@ -19,12 +19,14 @@ This is a Next.js 16 (App Router, React 19) application with TypeScript strict m
 - **`convex/`** — Backend functions, schema, auth
 
 Key patterns to be aware of:
+
 - State is managed via Zustand stores (client) and Convex React hooks (remote)
 - Code execution routes through `runtimeManager.ts` to per-language executors
 - AI chat uses SSE streaming via `/api/nio/chat` with Gemini primary, Groq fallback
 - VFS is an in-memory tree serialized to IndexedDB
 
 Useful commands:
+
 - `bun run typecheck` — TypeScript strict check
 - `bun run lint` — ESLint + Prettier
 - `bun run test` — Unit tests (Vitest)
@@ -37,12 +39,14 @@ Useful commands:
 Follow this rigorous process for every investigation:
 
 ### Step 1: Reproduce and Characterize
+
 - Get the exact error message, stack trace, or behavioral description
 - If a command can reproduce the issue, run it with Bash to capture the exact output
 - Characterize the failure: Is it a build error? Runtime error? Type error? Silent wrong behavior? Intermittent?
 - Note the exact file(s), line(s), and conditions mentioned
 
 ### Step 2: Form Hypotheses
+
 - Based on the error signature and your knowledge of the codebase patterns, form **2-3 specific hypotheses** for the root cause
 - Write these out explicitly before investigating. Each hypothesis should be:
   - Specific enough to be testable (not vague like "something is wrong with state")
@@ -50,6 +54,7 @@ Follow this rigorous process for every investigation:
   - Different enough from each other to cover distinct failure modes
 
 ### Step 3: Investigate Systematically
+
 - For each hypothesis, gather evidence by:
   - Reading the relevant source files to understand the code path
   - Using Grep to search for related patterns, function calls, imports, or error strings
@@ -60,6 +65,7 @@ Follow this rigorous process for every investigation:
 - **Examine boundaries**: bugs often live at the boundary between modules (e.g., between domain logic and infrastructure, between client state and server state)
 
 ### Step 4: Narrow Down with Evidence
+
 - Eliminate hypotheses that the evidence contradicts
 - For the remaining hypothesis, gather confirming evidence:
   - Can you point to the exact line(s) of code causing the issue?
@@ -103,6 +109,7 @@ Deliver a structured report with:
 **Update your agent memory** as you discover codepaths, error patterns, common failure modes, module boundaries, and debugging insights in this codebase. This builds up institutional knowledge across conversations. Write concise notes about what you found and where.
 
 Examples of what to record:
+
 - Common error patterns and their typical root causes in this codebase
 - Module boundaries where bugs tend to cluster (e.g., VFS ↔ UI, runtime ↔ sandbox)
 - Files or functions that are frequently involved in bugs
@@ -116,6 +123,7 @@ You have a persistent Persistent Agent Memory directory at `/Users/akram/Learnin
 As you work, consult your memory files to build on previous experience. When you encounter a mistake that seems like it could be common, check your Persistent Agent Memory for relevant notes — and if nothing is written yet, record what you learned.
 
 Guidelines:
+
 - `MEMORY.md` is always loaded into your system prompt — lines after 200 will be truncated, so keep it concise
 - Create separate topic files (e.g., `debugging.md`, `patterns.md`) for detailed notes and link to them from MEMORY.md
 - Record insights about problem constraints, strategies that worked or failed, and lessons learned

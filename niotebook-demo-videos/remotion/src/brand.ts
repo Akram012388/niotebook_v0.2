@@ -44,31 +44,31 @@ export const VIDEO_CONFIG = {
 // Timing in frames (at 60fps)
 export const TIMING = {
   // Logo sequence
-  logoEnter: 30,      // 0.5s
-  logoHold: 60,       // 1s
-  logoExit: 30,       // 0.5s
+  logoEnter: 30, // 0.5s
+  logoHold: 60, // 1s
+  logoExit: 30, // 0.5s
 
   // Transitions
-  slideIn: 36,        // 0.6s
-  layoutSwitch: 18,   // 0.3s
+  slideIn: 36, // 0.6s
+  layoutSwitch: 18, // 0.3s
 
   // Zoom
-  zoomIn: 30,         // 0.5s
-  zoomHold: 90,       // 1.5s
-  zoomOut: 24,        // 0.4s
+  zoomIn: 30, // 0.5s
+  zoomHold: 90, // 1.5s
+  zoomOut: 24, // 0.4s
 
   // Spacing
-  breathe: 6,         // 0.1s minimum between animations
+  breathe: 6, // 0.1s minimum between animations
 } as const;
 
 // Sequence timing (frame numbers)
 export const SEQUENCE = {
-  logo: { start: 0, duration: 120 },              // 0:00-0:02
-  workspaceEntry: { start: 100, duration: 120 },  // 0:01.67-0:03.67
-  layoutMontage: { start: 200, duration: 360 },   // 0:03.33-0:09.33
-  codeZoom: { start: 540, duration: 240 },        // 0:09-0:13
-  aiChatHero: { start: 760, duration: 480 },      // 0:12.67-0:20.67
-  fullWorkspace: { start: 1200, duration: 180 },  // 0:20-0:23
-  layoutDance: { start: 1360, duration: 240 },    // 0:22.67-0:26.67
-  exitLoop: { start: 1580, duration: 120 },       // 0:26.33-0:28.33
+  logo: { start: 0, duration: 120 }, // 0:00-0:02
+  workspaceEntry: { start: 100, duration: 120 }, // 0:01.67-0:03.67
+  layoutMontage: { start: 200, duration: 360 }, // 0:03.33-0:09.33
+  codeZoom: { start: 540, duration: 240 }, // 0:09-0:13
+  aiChatHero: { start: 760, duration: 480 }, // 0:12.67-0:20.67
+  fullWorkspace: { start: 1200, duration: 180 }, // 0:20-0:23
+  layoutDance: { start: 1360, duration: 240 }, // 0:22.67-0:26.67
+  exitLoop: { start: 1580, duration: 120 }, // 0:26.33-0:28.33
 } as const;

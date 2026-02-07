@@ -19,10 +19,7 @@ const RenderedMarkdown = memo(function RenderedMarkdown({
   content: string;
 }) {
   return (
-    <ReactMarkdown
-      remarkPlugins={remarkPlugins}
-      rehypePlugins={rehypePlugins}
-    >
+    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins}>
       {content}
     </ReactMarkdown>
   );

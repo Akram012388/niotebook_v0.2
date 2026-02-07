@@ -129,9 +129,7 @@ const AiPane = ({
     if (codeSnapshot) {
       const lang = (codeSnapshot.language ?? "unknown").toUpperCase();
       const fileLabel = codeSnapshot.fileName ?? lang;
-      parts.push(
-        `${fileLabel}${codeSnapshot.codeHash ? " (modified)" : ""}`,
-      );
+      parts.push(`${fileLabel}${codeSnapshot.codeHash ? " (modified)" : ""}`);
     }
     return parts.join(" │ ");
   }, [lectureNumber, formattedTime, codeSnapshot]);
@@ -159,11 +157,7 @@ const AiPane = ({
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
         <ChatScroll isStreaming={streamState === "streaming"}>
           {messages.map((message) => (
-            <ChatMessage
-              key={message.id}
-              message={message}
-              onSeek={onSeek}
-            />
+            <ChatMessage key={message.id} message={message} onSeek={onSeek} />
           ))}
         </ChatScroll>
         {streamError ? (

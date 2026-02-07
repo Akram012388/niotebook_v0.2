@@ -6,29 +6,29 @@
 
 ## Color Tokens
 
-| Token | Hex | Usage |
-|---|---|---|
-| **Black** | `#0A0A0A` | Primary background, text on light |
-| **White** | `#FAFAFA` | Primary text on dark, light backgrounds |
-| **Gray 900** | `#171717` | Surfaces, cards (dark mode) |
-| **Gray 700** | `#404040` | The gray bar element |
-| **Gray 400** | `#A3A3A3` | Secondary text, borders |
-| **Gray 100** | `#F5F5F5` | Surfaces (light mode) |
-| **Acid Green** | `#00FF66` | Primary accent — active states, highlights, CTAs |
-| **Green Dim** | `#00CC52` | Accent on light backgrounds (AA contrast on white) |
+| Token          | Hex       | Usage                                              |
+| -------------- | --------- | -------------------------------------------------- |
+| **Black**      | `#0A0A0A` | Primary background, text on light                  |
+| **White**      | `#FAFAFA` | Primary text on dark, light backgrounds            |
+| **Gray 900**   | `#171717` | Surfaces, cards (dark mode)                        |
+| **Gray 700**   | `#404040` | The gray bar element                               |
+| **Gray 400**   | `#A3A3A3` | Secondary text, borders                            |
+| **Gray 100**   | `#F5F5F5` | Surfaces (light mode)                              |
+| **Acid Green** | `#00FF66` | Primary accent — active states, highlights, CTAs   |
+| **Green Dim**  | `#00CC52` | Accent on light backgrounds (AA contrast on white) |
 
 ### CSS Custom Properties
 
 ```css
 :root {
-  --nio-black: #0A0A0A;
-  --nio-white: #FAFAFA;
+  --nio-black: #0a0a0a;
+  --nio-white: #fafafa;
   --nio-gray-900: #171717;
   --nio-gray-700: #404040;
-  --nio-gray-400: #A3A3A3;
-  --nio-gray-100: #F5F5F5;
-  --nio-green: #00FF66;
-  --nio-green-dim: #00CC52;
+  --nio-gray-400: #a3a3a3;
+  --nio-gray-100: #f5f5f5;
+  --nio-green: #00ff66;
+  --nio-green-dim: #00cc52;
 }
 ```
 
@@ -36,11 +36,11 @@
 
 ## Typography
 
-| Element | Font | Weight | Notes |
-|---|---|---|---|
-| **Logomark / Wordmark** | Orbitron | Bold (700) | Converted to outlines in final assets |
-| **UI Headings** | System / Geist Sans | Semi-Bold (600) | — |
-| **UI Body / Code** | Geist Mono | Regular (400) | Monospace throughout |
+| Element                 | Font                | Weight          | Notes                                 |
+| ----------------------- | ------------------- | --------------- | ------------------------------------- |
+| **Logomark / Wordmark** | Orbitron            | Bold (700)      | Converted to outlines in final assets |
+| **UI Headings**         | System / Geist Sans | Semi-Bold (600) | —                                     |
+| **UI Body / Code**      | Geist Mono          | Regular (400)   | Monospace throughout                  |
 
 ---
 
@@ -143,7 +143,10 @@ branding/
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:title" content="Niotebook" />
-<meta property="og:description" content="The interactive notebook for learning to code alongside video." />
+<meta
+  property="og:description"
+  content="The interactive notebook for learning to code alongside video."
+/>
 ```
 
 ### GitHub README Badge

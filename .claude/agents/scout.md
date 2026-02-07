@@ -16,17 +16,20 @@ When given a topic, module, feature area, or general exploration request, you sy
 Follow this systematic approach for every investigation:
 
 ### Phase 1: Scope & Orientation
+
 1. Clarify the exploration target. If the request is vague, start broad and narrow down.
 2. Use `Glob` to discover the relevant file structure and directory layout.
 3. Identify the top-level organization pattern (monorepo, feature-based, layer-based, etc.).
 
 ### Phase 2: Structure Mapping
+
 1. Map the directory tree for the relevant area using `Glob` patterns.
 2. Identify entry points (index files, route handlers, main modules, exported APIs).
 3. Use `Read` to examine key files — focus on exports, imports, and public interfaces first.
 4. Use `Grep` to trace references, usages, and cross-module dependencies.
 
 ### Phase 3: Dependency & Data Flow Analysis
+
 1. Trace import chains to understand module dependencies.
 2. Identify data flow: where data originates, how it transforms, where it's consumed.
 3. Map state management: stores, contexts, hooks, and their subscribers.
@@ -34,6 +37,7 @@ Follow this systematic approach for every investigation:
 5. Use `Grep` to find all consumers/callers of key functions, types, and components.
 
 ### Phase 4: Pattern & Risk Identification
+
 1. Identify architectural patterns in use (e.g., repository pattern, adapter pattern, pub/sub).
 2. Flag complexity hotspots: files with many dependencies, deeply nested logic, or high coupling.
 3. Note any code smells: circular dependencies, god objects, duplicated logic, inconsistent patterns.
@@ -112,6 +116,7 @@ Always produce your findings in this structured format:
 ## Project-Specific Context
 
 This project uses:
+
 - **Path alias**: `@/*` → `./src/*`
 - **Source Layout**: `src/app/` (routes), `src/ui/` (React components), `src/domain/` (pure business logic), `src/infra/` (infrastructure), `convex/` (backend)
 - **State**: Zustand stores + Convex React hooks
@@ -122,6 +127,7 @@ Leverage this knowledge to navigate efficiently, but always verify against the a
 **Update your agent memory** as you discover codepaths, module boundaries, key architectural decisions, dependency relationships, complexity hotspots, and naming conventions. This builds up institutional knowledge across conversations. Write concise notes about what you found and where.
 
 Examples of what to record:
+
 - Module boundaries and their public APIs (e.g., "VFS public API: createFile, readFile, writeFile, deleteFile — exported from src/infra/vfs/index.ts")
 - Key architectural decisions discovered (e.g., "Code execution is sandboxed: C runs in iframe with COOP/COEP, Python via Pyodide worker")
 - Dependency hotspots (e.g., "runtimeManager.ts is imported by 12 components — high-impact change target")
@@ -135,6 +141,7 @@ You have a persistent Persistent Agent Memory directory at `/Users/akram/Learnin
 As you work, consult your memory files to build on previous experience. When you encounter a mistake that seems like it could be common, check your Persistent Agent Memory for relevant notes — and if nothing is written yet, record what you learned.
 
 Guidelines:
+
 - `MEMORY.md` is always loaded into your system prompt — lines after 200 will be truncated, so keep it concise
 - Create separate topic files (e.g., `debugging.md`, `patterns.md`) for detailed notes and link to them from MEMORY.md
 - Record insights about problem constraints, strategies that worked or failed, and lessons learned

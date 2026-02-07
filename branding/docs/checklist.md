@@ -29,26 +29,26 @@
 
 Create local styles (not just fills) so every frame pulls from one source:
 
-| Style name | Hex | Usage |
-|---|---|---|
-| `nio/black` | `#0A0A0A` | Primary bg, text on light |
-| `nio/white` | `#FAFAFA` | Text on dark, light bg |
-| `nio/gray-900` | `#171717` | Surfaces (dark mode) |
-| `nio/gray-700` | `#404040` | Gray bar (dark mode) |
-| `nio/gray-400` | `#A3A3A3` | Gray bar (light mode), secondary text |
-| `nio/gray-100` | `#F5F5F5` | Surfaces (light mode) |
-| `nio/green` | `#00FF66` | Primary accent |
-| `nio/green-dim` | `#00CC52` | Accent on light bg (AA compliant) |
+| Style name      | Hex       | Usage                                 |
+| --------------- | --------- | ------------------------------------- |
+| `nio/black`     | `#0A0A0A` | Primary bg, text on light             |
+| `nio/white`     | `#FAFAFA` | Text on dark, light bg                |
+| `nio/gray-900`  | `#171717` | Surfaces (dark mode)                  |
+| `nio/gray-700`  | `#404040` | Gray bar (dark mode)                  |
+| `nio/gray-400`  | `#A3A3A3` | Gray bar (light mode), secondary text |
+| `nio/gray-100`  | `#F5F5F5` | Surfaces (light mode)                 |
+| `nio/green`     | `#00FF66` | Primary accent                        |
+| `nio/green-dim` | `#00CC52` | Accent on light bg (AA compliant)     |
 
 - Test `#00FF66` on `#0A0A0A` and `#FAFAFA` in a contrast checker frame — aim for WCAG AA minimum (4.5:1 for text)
 
 ### 3. Define text styles
 
-| Style name | Font | Weight | Size (reference) |
-|---|---|---|---|
-| `nio/logo` | Orbitron | Bold (700) | — (scales per context) |
-| `nio/heading` | Geist Sans | Semi-Bold (600) | 24/32/40 |
-| `nio/body` | Geist Mono | Regular (400) | 14/16 |
+| Style name    | Font       | Weight          | Size (reference)       |
+| ------------- | ---------- | --------------- | ---------------------- |
+| `nio/logo`    | Orbitron   | Bold (700)      | — (scales per context) |
+| `nio/heading` | Geist Sans | Semi-Bold (600) | 24/32/40               |
+| `nio/body`    | Geist Mono | Regular (400)   | 14/16                  |
 
 - Install Orbitron via Google Fonts (Figma auto-loads it if signed in)
 
@@ -99,13 +99,13 @@ Create local styles (not just fills) so every frame pulls from one source:
 
 Select each variant component, add export settings in the right panel:
 
-| Variant | Export settings | Destination |
-|---|---|---|
-| Wordmark Light | SVG, PNG @1x, @2x, @4x | `logos/wordmark/light/` |
-| Wordmark Dark | SVG, PNG @1x, @2x, @4x | `logos/wordmark/dark/` |
-| NioMark Light | PNG @1x at 512, 256, 128, 64 | `logos/nio-mark/light/` |
-| NioMark Dark | Same sizes | `logos/nio-mark/dark/` |
-| NioMark Accent | Same sizes | `logos/nio-mark/accent/` |
+| Variant        | Export settings              | Destination              |
+| -------------- | ---------------------------- | ------------------------ |
+| Wordmark Light | SVG, PNG @1x, @2x, @4x       | `logos/wordmark/light/`  |
+| Wordmark Dark  | SVG, PNG @1x, @2x, @4x       | `logos/wordmark/dark/`   |
+| NioMark Light  | PNG @1x at 512, 256, 128, 64 | `logos/nio-mark/light/`  |
+| NioMark Dark   | Same sizes                   | `logos/nio-mark/dark/`   |
+| NioMark Accent | Same sizes                   | `logos/nio-mark/accent/` |
 
 - For SVG: ensure "Outline Text" is checked (or flatten text to vector first)
 - Naming convention: `niotebook-wordmark-light@2x.png`, `nio-mark-dark-256.png`
@@ -124,13 +124,13 @@ Figma cannot pixel-hint effectively at 16px. For these sizes:
 
 From the nio mark, create a Figma frame for each:
 
-| Asset | Frame size | Notes |
-|---|---|---|
-| `favicon-32x32.png` | 32×32 | Use Photoshop pixel-hinted version |
-| `favicon-16x16.png` | 16×16 | Use Photoshop pixel-hinted version |
-| `apple-touch-icon.png` | 180×180 | Nio mark centered, ~20px padding |
-| `android-chrome-192x192.png` | 192×192 | Same approach |
-| `android-chrome-512x512.png` | 512×512 | Direct Figma export is fine |
+| Asset                        | Frame size | Notes                              |
+| ---------------------------- | ---------- | ---------------------------------- |
+| `favicon-32x32.png`          | 32×32      | Use Photoshop pixel-hinted version |
+| `favicon-16x16.png`          | 16×16      | Use Photoshop pixel-hinted version |
+| `apple-touch-icon.png`       | 180×180    | Nio mark centered, ~20px padding   |
+| `android-chrome-192x192.png` | 192×192    | Same approach                      |
+| `android-chrome-512x512.png` | 512×512    | Direct Figma export is fine        |
 
 - `favicon.ico` (contains 16+32): use a CLI tool or realfavicongenerator.net to bundle after exporting the PNGs
 
@@ -157,17 +157,17 @@ From the nio mark, create a Figma frame for each:
 
 Create one frame per platform on the `Social` page:
 
-| Platform | Frame size | Layout | Export to |
-|---|---|---|---|
-| X/Twitter | 1500×500 | Wordmark left-aligned ~40% width, bar extends, bg `nio/black` | `social/twitter/` |
-| LinkedIn | 1584×396 | Same concept, wider crop | `social/linkedin/` |
-| GitHub | 1280×640 | Wordmark centered | `social/github/` |
-| Discord | 960×540 | Wordmark centered | `social/discord/` |
-| YouTube | 2560×1440 | Wordmark centered in safe area (inner 1546×423) | `social/youtube/` |
-| Facebook | 820×312 | Wordmark centered | `social/facebook/` |
-| Instagram | 1080×1080 | Nio mark centered, minimal | `social/instagram/` |
-| TikTok | 1080×1920 | Nio mark upper-third, tagline below | `social/tiktok/` |
-| ProductHunt | 1270×760 | Wordmark + tagline centered | `social/producthunt/` |
+| Platform    | Frame size | Layout                                                        | Export to             |
+| ----------- | ---------- | ------------------------------------------------------------- | --------------------- |
+| X/Twitter   | 1500×500   | Wordmark left-aligned ~40% width, bar extends, bg `nio/black` | `social/twitter/`     |
+| LinkedIn    | 1584×396   | Same concept, wider crop                                      | `social/linkedin/`    |
+| GitHub      | 1280×640   | Wordmark centered                                             | `social/github/`      |
+| Discord     | 960×540    | Wordmark centered                                             | `social/discord/`     |
+| YouTube     | 2560×1440  | Wordmark centered in safe area (inner 1546×423)               | `social/youtube/`     |
+| Facebook    | 820×312    | Wordmark centered                                             | `social/facebook/`    |
+| Instagram   | 1080×1080  | Nio mark centered, minimal                                    | `social/instagram/`   |
+| TikTok      | 1080×1920  | Nio mark upper-third, tagline below                           | `social/tiktok/`      |
+| ProductHunt | 1270×760   | Wordmark + tagline centered                                   | `social/producthunt/` |
 
 - **Rule**: Keep all text/logos within the center 60% — edges get cropped on mobile
 - Use Figma's layout grid to mark the safe zone on each frame

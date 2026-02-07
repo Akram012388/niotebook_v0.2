@@ -5,6 +5,7 @@ Export specifications for each distribution channel.
 ## Master Format
 
 Always render master at highest quality first:
+
 - **Resolution**: 4K (3840x2160) or 2K (1920x1080)
 - **Frame rate**: 60fps
 - **Codec**: ProRes 422 HQ or H.264 high quality
@@ -26,6 +27,7 @@ export const LandingPageConfig = {
 ```
 
 **Export settings:**
+
 - Format: MP4 (H.264) or WebM (VP9)
 - Bitrate: 8-12 Mbps
 - Audio: Optional (most heroes muted)
@@ -49,6 +51,7 @@ export const TwitterConfig = {
 ```
 
 **Export settings:**
+
 - Format: MP4 (H.264)
 - Max file: 512MB (but aim <15MB for quality retention)
 - Max duration: 2:20 (we use 30s)
@@ -68,6 +71,7 @@ export const LinkedInConfig = {
 ```
 
 **Export settings:**
+
 - Format: MP4
 - Max file: 5GB (aim <50MB)
 - Aspect: 16:9, 1:1, or 4:5
@@ -87,12 +91,14 @@ export const ProductHuntConfig = {
 ```
 
 **Export settings:**
+
 - Format: MP4 or GIF
 - GIF: Max 3MB (for thumbnail)
 - Video: High quality, clean compression
 - Audio: Optional (many view silently in feed)
 
 **Gallery images** (static frames):
+
 - 1270x760px
 - PNG or JPG
 - Extract key moments as stills
@@ -111,11 +117,13 @@ export const VerticalConfig = {
 ```
 
 **Export settings:**
+
 - Format: MP4
 - Bitrate: 3-5 Mbps
 - Audio: Required (these platforms are sound-on)
 
 **Adaptation notes:**
+
 - May need to re-compose for vertical (not just crop)
 - Center key UI elements
 - Consider split-screen showing before/after
@@ -134,6 +142,7 @@ export const YouTubeConfig = {
 ```
 
 **Export settings:**
+
 - Format: MP4 (H.264) or MOV (ProRes)
 - Bitrate: 12-20 Mbps
 - Audio: 320kbps AAC
@@ -154,6 +163,7 @@ ffmpeg -i out/master.mp4 -vf "scale=1080:1920:force_original_aspect_ratio=decrea
 ## Loop Verification
 
 Before delivery, verify seamless loop:
+
 1. Play video on loop for 30+ seconds
 2. Watch the loop point specifically
 3. Check no audio pop/click at loop

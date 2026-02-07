@@ -131,7 +131,6 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
 
     const runPromise = (async (): Promise<RuntimeRunResult> => {
       try {
-
         if (input.filesystem) {
           mountPythonFiles(pyodide, input.filesystem);
         }

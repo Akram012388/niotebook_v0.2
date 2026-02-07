@@ -11,42 +11,42 @@
 
 :root {
   /* --- Color: Backgrounds --- */
-  --background: #F4F3EE;
-  --foreground: #1C1917;
-  --surface: #FAF9F7;
-  --surface-muted: #EDEAE4;
-  --surface-strong: #1C1917;
-  --surface-strong-foreground: #F4F3EE;
-  --border: #DDD8D0;
-  --border-muted: #EDEAE4;
+  --background: #f4f3ee;
+  --foreground: #1c1917;
+  --surface: #faf9f7;
+  --surface-muted: #edeae4;
+  --surface-strong: #1c1917;
+  --surface-strong-foreground: #f4f3ee;
+  --border: #ddd8d0;
+  --border-muted: #edeae4;
 
   /* --- Color: Text --- */
-  --text-muted: #78716C;
-  --text-subtle: #A8A29E;
+  --text-muted: #78716c;
+  --text-subtle: #a8a29e;
 
   /* --- Color: Accent (Claude terracotta) --- */
-  --accent: #C15F3C;
-  --accent-foreground: #FFFFFF;
-  --accent-muted: rgba(193, 95, 60, 0.10);
+  --accent: #c15f3c;
+  --accent-foreground: #ffffff;
+  --accent-muted: rgba(193, 95, 60, 0.1);
   --accent-border: rgba(193, 95, 60, 0.25);
-  --accent-hover: #A8512F;
+  --accent-hover: #a8512f;
 
   /* --- Color: Status --- */
-  --status-success: #5A8A5E;
-  --status-warning: #B5882C;
-  --status-error: #C24B3A;
-  --status-info: #5B7FA5;
+  --status-success: #5a8a5e;
+  --status-warning: #b5882c;
+  --status-error: #c24b3a;
+  --status-info: #5b7fa5;
 
   /* --- Color: Workspace (code pane - always dark) --- */
-  --workspace-editor: #1C1917;
-  --workspace-sidebar: #1C1917;
-  --workspace-terminal: #1C1917;
+  --workspace-editor: #1c1917;
+  --workspace-sidebar: #1c1917;
+  --workspace-terminal: #1c1917;
   --workspace-tabbar: #252220;
-  --workspace-border: #3A3531;
-  --workspace-border-muted: #2E2A27;
-  --workspace-text: #F4F3EE;
-  --workspace-text-muted: #A8A29E;
-  --workspace-accent: #C15F3C;
+  --workspace-border: #3a3531;
+  --workspace-border-muted: #2e2a27;
+  --workspace-text: #f4f3ee;
+  --workspace-text-muted: #a8a29e;
+  --workspace-accent: #c15f3c;
   --workspace-accent-muted: rgba(193, 95, 60, 0.18);
 
   /* --- Shadows (warm-tinted) --- */
@@ -85,42 +85,42 @@
    (from localStorage or system preference), so no @media fallback is needed.
    -------------------------------------------------------------------------- */
 [data-theme="dark"] {
-  --background: #1C1917;
-  --foreground: #F4F3EE;
+  --background: #1c1917;
+  --foreground: #f4f3ee;
   --surface: #252220;
-  --surface-muted: #2E2A27;
+  --surface-muted: #2e2a27;
   --surface-strong: #141210;
-  --surface-strong-foreground: #F4F3EE;
-  --border: #3A3531;
-  --border-muted: #2E2A27;
+  --surface-strong-foreground: #f4f3ee;
+  --border: #3a3531;
+  --border-muted: #2e2a27;
 
-  --text-muted: #A8A29E;
-  --text-subtle: #78716C;
+  --text-muted: #a8a29e;
+  --text-subtle: #78716c;
 
-  --accent: #DA7756;
-  --accent-foreground: #1C1917;
+  --accent: #da7756;
+  --accent-foreground: #1c1917;
   --accent-muted: rgba(218, 119, 86, 0.15);
-  --accent-border: rgba(218, 119, 86, 0.30);
-  --accent-hover: #E8906E;
+  --accent-border: rgba(218, 119, 86, 0.3);
+  --accent-hover: #e8906e;
 
-  --status-success: #6DA072;
-  --status-warning: #D4A748;
-  --status-error: #E06B5A;
-  --status-info: #7A9FC0;
+  --status-success: #6da072;
+  --status-warning: #d4a748;
+  --status-error: #e06b5a;
+  --status-info: #7a9fc0;
 
-  --workspace-editor: #1C1917;
-  --workspace-sidebar: #1C1917;
-  --workspace-terminal: #1C1917;
+  --workspace-editor: #1c1917;
+  --workspace-sidebar: #1c1917;
+  --workspace-terminal: #1c1917;
   --workspace-tabbar: #252220;
-  --workspace-border: #3A3531;
-  --workspace-border-muted: #2E2A27;
-  --workspace-text: #F4F3EE;
-  --workspace-text-muted: #A8A29E;
-  --workspace-accent: #DA7756;
+  --workspace-border: #3a3531;
+  --workspace-border-muted: #2e2a27;
+  --workspace-text: #f4f3ee;
+  --workspace-text-muted: #a8a29e;
+  --workspace-accent: #da7756;
   --workspace-accent-muted: rgba(218, 119, 86, 0.18);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.20);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
 
   --pattern-opacity: 0.02;
@@ -456,7 +456,11 @@ button:disabled {
 
 .cl-alert {
   color: var(--status-error) !important;
-  background: color-mix(in srgb, var(--status-error) 5%, transparent) !important;
+  background: color-mix(
+    in srgb,
+    var(--status-error) 5%,
+    transparent
+  ) !important;
   border: 1px solid color-mix(in srgb, var(--status-error) 20%, transparent) !important;
   border-radius: var(--radius-lg) !important;
 }

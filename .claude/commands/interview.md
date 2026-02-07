@@ -9,6 +9,7 @@ Follow this process:
 5. At the end, produce a structured summary of all insights gathered during the interview, organized by theme.
 
 Guidelines:
+
 - Questions should be open-ended and probing, not yes/no.
 - Use the AskUserQuestion tool for every question round — provide 2-4 option suggestions per question but always allow free-form input via "Other".
 - Adapt your questions based on previous answers — don't use a fixed script.

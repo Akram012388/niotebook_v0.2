@@ -255,7 +255,8 @@ const useChatThread = (
 
   const rafRef = useRef<number | null>(null);
   const streamStartedAtRef = useRef<number>(0);
-  const mergedMessagesRef: MutableRefObject<ChatMessage[]> = useRef(mergedMessages);
+  const mergedMessagesRef: MutableRefObject<ChatMessage[]> =
+    useRef(mergedMessages);
   mergedMessagesRef.current = mergedMessages;
   const streamStateRef: MutableRefObject<ChatStreamState> = useRef(streamState);
   streamStateRef.current = streamState;
@@ -531,8 +532,7 @@ const useChatThread = (
             flushTokens();
             updateLocalMessage(assistantTempId, (message) => ({
               ...message,
-              content:
-                message.content || "Connection to assistant lost.",
+              content: message.content || "Connection to assistant lost.",
               isStreaming: false,
             }));
             setStreamError("Connection to assistant lost.");

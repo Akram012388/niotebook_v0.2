@@ -5,64 +5,64 @@ import {
   COLORS,
   addExports,
   svgExport,
-} from './utils'
+} from "./utils";
 
 /** Create a ~200×28 README badge with nio mark + "niotebook" text. */
 export async function buildBadge() {
-  await loadLogoFont()
+  await loadLogoFont();
 
-  const page = getOrCreatePage('Logo System')
-  figma.currentPage = page
+  const page = getOrCreatePage("Logo System");
+  figma.currentPage = page;
 
-  const FONT: FontName = { family: 'Orbitron', style: 'Bold' }
-  const FONT_SIZE = 14
-  const HEIGHT = 28
-  const PADDING = 8
+  const FONT: FontName = { family: "Orbitron", style: "Bold" };
+  const FONT_SIZE = 14;
+  const HEIGHT = 28;
+  const PADDING = 8;
 
-  const frame = figma.createFrame()
-  frame.name = 'Badge/niotebook-badge'
-  frame.fills = [solidPaint(COLORS.gray900)]
-  frame.cornerRadius = 4
-  frame.clipsContent = true
+  const frame = figma.createFrame();
+  frame.name = "Badge/niotebook-badge";
+  frame.fills = [solidPaint(COLORS.gray900)];
+  frame.cornerRadius = 4;
+  frame.clipsContent = true;
 
   // "nio" mark
-  const nioText = figma.createText()
-  nioText.fontName = FONT
-  nioText.fontSize = FONT_SIZE
-  nioText.characters = 'nio'
-  nioText.fills = [solidPaint(COLORS.green)]
-  nioText.x = PADDING
-  nioText.y = (HEIGHT - FONT_SIZE) / 2
+  const nioText = figma.createText();
+  nioText.fontName = FONT;
+  nioText.fontSize = FONT_SIZE;
+  nioText.characters = "nio";
+  nioText.fills = [solidPaint(COLORS.green)];
+  nioText.x = PADDING;
+  nioText.y = (HEIGHT - FONT_SIZE) / 2;
 
   // separator
-  const sep = figma.createRectangle()
-  sep.resize(1, HEIGHT * 0.6)
-  sep.fills = [solidPaint(COLORS.gray700)]
-  sep.x = nioText.x + nioText.width + PADDING
-  sep.y = HEIGHT * 0.2
+  const sep = figma.createRectangle();
+  sep.resize(1, HEIGHT * 0.6);
+  sep.fills = [solidPaint(COLORS.gray700)];
+  sep.x = nioText.x + nioText.width + PADDING;
+  sep.y = HEIGHT * 0.2;
 
   // "tebook" text
-  const restText = figma.createText()
-  restText.fontName = FONT
-  restText.fontSize = FONT_SIZE
-  restText.characters = 'tebook'
-  restText.fills = [solidPaint(COLORS.white)]
-  restText.x = sep.x + sep.width + PADDING
-  restText.y = (HEIGHT - FONT_SIZE) / 2
+  const restText = figma.createText();
+  restText.fontName = FONT;
+  restText.fontSize = FONT_SIZE;
+  restText.characters = "tebook";
+  restText.fills = [solidPaint(COLORS.white)];
+  restText.x = sep.x + sep.width + PADDING;
+  restText.y = (HEIGHT - FONT_SIZE) / 2;
 
-  const totalWidth = restText.x + restText.width + PADDING
-  frame.resize(totalWidth, HEIGHT)
+  const totalWidth = restText.x + restText.width + PADDING;
+  frame.resize(totalWidth, HEIGHT);
 
-  frame.appendChild(nioText)
-  frame.appendChild(sep)
-  frame.appendChild(restText)
+  frame.appendChild(nioText);
+  frame.appendChild(sep);
+  frame.appendChild(restText);
 
-  addExports(frame, [svgExport()])
+  addExports(frame, [svgExport()]);
 
   // Position away from other logo system elements
-  frame.x = 0
-  frame.y = 600
+  frame.x = 0;
+  frame.y = 600;
 
-  page.appendChild(frame)
-  figma.notify('✓ Badge created')
+  page.appendChild(frame);
+  figma.notify("✓ Badge created");
 }

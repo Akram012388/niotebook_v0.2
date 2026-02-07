@@ -62,7 +62,12 @@ const VideoPane = ({
       title: lesson?.title,
       order: lesson?.order,
     });
-  }, [lesson?.order, lesson?.subtitlesUrl, lesson?.title, lesson?.transcriptUrl]);
+  }, [
+    lesson?.order,
+    lesson?.subtitlesUrl,
+    lesson?.title,
+    lesson?.transcriptUrl,
+  ]);
 
   const checkAutoCompletion = useAutoCompletion({
     lessonId,
@@ -81,9 +86,9 @@ const VideoPane = ({
         : null;
     let topicPart = lesson?.title ?? null;
     if (topicPart && lecturePart) {
-      topicPart = topicPart
-        .replace(/^Lecture\s+\d+\s*[:\u2014—\-–]\s*/i, "")
-        .trim() || null;
+      topicPart =
+        topicPart.replace(/^Lecture\s+\d+\s*[:\u2014—\-–]\s*/i, "").trim() ||
+        null;
     }
     const secondaryParts = [lecturePart, topicPart].filter(Boolean).join(": ");
     return {
@@ -144,7 +149,6 @@ const VideoPane = ({
       onTimeChange?.(frame.videoTimeSec);
     }
   }, [frame?.videoTimeSec, onTimeChange]);
-
 
   // Size the video wrapper via direct DOM writes to avoid state-driven
   // re-render loops that caused jitter with the previous setState approach.
@@ -231,7 +235,6 @@ const VideoPane = ({
         >
           {lesson ? (
             <div ref={videoWrapRef} className="w-full max-w-full aspect-video">
-
               <VideoPlayer
                 videoId={lesson.videoId}
                 initialTimeSec={initialTimeSec}

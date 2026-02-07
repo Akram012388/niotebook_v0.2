@@ -16,9 +16,11 @@ A 30-second seamless loop showcasing the multi-pane workspace interface and its 
 ## Storyboard
 
 ### Scene 1: Brand Reveal (0:00 - 0:02)
+
 **Duration:** 2 seconds
 
 niotebook wordmark appears like an iPhone notification:
+
 - Central, bold, striking position
 - Slides down from top, spring physics
 - Holds briefly
@@ -31,9 +33,11 @@ niotebook wordmark appears like an iPhone notification:
 ---
 
 ### Scene 2: Workspace Entrance (0:02 - 0:04)
+
 **Duration:** 2 seconds
 
 Workspace interface slides in:
+
 - Right to left spring physics
 - Fills the 16:9 frame
 - Initial state: 1-pane (video only)
@@ -46,9 +50,11 @@ Workspace interface slides in:
 ---
 
 ### Scene 3: 1-Pane to 2-Pane (0:04 - 0:06)
+
 **Duration:** 2 seconds
 
 Layout switches to 2-pane:
+
 - Video pane compresses to left column
 - AI chat interface slides in from right
 - Smooth, snappy transition
@@ -60,9 +66,11 @@ Layout switches to 2-pane:
 ---
 
 ### Scene 4: 2-Pane to 3-Pane (0:06 - 0:08)
+
 **Duration:** 2 seconds
 
 Layout switches to 3-pane:
+
 - Video: left column
 - Code editor: center column (rises from bottom)
 - AI chat: right column
@@ -75,21 +83,25 @@ Layout switches to 3-pane:
 ---
 
 ### Scene 5: Code Pane Focus (0:08 - 0:14)
+
 **Duration:** 6 seconds
 
 Zoom into center pane (code editor):
+
 - Smart zoom to code pane
 - Show code being written or executed
 - Terminal runs code
 - Results appear
 
 **Motion:**
+
 - Zoom in: 0.8s spring
 - Hold: 3s
 - Activity: during hold
 - Zoom out: 0.6s spring
 
 **SFX:**
+
 - Keyboard clicks during typing
 - Ping on code execution
 - Success tone on result
@@ -99,9 +111,11 @@ Zoom into center pane (code editor):
 ---
 
 ### Scene 6: Chat Pane Focus (0:14 - 0:20)
+
 **Duration:** 6 seconds
 
 Zoom into right pane (AI chat):
+
 - Smart zoom to chat interface
 - Show question being asked
 - AI response streaming
@@ -109,6 +123,7 @@ Zoom into right pane (AI chat):
 
 **Motion:** Same pattern as code focus
 **SFX:**
+
 - Keyboard clicks during question
 - Subtle stream sound during AI response
 - Completion ping
@@ -118,9 +133,11 @@ Zoom into right pane (AI chat):
 ---
 
 ### Scene 7: Full View (0:20 - 0:24)
+
 **Duration:** 4 seconds
 
 Zoom out to full workspace:
+
 - All 3 panes visible
 - Video continues playing
 - Code runs in terminal
@@ -134,9 +151,11 @@ Zoom out to full workspace:
 ---
 
 ### Scene 8: Layout Dance (0:24 - 0:28)
+
 **Duration:** 4 seconds
 
 Quick layout switching montage:
+
 - 3-pane → 2-pane (code + chat)
 - 2-pane → 1-pane (video only)
 - Each transition ~1s
@@ -148,9 +167,11 @@ Quick layout switching montage:
 ---
 
 ### Scene 9: Loop Return (0:28 - 0:30)
+
 **Duration:** 2 seconds
 
 Return to start state:
+
 - 1-pane snaps out
 - Brief black/empty moment
 - Ready for logo to appear again
@@ -174,6 +195,7 @@ Required Screen Studio captures:
 7. **layout-dance.mov** - Quick layout switches (6s)
 
 **Screen Studio settings:**
+
 - Resolution: 1920x1080 or higher
 - Frame rate: 60fps
 - Background: None (capture full window)
@@ -183,16 +205,19 @@ Required Screen Studio captures:
 ## Composition Notes
 
 ### Color Treatment
+
 - Maintain niotebook brand colors
 - Slight vignette on edges (subtle)
 - No filters or color grading (clean, true to UI)
 
 ### Typography
+
 - No text overlays
 - Let the UI speak for itself
 - Logo only in Scene 1
 
 ### Audio Mix
+
 - SFX only, no music
 - Consistent levels throughout
 - Clean loop at 0:30 → 0:00

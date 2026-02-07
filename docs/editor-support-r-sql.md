@@ -14,18 +14,18 @@ This plan adds first-class SQL and R support across the full stack: runtime exec
 
 ## Architecture Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| SQL execution engine | `sql.js` (SQLite compiled to WASM) | Dedicated executor with real query results, ~1MB, well-maintained |
-| R execution engine | `webR` (R compiled to WASM) | Only viable browser-based R runtime, maintained by R Project |
-| webR loading strategy | Lazy-load on first R use | ~30MB download, don't penalize non-R students |
-| SQL result display | Formatted ASCII table in terminal | Consistent with existing terminal UX, matches sqlite3 CLI |
-| R plot rendering | SVG output in existing HTML preview pane | Zero new UI components, reuses iframe infrastructure |
-| R package scope | Core R only (no tidyverse) | Sufficient for CS50R fundamentals, minimizes bundle |
-| Multi-statement SQL | Yes, sequential execution | CS50 SQL exercises require multi-query files |
-| Terminal commands | `sqlite3` and `Rscript` | Matches existing pattern for `python3`/`gcc` |
-| cs50sql-sql preset | Replace with native SQL executor | Clean break, no legacy Python-based path |
-| SQL autocomplete | Skip for alpha | Reduces scope; can add schema-aware completions later |
+| Decision              | Choice                                   | Rationale                                                         |
+| --------------------- | ---------------------------------------- | ----------------------------------------------------------------- |
+| SQL execution engine  | `sql.js` (SQLite compiled to WASM)       | Dedicated executor with real query results, ~1MB, well-maintained |
+| R execution engine    | `webR` (R compiled to WASM)              | Only viable browser-based R runtime, maintained by R Project      |
+| webR loading strategy | Lazy-load on first R use                 | ~30MB download, don't penalize non-R students                     |
+| SQL result display    | Formatted ASCII table in terminal        | Consistent with existing terminal UX, matches sqlite3 CLI         |
+| R plot rendering      | SVG output in existing HTML preview pane | Zero new UI components, reuses iframe infrastructure              |
+| R package scope       | Core R only (no tidyverse)               | Sufficient for CS50R fundamentals, minimizes bundle               |
+| Multi-statement SQL   | Yes, sequential execution                | CS50 SQL exercises require multi-query files                      |
+| Terminal commands     | `sqlite3` and `Rscript`                  | Matches existing pattern for `python3`/`gcc`                      |
+| cs50sql-sql preset    | Replace with native SQL executor         | Clean break, no legacy Python-based path                          |
+| SQL autocomplete      | Skip for alpha                           | Reduces scope; can add schema-aware completions later             |
 
 ---
 
@@ -64,6 +64,7 @@ The SQL executor implements the `RuntimeExecutor` interface (`init`, `run`, `sto
 - **Session persistence:** The `SQL.Database` instance persists across runs within a session, so tables created in one run are available in the next
 
 **ASCII table output format:**
+
 ```
 +----+----------+-------+
 | id | name     | score |
@@ -105,6 +106,7 @@ r: () => import("codemirror-lang-r").then((m) => m.r()),
 ```
 
 **Dependencies:**
+
 - `@codemirror/lang-sql` — official CodeMirror SQL package with SQLite dialect
 - `codemirror-lang-r` — community R language mode (evaluate availability; fallback to `StreamLanguage` with a custom R tokenizer if needed)
 
@@ -242,28 +244,28 @@ Add `"cs50r"` to the `EnvPresetId` union type. The existing `"cs50sql-sql"` entr
 
 ## Files Modified Summary
 
-| File | Change |
-|------|--------|
-| `src/infra/runtime/types.ts` | Add `"sql"` and `"r"` to `RuntimeLanguage` |
-| `src/infra/runtime/sqlExecutor.ts` | **New** — SQL executor using sql.js |
-| `src/infra/runtime/rExecutor.ts` | **New** — R executor using webR |
-| `src/infra/vfs/VirtualFS.ts` | Add `.sql`, `.r`, `.R` extension mappings |
-| `src/infra/runtime/runtimeManager.ts` | Add sql/r executor routing |
-| `src/ui/code/codemirrorSetup.ts` | Add SQL and R language modes |
-| `src/ui/code/terminal/commandRouter.ts` | Add `sqlite3`, `Rscript` commands |
-| `src/infra/runtime/envPresets.ts` | Replace cs50sql-sql, add cs50r preset |
-| `src/infra/runtime/imports/importResolver.ts` | Add `.sql`, `.r` extensions |
-| `src/domain/lessonEnvironment.ts` | Add `"cs50r"` to `EnvPresetId` |
-| `src/ui/panes/CodePane.tsx` | Handle R plot output to HTML pane |
+| File                                          | Change                                     |
+| --------------------------------------------- | ------------------------------------------ |
+| `src/infra/runtime/types.ts`                  | Add `"sql"` and `"r"` to `RuntimeLanguage` |
+| `src/infra/runtime/sqlExecutor.ts`            | **New** — SQL executor using sql.js        |
+| `src/infra/runtime/rExecutor.ts`              | **New** — R executor using webR            |
+| `src/infra/vfs/VirtualFS.ts`                  | Add `.sql`, `.r`, `.R` extension mappings  |
+| `src/infra/runtime/runtimeManager.ts`         | Add sql/r executor routing                 |
+| `src/ui/code/codemirrorSetup.ts`              | Add SQL and R language modes               |
+| `src/ui/code/terminal/commandRouter.ts`       | Add `sqlite3`, `Rscript` commands          |
+| `src/infra/runtime/envPresets.ts`             | Replace cs50sql-sql, add cs50r preset      |
+| `src/infra/runtime/imports/importResolver.ts` | Add `.sql`, `.r` extensions                |
+| `src/domain/lessonEnvironment.ts`             | Add `"cs50r"` to `EnvPresetId`             |
+| `src/ui/panes/CodePane.tsx`                   | Handle R plot output to HTML pane          |
 
 ## New Dependencies
 
-| Package | Size | Purpose |
-|---------|------|---------|
-| `sql.js` | ~1MB | SQLite compiled to WASM |
-| `webr` | ~30MB (CDN, lazy) | R compiled to WASM |
-| `@codemirror/lang-sql` | ~50KB | SQL syntax highlighting |
-| R CodeMirror mode (TBD) | ~10KB | R syntax highlighting |
+| Package                 | Size              | Purpose                 |
+| ----------------------- | ----------------- | ----------------------- |
+| `sql.js`                | ~1MB              | SQLite compiled to WASM |
+| `webr`                  | ~30MB (CDN, lazy) | R compiled to WASM      |
+| `@codemirror/lang-sql`  | ~50KB             | SQL syntax highlighting |
+| R CodeMirror mode (TBD) | ~10KB             | R syntax highlighting   |
 
 ---
 

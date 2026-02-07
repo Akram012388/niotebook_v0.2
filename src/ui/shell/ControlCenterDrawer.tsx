@@ -389,9 +389,7 @@ const ControlCenterDrawer = ({
                       </div>
                       <input
                         value={courseQuery}
-                        onChange={(event) =>
-                          setCourseQuery(event.target.value)
-                        }
+                        onChange={(event) => setCourseQuery(event.target.value)}
                         placeholder="Search courses"
                         className="rounded-xl border border-border bg-surface px-3 py-2 text-xs text-foreground placeholder:text-text-subtle"
                       />
@@ -400,44 +398,44 @@ const ControlCenterDrawer = ({
                       <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
                         Courses
                       </div>
-                    <div className="flex flex-col gap-2">
-                      {filteredCourses.map((course) => {
-                        const isActive = course.id === courseId;
-                        return (
-                          <button
-                            key={course.id}
-                            type="button"
-                            onClick={() => {
-                              onSelectCourse(course.id);
-                              setActiveTab("lectures");
-                              setPanelView("content");
-                            }}
-                            className={`flex flex-col gap-1 rounded-xl border px-3 py-2.5 text-left text-xs transition-all duration-200 ${
-                              isActive
-                                ? "dark:border-accent/50 dark:bg-accent-muted border-foreground/30 bg-accent-muted text-foreground dark:shadow-md dark:shadow-accent/10 dark:ring-1 dark:ring-accent/20"
-                                : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md dark:hover:border-accent/20 hover:border-foreground/20 hover:bg-surface-muted hover:text-foreground"
-                            }`}
-                          >
-                            <span className="text-sm text-foreground">
-                              {course.title}
-                            </span>
-                            {course.description ? (
-                              <span className="text-xs text-text-subtle">
-                                {course.description}
+                      <div className="flex flex-col gap-2">
+                        {filteredCourses.map((course) => {
+                          const isActive = course.id === courseId;
+                          return (
+                            <button
+                              key={course.id}
+                              type="button"
+                              onClick={() => {
+                                onSelectCourse(course.id);
+                                setActiveTab("lectures");
+                                setPanelView("content");
+                              }}
+                              className={`flex flex-col gap-1 rounded-xl border px-3 py-2.5 text-left text-xs transition-all duration-200 ${
+                                isActive
+                                  ? "dark:border-accent/50 dark:bg-accent-muted border-foreground/30 bg-accent-muted text-foreground dark:shadow-md dark:shadow-accent/10 dark:ring-1 dark:ring-accent/20"
+                                  : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md dark:hover:border-accent/20 hover:border-foreground/20 hover:bg-surface-muted hover:text-foreground"
+                              }`}
+                            >
+                              <span className="text-sm text-foreground">
+                                {course.title}
                               </span>
-                            ) : null}
-                            <span className="text-[10px] uppercase tracking-[0.08em] text-text-subtle">
-                              {course.license} · {course.sourceUrl}
-                            </span>
-                          </button>
-                        );
-                      })}
-                      {filteredCourses.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-border bg-surface-muted px-3 py-4 text-xs text-text-muted">
-                          No courses match that search.
-                        </div>
-                      ) : null}
-                    </div>
+                              {course.description ? (
+                                <span className="text-xs text-text-subtle">
+                                  {course.description}
+                                </span>
+                              ) : null}
+                              <span className="text-[10px] uppercase tracking-[0.08em] text-text-subtle">
+                                {course.license} · {course.sourceUrl}
+                              </span>
+                            </button>
+                          );
+                        })}
+                        {filteredCourses.length === 0 ? (
+                          <div className="rounded-xl border border-dashed border-border bg-surface-muted px-3 py-4 text-xs text-text-muted">
+                            No courses match that search.
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 )

@@ -26,6 +26,7 @@ You are a senior engineer creating a pull request with full context inference. F
 ## 4. Generate PR Title
 
 Based on branch name and commits, generate a concise title:
+
 - Use conventional commit style: `type(scope): description`
 - Keep under 70 characters.
 - Examples:
@@ -39,16 +40,20 @@ Create a structured PR body:
 
 ```markdown
 ## Summary
+
 <2-4 bullet points describing what this PR does, inferred from commits>
 
 ## Changes
+
 <List of key files changed with brief description>
 
 ## Test Plan
+
 - [ ] <Verification steps based on what was changed>
 - [ ] `bun run typecheck && bun run lint && bun run test` passes
 
 ---
+
 Generated with [Claude Code](https://claude.ai/code)
 ```
 
