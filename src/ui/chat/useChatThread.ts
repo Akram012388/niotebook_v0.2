@@ -240,17 +240,31 @@ const useChatThread = (
     );
   }, [cachedMessages, lectureLabel, localMessages, remoteMessages]);
 
+  const cacheTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    const cacheCandidates = mergedMessages.filter(
-      (message) => !message.isStreaming && message.content.trim().length > 0,
-    );
-    if (cacheCandidates.length === 0) {
-      return;
+    // Debounce localStorage writes to avoid thrashing during streaming.
+    // Only cache non-streaming messages (completed content).
+    if (cacheTimerRef.current !== null) {
+      clearTimeout(cacheTimerRef.current);
     }
-    writeChatCache(
-      lessonId,
-      cacheCandidates.map((message) => toCachedMessage(message)),
-    );
+    cacheTimerRef.current = setTimeout(() => {
+      cacheTimerRef.current = null;
+      const cacheCandidates = mergedMessages.filter(
+        (message) => !message.isStreaming && message.content.trim().length > 0,
+      );
+      if (cacheCandidates.length === 0) {
+        return;
+      }
+      writeChatCache(
+        lessonId,
+        cacheCandidates.map((message) => toCachedMessage(message)),
+      );
+    }, 500);
+    return () => {
+      if (cacheTimerRef.current !== null) {
+        clearTimeout(cacheTimerRef.current);
+      }
+    };
   }, [lessonId, mergedMessages]);
 
   const rafRef = useRef<number | null>(null);
@@ -512,7 +526,6 @@ const useChatThread = (
                   ...message,
                   content: event.finalText,
                   isStreaming: false,
-                  wasStreaming: true,
                 }));
               }
 
