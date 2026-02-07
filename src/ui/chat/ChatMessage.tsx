@@ -11,19 +11,18 @@ type ChatMessageProps = {
 };
 
 const remarkPlugins = [remarkGfm];
-const rehypePlugins = [rehypeHighlight];
+const rehypePluginsFull = [rehypeHighlight];
+const rehypePluginsNone: [] = [];
 
 /**
  * Close any open markdown constructs so react-markdown doesn't break
  * on partial streaming content. Handles unclosed code fences.
  */
 const closePartialMarkdown = (text: string): string => {
-  // Count triple-backtick fences (``` with optional language tag)
   const fencePattern = /^```/gm;
   const matches = text.match(fencePattern);
   const fenceCount = matches?.length ?? 0;
 
-  // Odd fence count means one is unclosed — close it
   if (fenceCount % 2 !== 0) {
     return text + "\n```";
   }
@@ -32,9 +31,9 @@ const closePartialMarkdown = (text: string): string => {
 };
 
 /**
- * Progressive markdown render — used during streaming AND after completion.
- * During streaming, unclosed code fences are auto-closed before rendering
- * so partial code blocks render correctly with syntax highlighting.
+ * Progressive markdown render.
+ * During streaming: remarkGfm only (no syntax highlighting — saves 5-10ms/frame).
+ * After completion: full rehype-highlight applied for syntax colors.
  */
 const StreamingMarkdown = memo(function StreamingMarkdown({
   content,
@@ -48,8 +47,12 @@ const StreamingMarkdown = memo(function StreamingMarkdown({
     [content, isStreaming],
   );
 
+  // Skip rehype-highlight during streaming — it's expensive and runs every frame.
+  // Syntax highlighting applies once the stream completes.
+  const rehype = isStreaming ? rehypePluginsNone : rehypePluginsFull;
+
   return (
-    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins}>
+    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehype}>
       {safeContent}
     </ReactMarkdown>
   );

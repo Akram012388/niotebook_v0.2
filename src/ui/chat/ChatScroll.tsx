@@ -26,25 +26,23 @@ const ChatScroll = forwardRef<ChatScrollHandle, ChatScrollProps>(
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [atBottom, setAtBottom] = useState(true);
     const atBottomRef = useRef(true);
-    const rafRef = useRef<number | null>(null);
 
-    const isAtBottom = useCallback((el: HTMLElement): boolean => {
+    const checkAtBottom = useCallback((el: HTMLElement): boolean => {
       return el.scrollHeight - el.scrollTop - el.clientHeight < BOTTOM_THRESHOLD;
     }, []);
 
     const handleScroll = useCallback((): void => {
       const el = containerRef.current;
       if (!el) return;
-
-      const bottom = isAtBottom(el);
+      const bottom = checkAtBottom(el);
       atBottomRef.current = bottom;
       setAtBottom(bottom);
-    }, [isAtBottom]);
+    }, [checkAtBottom]);
 
-    // Auto-follow: when content height grows while user is at bottom,
-    // snap scrollTop to the new bottom immediately. No smooth animation —
-    // the smoothness comes from content growing gradually via RAF-batched tokens.
-    // This avoids the overlapping-smooth-scroll bug entirely.
+    // Scroll-follow via synchronous callback — no RAF delay.
+    // ResizeObserver fires once per frame (part of rendering pipeline).
+    // MutationObserver catches text changes that don't alter box size.
+    // Both scroll immediately so content + scroll update paint in the same frame.
     useEffect(() => {
       const container = containerRef.current;
       if (!container) return;
@@ -52,34 +50,27 @@ const ChatScroll = forwardRef<ChatScrollHandle, ChatScrollProps>(
       const content = container.firstElementChild as HTMLElement | null;
       if (!content) return;
 
-      const observer = new ResizeObserver(() => {
+      const scrollToEnd = (): void => {
         if (!atBottomRef.current) return;
+        container.scrollTop = container.scrollHeight;
+      };
 
-        if (rafRef.current !== null) {
-          cancelAnimationFrame(rafRef.current);
-        }
+      const resizeObs = new ResizeObserver(scrollToEnd);
+      resizeObs.observe(content);
 
-        rafRef.current = requestAnimationFrame(() => {
-          rafRef.current = null;
-          const el = containerRef.current;
-          if (!el) return;
-          // Direct scrollTop assignment — instant, no animation conflicts
-          el.scrollTop = el.scrollHeight;
-        });
+      const mutationObs = new MutationObserver(scrollToEnd);
+      mutationObs.observe(content, {
+        childList: true,
+        subtree: true,
+        characterData: true,
       });
 
-      observer.observe(content);
-
       return () => {
-        observer.disconnect();
-        if (rafRef.current !== null) {
-          cancelAnimationFrame(rafRef.current);
-          rafRef.current = null;
-        }
+        resizeObs.disconnect();
+        mutationObs.disconnect();
       };
     }, []);
 
-    // Instant scroll — used on message send so user sees their message immediately
     const scrollToBottom = useCallback((): void => {
       const el = containerRef.current;
       if (!el) return;
@@ -90,7 +81,6 @@ const ChatScroll = forwardRef<ChatScrollHandle, ChatScrollProps>(
 
     useImperativeHandle(ref, () => ({ scrollToBottom }), [scrollToBottom]);
 
-    // Smooth scroll — used for the floating "scroll to bottom" button
     const handleScrollToBottom = useCallback((): void => {
       const el = containerRef.current;
       if (!el) return;
