@@ -142,6 +142,21 @@
   --niotepad-margin: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
+/* Niotepad custom scrollbar */
+.niotepad-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.niotepad-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.niotepad-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--foreground) 12%, transparent);
+  border-radius: 3px;
+}
+.niotepad-scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--foreground) 20%, transparent);
+}
+
 /* ==========================================================================
    Tailwind 4 Theme — Maps CSS custom properties to utility classes
    ========================================================================== */
