@@ -203,6 +203,10 @@ const hydratePaneStore = (): void => {
   notifyPane();
 };
 
+// Hydrate snapshots from localStorage at module load so the very first
+// render already reflects the persisted pane choices (no flash to defaults).
+hydratePaneStore();
+
 const WorkspaceGrid = (): ReactElement => {
   const { activePreset, setPreset } = useLayoutPreset();
   const pathname = usePathname();
