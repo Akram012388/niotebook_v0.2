@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import dynamic from "next/dynamic";
-import { useHelpPulse } from "./useHelpPulse";
+import { useHelpSpotlight } from "./useHelpSpotlight";
 import type { HelpEntry } from "./helpEntries";
 
 // ---------------------------------------------------------------------------
@@ -31,6 +31,9 @@ interface HelpContextValue {
   openHelp: () => void;
   closeHelp: () => void;
   toggleHelp: () => void;
+  spotlightTarget: string | null;
+  activateSpotlight: (selector: string) => void;
+  dismissSpotlight: () => void;
 }
 
 const HelpContext = createContext<HelpContextValue | null>(null);
@@ -53,46 +56,68 @@ interface HelpProviderProps {
 
 const HelpProvider = ({ children }: HelpProviderProps): ReactElement => {
   const [isOpen, setIsOpen] = useState(false);
-  const { triggerPulse } = useHelpPulse();
+
+  const closeHelp = useCallback(() => setIsOpen(false), []);
+  const { spotlightTarget, activateSpotlight, dismissSpotlight } =
+    useHelpSpotlight(closeHelp);
 
   const openHelp = useCallback(() => setIsOpen(true), []);
-  const closeHelp = useCallback(() => setIsOpen(false), []);
-  const toggleHelp = useCallback(() => setIsOpen((prev) => !prev), []);
+
+  const toggleHelp = useCallback(() => {
+    setIsOpen((prev) => {
+      if (prev) {
+        // Closing: also dismiss spotlight
+        dismissSpotlight();
+      }
+      return !prev;
+    });
+  }, [dismissSpotlight]);
 
   // Global keyboard shortcut: Cmd/Ctrl + /
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
       if ((e.metaKey || e.ctrlKey) && e.key === "/") {
         e.preventDefault();
-        setIsOpen((prev) => !prev);
+        setIsOpen((prev) => {
+          if (prev) {
+            dismissSpotlight();
+          }
+          return !prev;
+        });
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [dismissSpotlight]);
 
-  // When a help card is clicked: close modal, wait for exit anim, then pulse
-  const handleCardClick = useCallback(
+  // When a help row is clicked: activate spotlight (modal stays open but blurs)
+  const handleRowClick = useCallback(
     (entry: HelpEntry) => {
-      setIsOpen(false);
-
       if (entry.targetSelector) {
-        const selector = entry.targetSelector;
-        window.setTimeout(() => {
-          triggerPulse(selector);
-        }, 200);
+        activateSpotlight(entry.targetSelector);
       }
+      // Entries without targetSelector (like "Help" itself) are no-ops
     },
-    [triggerPulse],
+    [activateSpotlight],
   );
 
   return (
-    <HelpContext.Provider value={{ isOpen, openHelp, closeHelp, toggleHelp }}>
+    <HelpContext.Provider
+      value={{
+        isOpen,
+        openHelp,
+        closeHelp,
+        toggleHelp,
+        spotlightTarget,
+        activateSpotlight,
+        dismissSpotlight,
+      }}
+    >
       {children}
       <HelpModal
         isOpen={isOpen}
         onClose={closeHelp}
-        onCardClick={handleCardClick}
+        onRowClick={handleRowClick}
       />
     </HelpContext.Provider>
   );

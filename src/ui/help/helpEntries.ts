@@ -1,17 +1,3 @@
-import type { ComponentType } from "react";
-import type { IconProps } from "@phosphor-icons/react";
-import {
-  ChatCircleDots,
-  Code,
-  Terminal,
-  PlayCircle,
-  Notepad,
-  Layout,
-  FolderOpen,
-  SidebarSimple,
-  Question,
-} from "@phosphor-icons/react";
-
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -27,9 +13,8 @@ interface HelpEntry {
   id: string;
   name: string;
   description: string;
-  icon: ComponentType<IconProps>;
   shortcuts?: Shortcut[];
-  /** CSS selector to locate the target element for pulse */
+  /** CSS selector to locate the target element for spotlight */
   targetSelector?: string;
   /** Category for potential future filtering */
   category:
@@ -52,7 +37,6 @@ const HELP_ENTRIES: HelpEntry[] = [
     id: "chat",
     name: "AI Chat (Nio)",
     description: "Ask Nio about the lesson, code, or transcript",
-    icon: ChatCircleDots,
     shortcuts: [{ label: "\u2318K" }],
     targetSelector: '[data-help-target="chat"]',
     category: "chat",
@@ -61,7 +45,6 @@ const HELP_ENTRIES: HelpEntry[] = [
     id: "editor",
     name: "Code Editor",
     description: "Write and execute code in multiple languages",
-    icon: Code,
     shortcuts: [{ label: "\u2318S", action: "run" }],
     targetSelector: '[data-help-target="editor"]',
     category: "editor",
@@ -70,7 +53,6 @@ const HELP_ENTRIES: HelpEntry[] = [
     id: "terminal",
     name: "Terminal",
     description: "View code output and interact with the shell",
-    icon: Terminal,
     shortcuts: [{ label: "\u2318`", action: "focus" }],
     targetSelector: '[data-help-target="terminal"]',
     category: "terminal",
@@ -79,7 +61,6 @@ const HELP_ENTRIES: HelpEntry[] = [
     id: "video",
     name: "Video Player",
     description: "Watch the lesson video with synced transcript",
-    icon: PlayCircle,
     shortcuts: [
       { label: "Space", action: "play/pause" },
       { label: "\u2190/\u2192", action: "seek" },
@@ -92,7 +73,6 @@ const HELP_ENTRIES: HelpEntry[] = [
     name: "Niotepad",
     description:
       "Your personal notebook \u2014 capture notes, code, and insights",
-    icon: Notepad,
     shortcuts: [{ label: "\u2318J" }],
     targetSelector: '[data-help-target="niotepad"]',
     category: "niotepad",
@@ -101,7 +81,6 @@ const HELP_ENTRIES: HelpEntry[] = [
     id: "layout",
     name: "Layout Presets",
     description: "Switch between workspace arrangements",
-    icon: Layout,
     shortcuts: [
       { label: "\u23181" },
       { label: "\u23182" },
@@ -114,7 +93,6 @@ const HELP_ENTRIES: HelpEntry[] = [
     id: "filetree",
     name: "File Tree",
     description: "Browse and manage project files",
-    icon: FolderOpen,
     targetSelector: '[data-help-target="filetree"]',
     category: "filetree",
   },
@@ -122,7 +100,6 @@ const HELP_ENTRIES: HelpEntry[] = [
     id: "control",
     name: "Control Center",
     description: "Navigate courses and lessons",
-    icon: SidebarSimple,
     targetSelector: '[data-help-target="control"]',
     category: "control",
   },
@@ -130,7 +107,6 @@ const HELP_ENTRIES: HelpEntry[] = [
     id: "help",
     name: "Help",
     description: "You are here \u2014 workspace guide and shortcuts",
-    icon: Question,
     shortcuts: [{ label: "\u2318/" }],
     category: "control",
   },

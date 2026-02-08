@@ -12,8 +12,9 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X } from "@phosphor-icons/react";
 import { HELP_ENTRIES, type HelpEntry } from "./helpEntries";
-import { HelpCard } from "./HelpCard";
+import { HelpRow } from "./HelpRow";
 import { HelpSearch } from "./HelpSearch";
+import { useHelp } from "./HelpProvider";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -34,7 +35,7 @@ const PANEL_SHADOW = [
 interface HelpModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCardClick: (entry: HelpEntry) => void;
+  onRowClick: (entry: HelpEntry) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -44,21 +45,31 @@ interface HelpModalProps {
 const HelpModal = ({
   isOpen,
   onClose,
-  onCardClick,
+  onRowClick,
 }: HelpModalProps): ReactElement | null => {
   const prefersReducedMotion = useReducedMotion();
   const panelRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const lastActiveRef = useRef<HTMLElement | null>(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearchRaw] = useState("");
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  // Reset active index whenever search changes
+  const setSearch = useCallback((value: string) => {
+    setSearchRaw(value);
+    setActiveIndex(-1);
+  }, []);
+
+  const { spotlightTarget, dismissSpotlight } = useHelp();
 
   // Store previously focused element and autofocus search on open
   useEffect(() => {
     if (isOpen) {
       lastActiveRef.current = document.activeElement as HTMLElement | null;
-      // Reset search and autofocus after animation settles
+      // Reset search, active index, and autofocus after animation settles
       const timer = window.setTimeout(() => {
         setSearch("");
+        setActiveIndex(-1);
         searchRef.current?.focus();
       }, 50);
       return () => window.clearTimeout(timer);
@@ -67,7 +78,7 @@ const HelpModal = ({
       lastActiveRef.current?.focus();
       lastActiveRef.current = null;
     }
-  }, [isOpen]);
+  }, [isOpen, setSearch]);
 
   // Filter entries by search query
   const filtered = useMemo(() => {
@@ -76,24 +87,58 @@ const HelpModal = ({
     return HELP_ENTRIES.filter((entry) => {
       if (entry.name.toLowerCase().includes(q)) return true;
       if (entry.description.toLowerCase().includes(q)) return true;
-      if (
-        entry.shortcuts?.some((s) => s.label.toLowerCase().includes(q))
-      )
+      if (entry.shortcuts?.some((s) => s.label.toLowerCase().includes(q)))
         return true;
       return false;
     });
   }, [search]);
 
-  // Esc handling: clear search first, then close modal
+  // Row click handler
+  const handleRowClick = useCallback(
+    (entry: HelpEntry) => {
+      onRowClick(entry);
+    },
+    [onRowClick],
+  );
+
+  // Keyboard handling: Esc, arrows, Enter, Tab trap
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        if (search) {
+        if (spotlightTarget) {
+          dismissSpotlight();
+        } else if (search) {
           setSearch("");
         } else {
           onClose();
         }
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveIndex((prev) =>
+          prev < filtered.length - 1 ? prev + 1 : 0,
+        );
+        return;
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveIndex((prev) =>
+          prev > 0 ? prev - 1 : filtered.length - 1,
+        );
+        return;
+      }
+
+      if (
+        e.key === "Enter" &&
+        activeIndex >= 0 &&
+        activeIndex < filtered.length
+      ) {
+        e.preventDefault();
+        handleRowClick(filtered[activeIndex]);
         return;
       }
 
@@ -114,24 +159,30 @@ const HelpModal = ({
         }
       }
     },
-    [search, onClose],
+    [
+      search,
+      setSearch,
+      onClose,
+      spotlightTarget,
+      dismissSpotlight,
+      activeIndex,
+      filtered,
+      handleRowClick,
+    ],
   );
 
-  // Backdrop click
+  // Backdrop click — context-aware
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) {
-        onClose();
+        if (spotlightTarget) {
+          dismissSpotlight();
+        } else {
+          onClose();
+        }
       }
     },
-    [onClose],
-  );
-
-  const handleCardClick = useCallback(
-    (entry: HelpEntry) => {
-      onCardClick(entry);
-    },
-    [onCardClick],
+    [onClose, spotlightTarget, dismissSpotlight],
   );
 
   // Animation variants
@@ -165,12 +216,11 @@ const HelpModal = ({
             aria-modal="true"
             aria-labelledby="help-modal-title"
             onKeyDown={handleKeyDown}
-            className="help-scroll flex flex-col overflow-hidden outline-none"
+            className="help-panel help-scroll flex flex-col overflow-hidden outline-none"
             tabIndex={-1}
             style={{
-              width: 560,
+              width: 480,
               maxWidth: "calc(100vw - 32px)",
-              height: 640,
               maxHeight: "calc(100vh - 96px)",
               borderRadius: 16,
               background: "var(--help-panel-bg)",
@@ -193,7 +243,6 @@ const HelpModal = ({
                 : { scale: 0.97, opacity: 0 }
             }
             transition={panelTransition}
-            // Override exit transition
             onAnimationComplete={() => {}}
           >
             {/* Header */}
@@ -225,27 +274,20 @@ const HelpModal = ({
             {/* Search */}
             <HelpSearch ref={searchRef} value={search} onChange={setSearch} />
 
-            {/* Card grid */}
-            <div
-              className="help-scroll flex-1 overflow-y-auto p-4"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-                gap: 12,
-                alignContent: "start",
-              }}
-            >
-              {filtered.map((entry) => (
-                <HelpCard
+            {/* Row list */}
+            <div className="help-scroll flex-1 overflow-y-auto py-2">
+              {filtered.map((entry, index) => (
+                <HelpRow
                   key={entry.id}
                   entry={entry}
-                  onClick={handleCardClick}
+                  isActive={index === activeIndex}
+                  onClick={handleRowClick}
                 />
               ))}
 
               {filtered.length === 0 && (
                 <p
-                  className="col-span-full py-12 text-center text-sm"
+                  className="py-12 text-center text-sm"
                   style={{ color: "var(--help-text-muted)" }}
                 >
                   No matching tools
