@@ -8,13 +8,20 @@ import {
   useState,
   type ReactElement,
 } from "react";
-import { motion } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+  type PanInfo,
+} from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import { X } from "@phosphor-icons/react";
 import type { NiotepadEntryData } from "@/domain/niotepad";
 
 // Content left padding: past binder (12+2+2+2=18) + margin line (48) + gap (8) = 56px
 const CONTENT_PL = 56;
 const CONTENT_PR = 16;
+const SWIPE_THRESHOLD = 80;
 
 interface NiotepadEntryProps {
   entry: NiotepadEntryData;
@@ -22,6 +29,7 @@ interface NiotepadEntryProps {
   onStartEdit: (id: string) => void;
   onSaveEdit: (id: string, content: string) => void;
   onCancelEdit: () => void;
+  onDelete: (id: string) => void;
   onSeek?: (timestampSec: number) => void;
 }
 
@@ -52,20 +60,34 @@ const NiotepadEntry = memo(
     onStartEdit,
     onSaveEdit,
     onCancelEdit,
+    onDelete,
     onSeek,
   }: NiotepadEntryProps): ReactElement {
     const [editValue, setEditValue] = useState(entry.content);
+    const [isDeleting, setIsDeleting] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Swipe state
+    const dragX = useMotionValue(0);
+    // Map drag offset to delete strip opacity (0 at rest, 1 at threshold)
+    const deleteStripOpacity = useTransform(
+      dragX,
+      [-SWIPE_THRESHOLD, 0],
+      [1, 0],
+    );
+
+    // Track if this is a horizontal swipe vs vertical scroll
+    const dragDirectionRef = useRef<"none" | "horizontal" | "vertical">(
+      "none",
+    );
 
     // Auto-focus and auto-resize textarea when entering edit mode
     useEffect(() => {
       if (isEditing && textareaRef.current) {
         const ta = textareaRef.current;
         ta.focus();
-        // Move cursor to end
         ta.selectionStart = ta.value.length;
         ta.selectionEnd = ta.value.length;
-        // Auto-size
         ta.style.height = "auto";
         ta.style.height = `${ta.scrollHeight}px`;
       }
@@ -96,7 +118,6 @@ const NiotepadEntry = memo(
     const handleTextareaChange = useCallback(
       (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setEditValue(e.target.value);
-        // Auto-resize
         const ta = e.target;
         ta.style.height = "auto";
         ta.style.height = `${ta.scrollHeight}px`;
@@ -116,6 +137,56 @@ const NiotepadEntry = memo(
       }
     }, [entry.videoTimeSec, onSeek]);
 
+    // Swipe handlers
+    const handleDragStart = useCallback(() => {
+      dragDirectionRef.current = "none";
+    }, []);
+
+    const handleDrag = useCallback(
+      (_: unknown, info: PanInfo) => {
+        if (dragDirectionRef.current === "none") {
+          const absX = Math.abs(info.offset.x);
+          const absY = Math.abs(info.offset.y);
+          // Determine direction: if vertical movement is greater, treat as scroll
+          if (absY > absX) {
+            dragDirectionRef.current = "vertical";
+          } else {
+            dragDirectionRef.current = "horizontal";
+          }
+        }
+
+        if (dragDirectionRef.current === "vertical") {
+          // Reset to 0 so the entry doesn't slide
+          dragX.set(0);
+        }
+      },
+      [dragX],
+    );
+
+    const handleDragEnd = useCallback(
+      (_: unknown, info: PanInfo) => {
+        if (
+          dragDirectionRef.current === "horizontal" &&
+          info.offset.x < -SWIPE_THRESHOLD
+        ) {
+          setIsDeleting(true);
+        }
+        dragDirectionRef.current = "none";
+      },
+      [],
+    );
+
+    const handleDeleteClick = useCallback(() => {
+      setIsDeleting(true);
+    }, []);
+
+    // Trigger actual delete after collapse animation
+    const handleAnimationComplete = useCallback(() => {
+      if (isDeleting) {
+        onDelete(entry.id);
+      }
+    }, [isDeleting, onDelete, entry.id]);
+
     const isVideo = entry.source === "video";
 
     return (
@@ -123,71 +194,116 @@ const NiotepadEntry = memo(
         layout
         aria-label="Note entry"
         {...entryAppear}
-        style={{
-          paddingLeft: CONTENT_PL,
-          paddingRight: CONTENT_PR,
-          lineHeight: "24px",
-        }}
-        className="relative py-0.5 text-sm text-foreground"
-      >
-        {/* Video entry header */}
-        {isVideo && entry.metadata.lectureTitle && (
-          <button
-            type="button"
-            onClick={handleSeek}
-            className="mb-0.5 block text-left text-sm font-semibold text-accent transition-colors hover:text-accent-hover"
-            style={{ lineHeight: "24px" }}
-          >
-            {entry.metadata.lectureTitle}
-            {entry.videoTimeSec != null && (
-              <span className="ml-1 font-normal text-text-muted">
-                &mdash; {formatTimestamp(entry.videoTimeSec)}
-              </span>
-            )}
-          </button>
-        )}
-
-        {/* Content: edit mode or render mode */}
-        {isEditing ? (
-          <textarea
-            ref={textareaRef}
-            value={editValue}
-            onChange={handleTextareaChange}
-            onKeyDown={handleKeyDown}
-            onBlur={handleSave}
-            className="w-full resize-none border-none bg-transparent p-0 text-sm text-foreground outline-none"
-            style={{
-              fontFamily: "var(--font-body)",
-              lineHeight: "24px",
-            }}
-            aria-label="Edit note"
-          />
-        ) : (
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={handleClick}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                handleClick();
+        animate={
+          isDeleting
+            ? { opacity: 0, height: 0, marginBottom: 0 }
+            : entryAppear.animate
+        }
+        transition={
+          isDeleting
+            ? {
+                type: "spring" as const,
+                stiffness: 300,
+                damping: 25,
+                opacity: { duration: 0.15 },
+                height: { delay: 0.05, duration: 0.2 },
               }
-            }}
-            className="cursor-text"
-            aria-label="Click to edit this note"
-          >
-            <div className="nio-markdown" style={{ lineHeight: "24px" }}>
-              <ReactMarkdown>{entry.content}</ReactMarkdown>
+            : entryAppear.transition
+        }
+        onAnimationComplete={handleAnimationComplete}
+        className="group relative overflow-hidden py-0.5 text-sm text-foreground"
+      >
+        {/* Delete strip (revealed behind entry on swipe) */}
+        <motion.div
+          className="absolute inset-y-0 right-0 flex w-20 items-center justify-center bg-status-error text-white"
+          style={{ opacity: deleteStripOpacity }}
+          aria-hidden="true"
+        >
+          <X size={18} weight="bold" />
+        </motion.div>
+
+        {/* Hover X button (desktop fallback) */}
+        <button
+          type="button"
+          onClick={handleDeleteClick}
+          className="absolute right-2 top-1 z-10 flex h-5 w-5 items-center justify-center rounded text-text-subtle opacity-0 transition-opacity hover:bg-status-error/10 hover:text-status-error group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error/40"
+          aria-label="Delete note"
+        >
+          <X size={12} weight="bold" />
+        </button>
+
+        {/* Swipeable content layer */}
+        <motion.div
+          drag={isEditing ? false : "x"}
+          dragConstraints={{ left: -120, right: 0 }}
+          dragElastic={0.2}
+          dragMomentum={false}
+          style={{ x: dragX, paddingLeft: CONTENT_PL, paddingRight: CONTENT_PR }}
+          onDragStart={handleDragStart}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+          className="relative"
+        >
+          {/* Video entry header */}
+          {isVideo && entry.metadata.lectureTitle && (
+            <button
+              type="button"
+              onClick={handleSeek}
+              className="mb-0.5 block text-left text-sm font-semibold text-accent transition-colors hover:text-accent-hover"
+              style={{ lineHeight: "24px" }}
+            >
+              {entry.metadata.lectureTitle}
+              {entry.videoTimeSec != null && (
+                <span className="ml-1 font-normal text-text-muted">
+                  &mdash; {formatTimestamp(entry.videoTimeSec)}
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Content: edit mode or render mode */}
+          {isEditing ? (
+            <textarea
+              ref={textareaRef}
+              value={editValue}
+              onChange={handleTextareaChange}
+              onKeyDown={handleKeyDown}
+              onBlur={handleSave}
+              className="w-full resize-none border-none bg-transparent p-0 text-sm text-foreground outline-none"
+              style={{
+                fontFamily: "var(--font-body)",
+                lineHeight: "24px",
+              }}
+              aria-label="Edit note"
+            />
+          ) : (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={handleClick}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleClick();
+                }
+              }}
+              className="cursor-text"
+              aria-label="Click to edit this note"
+            >
+              <div className="nio-markdown" style={{ lineHeight: "24px" }}>
+                <ReactMarkdown>{entry.content}</ReactMarkdown>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </motion.div>
       </motion.article>
     );
   },
   (prev, next) =>
     prev.entry.id === next.entry.id &&
     prev.entry.updatedAt === next.entry.updatedAt &&
-    prev.isEditing === next.isEditing,
+    prev.isEditing === next.isEditing &&
+    prev.onDelete === next.onDelete,
 );
 
 export { NiotepadEntry };
