@@ -42,6 +42,18 @@ See `chat-stream-review.md` for client-side findings. See `chat-backend-review.m
 - No unit tests for `neutralizePromptInjection`
 - `ReadableStream.cancel()` callback is a no-op (should propagate abort)
 
+## Niotepad Panel (reviewed 2026-02-08)
+
+### Key patterns
+
+- **Drag system**: FM `drag="x"` with object-based constraints (not ref-based). Constraints are RELATIVE to CSS `left`.
+- **Position persistence**: `mountPosition` via `useState` lazy initializer. `handleDragEnd` persists `getBoundingClientRect().left`. Remounts on each open/close.
+- **Constraint math**: `left: VIEWPORT_PADDING - mountPosition.x`, `right: vw - PANEL_WIDTH - VIEWPORT_PADDING - mountPosition.x`.
+- **Elasticity**: `dragElastic={0.04}`, `dragMomentum={false}`.
+- **Portal structure**: `NiotepadPortal` > Fragment > `NiotepadBackdrop` + `NiotepadPanel` (single `<motion.aside>`).
+- **Focus trap**: Tab wrapping + ESC 3-tier cascade (editing > search > close).
+- **Minor**: resize listener fires on vertical resize too (harmless, constraints width-only).
+
 ## Review Findings (Phase 8, 2026-02-07)
 
 - See `phase8-review.md` for detailed findings
