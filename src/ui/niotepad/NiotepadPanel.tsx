@@ -16,13 +16,6 @@ import {
 import { useNiotepadStore } from "@/infra/niotepad/useNiotepadStore";
 import { selectFilteredEntries } from "@/infra/niotepad/niotepadSelectors";
 import { NiotepadDragHandle } from "./NiotepadDragHandle";
-import {
-  NiotepadResizeHandle,
-  MIN_WIDTH,
-  MIN_HEIGHT,
-  MAX_WIDTH,
-  MAX_HEIGHT,
-} from "./NiotepadResizeHandle";
 import { NiotepadScrollArea } from "./NiotepadScrollArea";
 import { NiotepadEntry } from "./NiotepadEntry";
 import { NiotepadComposer } from "./NiotepadComposer";
@@ -38,7 +31,10 @@ const PANEL_SHADOW = [
   "0 32px 64px -8px color-mix(in srgb, var(--foreground) 12%, transparent)",
 ].join(", ");
 
-const VIEWPORT_PADDING = 24;
+const VIEWPORT_PADDING = 16;
+const TOPNAV_HEIGHT = 72;
+const PANEL_WIDTH = 440;
+const PANEL_HEIGHT = 560;
 
 const NiotepadPanel = (): ReactElement => {
   const isOpen = useNiotepadStore((s) => s.isOpen);
@@ -54,13 +50,21 @@ const NiotepadPanel = (): ReactElement => {
   const getOrCreatePage = useNiotepadStore((s) => s.getOrCreatePage);
   const activePageId = useNiotepadStore((s) => s.activePageId);
   const setActivePage = useNiotepadStore((s) => s.setActivePage);
-  const filteredEntries = useNiotepadStore((s) => selectFilteredEntries(s));
   const searchQuery = useNiotepadStore((s) => s.searchQuery);
   const setSearchQuery = useNiotepadStore((s) => s.setSearchQuery);
   const sourceFilters = useNiotepadStore((s) => s.sourceFilters);
   const toggleSourceFilter = useNiotepadStore((s) => s.toggleSourceFilter);
   const isSearchExpanded = useNiotepadStore((s) => s.isSearchExpanded);
   const toggleSearchExpanded = useNiotepadStore((s) => s.toggleSearchExpanded);
+
+  // Derive filtered entries via useMemo — NOT inside a Zustand selector,
+  // because selectFilteredEntries returns a new array reference each call
+  // which triggers infinite re-renders with Zustand's Object.is comparison.
+  const filteredEntries = useMemo(
+    () =>
+      selectFilteredEntries({ pages, activePageId, sourceFilters, searchQuery }),
+    [pages, activePageId, sourceFilters, searchQuery],
+  );
 
   const prefersReducedMotion = useReducedMotion();
   const dragControls = useDragControls();
@@ -74,21 +78,20 @@ const NiotepadPanel = (): ReactElement => {
     [pages],
   );
 
-  // Resolve initial position — sentinel (-1, -1) means "compute default"
+  // Y is fixed: vertically centered in the workspace area (below TopNav).
+  // X is persisted; sentinel (-1) means "default to right side".
   const resolvedPosition = useMemo(() => {
     if (typeof window === "undefined") {
-      return { x: 0, y: 0 };
+      return { x: 0, y: TOPNAV_HEIGHT + VIEWPORT_PADDING };
     }
-    const w = geometry.width;
-    const h = geometry.height;
-    if (geometry.x === -1 || geometry.y === -1) {
-      return {
-        x: window.innerWidth - w - VIEWPORT_PADDING,
-        y: window.innerHeight - h - VIEWPORT_PADDING,
-      };
-    }
-    return { x: geometry.x, y: geometry.y };
-  }, [geometry.x, geometry.y, geometry.width, geometry.height]);
+    const workspaceHeight = window.innerHeight - TOPNAV_HEIGHT;
+    const y = TOPNAV_HEIGHT + Math.max(VIEWPORT_PADDING, (workspaceHeight - PANEL_HEIGHT) / 2);
+    const x =
+      geometry.x === -1
+        ? window.innerWidth - PANEL_WIDTH - VIEWPORT_PADDING
+        : geometry.x;
+    return { x, y };
+  }, [geometry.x]);
 
   // Focus trap: store previous active element, focus panel on mount
   useEffect(() => {
@@ -125,33 +128,11 @@ const NiotepadPanel = (): ReactElement => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [closePanel, setEditingEntry, toggleSearchExpanded]);
 
-  // Handle resize delta
-  const handleResize = useCallback(
-    (dx: number, dy: number) => {
-      const nextWidth = Math.min(
-        MAX_WIDTH,
-        Math.max(MIN_WIDTH, geometry.width + dx),
-      );
-      const nextHeight = Math.min(
-        MAX_HEIGHT,
-        Math.max(MIN_HEIGHT, geometry.height + dy),
-      );
-      updateGeometry({ width: nextWidth, height: nextHeight });
-    },
-    [geometry.width, geometry.height, updateGeometry],
-  );
-
-  // Persist geometry on resize end
-  const handleResizeEnd = useCallback(() => {
-    // updateGeometry already persists to localStorage
-  }, []);
-
-  // Persist position on drag end
+  // Persist X position on drag end (Y is fixed, not persisted)
   const handleDragEnd = useCallback(() => {
     const el = panelRef.current;
     if (!el) return;
-    const rect = el.getBoundingClientRect();
-    updateGeometry({ x: rect.left, y: rect.top });
+    updateGeometry({ x: el.getBoundingClientRect().left });
   }, [updateGeometry]);
 
   const handleDragHandlePointerDown = useCallback(
@@ -242,8 +223,8 @@ const NiotepadPanel = (): ReactElement => {
       onKeyDown={handlePanelKeyDown}
       className="fixed z-50 flex flex-col overflow-hidden rounded-2xl outline-none"
       style={{
-        width: geometry.width,
-        height: geometry.height,
+        width: PANEL_WIDTH,
+        height: PANEL_HEIGHT,
         left: resolvedPosition.x,
         top: resolvedPosition.y,
         background: "var(--niotepad-panel-bg)",
@@ -265,23 +246,18 @@ const NiotepadPanel = (): ReactElement => {
           : { scale: 0.95, opacity: 0, y: 8 }
       }
       transition={panelTransition}
-      // Drag via handle only
-      drag
+      // X-axis only drag via handle — Y is locked
+      drag="x"
       dragControls={dragControls}
       dragListener={false}
       dragMomentum={false}
-      dragElastic={0.05}
+      dragElastic={0.08}
       dragConstraints={{
         left: VIEWPORT_PADDING,
-        top: VIEWPORT_PADDING,
         right:
           typeof window !== "undefined"
-            ? window.innerWidth - geometry.width - VIEWPORT_PADDING
+            ? window.innerWidth - PANEL_WIDTH - VIEWPORT_PADDING
             : 800,
-        bottom:
-          typeof window !== "undefined"
-            ? window.innerHeight - geometry.height - VIEWPORT_PADDING
-            : 600,
       }}
       onDragEnd={handleDragEnd}
     >
@@ -346,10 +322,6 @@ const NiotepadPanel = (): ReactElement => {
         />
       </NiotepadScrollArea>
 
-      <NiotepadResizeHandle
-        onResize={handleResize}
-        onResizeEnd={handleResizeEnd}
-      />
     </motion.aside>
   );
 };

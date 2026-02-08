@@ -9,7 +9,9 @@ import type { NiotepadState } from "./useNiotepadStore";
  * Search uses multi-term AND matching (every whitespace-separated term must
  * appear somewhere in the entry's searchable text).
  */
-function selectFilteredEntries(state: NiotepadState): NiotepadEntryData[] {
+function selectFilteredEntries(
+  state: Pick<NiotepadState, "pages" | "activePageId" | "sourceFilters" | "searchQuery">,
+): NiotepadEntryData[] {
   // 1. Gather entries for the active page (or all pages)
   const page = state.activePageId
     ? state.pages.find((p) => p.id === state.activePageId)
