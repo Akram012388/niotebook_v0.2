@@ -373,16 +373,24 @@ const NiotepadEntry = memo(
               className="cursor-text"
               aria-label="Click to edit this note"
             >
-              <div
-                className="nio-markdown"
-                style={{
-                  lineHeight: "24px",
-                  whiteSpace:
-                    entry.source === "code" ? "pre-wrap" : undefined,
-                }}
-              >
-                <ReactMarkdown>{entry.content}</ReactMarkdown>
-              </div>
+              {isCode || isChat ? (
+                <div
+                  style={{
+                    lineHeight: "24px",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {entry.content}
+                </div>
+              ) : (
+                <div
+                  className="nio-markdown"
+                  style={{ lineHeight: "24px" }}
+                >
+                  <ReactMarkdown>{entry.content}</ReactMarkdown>
+                </div>
+              )}
             </div>
           )}
         </motion.div>
