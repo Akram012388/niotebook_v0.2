@@ -13,6 +13,7 @@ import {
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AiPane } from "../panes/AiPane";
 import { CodePane } from "../panes/CodePane";
+import { NiotepadPane } from "../panes/NiotepadPane";
 import { VideoPane } from "../panes/VideoPane";
 import { LayoutGrid } from "./LayoutGrid";
 import { useLayoutPreset } from "./LayoutPresetContext";
@@ -114,16 +115,18 @@ const VC_OPTIONS: PaneSwitcherOption[] = [
   { label: "C", ariaLabel: "Show code", value: "code" },
 ];
 
-const AC_OPTIONS: PaneSwitcherOption[] = [
+const ACN_OPTIONS: PaneSwitcherOption[] = [
   { label: "A", ariaLabel: "Show assistant", value: "chat" },
   { label: "C", ariaLabel: "Show code", value: "code" },
+  { label: "N", ariaLabel: "Show niotepad", value: "niotepad" },
 ];
 
 // ── Pane state external store ─────────────────────────────────
 const paneListeners = new Set<() => void>();
 let singlePaneSnapshot: "video" | "code" = "video";
 let leftPaneSnapshot: "video" | "code" = "video";
-let rightPaneSnapshot: "chat" | "code" = "chat";
+let rightPaneSnapshot: "chat" | "code" | "niotepad" = "chat";
+let middlePaneSnapshot: "chat" | "code" | "niotepad" = "code";
 
 const notifyPane = (): void => {
   for (const listener of paneListeners) {
@@ -147,18 +150,27 @@ const readLeftPane = (): "video" | "code" => {
   return "video";
 };
 
-const readRightPane = (): "chat" | "code" => {
+const readRightPane = (): "chat" | "code" | "niotepad" => {
   const stored = storageAdapter.getItem("niotebook.pane.right");
-  if (stored === "chat" || stored === "code") {
+  if (stored === "chat" || stored === "code" || stored === "niotepad") {
     return stored;
   }
   return "chat";
+};
+
+const readMiddlePane = (): "chat" | "code" | "niotepad" => {
+  const stored = storageAdapter.getItem("niotebook.pane.middle");
+  if (stored === "chat" || stored === "code" || stored === "niotepad") {
+    return stored;
+  }
+  return "code";
 };
 
 const hydratePaneStore = (): void => {
   const storedSingle = readSinglePane();
   const storedLeft = readLeftPane();
   const storedRight = readRightPane();
+  const storedMiddle = readMiddlePane();
 
   if (storedSingle !== singlePaneSnapshot) {
     singlePaneSnapshot = storedSingle;
@@ -173,6 +185,19 @@ const hydratePaneStore = (): void => {
     storageAdapter.setItem("niotebook.pane.right", "chat");
   } else if (storedRight !== rightPaneSnapshot) {
     rightPaneSnapshot = storedRight;
+  }
+
+  if (storedMiddle !== middlePaneSnapshot) {
+    middlePaneSnapshot = storedMiddle;
+  }
+
+  // Enforce single-instance niotepad constraint
+  if (
+    middlePaneSnapshot === "niotepad" &&
+    rightPaneSnapshot === "niotepad"
+  ) {
+    rightPaneSnapshot = "chat";
+    storageAdapter.setItem("niotebook.pane.right", "chat");
   }
 
   notifyPane();
@@ -194,7 +219,8 @@ const WorkspaceGrid = (): ReactElement => {
       if (
         event.key !== "niotebook.pane.single" &&
         event.key !== "niotebook.pane.left" &&
-        event.key !== "niotebook.pane.right"
+        event.key !== "niotebook.pane.right" &&
+        event.key !== "niotebook.pane.middle"
       ) {
         return;
       }
@@ -202,6 +228,7 @@ const WorkspaceGrid = (): ReactElement => {
       const nextSingle = readSinglePane();
       const nextLeft = readLeftPane();
       const nextRight = readRightPane();
+      const nextMiddle = readMiddlePane();
 
       if (nextSingle !== singlePaneSnapshot) {
         singlePaneSnapshot = nextSingle;
@@ -216,6 +243,19 @@ const WorkspaceGrid = (): ReactElement => {
         storageAdapter.setItem("niotebook.pane.right", "chat");
       } else if (nextRight !== rightPaneSnapshot) {
         rightPaneSnapshot = nextRight;
+      }
+
+      if (nextMiddle !== middlePaneSnapshot) {
+        middlePaneSnapshot = nextMiddle;
+      }
+
+      // Enforce single-instance niotepad constraint
+      if (
+        middlePaneSnapshot === "niotepad" &&
+        rightPaneSnapshot === "niotepad"
+      ) {
+        rightPaneSnapshot = "chat";
+        storageAdapter.setItem("niotebook.pane.right", "chat");
       }
 
       notifyPane();
@@ -243,15 +283,43 @@ const WorkspaceGrid = (): ReactElement => {
 
   const rightPane = useSyncExternalStore(
     subscribe,
-    (): "chat" | "code" => rightPaneSnapshot,
-    (): "chat" | "code" => "chat",
+    (): "chat" | "code" | "niotepad" => rightPaneSnapshot,
+    (): "chat" | "code" | "niotepad" => "chat",
   );
 
-  const setRightPane = useCallback((next: "chat" | "code"): void => {
-    rightPaneSnapshot = next;
-    storageAdapter.setItem("niotebook.pane.right", next);
-    notifyPane();
-  }, []);
+  const middlePane = useSyncExternalStore(
+    subscribe,
+    (): "chat" | "code" | "niotepad" => middlePaneSnapshot,
+    (): "chat" | "code" | "niotepad" => "code",
+  );
+
+  const setRightPane = useCallback(
+    (next: "chat" | "code" | "niotepad"): void => {
+      // Enforce single-instance niotepad in triple mode
+      if (next === "niotepad" && middlePaneSnapshot === "niotepad") {
+        middlePaneSnapshot = rightPaneSnapshot;
+        storageAdapter.setItem("niotebook.pane.middle", rightPaneSnapshot);
+      }
+      rightPaneSnapshot = next;
+      storageAdapter.setItem("niotebook.pane.right", next);
+      notifyPane();
+    },
+    [],
+  );
+
+  const setMiddlePane = useCallback(
+    (next: "chat" | "code" | "niotepad"): void => {
+      // Enforce single-instance niotepad in triple mode
+      if (next === "niotepad" && rightPaneSnapshot === "niotepad") {
+        rightPaneSnapshot = middlePaneSnapshot;
+        storageAdapter.setItem("niotebook.pane.right", middlePaneSnapshot);
+      }
+      middlePaneSnapshot = next;
+      storageAdapter.setItem("niotebook.pane.middle", next);
+      notifyPane();
+    },
+    [],
+  );
 
   const setSinglePane = useCallback((next: "video" | "code"): void => {
     singlePaneSnapshot = next;
@@ -382,6 +450,25 @@ const WorkspaceGrid = (): ReactElement => {
       if (key === "a") {
         if (activePreset === "split") {
           setRightPane("chat");
+        } else if (activePreset === "triple") {
+          if (rightPane !== "chat") {
+            setRightPane("chat");
+          } else if (middlePane !== "chat") {
+            setMiddlePane("chat");
+          }
+        }
+        return;
+      }
+
+      if (key === "n") {
+        if (activePreset === "split") {
+          setRightPane("niotepad");
+        } else if (activePreset === "triple") {
+          if (rightPane !== "niotepad") {
+            setRightPane("niotepad");
+          } else if (middlePane !== "niotepad") {
+            setMiddlePane("niotepad");
+          }
         }
       }
     };
@@ -393,7 +480,10 @@ const WorkspaceGrid = (): ReactElement => {
   }, [
     activePreset,
     leftPane,
+    middlePane,
+    rightPane,
     setLeftPane,
+    setMiddlePane,
     setPreset,
     setRightPane,
     setSinglePane,
@@ -428,12 +518,19 @@ const WorkspaceGrid = (): ReactElement => {
   );
 
   const handleSelectRight = useCallback(
-    (value: string) => setRightPane(value as "chat" | "code"),
+    (value: string) =>
+      setRightPane(value as "chat" | "code" | "niotepad"),
     [setRightPane],
   );
 
+  const handleSelectMiddle = useCallback(
+    (value: string) =>
+      setMiddlePane(value as "chat" | "code" | "niotepad"),
+    [setMiddlePane],
+  );
+
   const rightDisabled = useMemo(
-    () => (leftPane === "code" ? ["code"] : undefined),
+    () => (leftPane === "code" ? ["code", "niotepad"] : undefined),
     [leftPane],
   );
 
@@ -539,7 +636,7 @@ const WorkspaceGrid = (): ReactElement => {
                 onThreadChange={handleThreadChange}
                 headerExtras={
                   <PaneSwitcher
-                    options={AC_OPTIONS}
+                    options={ACN_OPTIONS}
                     active="chat"
                     onSelect={handleSelectRight}
                     disabledValues={rightDisabled}
@@ -553,8 +650,22 @@ const WorkspaceGrid = (): ReactElement => {
                 onSnapshot={handleSnapshot}
                 headerExtras={
                   <PaneSwitcher
-                    options={AC_OPTIONS}
+                    options={ACN_OPTIONS}
                     active="code"
+                    onSelect={handleSelectRight}
+                    disabledValues={rightDisabled}
+                  />
+                }
+              />
+            ) : null}
+            {rightPane === "niotepad" ? (
+              <NiotepadPane
+                lessonId={activeLessonId}
+                onSeek={handleSeek}
+                headerExtras={
+                  <PaneSwitcher
+                    options={ACN_OPTIONS}
+                    active="niotepad"
                     onSelect={handleSelectRight}
                     disabledValues={rightDisabled}
                   />
@@ -567,6 +678,58 @@ const WorkspaceGrid = (): ReactElement => {
     );
   }
 
+  const renderTriplePane = (
+    pane: "chat" | "code" | "niotepad",
+    active: string,
+    onSelect: (value: string) => void,
+  ): ReactElement | null => {
+    if (pane === "chat") {
+      return (
+        <AiPane
+          lessonId={activeLessonId}
+          onSeek={handleSeek}
+          codeSnapshot={codeSnapshot}
+          onThreadChange={handleThreadChange}
+          headerExtras={
+            <PaneSwitcher
+              options={ACN_OPTIONS}
+              active={active}
+              onSelect={onSelect}
+            />
+          }
+        />
+      );
+    }
+    if (pane === "code") {
+      return (
+        <CodePane
+          lessonId={activeLessonId}
+          onSnapshot={handleSnapshot}
+          headerExtras={
+            <PaneSwitcher
+              options={ACN_OPTIONS}
+              active={active}
+              onSelect={onSelect}
+            />
+          }
+        />
+      );
+    }
+    return (
+      <NiotepadPane
+        lessonId={activeLessonId}
+        onSeek={handleSeek}
+        headerExtras={
+          <PaneSwitcher
+            options={ACN_OPTIONS}
+            active={active}
+            onSelect={onSelect}
+          />
+        }
+      />
+    );
+  };
+
   return (
     <LayoutGrid preset={effectivePreset}>
       <VideoPane
@@ -578,13 +741,8 @@ const WorkspaceGrid = (): ReactElement => {
         codeHash={codeHash ?? undefined}
         showInfoStrip
       />
-      <CodePane lessonId={activeLessonId} onSnapshot={handleSnapshot} />
-      <AiPane
-        lessonId={activeLessonId}
-        onSeek={handleSeek}
-        codeSnapshot={codeSnapshot}
-        onThreadChange={handleThreadChange}
-      />
+      {renderTriplePane(middlePane, middlePane, handleSelectMiddle)}
+      {renderTriplePane(rightPane, rightPane, handleSelectRight)}
     </LayoutGrid>
   );
 };
