@@ -266,7 +266,7 @@ const NiotepadEntry = memo(
         <button
           type="button"
           onClick={handleDeleteClick}
-          className="absolute right-2 top-1 z-10 flex h-5 w-5 items-center justify-center rounded opacity-0 transition-opacity hover:bg-status-error/10 hover:text-status-error group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error/40"
+          className="absolute right-2 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full opacity-0 transition-opacity hover:bg-status-error/10 hover:text-status-error group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error/40"
           style={{ color: "var(--niotepad-text-subtle)" }}
           aria-label="Delete note"
         >

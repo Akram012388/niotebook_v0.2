@@ -254,7 +254,7 @@ const NiotepadPanel = (): ReactElement => {
       <motion.aside
         ref={panelRef}
         role="dialog"
-        aria-modal="true"
+        aria-modal="false"
         aria-label="Niotepad -- personal notes"
         aria-describedby="niotepad-description"
         tabIndex={-1}
