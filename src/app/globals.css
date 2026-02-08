@@ -157,6 +157,14 @@
   background: color-mix(in srgb, var(--foreground) 20%, transparent);
 }
 
+/* Niotepad page tabs — hidden scrollbar for horizontal overflow */
+.niotepad-page-tabs {
+  scrollbar-width: none; /* Firefox */
+}
+.niotepad-page-tabs::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
 /* ==========================================================================
    Tailwind 4 Theme — Maps CSS custom properties to utility classes
    ========================================================================== */
