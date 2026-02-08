@@ -166,6 +166,14 @@
 - Use `document.documentElement.clientWidth` not `window.innerWidth` — clientWidth excludes scrollbar
 - Clamp persisted position to viewport bounds on open: `Math.max(PAD, Math.min(stored, maxX))`
 
+### AnimatePresence initial={false} for HMR Resilience (2026-02-08)
+
+- Dynamic-imported portals (`next/dynamic` + `ssr: false`) remount on HMR
+- If Zustand `isOpen` is already `true` when portal re-mounts, FM starts from `initial={{ opacity: 0 }}`
+- FM `AnimatePresence initial={false}` skips entrance animation when children are present on first render
+- Pattern: `const [mountedWhileOpen] = useState(() => isOpen)` captures mount-time value without ref access
+- Pass `<AnimatePresence initial={!mountedWhileOpen}>` — skips anim on HMR, runs normally on user toggle
+
 ### Framer Motion v12 isElementKeyboardAccessible (2026-02-08)
 
 - FM v12 blocks drag when pointerdown target is: BUTTON, INPUT, SELECT, TEXTAREA, A, or contentEditable
@@ -178,6 +186,14 @@
 - Store cursor in `useRef`, content length in `useRef`, run RAF loop once on mount (`[]` deps)
 - The loop reads `contentLenRef.current` each tick -- always sees latest value
 - Guard with `Math.min(cursor, target)` in case content ever shrinks
+
+### Niotepad Bookmark Content Rules (2026-02-08)
+
+- Video bookmarks: NiotepadEntry already renders terracotta header from `metadata.lectureTitle` — don't duplicate in `content`
+- Code bookmarks: insert as plain text, not markdown code blocks (triple backticks render with dark `pre` background from `.nio-markdown pre`)
+- Niotepad `pre` override in globals.css: must set `background: transparent; color: inherit;` to prevent dark bg leak
+- Entry spacing: `mb-3` on `motion.article` for visual breathing room between entries
+- Unused CSS tokens removed: `--niotepad-code-accent`, `--niotepad-chat-accent` (border-left indicators removed)
 
 ## Admin Console Pattern (redesigned 2026-02-07)
 

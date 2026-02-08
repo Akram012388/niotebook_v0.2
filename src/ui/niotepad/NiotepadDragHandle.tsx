@@ -80,7 +80,7 @@ const NiotepadDragHandle = memo(function NiotepadDragHandle({
           e.stopPropagation();
           onClose();
         }}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
         style={{ color: "var(--niotepad-text-muted)" }}
         aria-label="Close niotepad"
       >

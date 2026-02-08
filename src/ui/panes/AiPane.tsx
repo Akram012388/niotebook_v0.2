@@ -21,6 +21,7 @@ import { getLessonRef } from "../content/convexContent";
 import { resolveLectureNumber } from "../../domain/lectureNumber";
 import { useVideoDisplayTime } from "../layout/WorkspaceGrid";
 import { useTerminalStore } from "../code/terminal/useTerminalStore";
+import { useNiotepadStore } from "../../infra/niotepad/useNiotepadStore";
 
 // ── Selection push tooltip ────────────────────────────────────
 type SelectionTooltipProps = {
@@ -230,6 +231,41 @@ const AiPane = ({
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }, [videoTimeSec]);
 
+  // ── Bookmark to niotepad ────────────────────────────────
+  const [bookmarkConfirm, setBookmarkConfirm] = useState(false);
+  const bookmarkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleBookmark = useCallback((): void => {
+    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+    if (!lastAssistant?.content) return;
+
+    const store = useNiotepadStore.getState();
+    const pageId = store.getOrCreatePage(lessonId, lectureLabel);
+    store.addEntry({
+      source: "chat",
+      content: lastAssistant.content,
+      pageId,
+      videoTimeSec,
+      metadata: {
+        chatMessageId: lastAssistant.id,
+        lectureTitle: lectureLabel,
+      },
+    });
+
+    setBookmarkConfirm(true);
+    if (bookmarkTimerRef.current) clearTimeout(bookmarkTimerRef.current);
+    bookmarkTimerRef.current = setTimeout(() => {
+      setBookmarkConfirm(false);
+      bookmarkTimerRef.current = null;
+    }, 1500);
+  }, [messages, lessonId, lectureLabel, videoTimeSec]);
+
+  useEffect(() => {
+    return () => {
+      if (bookmarkTimerRef.current) clearTimeout(bookmarkTimerRef.current);
+    };
+  }, []);
+
   const contextStripLabel = useMemo(() => {
     const parts: string[] = [];
     if (lectureNumber !== undefined && lectureNumber !== null) {
@@ -253,6 +289,46 @@ const AiPane = ({
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={handleBookmark}
+            className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            aria-label="Bookmark last response to niotepad"
+          >
+            {bookmarkConfirm ? (
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 7L6 10L11 4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            ) : (
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3.5 2.5H10.5V12L7 9.5L3.5 12V2.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+          </button>
           <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
             Live
           </span>

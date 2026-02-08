@@ -41,6 +41,16 @@ function formatTimestamp(sec: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+/** Format millisecond timestamp as short date+time (e.g., "Feb 8, 2:34 PM") */
+function formatDate(ms: number): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(ms));
+}
+
 const entryAppearSpring = {
   initial: { opacity: 0, y: 8 },
   animate: { opacity: 1, y: 0 },
@@ -202,6 +212,8 @@ const NiotepadEntry = memo(
     }, [isDeleting, onDelete, entry.id]);
 
     const isVideo = entry.source === "video";
+    const isCode = entry.source === "code";
+    const isChat = entry.source === "chat";
 
     // Build accessible label with content preview
     const contentPreview =
@@ -234,7 +246,7 @@ const NiotepadEntry = memo(
             : entryAppear.transition
         }
         onAnimationComplete={handleAnimationComplete}
-        className="group relative overflow-hidden py-0.5 text-sm text-foreground"
+        className="group relative mb-[24px] overflow-hidden text-sm text-foreground"
       >
         {/* Delete strip (revealed behind entry on swipe) */}
         <motion.div
@@ -245,11 +257,18 @@ const NiotepadEntry = memo(
           <X size={18} weight="bold" />
         </motion.div>
 
-        {/* Hover X button (desktop fallback) */}
+        {/* Timestamp + delete on hover */}
+        <span
+          className="absolute right-8 top-1 z-10 select-none text-[10px] opacity-0 transition-opacity group-hover:opacity-60"
+          style={{ color: "var(--niotepad-text-subtle)", lineHeight: "20px" }}
+          aria-hidden="true"
+        >
+          {formatDate(entry.createdAt)}
+        </span>
         <button
           type="button"
           onClick={handleDeleteClick}
-          className="absolute right-2 top-1 z-10 flex h-5 w-5 items-center justify-center rounded opacity-0 transition-opacity hover:bg-status-error/10 hover:text-status-error group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error/40"
+          className="absolute right-2 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full opacity-0 transition-opacity hover:bg-status-error/10 hover:text-status-error group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error/40"
           style={{ color: "var(--niotepad-text-subtle)" }}
           aria-label="Delete note"
         >
@@ -280,7 +299,7 @@ const NiotepadEntry = memo(
             <button
               type="button"
               onClick={handleSeek}
-              className="mb-0.5 block text-left text-sm font-semibold text-accent transition-colors hover:text-accent-hover"
+              className="block text-left text-sm font-semibold text-accent transition-colors hover:text-accent-hover"
               style={{ lineHeight: "24px" }}
             >
               {entry.metadata.lectureTitle}
@@ -293,6 +312,36 @@ const NiotepadEntry = memo(
                 </span>
               )}
             </button>
+          )}
+
+          {/* Code entry header */}
+          {isCode && (
+            <span
+              className="block text-sm font-semibold text-accent"
+              style={{ lineHeight: "24px" }}
+              aria-hidden="true"
+            >
+              Code
+              {entry.metadata.filePath && (
+                <span
+                  className="ml-1 font-normal"
+                  style={{ color: "var(--niotepad-text-muted)" }}
+                >
+                  &mdash; {entry.metadata.filePath.split("/").pop()}
+                </span>
+              )}
+            </span>
+          )}
+
+          {/* Chat entry header */}
+          {isChat && (
+            <span
+              className="block text-sm font-semibold text-accent"
+              style={{ lineHeight: "24px" }}
+              aria-hidden="true"
+            >
+              Assistant
+            </span>
           )}
 
           {/* Content: edit mode or render mode */}
@@ -324,7 +373,14 @@ const NiotepadEntry = memo(
               className="cursor-text"
               aria-label="Click to edit this note"
             >
-              <div className="nio-markdown" style={{ lineHeight: "24px" }}>
+              <div
+                className="nio-markdown"
+                style={{
+                  lineHeight: "24px",
+                  whiteSpace:
+                    entry.source === "code" ? "pre-wrap" : undefined,
+                }}
+              >
                 <ReactMarkdown>{entry.content}</ReactMarkdown>
               </div>
             </div>
