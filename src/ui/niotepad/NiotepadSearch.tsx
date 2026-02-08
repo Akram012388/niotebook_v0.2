@@ -146,21 +146,21 @@ const NiotepadSearch = memo(function NiotepadSearch({
     );
   }
 
-  // --- Expanded state: search input + filter chips ---
+  // --- Expanded state: search input + filter chips (single row) ---
   return (
     <div
-      className="flex shrink-0 flex-col border-b px-3 py-1.5"
+      className="flex shrink-0 border-b px-3 py-1.5"
       style={{
         background: "var(--niotepad-header-bg)",
         borderColor: "var(--niotepad-header-border)",
       }}
     >
-      {/* Search input row */}
-      <div className="flex items-center gap-1.5">
+      {/* Search bar: rounded container with focus ring */}
+      <div className="niotepad-search-bar flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-transparent px-1.5 py-0.5 transition-colors focus-within:border-accent">
         <button
           type="button"
           onClick={onToggleExpanded}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
           style={{ color: "var(--niotepad-text-muted)" }}
           aria-label="Close search"
         >
@@ -175,52 +175,58 @@ const NiotepadSearch = memo(function NiotepadSearch({
           onKeyDown={handleInputKeyDown}
           placeholder="Search notes..."
           aria-label="Search notes"
-          className="min-w-0 flex-1 bg-transparent text-xs text-foreground outline-none placeholder:text-text-subtle"
+          className="niotepad-composer min-w-0 flex-1 bg-transparent text-xs text-foreground outline-none placeholder:text-text-subtle"
         />
 
         {query.length > 0 && (
           <button
             type="button"
             onClick={handleClear}
-            className="flex h-5 w-5 shrink-0 items-center justify-center rounded transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            className="flex h-4 w-4 shrink-0 items-center justify-center rounded transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
             style={{ color: "var(--niotepad-text-muted)" }}
             aria-label="Clear search"
           >
             <ClearIcon />
           </button>
         )}
-      </div>
 
-      {/* Filter chips row */}
-      <div
-        className="mt-1.5 flex items-center gap-1.5"
-        role="group"
-        aria-label="Filter by source"
-      >
-        {FILTER_CHIPS.map(({ label, source }) => {
-          const isActive = activeFilters.includes(source);
-          return (
-            <button
-              key={source}
-              type="button"
-              onClick={() => onFilterToggle(source)}
-              aria-pressed={isActive}
-              className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
-                isActive ? "bg-accent text-white" : "hover:text-foreground"
-              }`}
-              style={
-                !isActive
-                  ? {
-                      background: "var(--niotepad-surface-muted)",
-                      color: "var(--niotepad-text-muted)",
-                    }
-                  : undefined
-              }
-            >
-              {label}
-            </button>
-          );
-        })}
+        {/* Subtle separator before chips */}
+        <div
+          className="mx-0.5 h-3.5 w-px shrink-0"
+          style={{ background: "var(--niotepad-header-border)" }}
+        />
+
+        {/* Filter chips inline */}
+        <div
+          className="flex shrink-0 items-center gap-1"
+          role="group"
+          aria-label="Filter by source"
+        >
+          {FILTER_CHIPS.map(({ label, source }) => {
+            const isActive = activeFilters.includes(source);
+            return (
+              <button
+                key={source}
+                type="button"
+                onClick={() => onFilterToggle(source)}
+                aria-pressed={isActive}
+                className={`rounded-full px-1.5 py-px text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+                  isActive ? "bg-accent text-white" : "hover:text-foreground"
+                }`}
+                style={
+                  !isActive
+                    ? {
+                        background: "var(--niotepad-surface-muted)",
+                        color: "var(--niotepad-text-muted)",
+                      }
+                    : undefined
+                }
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Screen reader announcement for result count */}
