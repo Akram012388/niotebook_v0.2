@@ -22,6 +22,7 @@ import { NiotepadScrollArea } from "./NiotepadScrollArea";
 import { NiotepadEntry } from "./NiotepadEntry";
 import { NiotepadComposer } from "./NiotepadComposer";
 import { NiotepadPageNav } from "./NiotepadPageNav";
+import { NiotepadSearch } from "./NiotepadSearch";
 
 // 5-layer elevation shadow (plan Section 3.1)
 const PANEL_SHADOW = [
@@ -49,6 +50,12 @@ const NiotepadPanel = (): ReactElement => {
   const activePageId = useNiotepadStore((s) => s.activePageId);
   const setActivePage = useNiotepadStore((s) => s.setActivePage);
   const filteredEntries = useNiotepadStore((s) => selectFilteredEntries(s));
+  const searchQuery = useNiotepadStore((s) => s.searchQuery);
+  const setSearchQuery = useNiotepadStore((s) => s.setSearchQuery);
+  const sourceFilters = useNiotepadStore((s) => s.sourceFilters);
+  const toggleSourceFilter = useNiotepadStore((s) => s.toggleSourceFilter);
+  const isSearchExpanded = useNiotepadStore((s) => s.isSearchExpanded);
+  const toggleSearchExpanded = useNiotepadStore((s) => s.toggleSearchExpanded);
 
   const dragControls = useDragControls();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -256,6 +263,15 @@ const NiotepadPanel = (): ReactElement => {
         />
       )}
 
+      <NiotepadSearch
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        activeFilters={sourceFilters}
+        onFilterToggle={toggleSourceFilter}
+        isExpanded={isSearchExpanded}
+        onToggleExpanded={toggleSearchExpanded}
+      />
+
       {/* Ruled paper content area */}
       <NiotepadScrollArea onPaperClick={focusComposer}>
         <AnimatePresence initial={false}>
@@ -271,6 +287,15 @@ const NiotepadPanel = (): ReactElement => {
             />
           ))}
         </AnimatePresence>
+
+        {/* Empty state when search/filter yields no results */}
+        {filteredEntries.length === 0 &&
+          (searchQuery || sourceFilters.length > 0) && (
+            <p className="py-8 text-center text-xs text-text-muted">
+              No notes match your search
+            </p>
+          )}
+
         <NiotepadComposer
           ref={composerRef}
           onSubmit={handleSubmit}
