@@ -12,7 +12,7 @@ const NiotepadPill = (): ReactElement => {
     <button
       type="button"
       onClick={togglePanel}
-      className={`relative flex h-7 w-7 items-center justify-center rounded-full border text-xs font-semibold transition ${
+      className={`relative flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold transition ${
         isOpen
           ? "border-accent bg-accent text-white shadow-sm"
           : "border-border bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"

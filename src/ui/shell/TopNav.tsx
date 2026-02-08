@@ -8,7 +8,7 @@ import {
   useState,
   type ReactElement,
 } from "react";
-import { Question, SidebarSimple } from "@phosphor-icons/react";
+import { SidebarSimple } from "@phosphor-icons/react";
 import { Wordmark } from "../brand/Wordmark";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -279,7 +279,7 @@ const TopNav = (): ReactElement => {
             title="Help (⌘/)"
             data-help-target="help"
           >
-            <Question size={16} weight="bold" />
+            <span className="flex h-4 w-4 items-center justify-center text-sm font-semibold">?</span>
           </button>
           <span data-help-target="layout">
             <LayoutPresetToggle />
