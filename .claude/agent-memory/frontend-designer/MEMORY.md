@@ -137,12 +137,26 @@
 - `useMotionValue(0)` + `useTransform(dragX, [-threshold, 0], [1, 0])` for reactive opacity
 - Vertical scroll tolerance: track `dragDirectionRef` — if dy > dx, set to "vertical" and force `dragX.set(0)`
 - Delete animation via `isDeleting` state + `onAnimationComplete` triggers actual `onDelete(id)`
+- **CRITICAL**: Add `select-none` to draggable div — `cursor-text` on content div causes browser text selection to intercept pointer events, breaking FM drag
+- **CRITICAL**: Add `touchAction: "pan-y"` in style — lets browser handle vertical scroll while FM handles horizontal drag
+- `dragPropagation={false}` (default) acquires global lock, preventing parent motion elements from starting same-axis drag
 
 ### Framer Motion Drag with useDragControls (2026-02-08)
 - Set `drag` + `dragListener={false}` + `dragControls={dragControls}` on motion element
 - Handle starts drag via `dragControls.start(e)` in onPointerDown
 - `dragMomentum={false}` prevents fling behavior
 - Persist position on `onDragEnd` via `getBoundingClientRect()`
+
+### Framer Motion dragConstraints as Object (2026-02-08)
+- Object `{ left, right }` values are RELATIVE OFFSETS from the element's CSS position, NOT absolute coordinates
+- For a panel at `left: X`: `left: PADDING - X` (negative = can move left), `right: (vw - WIDTH - PADDING) - X`
+- Use `document.documentElement.clientWidth` not `window.innerWidth` — clientWidth excludes scrollbar
+- Clamp persisted position to viewport bounds on open: `Math.max(PAD, Math.min(stored, maxX))`
+
+### Framer Motion v12 isElementKeyboardAccessible (2026-02-08)
+- FM v12 blocks drag when pointerdown target is: BUTTON, INPUT, SELECT, TEXTAREA, A, or contentEditable
+- `role="button"` with `tabIndex=0` on a DIV does NOT block drag (only tag-based check)
+- But BUTTON elements inside draggable area DO block drag — expected behavior for interactive children
 
 ### RevealContent Typewriter Pattern (2026-02-07)
 - RAF loops that depend on growing content must NOT use content length in `useEffect` deps
