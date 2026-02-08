@@ -241,11 +241,6 @@
   display: none; /* Chrome, Safari, Edge */
 }
 
-/* --- Help Tour --- */
-[data-help-spotlight] {
-  position: relative;
-  z-index: 70;
-}
 
 /* ==========================================================================
    Tailwind 4 Theme — Maps CSS custom properties to utility classes
