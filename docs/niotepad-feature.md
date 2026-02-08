@@ -4,7 +4,7 @@
 > **Base:** `main` @ `cf17f9c`
 > **Author:** Architect Agent
 > **Created:** 2026-02-08
-> **Status:** Draft -- Pending Review
+> **Status:** Implemented -- Phases 1-8 complete, manual testing in progress
 
 ---
 
@@ -27,6 +27,7 @@
 15. [File Manifest](#15-file-manifest)
 16. [Risk Assessment](#16-risk-assessment)
 17. [Open Questions](#17-open-questions)
+18. [Implementation Log](#18-implementation-log)
 
 ---
 
@@ -71,8 +72,8 @@ easing. Glass, not plastic.
    lecture-scoped pages. Users flip between them like sections of a physical
    notebook, and each page scrolls infinitely.
 
-4. **Premium interaction model.** Spring animations, solid elevated surface, draggable +
-   resizable panel, gesture-based dismiss, focus trapping, keyboard shortcuts --
+4. **Premium interaction model.** Spring animations, solid elevated surface, X-axis
+   draggable panel (fixed size, locked Y), focus trapping, keyboard shortcuts --
    every interaction detail is specified to produce a 60fps, Apple-grade experience.
 
 ### What This Must NOT Do
@@ -1905,8 +1906,6 @@ document.body
               |     +-- [Ruled paper background]
               |     +-- NiotepadEntry (x N)
               |     +-- NiotepadComposer
-              |
-              +-- NiotepadResizeHandle
 ```
 
 ## Appendix B: State Flow Diagram
@@ -1952,7 +1951,7 @@ ControlCenterDrawer             50         Existing -- mutual exclusion with nio
 
 | Key | Value Type | Purpose |
 |-----|-----------|---------|
-| `niotebook.niotepad.geometry` | `{ x, y, width, height }` | Panel position and size |
+| `niotebook.niotepad.geometry` | `{ x, y, width, height }` | Panel X position (only `x` used at runtime; Y is computed, size is fixed) |
 | `niotebook.niotepad.unread` | `"true"` or absent | Unread badge state |
 
 **Note:** Entry data is stored in IndexedDB, not localStorage. Panel open/close
@@ -1974,7 +1973,104 @@ state is NOT persisted (panel starts closed).
 
 ---
 
-*End of plan. This document should provide sufficient detail for a senior
-engineer to implement the complete Niotepad Experimental feature without
-ambiguity. All CSS values, TypeScript interfaces, animation configs, and
-component boundaries are specified.*
+---
+
+## 18. Implementation Log
+
+> Decisions, deviations, and principles recorded during the implementation
+> of Phases 1-8 on branch `feat/niotepad-experimental`.
+
+### 18.1 Open Questions Resolved
+
+All five open questions from Section 17 were resolved before implementation:
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| 1 | **Cmd+J** (accept Firefox conflict) | Firefox intercepts Cmd+J for Downloads. Accepted trade-off; Cmd+J is the most discoverable shortcut. |
+| 2 | **Mutual exclusion** with ControlCenterDrawer | Two overlays is chaotic. Zustand subscribe pattern: opening one closes the other. |
+| 3 | **Undo toast** on swipe-to-delete (3 seconds) | Gestures are error-prone. Standard undo window. *(Toast UI deferred to iteration.)* |
+| 4 | **Corner gesture deferred** to v2 | Conflicts with OS gestures. Keyboard + pill is sufficient. |
+| 5 | **Drag-to-dismiss deferred** to v2 | ESC + click-outside + X button provide three dismiss mechanisms already. |
+
+### 18.2 Deviations from Plan
+
+| Area | Plan | Implementation | Reason |
+|------|------|----------------|--------|
+| **IDs** | nanoid | `crypto.randomUUID()` | nanoid was not a direct dependency. `crypto.randomUUID()` is native, zero-bundle-cost, and produces sufficiently unique IDs for local-only storage. |
+| **Resize** | Resizable panel (320x360 min, 640x800 max) | **Fixed size** (440x560), resize handle removed | During manual testing, resize added complexity without value. Fixed dimensions produce a more Apple-esque, opinionated experience. The panel is a focused tool, not a window manager. |
+| **Drag axis** | Free-form drag (X + Y) | **X-axis only**, Y locked to vertically centered below TopNav | Locking Y eliminates visual chaos of a panel floating at arbitrary heights. Horizontal sliding feels native (Apple Sheets, iOS panels). Y is computed: `TOPNAV_HEIGHT + (workspaceHeight - PANEL_HEIGHT) / 2`. |
+| **Drag constraints** | Viewport edges with 24px padding | Viewport edges with 16px padding, X-only | Tighter padding maximizes usable slide range. |
+| **Open animation `y`** | `y: 12` initial offset | Kept as-is (spring animates Y offset relative to final position) | The `y` in framer-motion `initial/animate` is relative, not absolute. It works correctly with locked Y positioning. |
+| **Summarize API route** | `/api/nio/summarize` for video push | Not implemented | Video push creates bookmark entries with timestamp. AI summarization deferred to iteration. |
+
+### 18.3 Principles Adhered To
+
+**1. Simplicity is the ultimate sophistication.**
+Every component was built with minimal props, minimal state, and zero unnecessary abstractions. No wrapper components, no context providers beyond the single `NiotepadProvider`, no render prop patterns. Each component does one thing.
+
+**2. Solid opaque surface, not glass.**
+The panel uses `var(--surface)` with a 5-layer elevation shadow. No `backdrop-filter`, no transparency, no glassmorphism. This was a deliberate correction from the initial plan draft, documented in commit `1efea22`.
+
+**3. Form follows function.**
+- Entries have no source badges, no hover action buttons, no visual chrome differentiating code vs chat vs manual entries. Every note looks the same on the ruled paper.
+- The only visual distinction is video entries, which show a clickable lecture title header above their content.
+- Swipe-to-delete is the primary delete gesture; the hover X button exists solely as an accessibility fallback.
+
+**4. Spring physics, never linear easing.**
+All animations use Framer Motion springs with specific stiffness/damping/mass tuning:
+- Panel open: `stiffness: 400, damping: 28, mass: 0.8`
+- Panel close: `stiffness: 500, damping: 30, mass: 0.6` (faster = snappier)
+- Entry appear: `stiffness: 350, damping: 25, mass: 0.5`
+- Delete collapse: `stiffness: 300, damping: 25`
+
+**5. Respect the workspace grid.**
+The panel renders via `createPortal(document.body)`, completely outside the React tree that contains `WorkspaceGrid`. Zero CSS or DOM interference with the pane layout. The backdrop sits at z-49, panel at z-50.
+
+**6. Accessibility is not optional.**
+- Focus trap with Tab/Shift+Tab wrapping
+- Scoped ESC priority chain: cancel edit > collapse search > close panel
+- `aria-describedby` linking dialog to its description
+- `aria-label` on entries includes source + content preview
+- `aria-live="polite"` region announces search result counts
+- `role="tablist"` with roving tabindex on page navigation
+- `prefers-reduced-motion` support: all animations become instant
+
+**7. Design token consistency.**
+All colors reference CSS custom properties (`var(--accent)`, `var(--surface)`, `var(--foreground)`, etc.). No hardcoded hex values in components. Theme-specific overrides use `[data-theme="dark"]` in globals.css. The `status-error` token is used for delete affordances instead of arbitrary reds.
+
+**8. Zustand selector discipline.**
+Derived selectors that return new array references (like `selectFilteredEntries`) must NOT be called inside Zustand `useStore((s) => ...)` selectors, because Zustand uses `Object.is` comparison and a new array always fails equality. These are computed via `useMemo` with explicit dependency arrays instead.
+
+### 18.4 Commit History
+
+| Commit | Phase | Description |
+|--------|-------|-------------|
+| `c65fd42` | -- | Initial architecture plan |
+| `1efea22` | -- | Glassmorphism to solid surface correction |
+| `777702d` | 1 | Domain types, Zustand store, IndexedDB persistence |
+| `3177eab` | 2 | Floating solid-surface panel shell |
+| `eae9c23` | 3 | Ruled-paper content area with entries and composer |
+| `da965d6` | 6 | Bidirectional push from code, chat, and video |
+| `0d49d29` | 4 | Swipe-to-delete gesture |
+| `8e4ffde` | 5 | Per-lecture page navigation |
+| `998df76` | 7 | Search and filter |
+| `d5a03d5` | 8 | Accessibility, performance, and polish |
+
+**Note:** Phase 6 was implemented in parallel with Phase 2 (they had no file overlap), which is why it appears before Phases 4-5 in the commit log.
+
+### 18.5 Remaining Work (Post-Implementation)
+
+| Item | Priority | Notes |
+|------|----------|-------|
+| Undo toast on delete | Medium | 3-second undo window after swipe-to-delete. Approved but not yet implemented. |
+| Video push AI summarization | Low | `/api/nio/summarize` route. Currently creates plain bookmark entries. |
+| Push animation on N pill | Low | Visual feedback when an entry is pushed while panel is closed. |
+| Convex sync | Future | Cross-device persistence. Requires schema, auth, conflict resolution. |
+| Tests | Medium | Unit tests for store, selectors, swipe threshold. E2E for keyboard shortcuts. |
+| Corner gesture | v2 | Swipe from bottom-right corner to invoke. |
+| Drag-to-dismiss | v2 | Fling panel downward past threshold to close. |
+
+---
+
+*End of plan. This document serves as both the architecture specification and
+the implementation record for the Niotepad Experimental feature.*
