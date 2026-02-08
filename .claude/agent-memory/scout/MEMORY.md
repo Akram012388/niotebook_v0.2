@@ -1,5 +1,15 @@
 # Scout Agent Memory
 
+## Product Identity (mapped 2026-02-08)
+- **Niotebook** = interactive CS education platform: "Watch. Code. Learn."
+- Built by Akram as passion project. Invite-only alpha/beta. URL: niotebook.com
+- Tagline: "Your CS lecture just became an IDE. Video + editor + AI -- one canvas, zero tab-switching."
+- Course catalog: Harvard CS50 series (6 courses active), MIT/Stanford/Google/CMU coming soon
+- AI assistant = "Nio", context-aware tutor (transcript + code + video time + last error)
+- 7 in-browser runtimes: JS, Python, C, SQL, R, HTML, CSS
+- AI providers: Gemini primary, Groq fallback, SSE streaming via `/api/nio/route.ts`
+- See `product-analysis.md` for full product scout report.
+
 ## Workspace Architecture (mapped 2026-02-07)
 See `workspace-architecture.md` for the full scout report.
 
