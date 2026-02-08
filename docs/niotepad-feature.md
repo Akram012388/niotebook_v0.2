@@ -34,11 +34,14 @@
 
 ### The Pitch
 
-Niotepad Experimental is a **floating glassmorphic panel** that overlays the workspace
+Niotepad Experimental is a **floating solid-surface panel** that overlays the workspace
 without disturbing the sacred single/dual/triple layout grid. It is styled as a
 **modern minimal ruled notebook page** -- warm cream tint, subtle ruled lines,
 binder dots carried over from the landing page's `NotebookFrame` component --
-and serves as a bidirectional learning catalog.
+and serves as a bidirectional learning catalog. The panel is **fully opaque** --
+no transparency, no glassmorphism, no see-through of the workspace behind it.
+A solid surface creates focus and intuitiveness; the niotepad demands the user's
+full attention when invoked, like picking up a real notebook.
 
 It is not "another AI notes sidebar." It is the creative showpiece feature that
 transforms niotebook from a competent AI learning IDE into a *carefully crafted
@@ -68,7 +71,7 @@ easing. Glass, not plastic.
    lecture-scoped pages. Users flip between them like sections of a physical
    notebook, and each page scrolls infinitely.
 
-4. **Premium interaction model.** Spring animations, glassmorphism, draggable +
+4. **Premium interaction model.** Spring animations, solid elevated surface, draggable +
    resizable panel, gesture-based dismiss, focus trapping, keyboard shortcuts --
    every interaction detail is specified to produce a 60fps, Apple-grade experience.
 
@@ -124,7 +127,7 @@ AppShell (src/ui/shell/AppShell.tsx)
   |
   |-- NiotepadPortal                   <-- NEW: React portal to document.body
         |-- NiotepadBackdrop           <-- NEW: click-outside dismiss layer
-        |-- NiotepadPanel              <-- NEW: the glassmorphic floating panel
+        |-- NiotepadPanel              <-- NEW: the solid floating panel
               |-- NiotepadDragHandle   <-- NEW: top bar for dragging
               |-- NiotepadPageNav      <-- NEW: page tabs / navigation
               |-- NiotepadSearch       <-- NEW: search bar (collapsible)
@@ -189,7 +192,7 @@ entire workspace page.
 | Animation library | Framer Motion (already `^12.29.2` in deps) | Spring physics, drag, layout animations |
 | Shortcut key | `Cmd/Ctrl+J` (not `Cmd+N`) | `Cmd+N` is a browser-reserved shortcut and cannot be overridden |
 | Ruled lines | `repeating-linear-gradient` on scroll container | CSS-only, scrolls with content via `background-attachment: local` |
-| Glassmorphism | `backdrop-filter: blur(12px)` + semi-transparent bg | Proven pattern, 95%+ browser support |
+| Panel surface | Fully opaque `var(--surface)` with multi-layer elevation shadows | Solid surface creates focus; no see-through distraction |
 | Entry rendering | Inline rich text with markdown | Consistent with chat messages (`nio-markdown` class) |
 | Page model | Per-lecture pages, auto-created on first push | Maps naturally to the lesson-scoped workspace |
 
@@ -197,29 +200,31 @@ entire workspace page.
 
 ## 3. Visual Design Specification
 
-### 3.1 Panel Container -- Glassmorphism Recipe
+### 3.1 Panel Container -- Solid Elevated Surface
+
+The panel is **fully opaque** -- no transparency, no glassmorphism, no backdrop-filter.
+A solid surface creates focus and intuitiveness. When the user invokes niotepad,
+the workspace behind it is irrelevant -- the panel owns their attention completely,
+like picking up a physical notebook.
+
+Depth is conveyed entirely through **multi-layer elevation shadows**, not transparency.
 
 ```css
 .niotepad-panel {
-  /* --- Glass effect --- */
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
-  -webkit-backdrop-filter: blur(12px) saturate(1.3);
-  backdrop-filter: blur(12px) saturate(1.3);
-  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  /* --- Solid opaque surface --- */
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xl); /* 16px */
 
-  /* --- Elevation (multi-layer shadow for depth) --- */
+  /* --- Elevation (multi-layer shadow for depth without transparency) --- */
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--foreground) 4%, transparent),
-    0 2px 4px -1px color-mix(in srgb, var(--foreground) 6%, transparent),
-    0 8px 16px -4px color-mix(in srgb, var(--foreground) 8%, transparent),
-    0 24px 48px -8px color-mix(in srgb, var(--foreground) 10%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--foreground) 5%, transparent),
+    0 1px 2px 0 color-mix(in srgb, var(--foreground) 6%, transparent),
+    0 4px 8px -2px color-mix(in srgb, var(--foreground) 8%, transparent),
+    0 12px 24px -4px color-mix(in srgb, var(--foreground) 10%, transparent),
+    0 32px 64px -8px color-mix(in srgb, var(--foreground) 12%, transparent);
 
-  /* --- @supports fallback for no backdrop-filter --- */
-  @supports not (backdrop-filter: blur(1px)) {
-    background: var(--surface);
-    opacity: 0.97;
-  }
+  /* No backdrop-filter. No transparency. No @supports fallback needed. */
 }
 ```
 
@@ -227,7 +232,15 @@ entire workspace page.
 - `var(--surface)` shifts from `#faf9f7` to `#252220`
 - `var(--border)` shifts from `#ddd8d0` to `#3a3531`
 - Shadow opacities increase (dark theme shadows are already darker in tokens)
-- Glass alpha stays at 78% -- dark content behind it produces naturally darker glass
+- Panel remains fully opaque in both themes -- background is always `var(--surface)`
+
+**Why solid, not glass:**
+- Glass (backdrop-filter blur) creates visual noise -- workspace content bleeding through
+  competes with niotepad content for cognitive attention
+- Solid surface = immediate focus, zero distraction, premium tactile feel
+- Eliminates `backdrop-filter` performance concerns entirely (no GPU blur cost)
+- Simpler CSS, zero cross-browser issues, no `@supports` fallbacks needed
+- Matches the metaphor: a real notebook page is opaque paper, not tracing paper
 
 ### 3.2 Panel Dimensions & Position
 
@@ -321,16 +334,16 @@ Add to `globals.css` under `:root`:
   --niotepad-paper: color-mix(in srgb, #fdf6e3 4%, var(--surface));
   --niotepad-ruled: color-mix(in srgb, var(--foreground) 6%, transparent);
   --niotepad-margin: color-mix(in srgb, var(--accent) 15%, transparent);
-  --niotepad-glass-bg: color-mix(in srgb, var(--surface) 78%, transparent);
-  --niotepad-glass-border: color-mix(in srgb, var(--border) 60%, transparent);
+  --niotepad-panel-bg: var(--surface);
+  --niotepad-panel-border: var(--border);
 }
 
 [data-theme="dark"] {
   --niotepad-paper: color-mix(in srgb, #2a2520 8%, var(--surface));
   --niotepad-ruled: color-mix(in srgb, var(--foreground) 5%, transparent);
   --niotepad-margin: color-mix(in srgb, var(--accent) 12%, transparent);
-  --niotepad-glass-bg: color-mix(in srgb, var(--surface) 72%, transparent);
-  --niotepad-glass-border: color-mix(in srgb, var(--border) 50%, transparent);
+  --niotepad-panel-bg: var(--surface);
+  --niotepad-panel-border: var(--border);
 }
 ```
 
@@ -432,7 +445,7 @@ Responsibilities:
 ```
 File: src/ui/niotepad/NiotepadBackdrop.tsx
 Type: Client component ("use client")
-Purpose: Semi-transparent backdrop for click-outside dismiss.
+Purpose: Invisible backdrop layer for click-outside dismiss.
 
 Props: { onDismiss: () => void }
 
@@ -448,12 +461,12 @@ Responsibilities:
 ```
 File: src/ui/niotepad/NiotepadPanel.tsx
 Type: Client component ("use client")
-Purpose: The main glassmorphic floating panel.
+Purpose: The main solid floating panel.
 
 Props: none (reads from NiotepadStore)
 
 Responsibilities:
-  - Glassmorphism styling (backdrop-filter, borders, shadows)
+  - Solid opaque surface with multi-layer elevation shadows
   - Framer Motion spring animation for open/close
   - Drag via drag prop on motion.div (constrained to viewport)
   - Position/size from store, persisted to localStorage
@@ -1503,8 +1516,8 @@ Tab order within panel:
 All text within the panel must meet WCAG 2.1 AA:
 - Normal text (14px): minimum 4.5:1 contrast ratio
 - Large text (18px+): minimum 3:1 contrast ratio
-- The glassmorphism background must be opaque enough to maintain contrast
-- Glass opacity of 78% with `var(--surface)` base ensures sufficient contrast
+- The panel uses a fully opaque `var(--surface)` background -- contrast is inherently guaranteed
+- No transparency or backdrop-filter means text is always rendered against a solid, predictable background
 
 ---
 
@@ -1573,8 +1586,7 @@ const NiotepadPortal = dynamic(
 ### 13.4 Animation Performance
 
 - All animations use `transform` and `opacity` only (GPU-composited)
-- `backdrop-filter: blur(12px)` is applied to a single element (the panel)
-- No `backdrop-filter` on entries, scroll area, or children
+- No `backdrop-filter` anywhere in the panel (solid surface eliminates GPU blur cost entirely)
 - Drag movements use Framer Motion's hardware-accelerated transforms
 - Resize does NOT animate -- direct style updates via `requestAnimationFrame`
 
@@ -1606,15 +1618,15 @@ const NiotepadPortal = dynamic(
 
 ---
 
-### Phase 2: Panel Shell (Portal + Glass + Drag + Resize)
+### Phase 2: Panel Shell (Portal + Solid Surface + Drag + Resize)
 
-**Goal:** Empty glassmorphic panel that opens, closes, drags, and resizes.
+**Goal:** Empty solid floating panel that opens, closes, drags, and resizes.
 
 **Deliverables:**
 - `src/ui/niotepad/NiotepadProvider.tsx` -- keyboard shortcut + conditional portal
 - `src/ui/niotepad/NiotepadPortal.tsx` -- React portal
 - `src/ui/niotepad/NiotepadBackdrop.tsx` -- click-outside dismiss
-- `src/ui/niotepad/NiotepadPanel.tsx` -- glassmorphism + spring animations
+- `src/ui/niotepad/NiotepadPanel.tsx` -- solid surface + elevation shadows + spring animations
 - `src/ui/niotepad/NiotepadDragHandle.tsx` -- top bar with close button
 - `src/ui/niotepad/NiotepadResizeHandle.tsx` -- bottom-right resize grip
 - `src/ui/niotepad/NiotepadPill.tsx` -- N pill for TopNav
@@ -1625,7 +1637,7 @@ const NiotepadPortal = dynamic(
 **Files created:** 7
 **Files modified:** 3 (`AppShell.tsx`, `TopNav.tsx`, `globals.css`)
 **Tests:** Smoke test for panel mount/unmount
-**Commit boundary:** `feat(niotepad): add floating glassmorphic panel shell`
+**Commit boundary:** `feat(niotepad): add floating solid-surface panel shell`
 
 ---
 
@@ -1768,7 +1780,7 @@ const NiotepadPortal = dynamic(
 | `src/ui/niotepad/NiotepadProvider.tsx` | Keyboard shortcut listener + conditional portal mount |
 | `src/ui/niotepad/NiotepadPortal.tsx` | React portal to document.body |
 | `src/ui/niotepad/NiotepadBackdrop.tsx` | Click-outside dismiss layer |
-| `src/ui/niotepad/NiotepadPanel.tsx` | Main glassmorphic floating panel |
+| `src/ui/niotepad/NiotepadPanel.tsx` | Main solid floating panel with elevation shadows |
 | `src/ui/niotepad/NiotepadDragHandle.tsx` | Top bar: title, grip, close button |
 | `src/ui/niotepad/NiotepadResizeHandle.tsx` | Bottom-right resize grip |
 | `src/ui/niotepad/NiotepadPill.tsx` | "N" pill trigger for TopNav |
@@ -1809,7 +1821,7 @@ const NiotepadPortal = dynamic(
 
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|------------|------------|
-| `backdrop-filter` performance on low-end devices | Panel feels sluggish or drops frames | Medium | Detect GPU capability; fall back to solid background (`@supports` query). Limit blur to 12px. Test on 2019-era hardware. |
+| Multi-layer box-shadow rendering on low-end devices | Panel shadow looks flat or causes minor paint overhead | Low | 5-layer shadow is well within browser paint budgets. Test on 2019-era hardware. Reduce to 3 layers if needed. |
 | Focus trap conflicts with CodeMirror | Keyboard shortcuts in editor stop working when panel is open | Medium | Panel focus trap only activates when panel itself has focus. CodeMirror is in the main DOM tree (outside portal), so Tab will not escape into it. Test extensively with editor open. |
 | IndexedDB storage limits on iOS Safari | Data loss after 7 days of inactivity (WebKit eviction) | Low | Display warning in export flow. IndexedDB data is not critical (can be re-captured). Long-term: Convex sync. |
 | Z-index conflicts with ControlCenterDrawer | Panel and drawer fight for visibility | Low | ControlCenterDrawer is z-50. Panel is z-50. They should not both be open. Add mutual exclusion: opening drawer closes niotepad, and vice versa. |
@@ -1821,7 +1833,7 @@ const NiotepadPortal = dynamic(
 | Cmd+J conflict with browser "Downloads" shortcut | Firefox uses Cmd+J for Downloads panel | Medium | Firefox intercepts this. Test on Firefox; if blocked, use `Cmd+Shift+J` or `Cmd+.` as fallback. Add settings for custom shortcut in future. |
 | Swipe-to-delete accidental triggers | Users accidentally delete entries while scrolling | Medium | Require 80px horizontal threshold. Vertical scroll tolerance: if dy > dx, treat as scroll, not swipe. Add undo toast for 3 seconds after delete. |
 | AI summarization latency | Video push entries show "Summarizing..." for too long | Low | Set 8-second timeout. Show progress indicator. Fallback to static bookmark text. |
-| Glassmorphism readability in light mode | Text hard to read against bright backgrounds | Low | Glass alpha at 78% with `var(--surface)` base provides strong background. Test with video pane behind panel. Increase alpha if needed. |
+| Panel visual weight in light mode | Solid white panel may feel heavy against workspace | Low | Warm cream paper tint (`--niotepad-paper`) + ruled lines add warmth. Elevation shadows provide float. The solid surface is the intentional design choice for focus. |
 
 ### Low Risk
 
@@ -1950,11 +1962,11 @@ state is NOT persisted (panel starts closed).
 
 ```css
 /* Added to globals.css :root */
---niotepad-paper        /* Warm-tinted paper background */
+--niotepad-paper        /* Warm-tinted paper background for scroll area */
 --niotepad-ruled        /* Ruled line color */
 --niotepad-margin       /* Left margin line color */
---niotepad-glass-bg     /* Glass panel background */
---niotepad-glass-border /* Glass panel border */
+--niotepad-panel-bg     /* Solid panel background (= var(--surface)) */
+--niotepad-panel-border /* Panel border (= var(--border)) */
 
 /* Dark theme overrides in [data-theme="dark"] */
 /* Same properties with adjusted values */
