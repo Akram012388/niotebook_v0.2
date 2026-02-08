@@ -137,7 +137,8 @@ const NiotepadPane = ({
     }
   }, [clearAll]);
 
-  /* Lined-paper background: faint horizontal rules */
+  /* Lined-paper background: faint horizontal rules at 28px intervals.
+     All entry content uses line-height: 28px to sit on these ruled lines. */
   const linedPaperBg = `repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, var(--border) 27px, var(--border) 28px)`;
 
   return (
@@ -253,7 +254,7 @@ const NiotepadPane = ({
               onChange={(e) => setComposerValue(e.target.value)}
               onKeyDown={handleComposerKeyDown}
               placeholder="Capture a thought..."
-              className="min-h-[36px] flex-1 resize-none rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-text-subtle focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
+              className="min-h-[36px] flex-1 resize-none rounded-lg border border-border bg-surface px-3 py-1 text-sm leading-[28px] text-foreground placeholder:text-text-subtle focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
               rows={1}
             />
             <button

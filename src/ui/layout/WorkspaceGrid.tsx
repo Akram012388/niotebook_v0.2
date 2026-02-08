@@ -682,6 +682,7 @@ const WorkspaceGrid = (): ReactElement => {
     pane: "chat" | "code" | "niotepad",
     active: string,
     onSelect: (value: string) => void,
+    disabled: string[],
   ): ReactElement | null => {
     if (pane === "chat") {
       return (
@@ -695,6 +696,7 @@ const WorkspaceGrid = (): ReactElement => {
               options={ACN_OPTIONS}
               active={active}
               onSelect={onSelect}
+              disabledValues={disabled}
             />
           }
         />
@@ -710,6 +712,7 @@ const WorkspaceGrid = (): ReactElement => {
               options={ACN_OPTIONS}
               active={active}
               onSelect={onSelect}
+              disabledValues={disabled}
             />
           }
         />
@@ -724,11 +727,17 @@ const WorkspaceGrid = (): ReactElement => {
             options={ACN_OPTIONS}
             active={active}
             onSelect={onSelect}
+            disabledValues={disabled}
           />
         }
       />
     );
   };
+
+  /* In triple mode, each pane disables the other's current value
+     so the user cannot select duplicate pane types. */
+  const middleDisabled = [rightPane];
+  const tripleRightDisabled = [middlePane];
 
   return (
     <LayoutGrid preset={effectivePreset}>
@@ -741,8 +750,8 @@ const WorkspaceGrid = (): ReactElement => {
         codeHash={codeHash ?? undefined}
         showInfoStrip
       />
-      {renderTriplePane(middlePane, middlePane, handleSelectMiddle)}
-      {renderTriplePane(rightPane, rightPane, handleSelectRight)}
+      {renderTriplePane(middlePane, middlePane, handleSelectMiddle, middleDisabled)}
+      {renderTriplePane(rightPane, rightPane, handleSelectRight, tripleRightDisabled)}
     </LayoutGrid>
   );
 };

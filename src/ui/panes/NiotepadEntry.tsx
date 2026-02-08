@@ -118,9 +118,9 @@ const NiotepadEntryComponent = memo(function NiotepadEntryComponent({
   }, [onSeek, entry.videoTimeSec]);
 
   return (
-    <div className="group relative border-b border-border/50 px-4 py-3">
-      {/* Header line */}
-      <div className="mb-1.5 flex items-center gap-2 text-xs text-text-muted">
+    <div className="group relative px-4" style={{ paddingTop: 0, paddingBottom: 0 }}>
+      {/* Header line — sits on one ruled line */}
+      <div className="flex items-center gap-2 text-xs leading-[28px] text-text-muted">
         <span aria-label={entry.source} title={entry.source}>
           {SOURCE_ICONS[entry.source]}
         </span>
@@ -137,7 +137,7 @@ const NiotepadEntryComponent = memo(function NiotepadEntryComponent({
         ) : null}
       </div>
 
-      {/* Content body */}
+      {/* Content body — line-height matches 28px ruled lines */}
       {isEditing ? (
         <textarea
           ref={textareaRef}
@@ -145,12 +145,12 @@ const NiotepadEntryComponent = memo(function NiotepadEntryComponent({
           onChange={(e) => setEditContent(e.target.value)}
           onBlur={handleSaveEdit}
           onKeyDown={handleEditKeyDown}
-          className="w-full resize-none rounded-lg border border-accent/30 bg-surface-muted px-3 py-2 text-sm leading-6 text-foreground focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/20"
+          className="w-full resize-none border-none bg-transparent px-0 text-sm leading-[28px] text-foreground focus:outline-none focus:ring-0"
           rows={Math.max(2, editContent.split("\n").length)}
         />
       ) : (
         <div
-          className="nio-markdown cursor-text text-sm leading-6 text-foreground"
+          className="nio-markdown cursor-text text-sm leading-[28px] text-foreground"
           onClick={handleStartEdit}
           role="button"
           tabIndex={0}
@@ -169,7 +169,7 @@ const NiotepadEntryComponent = memo(function NiotepadEntryComponent({
       )}
 
       {/* Hover action buttons */}
-      <div className="absolute right-3 top-3 flex items-center gap-1 rounded-md border border-border bg-surface px-1 py-0.5 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+      <div className="absolute right-3 top-0 flex items-center gap-1 rounded-md border border-border bg-surface px-1 py-0.5 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
         <button
           type="button"
           onClick={handleCopy}
