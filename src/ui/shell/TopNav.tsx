@@ -23,6 +23,8 @@ import {
 } from "../content/convexContent";
 import { LayoutPresetToggle } from "../layout/LayoutPresetToggle";
 import { ControlCenterDrawer } from "./ControlCenterDrawer";
+import { NiotepadPill } from "../niotepad/NiotepadPill";
+import { useNiotepadStore } from "@/infra/niotepad/useNiotepadStore";
 
 const LESSON_STORAGE_KEY = "niotebook.lesson";
 
@@ -148,6 +150,8 @@ const TopNav = (): ReactElement => {
   );
 
   const handleOpenDrawer = useCallback((): void => {
+    // Mutual exclusion: close niotepad when opening drawer
+    useNiotepadStore.getState().closePanel();
     lastActiveRef.current = document.activeElement as HTMLElement | null;
     setIsDrawerMounted(true);
     window.requestAnimationFrame(() => {
@@ -243,6 +247,16 @@ const TopNav = (): ReactElement => {
     };
   }, [isDrawerOpen]);
 
+  // Mutual exclusion: when niotepad opens, close drawer
+  useEffect(() => {
+    const unsubscribe = useNiotepadStore.subscribe((state, prev) => {
+      if (state.isOpen && !prev.isOpen) {
+        setIsDrawerOpen(false);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
   return (
     <header
       className="flex h-[72px] items-center justify-between border-b border-border bg-background px-4 sm:px-6"
@@ -251,6 +265,7 @@ const TopNav = (): ReactElement => {
         <Wordmark height={40} />
         <div className="flex items-center gap-3">
           <LayoutPresetToggle />
+          <NiotepadPill />
           <button
             type="button"
             onClick={handleOpenDrawer}
