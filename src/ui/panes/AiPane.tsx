@@ -13,6 +13,7 @@ import { ChatMessage } from "../chat/ChatMessage";
 import { ChatScroll, type ChatScrollHandle } from "../chat/ChatScroll";
 import { useChatThread } from "../chat/useChatThread";
 import type { StreamingTextHandle } from "../chat/StreamingText";
+import { useSelectionPush } from "../chat/useSelectionPush";
 import { useTranscriptWindow } from "../transcript/useTranscriptWindow";
 import type { CodeSnapshotSummary } from "../../domain/resume";
 import { getLessonRef } from "../content/convexContent";
@@ -72,6 +73,8 @@ const AiPane = ({
   } = useChatThread(lessonId, lectureLabel);
   const chatScrollRef = useRef<ChatScrollHandle>(null);
   const streamingTextRef = useRef<StreamingTextHandle>(null);
+  const chatAreaRef = useRef<HTMLDivElement>(null);
+  const { tooltip, pushed, handlePush } = useSelectionPush(chatAreaRef, lessonId);
 
   // Wire the streaming token callback to the StreamingText component
   useEffect(() => {
@@ -200,17 +203,41 @@ const AiPane = ({
         </p>
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
-        <ChatScroll ref={chatScrollRef} isStreaming={streamState === "streaming"}>
-          {messages.map((message) => (
-            <ChatMessage
-              key={message.id}
-              message={message}
-              lessonId={lessonId}
-              onSeek={onSeek}
-              streamingTextRef={message.isStreaming ? streamingTextRef : undefined}
-            />
-          ))}
-        </ChatScroll>
+        <div ref={chatAreaRef} className="relative flex min-h-0 flex-1 flex-col">
+          <ChatScroll ref={chatScrollRef} isStreaming={streamState === "streaming"}>
+            {messages.map((message) => (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                lessonId={lessonId}
+                onSeek={onSeek}
+                streamingTextRef={message.isStreaming ? streamingTextRef : undefined}
+              />
+            ))}
+          </ChatScroll>
+          {tooltip.visible ? (
+            <button
+              type="button"
+              onClick={handlePush}
+              className="pointer-events-auto absolute z-50 flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 text-xs font-medium text-text-muted shadow-md transition-colors hover:bg-surface-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+              style={{
+                left: tooltip.x,
+                top: tooltip.y,
+                transform: "translate(-50%, -100%)",
+              }}
+              aria-label="Push selection to Niotepad"
+            >
+              {pushed ? (
+                <span className="text-accent">&#10003;</span>
+              ) : (
+                <>
+                  <span aria-hidden="true">&#x1F4CC;</span>
+                  <span>N</span>
+                </>
+              )}
+            </button>
+          ) : null}
+        </div>
         {streamError ? (
           <div className="rounded-lg border border-status-warning/25 bg-status-warning/10 px-3 py-2 text-xs text-status-warning">
             {streamError}
