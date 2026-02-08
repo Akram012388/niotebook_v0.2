@@ -223,7 +223,12 @@ const VideoPane = ({
       source: "video",
       lessonId,
       videoTimeSec: timeSec,
-      metadata: { transcriptRange: [Math.max(0, timeSec - 15), timeSec + 15] },
+      metadata: {
+        transcriptRange: [Math.max(0, timeSec - 15), timeSec + 15],
+        lectureTitle: headerTitle.secondary
+          ? `${headerTitle.primary}: ${headerTitle.secondary}`
+          : headerTitle.primary,
+      },
     });
 
     setPushMomentFeedback(true);
@@ -251,7 +256,7 @@ const VideoPane = ({
           content: `Video moment at ${formatted}`,
         });
       });
-  }, [lastSampleTimeSec, lessonId]);
+  }, [lastSampleTimeSec, lessonId, headerTitle.primary, headerTitle.secondary]);
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">

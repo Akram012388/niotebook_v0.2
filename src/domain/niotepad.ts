@@ -14,6 +14,7 @@ export type NiotepadEntry = {
     language?: string;
     transcriptRange?: [number, number];
     codeHash?: string;
+    lectureTitle?: string;
   };
 };
 

@@ -14,8 +14,6 @@ interface NiotepadPaneProps {
   lessonId: string;
   headerExtras?: ReactElement;
   onSeek?: (timestampSec: number) => void;
-  onSendToChat?: (content: string) => void;
-  onInsertToEditor?: (content: string) => void;
 }
 
 /* Binder geometry — adapted from NotebookFrame for pane context.
@@ -74,8 +72,6 @@ const NiotepadPane = ({
   lessonId,
   headerExtras,
   onSeek,
-  onSendToChat,
-  onInsertToEditor,
 }: NiotepadPaneProps): ReactElement => {
   const entries = useNiotepadStore((s) => s.entries);
   const isLoaded = useNiotepadStore((s) => s.isLoaded);
@@ -150,10 +146,6 @@ const NiotepadPane = ({
     }
   }, [clearAll]);
 
-  /* Lined-paper background: faint horizontal rules at 28px intervals.
-     All entry content uses line-height: 28px to sit on these ruled lines. */
-  const linedPaperBg = `repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, var(--border) 27px, var(--border) 28px)`;
-
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">
       {/* Header — matches AiPane/VideoPane: h-14, border-b, px-4 */}
@@ -222,14 +214,16 @@ const NiotepadPane = ({
           style={{ ...binderPosition, ...stripMask, zIndex: 1 }}
         />
 
-        {/* Ruled paper surface — scrollable, click anywhere to write */}
+        {/* Grid paper surface — scrollable, click anywhere to write */}
         <div
           ref={scrollRef}
           className="relative flex-1 cursor-text overflow-y-auto"
           style={{
             paddingLeft: CONTENT_LEFT,
             zIndex: 2,
-            backgroundImage: linedPaperBg,
+            backgroundImage: `linear-gradient(var(--niotepad-grid) 1px, transparent 1px), linear-gradient(90deg, var(--niotepad-grid) 1px, transparent 1px)`,
+            backgroundSize: "24px 24px",
+            backgroundAttachment: "local",
           }}
           onClick={handlePaperClick}
         >
@@ -244,8 +238,6 @@ const NiotepadPane = ({
                   key={entry.id}
                   entry={entry}
                   onSeek={onSeek}
-                  onSendToChat={onSendToChat}
-                  onInsertToEditor={onInsertToEditor}
                 />
               ))}
               {/* Always-visible textarea that IS the paper surface.
