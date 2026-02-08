@@ -248,7 +248,7 @@ const TopNav = (): ReactElement => {
     };
   }, [isDrawerOpen]);
 
-  const { isOpen: helpIsOpen, toggleHelp } = useHelp();
+  const { isActive: helpIsActive, start: startHelp, end: endHelp } = useHelp();
 
   // Mutual exclusion: when niotepad opens, close drawer
   useEffect(() => {
@@ -268,14 +268,14 @@ const TopNav = (): ReactElement => {
           <NiotepadPill />
           <button
             type="button"
-            onClick={toggleHelp}
+            onClick={helpIsActive ? endHelp : startHelp}
             className={`rounded-full border p-2 transition ${
-              helpIsOpen
+              helpIsActive
                 ? "border-accent bg-accent text-white"
                 : "border-border bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
             }`}
-            aria-label={helpIsOpen ? "Close help" : "Open help"}
-            aria-pressed={helpIsOpen}
+            aria-label={helpIsActive ? "Stop tour" : "Start workspace tour"}
+            aria-pressed={helpIsActive}
             title="Help (⌘/)"
             data-help-target="help"
           >
