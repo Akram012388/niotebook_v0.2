@@ -15,6 +15,13 @@
 - Border-muted: `#EDEAE4` (light) / `#2E2A27` (dark) — good hover target for surface-muted buttons
 - Theme: `data-theme` attribute on `<html>`, not class-based
 
+### Niotepad Grid Pattern
+- CSS custom property: `--niotepad-grid` at rgba opacity 0.012 (light and dark)
+- Light: `rgba(28, 25, 23, 0.012)` — Dark: `rgba(244, 243, 238, 0.012)`
+- Applied via inline style with two `linear-gradient` calls (horizontal + vertical)
+- `backgroundSize: "24px 24px"`, `backgroundAttachment: "local"` (scrolls with content)
+- Only on the scrollable content area, NOT the pane header
+
 ### Nav Button Pattern (unified post-SiteNav refactor)
 - Standard class: `rounded-lg bg-surface-muted px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-border-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:px-4 sm:py-2`
 - Used in: LandingNav (Link), AuthShell (Link), CoursesNavActions (button)
@@ -81,9 +88,17 @@
 ### Clerk OTP Theme Fix (2026-02-07)
 - Use CSS custom properties in `.cl-otpCodeFieldInput`, not hardcoded hex
 
-### Git Race Conditions with Team Agents (2026-02-07)
+### Git Branch Discipline in Team Environments (2026-02-07, updated 2026-02-08)
 - Write files -> `git add` immediately -> commit ASAP
 - Verify branch before each git operation
+- **Always run `git branch --show-current` after checkout** — linter hooks can modify files mid-checkout
+- If a commit lands on the wrong branch: cherry-pick to correct branch, then `git reset --hard HEAD~1` on the wrong one
+- When multiple teammates share a working directory, `git status` shows everyone's changes — only stage your own files
+
+### React Compiler Lint: useCallback Dependencies (2026-02-08)
+- `react-hooks/preserve-manual-memoization` fires when inferred deps don't match declared deps
+- When adding a new reference inside a `useCallback`, MUST add it to the dependency array
+- React Compiler infers dependencies — if it sees `headerTitle.primary` used, it expects it in deps
 
 ### React Compiler Lint: No Ref Writes During Render (2026-02-07)
 - `react-hooks/refs` rule forbids `someRef.current = value` in the render body
@@ -141,3 +156,5 @@
 - Legal stubs: `src/app/(landing)/terms|privacy|cookies/page.tsx`
 - ForceTheme: `src/ui/ForceTheme.tsx`
 - StorageAdapter: `src/infra/storageAdapter.ts`
+- Niotepad: `src/ui/panes/NiotepadPane.tsx`, `src/ui/panes/NiotepadEntry.tsx`
+- Domain types: `src/domain/niotepad.ts` (NiotepadEntry type with metadata including lectureTitle)
