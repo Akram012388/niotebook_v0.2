@@ -21,6 +21,7 @@ import {
 import { NiotepadScrollArea } from "./NiotepadScrollArea";
 import { NiotepadEntry } from "./NiotepadEntry";
 import { NiotepadComposer } from "./NiotepadComposer";
+import { NiotepadPageNav } from "./NiotepadPageNav";
 
 // 5-layer elevation shadow (plan Section 3.1)
 const PANEL_SHADOW = [
@@ -41,9 +42,12 @@ const NiotepadPanel = (): ReactElement => {
   const updateGeometry = useNiotepadStore((s) => s.updateGeometry);
   const addEntry = useNiotepadStore((s) => s.addEntry);
   const updateEntry = useNiotepadStore((s) => s.updateEntry);
+  const deleteEntry = useNiotepadStore((s) => s.deleteEntry);
   const editingEntryId = useNiotepadStore((s) => s.editingEntryId);
   const setEditingEntry = useNiotepadStore((s) => s.setEditingEntry);
   const getOrCreatePage = useNiotepadStore((s) => s.getOrCreatePage);
+  const activePageId = useNiotepadStore((s) => s.activePageId);
+  const setActivePage = useNiotepadStore((s) => s.setActivePage);
   const filteredEntries = useNiotepadStore((s) => selectFilteredEntries(s));
 
   const dragControls = useDragControls();
@@ -158,14 +162,22 @@ const NiotepadPanel = (): ReactElement => {
     setEditingEntry(null);
   }, [setEditingEntry]);
 
+  const handleDeleteEntry = useCallback(
+    (id: string) => {
+      deleteEntry(id);
+    },
+    [deleteEntry],
+  );
+
   const focusComposer = useCallback(() => {
     composerRef.current?.focus();
   }, []);
 
   const handleSubmit = useCallback(
     (content: string) => {
-      // Use a "general" page until page navigation wires in the actual lessonId
-      const pageId = getOrCreatePage("general", "General Notes");
+      // If a specific page is selected, add to that page; otherwise use "General Notes"
+      const pageId =
+        activePageId ?? getOrCreatePage("general", "General Notes");
       addEntry({
         source: "manual",
         content,
@@ -174,7 +186,7 @@ const NiotepadPanel = (): ReactElement => {
         metadata: {},
       });
     },
-    [getOrCreatePage, addEntry],
+    [activePageId, getOrCreatePage, addEntry],
   );
 
   return (
@@ -236,6 +248,14 @@ const NiotepadPanel = (): ReactElement => {
         onPointerDown={handleDragHandlePointerDown}
       />
 
+      {pages.length > 1 && (
+        <NiotepadPageNav
+          pages={pages}
+          activePageId={activePageId}
+          onSelectPage={setActivePage}
+        />
+      )}
+
       {/* Ruled paper content area */}
       <NiotepadScrollArea onPaperClick={focusComposer}>
         <AnimatePresence initial={false}>
@@ -247,6 +267,7 @@ const NiotepadPanel = (): ReactElement => {
               onStartEdit={handleStartEdit}
               onSaveEdit={handleSaveEdit}
               onCancelEdit={handleCancelEdit}
+              onDelete={handleDeleteEntry}
             />
           ))}
         </AnimatePresence>
