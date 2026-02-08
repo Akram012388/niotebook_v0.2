@@ -80,16 +80,21 @@ const NiotepadPanel = (): ReactElement => {
 
   // Y is fixed: vertically centered in the workspace area (below TopNav).
   // X is persisted; sentinel (-1) means "default to right side".
+  // Use clientWidth (excludes scrollbar) for accurate viewport measurement.
   const resolvedPosition = useMemo(() => {
     if (typeof window === "undefined") {
       return { x: 0, y: TOPNAV_HEIGHT + VIEWPORT_PADDING };
     }
+    const vw = document.documentElement.clientWidth;
     const workspaceHeight = window.innerHeight - TOPNAV_HEIGHT;
     const y = TOPNAV_HEIGHT + Math.max(VIEWPORT_PADDING, (workspaceHeight - PANEL_HEIGHT) / 2);
-    const x =
+    const maxX = vw - PANEL_WIDTH - VIEWPORT_PADDING;
+    const rawX =
       geometry.x === -1
-        ? window.innerWidth - PANEL_WIDTH - VIEWPORT_PADDING
+        ? maxX
         : geometry.x;
+    // Clamp so the panel stays within the viewport even with stale geometry
+    const x = Math.max(VIEWPORT_PADDING, Math.min(rawX, maxX));
     return { x, y };
   }, [geometry.x]);
 
@@ -252,12 +257,18 @@ const NiotepadPanel = (): ReactElement => {
       dragListener={false}
       dragMomentum={false}
       dragElastic={0.08}
+      // Constraints are relative offsets from the element's CSS left position.
+      // Negative left = how far the panel can move leftward.
+      // Positive right = how far the panel can move rightward.
       dragConstraints={{
-        left: VIEWPORT_PADDING,
+        left: VIEWPORT_PADDING - resolvedPosition.x,
         right:
           typeof window !== "undefined"
-            ? window.innerWidth - PANEL_WIDTH - VIEWPORT_PADDING
-            : 800,
+            ? document.documentElement.clientWidth -
+              PANEL_WIDTH -
+              VIEWPORT_PADDING -
+              resolvedPosition.x
+            : 0,
       }}
       onDragEnd={handleDragEnd}
     >

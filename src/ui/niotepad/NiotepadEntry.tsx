@@ -261,15 +261,18 @@ const NiotepadEntry = memo(
           dragConstraints={{ left: -120, right: 0 }}
           dragElastic={0.2}
           dragMomentum={false}
+          dragPropagation={false}
           style={{
             x: dragX,
             paddingLeft: CONTENT_PL,
             paddingRight: CONTENT_PR,
+            // Let browser handle vertical scroll; FM handles horizontal drag
+            touchAction: "pan-y",
           }}
           onDragStart={handleDragStart}
           onDrag={handleDrag}
           onDragEnd={handleDragEnd}
-          className="relative"
+          className="relative select-none"
         >
           {/* Video entry header */}
           {isVideo && entry.metadata.lectureTitle && (
