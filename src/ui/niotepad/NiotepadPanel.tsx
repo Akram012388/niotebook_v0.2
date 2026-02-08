@@ -5,6 +5,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type ReactElement,
 } from "react";
 import {
@@ -83,10 +84,9 @@ const NiotepadPanel = (): ReactElement => {
     [pages],
   );
 
-  // Y is fixed: vertically centered in the workspace area (below TopNav).
-  // X is persisted; sentinel (-1) means "default to right side".
-  // Use clientWidth (excludes scrollbar) for accurate viewport measurement.
-  const resolvedPosition = useMemo(() => {
+  // Compute panel position: Y is vertically centered, X is persisted.
+  // Clamped to keep the panel within the visible viewport at all times.
+  const computePosition = useCallback(() => {
     if (typeof window === "undefined") {
       return { x: 0, y: TOPNAV_HEIGHT + VIEWPORT_PADDING };
     }
@@ -95,12 +95,21 @@ const NiotepadPanel = (): ReactElement => {
     const y =
       TOPNAV_HEIGHT +
       Math.max(VIEWPORT_PADDING, (workspaceHeight - PANEL_HEIGHT) / 2);
-    const maxX = vw - PANEL_WIDTH - VIEWPORT_PADDING;
+    const maxX = Math.max(VIEWPORT_PADDING, vw - PANEL_WIDTH - VIEWPORT_PADDING);
     const rawX = geometry.x === -1 ? maxX : geometry.x;
-    // Clamp so the panel stays within the viewport even with stale geometry
     const x = Math.max(VIEWPORT_PADDING, Math.min(rawX, maxX));
     return { x, y };
   }, [geometry.x]);
+
+  // Track viewport size so position recalculates on resize
+  const [, setViewportTick] = useState(0);
+  const resolvedPosition = computePosition();
+
+  useEffect(() => {
+    const handleResize = () => setViewportTick((t) => t + 1);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Focus trap: store previous active element, focus panel on mount
   useEffect(() => {
@@ -137,11 +146,15 @@ const NiotepadPanel = (): ReactElement => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [closePanel, setEditingEntry, toggleSearchExpanded]);
 
-  // Persist X position on drag end (Y is fixed, not persisted)
+  // Persist X position on drag end (Y is fixed, not persisted).
+  // Clamp to viewport bounds so stale values can't push panel off-screen.
   const handleDragEnd = useCallback(() => {
     const el = panelRef.current;
     if (!el) return;
-    updateGeometry({ x: el.getBoundingClientRect().left });
+    const vw = document.documentElement.clientWidth;
+    const maxX = Math.max(VIEWPORT_PADDING, vw - PANEL_WIDTH - VIEWPORT_PADDING);
+    const x = Math.max(VIEWPORT_PADDING, Math.min(el.getBoundingClientRect().left, maxX));
+    updateGeometry({ x });
   }, [updateGeometry]);
 
   const handleDragHandlePointerDown = useCallback(
@@ -261,18 +274,19 @@ const NiotepadPanel = (): ReactElement => {
       dragListener={false}
       dragMomentum={false}
       dragElastic={0.08}
-      // Constraints are relative offsets from the element's CSS left position.
-      // Negative left = how far the panel can move leftward.
-      // Positive right = how far the panel can move rightward.
+      // Constraints are relative offsets from the element's current CSS left.
+      // Recomputed from current viewport so they stay accurate after resize.
       dragConstraints={{
         left: VIEWPORT_PADDING - resolvedPosition.x,
-        right:
-          typeof window !== "undefined"
-            ? document.documentElement.clientWidth -
-              PANEL_WIDTH -
-              VIEWPORT_PADDING -
-              resolvedPosition.x
-            : 0,
+        right: Math.max(
+          0,
+          (typeof window !== "undefined"
+            ? document.documentElement.clientWidth
+            : PANEL_WIDTH + VIEWPORT_PADDING * 2) -
+            PANEL_WIDTH -
+            VIEWPORT_PADDING -
+            resolvedPosition.x,
+        ),
       }}
       onDragEnd={handleDragEnd}
     >
