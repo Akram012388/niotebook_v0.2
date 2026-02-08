@@ -556,7 +556,7 @@ const CodePane = ({
   }, [activeLanguage, lessonId, videoTimeSec]);
 
   return (
-    <section className="flex h-full min-h-0 w-full flex-col bg-surface">
+    <section className="flex h-full min-h-0 w-full flex-col bg-surface" data-help-target="editor">
       <header className="flex h-14 items-center justify-between border-b border-border-muted px-4 py-3">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <p className="truncate text-sm font-semibold text-foreground">Code</p>
@@ -627,7 +627,7 @@ const CodePane = ({
             </div>
           }
           second={
-            <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-terminal">
+            <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-terminal" data-help-target="terminal">
               <TerminalPanel
                 onRun={handleRun}
                 onStop={handleStop}

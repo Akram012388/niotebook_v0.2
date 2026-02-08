@@ -195,6 +195,16 @@
 - Entry spacing: `mb-3` on `motion.article` for visual breathing room between entries
 - Unused CSS tokens removed: `--niotepad-code-accent`, `--niotepad-chat-accent` (border-left indicators removed)
 
+## Help Tool Module (2026-02-09)
+
+- **Location**: `src/ui/help/` — 6 files
+- **Provider**: `HelpProvider` wraps children + renders `HelpModal` via `next/dynamic` (ssr: false)
+- **Context**: `useHelp()` hook — `isOpen`, `openHelp`, `closeHelp`, `toggleHelp`
+- **Z-index**: Modal backdrop at `z-[60]` — above niotepad z-50
+- **CSS vars**: `--help-panel-bg`, `--help-header-bg`, `--help-text-muted`, `--help-text-subtle`, `--help-border`, `--help-backdrop`
+- **Pulse**: `useHelpPulse` → `data-help-pulse` attr for 2.4s, CSS `help-ring-pulse` keyframe
+- **Search reset in effect**: wrap `setSearch("")` in `setTimeout` callback to satisfy `react-hooks/set-state-in-effect`
+
 ## Admin Console Pattern (redesigned 2026-02-07)
 
 - **Layout**: Sidebar (w-60) + main content (max-w-[1200px] mx-auto)
@@ -230,6 +240,7 @@
 - Auth: `src/ui/auth/AuthShell.tsx`, `BootSequence.tsx`
 - Courses: `src/ui/courses/CoursesNavActions.tsx`, `CoursesPage.tsx`, `CourseDetailPage.tsx`
 - Niotepad: `src/ui/niotepad/` (Provider, Portal, Backdrop, Panel, DragHandle, ResizeHandle, Pill, ScrollArea, Entry, Composer, PageNav, Search)
+- Help: `src/ui/help/` (HelpProvider, HelpModal, HelpCard, HelpSearch, helpEntries, useHelpPulse)
 - Legal stubs: `src/app/(landing)/terms|privacy|cookies/page.tsx`
 - ForceTheme: `src/ui/ForceTheme.tsx`
 - StorageAdapter: `src/infra/storageAdapter.ts`

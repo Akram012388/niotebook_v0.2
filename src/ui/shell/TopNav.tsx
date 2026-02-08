@@ -8,7 +8,7 @@ import {
   useState,
   type ReactElement,
 } from "react";
-import { SidebarSimple } from "@phosphor-icons/react";
+import { Question, SidebarSimple } from "@phosphor-icons/react";
 import { Wordmark } from "../brand/Wordmark";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -25,6 +25,7 @@ import { LayoutPresetToggle } from "../layout/LayoutPresetToggle";
 import { ControlCenterDrawer } from "./ControlCenterDrawer";
 import { NiotepadPill } from "../niotepad/NiotepadPill";
 import { useNiotepadStore } from "@/infra/niotepad/useNiotepadStore";
+import { useHelp } from "../help/HelpProvider";
 
 const LESSON_STORAGE_KEY = "niotebook.lesson";
 
@@ -247,6 +248,8 @@ const TopNav = (): ReactElement => {
     };
   }, [isDrawerOpen]);
 
+  const { isOpen: helpIsOpen, toggleHelp } = useHelp();
+
   // Mutual exclusion: when niotepad opens, close drawer
   useEffect(() => {
     const unsubscribe = useNiotepadStore.subscribe((state, prev) => {
@@ -263,13 +266,31 @@ const TopNav = (): ReactElement => {
         <Wordmark height={40} />
         <div className="flex items-center gap-3">
           <NiotepadPill />
-          <LayoutPresetToggle />
+          <button
+            type="button"
+            onClick={toggleHelp}
+            className={`rounded-full border p-2 transition ${
+              helpIsOpen
+                ? "border-accent bg-accent text-white"
+                : "border-border bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
+            }`}
+            aria-label={helpIsOpen ? "Close help" : "Open help"}
+            aria-pressed={helpIsOpen}
+            title="Help (⌘/)"
+            data-help-target="help"
+          >
+            <Question size={16} weight="bold" />
+          </button>
+          <span data-help-target="layout">
+            <LayoutPresetToggle />
+          </span>
           <button
             type="button"
             onClick={handleOpenDrawer}
             className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
             aria-label="Open control center"
             title="Control center"
+            data-help-target="control"
           >
             <SidebarSimple size={16} weight="regular" />
           </button>

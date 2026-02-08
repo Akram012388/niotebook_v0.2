@@ -281,7 +281,7 @@ const AiPane = ({
   }, [lectureNumber, formattedTime, codeSnapshot]);
 
   return (
-    <section className="flex h-full min-h-0 w-full flex-col bg-surface">
+    <section className="flex h-full min-h-0 w-full flex-col bg-surface" data-help-target="chat">
       <header className="flex h-14 items-center justify-between border-b border-border-muted px-4 py-3">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-foreground">

@@ -20,6 +20,7 @@ const NiotepadPill = (): ReactElement => {
       aria-label={isOpen ? "Close niotepad" : "Open niotepad"}
       aria-pressed={isOpen}
       title="Niotepad (Cmd+J)"
+      data-help-target="niotepad"
     >
       N
       {hasUnread && !isOpen && (

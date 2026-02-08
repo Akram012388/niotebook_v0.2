@@ -241,6 +241,66 @@
   display: none; /* Chrome, Safari, Edge */
 }
 
+/* --- Help Tool ---
+   Reuses niotepad warm tones for visual consistency.
+   Ring pulse highlights UI elements during guided help flows. */
+:root {
+  --help-panel-bg: var(--niotepad-panel-bg);
+  --help-header-bg: var(--niotepad-header-bg);
+  --help-text-muted: var(--niotepad-text-muted);
+  --help-text-subtle: var(--niotepad-text-subtle);
+  --help-border: var(--niotepad-panel-border);
+  --help-backdrop: rgba(120, 90, 60, 0.12);
+}
+
+[data-theme="dark"] {
+  --help-backdrop: rgba(20, 16, 12, 0.40);
+}
+
+@keyframes help-ring-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--accent);
+    opacity: 1;
+  }
+  70% {
+    box-shadow: 0 0 0 8px var(--accent);
+    opacity: 0;
+  }
+  100% {
+    box-shadow: 0 0 0 8px var(--accent);
+    opacity: 0;
+  }
+}
+
+[data-help-pulse] {
+  position: relative;
+}
+
+[data-help-pulse]::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px solid var(--accent);
+  animation: help-ring-pulse 0.8s ease-out 3;
+  pointer-events: none;
+}
+
+/* Help panel custom scrollbar — warm tones matching niotepad */
+.help-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.help-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.help-scroll::-webkit-scrollbar-thumb {
+  background: var(--niotepad-scrollbar);
+  border-radius: 3px;
+}
+.help-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--niotepad-scrollbar-hover);
+}
+
 /* ==========================================================================
    Tailwind 4 Theme — Maps CSS custom properties to utility classes
    ========================================================================== */
