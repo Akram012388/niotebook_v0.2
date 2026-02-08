@@ -303,7 +303,7 @@ const NiotepadEntry = memo(
               onChange={handleTextareaChange}
               onKeyDown={handleKeyDown}
               onBlur={handleSave}
-              className="w-full resize-none border-none bg-transparent p-0 text-sm text-foreground outline-none"
+              className="niotepad-composer w-full resize-none border-none bg-transparent p-0 text-sm text-foreground outline-none"
               style={{
                 fontFamily: "var(--font-body)",
                 lineHeight: "24px",

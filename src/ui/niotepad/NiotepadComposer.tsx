@@ -57,7 +57,7 @@ const NiotepadComposer = forwardRef<HTMLTextAreaElement, NiotepadComposerProps>(
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder={entryCount === 0 ? "Write a note..." : "Add a note..."}
-          className="w-full resize-none border-none bg-transparent p-0 text-sm text-foreground placeholder:text-text-subtle outline-none"
+          className="niotepad-composer w-full resize-none border-none bg-transparent p-0 text-sm text-foreground placeholder:text-text-subtle outline-none"
           style={{
             fontFamily: "var(--font-body)",
             lineHeight: "24px",

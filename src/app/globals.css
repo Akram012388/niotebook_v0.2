@@ -253,7 +253,8 @@ body {
   outline-offset: 2px;
 }
 
-.chat-input:focus-visible {
+.chat-input:focus-visible,
+.niotepad-composer:focus-visible {
   outline: none;
 }
 
