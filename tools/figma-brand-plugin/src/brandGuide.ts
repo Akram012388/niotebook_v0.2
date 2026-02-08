@@ -143,11 +143,16 @@ export async function buildBrandGuide() {
     cursorY += t.height + 40;
   }
 
-
   // ========================================================================
   // 1. TITLE SECTION
   // ========================================================================
-  const title = addText(LOGO_FONT, 52, "Niotebook Brand Guide v2", COLORS.wsText, CONTENT_WIDTH);
+  const title = addText(
+    LOGO_FONT,
+    52,
+    "Niotebook Brand Guide v2",
+    COLORS.wsText,
+    CONTENT_WIDTH,
+  );
   cursorY += title.height + 24;
 
   const subtitle = addText(
@@ -202,14 +207,20 @@ export async function buildBrandGuide() {
 
   // Labels under panels
   const lightLabel = addText(bodyFont, 12, "Light Mode", COLORS.wsTextMuted);
-  lightLabel.x = CONTENT_PADDING + (CONTENT_WIDTH / 2 - 16) / 2 - lightLabel.width / 2;
+  lightLabel.x =
+    CONTENT_PADDING + (CONTENT_WIDTH / 2 - 16) / 2 - lightLabel.width / 2;
 
   const darkLabel = figma.createText();
   darkLabel.fontName = bodyFont;
   darkLabel.fontSize = 12;
   darkLabel.characters = "Dark Mode";
   darkLabel.fills = [solidPaint(COLORS.wsTextMuted)];
-  darkLabel.x = CONTENT_PADDING + CONTENT_WIDTH / 2 + 16 + (CONTENT_WIDTH / 2 - 16) / 2 - darkLabel.width / 2;
+  darkLabel.x =
+    CONTENT_PADDING +
+    CONTENT_WIDTH / 2 +
+    16 +
+    (CONTENT_WIDTH / 2 - 16) / 2 -
+    darkLabel.width / 2;
   darkLabel.y = cursorY;
   canvas.appendChild(darkLabel);
 
@@ -220,7 +231,11 @@ export async function buildBrandGuide() {
   // ========================================================================
   addSectionTitle("Nio Mark (Short Form)");
 
-  const markModes: ("Light" | "Dark" | "Accent")[] = ["Light", "Dark", "Accent"];
+  const markModes: ("Light" | "Dark" | "Accent")[] = [
+    "Light",
+    "Dark",
+    "Accent",
+  ];
   const markPanelWidth = (CONTENT_WIDTH - 32 * 2) / 3;
 
   for (let m = 0; m < markModes.length; m++) {
@@ -257,7 +272,11 @@ export async function buildBrandGuide() {
     mLabel.fontSize = 12;
     mLabel.characters = modeLabels[ml] + " Mode";
     mLabel.fills = [solidPaint(COLORS.wsTextMuted)];
-    mLabel.x = CONTENT_PADDING + ml * (markPanelWidth + 32) + markPanelWidth / 2 - mLabel.width / 2;
+    mLabel.x =
+      CONTENT_PADDING +
+      ml * (markPanelWidth + 32) +
+      markPanelWidth / 2 -
+      mLabel.width / 2;
     mLabel.y = cursorY;
     canvas.appendChild(mLabel);
   }
@@ -270,7 +289,14 @@ export async function buildBrandGuide() {
   addSectionTitle("Color Tokens");
 
   const groups = groupTokens();
-  const groupOrder = ["backgrounds", "borders", "text", "accent", "status", "workspace"];
+  const groupOrder = [
+    "backgrounds",
+    "borders",
+    "text",
+    "accent",
+    "status",
+    "workspace",
+  ];
 
   const COL_GAP = 48;
   const COL_WIDTH = (CONTENT_WIDTH - COL_GAP) / 2;
@@ -340,7 +366,9 @@ export async function buildBrandGuide() {
     const swatchStartY = cursorY + 12;
 
     // Calculate how many swatches fit per row
-    const maxSwatchesPerRow = Math.floor((COL_WIDTH - 24) / (SWATCH_SIZE + SWATCH_GAP));
+    const maxSwatchesPerRow = Math.floor(
+      (COL_WIDTH - 24) / (SWATCH_SIZE + SWATCH_GAP),
+    );
     const rows = Math.ceil(tokens.length / maxSwatchesPerRow);
 
     // Recalculate row height if we need multiple rows
@@ -444,14 +472,22 @@ export async function buildBrandGuide() {
       font: headingFont,
       size: 28,
       sample: "The quick brown fox jumps over the lazy dog",
-      description: headingFont.family + " " + headingFont.style + " -- section headings, labels",
+      description:
+        headingFont.family +
+        " " +
+        headingFont.style +
+        " -- section headings, labels",
     },
     {
       label: "UI Body / Code",
       font: bodyFont,
       size: 16,
-      sample: "const greeting = \"Hello, niotebook!\";",
-      description: bodyFont.family + " " + bodyFont.style + " -- code, terminals, monospace",
+      sample: 'const greeting = "Hello, niotebook!";',
+      description:
+        bodyFont.family +
+        " " +
+        bodyFont.style +
+        " -- code, terminals, monospace",
     },
   ];
 
@@ -615,7 +651,13 @@ export async function buildBrandGuide() {
   ];
 
   for (let sr = 0; sr < sizeRules.length; sr++) {
-    const ruleText = addText(bodyFont, 14, "  " + sizeRules[sr], COLORS.wsTextMuted, CONTENT_WIDTH);
+    const ruleText = addText(
+      bodyFont,
+      14,
+      "  " + sizeRules[sr],
+      COLORS.wsTextMuted,
+      CONTENT_WIDTH,
+    );
     cursorY += ruleText.height + 12;
   }
 

@@ -279,12 +279,36 @@ const VideoPane = ({
             aria-label="Bookmark this moment to niotepad"
           >
             {bookmarkConfirm ? (
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d="M3 7L6 10L11 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 7L6 10L11 4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             ) : (
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d="M3.5 2.5H10.5V12L7 9.5L3.5 12V2.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3.5 2.5H10.5V12L7 9.5L3.5 12V2.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             )}
           </button>
@@ -318,7 +342,10 @@ const VideoPane = ({
           )}
         </div>
         {showInfoStrip && infoItems.length > 0 ? (
-          <div ref={infoStripRef} className="mx-auto mt-3 rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] text-text-muted">
+          <div
+            ref={infoStripRef}
+            className="mx-auto mt-3 rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] text-text-muted"
+          >
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               {infoItems.map((item) => (
                 <div key={item.label} className="flex items-center gap-1">

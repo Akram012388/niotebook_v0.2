@@ -83,7 +83,9 @@ type NiotepadActions = {
   addEntry: (params: AddEntryParams) => string;
   updateEntry: (
     id: string,
-    updates: Partial<Pick<import("../../domain/niotepad").NiotepadEntryData, "content">>,
+    updates: Partial<
+      Pick<import("../../domain/niotepad").NiotepadEntryData, "content">
+    >,
   ) => void;
   deleteEntry: (id: string) => void;
 

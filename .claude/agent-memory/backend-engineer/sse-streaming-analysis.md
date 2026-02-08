@@ -3,6 +3,7 @@
 ## Investigation: Chunky token delivery, flickering, auto-scroll bugs
 
 ### Architecture Summary
+
 ```
 Gemini/Groq API  -->  async generator (token-by-token)
                         |
@@ -22,6 +23,7 @@ Gemini/Groq API  -->  async generator (token-by-token)
 ### Findings
 
 #### ISSUE 1: No explicit `runtime = "edge"` export — Node.js buffering risk
+
 **File**: `src/app/api/nio/route.ts`
 **Severity**: HIGH (likely the primary cause of bursty delivery)
 
@@ -35,6 +37,7 @@ The `X-Accel-Buffering: no` header (line 7 of nioSse.ts) only disables Nginx
 proxy buffering — it does NOT affect the Node.js runtime's internal buffering.
 
 #### ISSUE 2: Gemini SSE parser yields per-line, not per-event
+
 **File**: `src/infra/ai/geminiStream.ts`, lines 175-208
 **Severity**: MEDIUM
 
@@ -51,6 +54,7 @@ Contrast with the Groq parser (groqStream.ts lines 126-127) which correctly
 splits on `\n\n` first, then processes lines within each event.
 
 #### ISSUE 3: No per-token flushing signal in the ReadableStream
+
 **File**: `src/app/api/nio/route.ts`, lines 1074-1163
 **Severity**: MEDIUM-HIGH
 
@@ -66,11 +70,13 @@ separate SSE frame with `\n\n` termination, but the underlying transport batches
 them.
 
 #### ISSUE 4: RAF-batched flush coalesces tokens on the client
+
 **File**: `src/ui/chat/useChatThread.ts`, lines 466-501
 **Severity**: MEDIUM
 
 The client-side `scheduleFlush()` (lines 492-501) uses `requestAnimationFrame`
 to batch token updates. This means:
+
 1. Multiple tokens arriving between animation frames (16.6ms at 60fps) are
    concatenated into `tokenBuffer` (line 521)
 2. They are all flushed as a single `updateLocalMessage` call in the next RAF
@@ -81,10 +87,12 @@ If the server sends 10 tokens in a 50ms burst (due to Issue 1/3), the client
 receives them across ~3 RAF frames, but they may all land in 1-2 flushes.
 
 #### ISSUE 5: The 200-char reveal transition causes a visual jump
+
 **File**: `src/ui/chat/useChatThread.ts`, lines 464-489
 **Severity**: HIGH (likely the flickering cause)
 
 When `totalChars >= REVEAL_THRESHOLD` (200 chars), `flushTokens()` does:
+
 ```
 isStreaming: false, isRevealing: true, wasStreaming: true
 ```
@@ -107,6 +115,7 @@ animation, there could be an intermediate render frame showing nothing (the
 thinking dot is gone, but the reveal has not started).
 
 #### ISSUE 6: RevealContent renders content as plain text, then switches to markdown
+
 **File**: `src/ui/chat/ChatMessage.tsx`, lines 43-95, 104-129
 **Severity**: LOW-MEDIUM (visual inconsistency)
 
@@ -117,6 +126,7 @@ This causes a visual reflow — markdown elements (headings, lists, code blocks)
 suddenly "snap" into their formatted layout when the reveal finishes.
 
 #### ISSUE 7: Token events carry variable-size payloads
+
 **File**: `src/infra/ai/geminiStream.ts`, lines 200-207
 **Severity**: LOW
 

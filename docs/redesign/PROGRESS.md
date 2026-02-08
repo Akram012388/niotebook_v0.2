@@ -9,18 +9,18 @@
 
 ## Phase Overview
 
-| Phase | Description                | Status   | Branch                        | Commit            |
-| ----- | -------------------------- | -------- | ----------------------------- | ----------------- |
-| **1** | Design Tokens & Primitives | **Done** | `redesign/phase-1-tokens`     | `3bbbd62`         |
-| **2** | Base Components            | **Done** | `redesign/phase-2-components` | `ada381d`         |
-| **3** | Shell & Chrome             | **Done** | `redesign/phase-3-shell`      | `e09aed3`         |
-| **4** | Core Panes                 | **Done** | `redesign/phase-4-panes`      | `1f0b0d3`         |
-| **5** | Pages                      | **Done** | `redesign/phase-5-pages`      | `9b85b96`         |
-| **6** | Polish                     | **Done** | `redesign/phase-6-polish`     | `2d71060`         |
-| **7** | Landing Page Rework        | **Done** | `feat/landing-hero-rework`    | `418f0f8` (merge) |
+| Phase | Description                | Status   | Branch                                                                        | Commit                  |
+| ----- | -------------------------- | -------- | ----------------------------------------------------------------------------- | ----------------------- |
+| **1** | Design Tokens & Primitives | **Done** | `redesign/phase-1-tokens`                                                     | `3bbbd62`               |
+| **2** | Base Components            | **Done** | `redesign/phase-2-components`                                                 | `ada381d`               |
+| **3** | Shell & Chrome             | **Done** | `redesign/phase-3-shell`                                                      | `e09aed3`               |
+| **4** | Core Panes                 | **Done** | `redesign/phase-4-panes`                                                      | `1f0b0d3`               |
+| **5** | Pages                      | **Done** | `redesign/phase-5-pages`                                                      | `9b85b96`               |
+| **6** | Polish                     | **Done** | `redesign/phase-6-polish`                                                     | `2d71060`               |
+| **7** | Landing Page Rework        | **Done** | `feat/landing-hero-rework`                                                    | `418f0f8` (merge)       |
 | **8** | Route Redesign             | **Done** | `redesign/sidebar-courses`, `redesign/signin`, `redesign/course-detail-cards` | merged to `redesign-v2` |
-| —     | SiteNav Refactor           | **Done** | `refactor/courses-navbar-layout` | merged to `redesign-v2` |
-| —     | Merge to Main              | **Done** | `redesign-v2` → `main`       | `1d8214f`         |
+| —     | SiteNav Refactor           | **Done** | `refactor/courses-navbar-layout`                                              | merged to `redesign-v2` |
+| —     | Merge to Main              | **Done** | `redesign-v2` → `main`                                                        | `1d8214f`               |
 
 ---
 

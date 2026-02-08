@@ -209,7 +209,8 @@ export function addExports(
 export function pngExport(scale: number, suffix?: string): ExportSettingsPNG {
   return {
     format: "PNG",
-    suffix: suffix !== undefined ? suffix : (scale === 1 ? "" : "@" + scale + "x"),
+    suffix:
+      suffix !== undefined ? suffix : scale === 1 ? "" : "@" + scale + "x",
     constraint: { type: "SCALE", value: scale },
   } as ExportSettingsPNG;
 }
@@ -246,7 +247,9 @@ export async function loadLogoFont(): Promise<FontName> {
       console.log("[niotebook] loaded font: " + font.family + " " + font.style);
       return font;
     } catch {
-      console.log("[niotebook] font not available: " + font.family + " " + font.style);
+      console.log(
+        "[niotebook] font not available: " + font.family + " " + font.style,
+      );
     }
   }
 

@@ -10,7 +10,10 @@ import type { NiotepadState } from "./useNiotepadStore";
  * appear somewhere in the entry's searchable text).
  */
 function selectFilteredEntries(
-  state: Pick<NiotepadState, "pages" | "activePageId" | "sourceFilters" | "searchQuery">,
+  state: Pick<
+    NiotepadState,
+    "pages" | "activePageId" | "sourceFilters" | "searchQuery"
+  >,
 ): NiotepadEntryData[] {
   // 1. Gather entries for the active page (or all pages)
   const page = state.activePageId

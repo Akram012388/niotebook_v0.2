@@ -84,9 +84,14 @@ const NiotepadPanel = (): ReactElement => {
     [pages],
   );
 
-  // Compute panel position: Y is vertically centered, X is persisted.
-  // Clamped to keep the panel within the visible viewport at all times.
-  const computePosition = useCallback(() => {
+  // Position computed once at mount — CSS left stays constant for the lifetime
+  // of this component instance. Framer Motion manages all drag offsets via its
+  // internal x transform. This prevents the double-offset bug where both CSS
+  // left and FM's transform contain the drag delta after handleDragEnd updates
+  // geometry.x and triggers a re-render.
+  // The component remounts on each open/close cycle (conditional rendering in
+  // NiotepadPortal), so the persisted geometry.x is applied fresh each time.
+  const [mountPosition] = useState(() => {
     if (typeof window === "undefined") {
       return { x: 0, y: TOPNAV_HEIGHT + VIEWPORT_PADDING };
     }
@@ -95,21 +100,20 @@ const NiotepadPanel = (): ReactElement => {
     const y =
       TOPNAV_HEIGHT +
       Math.max(VIEWPORT_PADDING, (workspaceHeight - PANEL_HEIGHT) / 2);
-    const maxX = Math.max(VIEWPORT_PADDING, vw - PANEL_WIDTH - VIEWPORT_PADDING);
+    const maxX = Math.max(
+      VIEWPORT_PADDING,
+      vw - PANEL_WIDTH - VIEWPORT_PADDING,
+    );
     const rawX = geometry.x === -1 ? maxX : geometry.x;
     const x = Math.max(VIEWPORT_PADDING, Math.min(rawX, maxX));
     return { x, y };
-  }, [geometry.x]);
+  });
 
-  // Track viewport size so position recalculates on resize
-  const [, setViewportTick] = useState(0);
-  const resolvedPosition = computePosition();
-
-  useEffect(() => {
-    const handleResize = () => setViewportTick((t) => t + 1);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  // Ref-based drag constraint — an invisible box inset by VIEWPORT_PADDING on
+  // left/right. FM keeps the panel's bounding box inside this element during
+  // drag, so the panel can never exceed viewport padding. The constraint box
+  // uses CSS left/right (not a fixed width) so it auto-adjusts on resize.
+  const constraintRef = useRef<HTMLDivElement>(null);
 
   // Focus trap: store previous active element, focus panel on mount
   useEffect(() => {
@@ -146,15 +150,13 @@ const NiotepadPanel = (): ReactElement => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [closePanel, setEditingEntry, toggleSearchExpanded]);
 
-  // Persist X position on drag end (Y is fixed, not persisted).
-  // Clamp to viewport bounds so stale values can't push panel off-screen.
+  // Persist visual X on drag end for the next mount. No clamping needed here —
+  // FM + the constraint ref already enforced bounds during drag, and the mount
+  // initializer will re-clamp if the viewport changed between sessions.
   const handleDragEnd = useCallback(() => {
     const el = panelRef.current;
     if (!el) return;
-    const vw = document.documentElement.clientWidth;
-    const maxX = Math.max(VIEWPORT_PADDING, vw - PANEL_WIDTH - VIEWPORT_PADDING);
-    const x = Math.max(VIEWPORT_PADDING, Math.min(el.getBoundingClientRect().left, maxX));
-    updateGeometry({ x });
+    updateGeometry({ x: el.getBoundingClientRect().left });
   }, [updateGeometry]);
 
   const handleDragHandlePointerDown = useCallback(
@@ -235,61 +237,59 @@ const NiotepadPanel = (): ReactElement => {
     : { type: "spring" as const, stiffness: 400, damping: 28, mass: 0.8 };
 
   return (
-    <motion.aside
-      ref={panelRef}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Niotepad -- personal notes"
-      aria-describedby="niotepad-description"
-      tabIndex={-1}
-      onKeyDown={handlePanelKeyDown}
-      className="fixed z-50 flex flex-col overflow-hidden rounded-2xl outline-none"
-      style={{
-        width: PANEL_WIDTH,
-        height: PANEL_HEIGHT,
-        left: resolvedPosition.x,
-        top: resolvedPosition.y,
-        background: "var(--niotepad-panel-bg)",
-        border: "1px solid var(--niotepad-panel-border)",
-        boxShadow: PANEL_SHADOW,
-      }}
-      // Spring open animation (instant when reduced motion preferred)
-      initial={
-        prefersReducedMotion
-          ? { opacity: 1 }
-          : { scale: 0.92, opacity: 0, y: 12 }
-      }
-      animate={
-        prefersReducedMotion ? { opacity: 1 } : { scale: 1, opacity: 1, y: 0 }
-      }
-      exit={
-        prefersReducedMotion
-          ? { opacity: 0 }
-          : { scale: 0.95, opacity: 0, y: 8 }
-      }
-      transition={panelTransition}
-      // X-axis only drag via handle — Y is locked
-      drag="x"
-      dragControls={dragControls}
-      dragListener={false}
-      dragMomentum={false}
-      dragElastic={0.08}
-      // Constraints are relative offsets from the element's current CSS left.
-      // Recomputed from current viewport so they stay accurate after resize.
-      dragConstraints={{
-        left: VIEWPORT_PADDING - resolvedPosition.x,
-        right: Math.max(
-          0,
-          (typeof window !== "undefined"
-            ? document.documentElement.clientWidth
-            : PANEL_WIDTH + VIEWPORT_PADDING * 2) -
-            PANEL_WIDTH -
-            VIEWPORT_PADDING -
-            resolvedPosition.x,
-        ),
-      }}
-      onDragEnd={handleDragEnd}
-    >
+    <>
+      {/* Invisible constraint boundary — FM keeps the panel inside this box
+          during drag. Uses CSS left/right so it auto-adapts to viewport resize. */}
+      <div
+        ref={constraintRef}
+        aria-hidden
+        className="pointer-events-none fixed inset-y-0"
+        style={{ left: VIEWPORT_PADDING, right: VIEWPORT_PADDING }}
+      />
+      <motion.aside
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Niotepad -- personal notes"
+        aria-describedby="niotepad-description"
+        tabIndex={-1}
+        onKeyDown={handlePanelKeyDown}
+        className="fixed z-50 flex flex-col overflow-hidden rounded-2xl outline-none"
+        style={{
+          width: PANEL_WIDTH,
+          height: PANEL_HEIGHT,
+          left: mountPosition.x,
+          top: mountPosition.y,
+          background: "var(--niotepad-panel-bg)",
+          border: "1px solid var(--niotepad-panel-border)",
+          boxShadow: PANEL_SHADOW,
+        }}
+        // Spring open animation (instant when reduced motion preferred)
+        initial={
+          prefersReducedMotion
+            ? { opacity: 1 }
+            : { scale: 0.92, opacity: 0, y: 12 }
+        }
+        animate={
+          prefersReducedMotion
+            ? { opacity: 1 }
+            : { scale: 1, opacity: 1, y: 0 }
+        }
+        exit={
+          prefersReducedMotion
+            ? { opacity: 0 }
+            : { scale: 0.95, opacity: 0, y: 8 }
+        }
+        transition={panelTransition}
+        // X-axis only drag via handle — Y is locked
+        drag="x"
+        dragControls={dragControls}
+        dragListener={false}
+        dragMomentum={false}
+        dragElastic={0}
+        dragConstraints={constraintRef}
+        onDragEnd={handleDragEnd}
+      >
       {/* Screen reader description */}
       <p id="niotepad-description" className="sr-only">
         A floating notebook for capturing notes from video lectures, code
@@ -354,6 +354,7 @@ const NiotepadPanel = (): ReactElement => {
         />
       </NiotepadScrollArea>
     </motion.aside>
+    </>
   );
 };
 

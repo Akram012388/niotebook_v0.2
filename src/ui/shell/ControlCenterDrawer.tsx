@@ -358,14 +358,20 @@ const ControlCenterDrawer = ({
                               }`}
                             >
                               <div className="flex flex-col">
-                                <span className={`text-[10px] uppercase tracking-[0.08em] ${isActive ? "text-white/70" : "text-text-subtle"}`}>
+                                <span
+                                  className={`text-[10px] uppercase tracking-[0.08em] ${isActive ? "text-white/70" : "text-text-subtle"}`}
+                                >
                                   Lecture {lectureNumber ?? lesson.order}
                                 </span>
-                                <span className={`text-sm ${isActive ? "text-white" : "text-foreground"}`}>
+                                <span
+                                  className={`text-sm ${isActive ? "text-white" : "text-foreground"}`}
+                                >
                                   {lesson.title}
                                 </span>
                               </div>
-                              <span className={`text-xs ${isActive ? "text-white/70" : "text-text-subtle"}`}>
+                              <span
+                                className={`text-xs ${isActive ? "text-white/70" : "text-text-subtle"}`}
+                              >
                                 →
                               </span>
                             </button>
@@ -414,15 +420,21 @@ const ControlCenterDrawer = ({
                                   : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md hover:border-accent/20 hover:bg-surface-muted hover:text-foreground"
                               }`}
                             >
-                              <span className={`text-sm ${isActive ? "text-white" : "text-foreground"}`}>
+                              <span
+                                className={`text-sm ${isActive ? "text-white" : "text-foreground"}`}
+                              >
                                 {course.title}
                               </span>
                               {course.description ? (
-                                <span className={`text-xs ${isActive ? "text-white/70" : "text-text-subtle"}`}>
+                                <span
+                                  className={`text-xs ${isActive ? "text-white/70" : "text-text-subtle"}`}
+                                >
                                   {course.description}
                                 </span>
                               ) : null}
-                              <span className={`text-[10px] uppercase tracking-[0.08em] ${isActive ? "text-white/70" : "text-text-subtle"}`}>
+                              <span
+                                className={`text-[10px] uppercase tracking-[0.08em] ${isActive ? "text-white/70" : "text-text-subtle"}`}
+                              >
                                 {course.license} · {course.sourceUrl}
                               </span>
                             </button>

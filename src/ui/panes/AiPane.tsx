@@ -46,8 +46,20 @@ function SelectionTooltip({
     >
       {showConfirmation ? (
         <>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-            <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M2.5 6L5 8.5L9.5 3.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           Pushed
         </>
@@ -119,8 +131,12 @@ const AiPane = ({
   useEffect(() => {
     chatMessagesRef.current = chatMessagesElement;
   }, [chatMessagesElement]);
-  const { isActive: selectionActive, selectionRect, pushToNiotepad, showConfirmation } =
-    useSelectionPush(chatMessagesRef, lessonId, lectureLabel);
+  const {
+    isActive: selectionActive,
+    selectionRect,
+    pushToNiotepad,
+    showConfirmation,
+  } = useSelectionPush(chatMessagesRef, lessonId, lectureLabel);
 
   // Wire the streaming token callback to the StreamingText component
   useEffect(() => {
@@ -249,37 +265,52 @@ const AiPane = ({
         </p>
       </div>
       <div className="relative flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
-        <div ref={setChatMessagesElement} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <ChatScroll ref={chatScrollRef} isStreaming={streamState === "streaming"}>
+        <div
+          ref={setChatMessagesElement}
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        >
+          <ChatScroll
+            ref={chatScrollRef}
+            isStreaming={streamState === "streaming"}
+          >
             {messages.map((message) => (
               <ChatMessage
                 key={message.id}
                 message={message}
                 onSeek={onSeek}
-                streamingTextRef={message.isStreaming ? streamingTextRef : undefined}
+                streamingTextRef={
+                  message.isStreaming ? streamingTextRef : undefined
+                }
               />
             ))}
           </ChatScroll>
         </div>
-        {(selectionActive || showConfirmation) && selectionRect && chatMessagesElement ? (() => {
-          const containerRect = chatMessagesElement.getBoundingClientRect();
-          const tooltipTop = selectionRect.bottom - containerRect.top + 4;
-          const tooltipLeft = Math.max(
-            0,
-            Math.min(
-              selectionRect.left + selectionRect.width / 2 - containerRect.left - 48,
-              containerRect.width - 96,
-            ),
-          );
-          return (
-            <SelectionTooltip
-              top={tooltipTop}
-              left={tooltipLeft}
-              onPush={pushToNiotepad}
-              showConfirmation={showConfirmation}
-            />
-          );
-        })() : null}
+        {(selectionActive || showConfirmation) &&
+        selectionRect &&
+        chatMessagesElement
+          ? (() => {
+              const containerRect = chatMessagesElement.getBoundingClientRect();
+              const tooltipTop = selectionRect.bottom - containerRect.top + 4;
+              const tooltipLeft = Math.max(
+                0,
+                Math.min(
+                  selectionRect.left +
+                    selectionRect.width / 2 -
+                    containerRect.left -
+                    48,
+                  containerRect.width - 96,
+                ),
+              );
+              return (
+                <SelectionTooltip
+                  top={tooltipTop}
+                  left={tooltipLeft}
+                  onPush={pushToNiotepad}
+                  showConfirmation={showConfirmation}
+                />
+              );
+            })()
+          : null}
         {streamError ? (
           <div className="rounded-lg border border-status-warning/25 bg-status-warning/10 px-3 py-2 text-xs text-status-warning">
             {streamError}
