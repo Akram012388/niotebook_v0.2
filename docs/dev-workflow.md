@@ -2,6 +2,7 @@
 
 **What’s done**
 
+- All implementation phases complete (including Redesign v2 — 8 phases + SiteNav refactor, merged to main 2026-02-08)
 - Phase 2 complete: lesson routing, transcript context, resume snapshots
 - Phase 3 complete: YouTube embed + authoritative video time flow
 - Transcript ingestion pipeline (CS50x 2026) and control center redesign
@@ -76,6 +77,12 @@ See `.env.example` for required variables:
 - `SENTRY_DSN`
 - `NEXT_PUBLIC_SENTRY_DSN`
 
+Additional env vars:
+
+- `NIOTEBOOK_E2E_VIDEO_ID` — Video ID for E2E tests
+- `CONVEX_DEPLOYMENT` — Convex deployment identifier
+- `NEXT_PUBLIC_DEFAULT_LESSON_ID` — Default lesson for workspace
+
 Preview-only e2e flags:
 
 - `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW`
@@ -86,7 +93,7 @@ Preview-only e2e flags:
 
 The Tier 2 code editor adds these client-side dependencies (all MIT/ISC licensed, zero infrastructure cost):
 
-- **CodeMirror 6:** `@codemirror/state`, `@codemirror/view`, `@codemirror/language`, `@codemirror/commands`, `@codemirror/autocomplete`, `@codemirror/search`, `@codemirror/lang-javascript`, `@codemirror/lang-python`, `@codemirror/lang-html`, `@codemirror/lang-cpp`, `@codemirror/theme-one-dark`, `@lezer/highlight`
+- **CodeMirror 6:** `@codemirror/state`, `@codemirror/view`, `@codemirror/language`, `@codemirror/commands`, `@codemirror/autocomplete`, `@codemirror/search`, `@codemirror/lang-javascript`, `@codemirror/lang-python`, `@codemirror/lang-html`, `@codemirror/lang-cpp`, `@codemirror/lang-css`, `@codemirror/lang-sql`, `@codemirror/theme-one-dark`, `codemirror-lang-r`
 - **Terminal:** `@xterm/xterm`, `@xterm/addon-fit`, `@xterm/addon-web-links`
 - **State management:** `zustand` (v5)
 - **Persistence:** `idb` (IndexedDB wrapper)

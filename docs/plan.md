@@ -89,7 +89,7 @@ Branch: `feat/courses-route`
 - Minimalist card: title, provider badge, lecture count, progress bar.
 - Hover: scale + shadow lift. Auto-sliding carousel (CSS scroll-snap).
 - "Coming Soon" variant: greyed out, lock icon.
-- Files: `src/ui/courses/CourseCard.tsx`, `src/ui/courses/CourseCarousel.tsx`.
+- Files: `src/ui/courses/CourseCard.tsx`. Note: `CourseCarousel.tsx` was deleted during the SiteNav refactor (carousel approach removed).
 
 #### B4 — Update User Journey Routing
 
@@ -368,7 +368,7 @@ Tasks:
 Phase: post-Phase 4
 Branch: `jarvis/code-editor-tier2` (base), `fix/code-editor` (polish)
 Dependencies: P11, P7
-Status: IMPLEMENTED (base) + IN PROGRESS (polish)
+Status: COMPLETE
 
 The code editor was rebuilt from a plain textarea to a professional IDE-like environment. All eight sub-phases completed in the base branch; the fix/polish pass focuses on UI consistency and runtime behavior.
 
@@ -381,7 +381,7 @@ The code editor was rebuilt from a plain textarea to a professional IDE-like env
 7. **Split-pane Resizable Layout** — `SplitPane` component (vertical divider between editor and terminal), mouse-drag resize, persisted split ratio.
 8. **Enhanced Autocomplete** — Context-aware completions via `completionProvider`, language-specific keyword/API suggestions.
 
-Key dependencies added: `@codemirror/*` (state, view, language, commands, autocomplete, search, lang-javascript, lang-python, lang-html, lang-cpp, theme-one-dark), `@lezer/highlight`, `@xterm/xterm`, `@xterm/addon-fit`, `@xterm/addon-web-links`, `zustand`, `idb`.
+Key dependencies added: `@codemirror/*` (state, view, language, commands, autocomplete, search, lang-javascript, lang-python, lang-html, lang-cpp, lang-css, lang-sql, theme-one-dark), `codemirror-lang-r`, `sql.js`, `webr`, `@xterm/xterm`, `@xterm/addon-fit`, `@xterm/addon-web-links`, `zustand`, `idb`.
 
 Fix/polish highlights (fix/code-editor):
 

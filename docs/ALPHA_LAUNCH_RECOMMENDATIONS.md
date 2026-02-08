@@ -10,8 +10,8 @@
 
 Niotebook v0.2 is an impressively architected AI-native learning workspace with **strong foundations** ready for alpha. Phases 1-4 are complete with 151 passing unit tests, clean typecheck, and comprehensive documentation. The codebase demonstrates excellent separation of concerns (app → ui → domain → infra) and production-ready patterns.
 
-**Current Readiness:** ~75% toward alpha launch
-**Estimated Gap:** 2-3 weeks of focused work
+**Current Readiness:** All implementation phases complete (Redesign v2 merged 2026-02-08). Remaining gap is operational readiness (E2E activation, visual QA, content pipeline verification).
+**Estimated Gap:** Focused polish and operational verification
 
 ---
 
@@ -42,7 +42,7 @@ Niotebook v0.2 is an impressively architected AI-native learning workspace with 
 
 **Critical Views to Review:**
 
-- [ ] `/courses` — Carousel layout, responsive behavior, Netflix-style sliding
+- [ ] `/courses` — Card grid layout, responsive behavior (CourseCarousel was removed; replaced by card grid)
 - [ ] `/courses/[courseId]` — Progress bars, lecture list ordering
 - [ ] `/workspace` — Pane layouts, resizing, terminal integration
 - [ ] `/admin` — Dashboard tables, KPI cards, data visualization
@@ -144,7 +144,7 @@ const completions = await Promise.all(
 **Good:** Skip-to-content links present
 **Needs Review:**
 
-- [ ] Keyboard navigation through course carousels
+- [ ] Keyboard navigation through course cards
 - [ ] Screen reader announcements for streaming chat
 - [ ] Focus management in modal drawers
 - [ ] Color contrast in terminal themes

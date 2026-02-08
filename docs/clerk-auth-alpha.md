@@ -17,7 +17,7 @@ It is the execution contract for the upcoming Clerk-based auth gate.
 - Admin emails (allowlist): `akram012388@gmail.com, niotebook@gmail.com`
 - Cohort tag format: `inviteBatchId` (example: `alpha-2026-01`)
 
-## Phase 0 — Clerk Dashboard Setup
+## Phase 0 — Clerk Dashboard Setup ✅
 
 1. Create Clerk app.
 2. Enable email code auth.
@@ -31,7 +31,7 @@ It is the execution contract for the upcoming Clerk-based auth gate.
    - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
    - `CLERK_SECRET_KEY`
 
-## Phase 1 — Convex Auth Provider
+## Phase 1 — Convex Auth Provider ✅
 
 1. Add `convex/auth.config.ts` with Clerk provider configuration.
 2. Set `CLERK_JWT_ISSUER_DOMAIN` in Convex environment variables for preview-data and prod.
@@ -39,7 +39,7 @@ It is the execution contract for the upcoming Clerk-based auth gate.
 3. Deploy Convex to apply the auth config (`npx convex deploy`).
 4. Verify `ctx.auth.getUserIdentity()` resolves Clerk identity in Convex functions.
 
-## Phase 2 — App Integration (Auth Gate)
+## Phase 2 — App Integration (Auth Gate) ✅
 
 Files (planned):
 
@@ -48,18 +48,17 @@ Files (planned):
 - `src/app/page.tsx`
 - `src/app/sign-in/[[...sign-in]]/page.tsx`
 - `src/app/sign-up/[[...sign-up]]/page.tsx`
-- `src/ui/auth/AuthGate.tsx` (optional)
+- `src/ui/auth/AuthGate.tsx` (implemented and actively used on `/courses` and `/workspace`)
 
 Actions:
 
 - Wrap `ClerkProvider` in `src/app/layout.tsx`.
 - Replace Convex provider with `ConvexProviderWithClerk` in `src/app/providers.tsx`.
 - Add `/sign-in` and `/sign-up` routes using Clerk UI components.
-- Gate `/` in `src/app/page.tsx`:
-  - `SignedOut`: render Clerk sign-in
-  - `SignedIn`: wait for `useConvexAuth()` to be authenticated before rendering `AppShell` + `WorkspaceShell`
+- Landing page `/` is public (no auth gate). Auth gate is on `/courses` and `/workspace`.
+- `SignedIn`: wait for `useConvexAuth()` to be authenticated before rendering workspace.
 
-## Phase 3 — User Bootstrap + Invite Tracking
+## Phase 3 — User Bootstrap + Invite Tracking ✅
 
 Files (planned):
 

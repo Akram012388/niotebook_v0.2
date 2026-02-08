@@ -1,11 +1,11 @@
 # Tier 2 Code Editor — Implementation Plan (Base + Fix/Polish)
 
-> **Status:** IN PROGRESS (Fix/Polish)  
-> **Base Tier 2:** IMPLEMENTED (historical phases retained below)  
-> **Author:** Jarvis (AI), updated by OpenCode  
-> **Date:** 2026-01-31  
-> **Branch:** `fix/code-editor`  
-> **Estimated Effort (Fix/Polish):** ~24–40 hours (TBD)  
+> **Status:** COMPLETE
+> **Base Tier 2:** IMPLEMENTED (historical phases retained below)
+> **Author:** Jarvis (AI), updated by OpenCode
+> **Date:** 2026-01-31 (last updated 2026-02-08)
+> **Branch:** `fix/code-editor` (merged)
+> **Estimated Effort (Fix/Polish):** ~24–40 hours
 > **Estimated Effort (Base Tier 2):** ~120–150 hours (historical)
 
 ---
@@ -585,12 +585,14 @@ CodeMirror 6 was not installed when the original Tier 2 plan was drafted. It is 
 ```bash
 # Core CM6 packages — ALL required
 bun add @codemirror/state @codemirror/view @codemirror/language @codemirror/commands \
-       @codemirror/autocomplete @codemirror/search @codemirror/lint \
+       @codemirror/autocomplete @codemirror/search \
        @codemirror/lang-javascript @codemirror/lang-python @codemirror/lang-html @codemirror/lang-css \
-       @codemirror/lang-cpp
+       @codemirror/lang-cpp @codemirror/lang-sql codemirror-lang-r
 ```
 
 > **Note:** C language support comes from `@codemirror/lang-cpp` — there is no `@codemirror/lang-c` package. The `lang-cpp` package handles both C and C++ syntax.
+
+> **Note:** SQL and R language support was added separately via `@codemirror/lang-sql`, `sql.js`, `codemirror-lang-r`, and `webr`. The `RuntimeLanguage` type now includes `"sql"` and `"r"`.
 
 **Estimated bundle sizes:**
 | Package Group | Gzipped Size |
@@ -2023,7 +2025,7 @@ Phases 1 → 2 → 7 → 3 → 5 → 6 → 4 → 8
 
 ## Post-Build Audit
 
-> **Date:** 2025-07-15
+> **Date:** 2026-01-15
 > **Auditor:** Jarvis (AI)
 > **Status:** ✅ All issues resolved
 

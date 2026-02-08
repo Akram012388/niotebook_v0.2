@@ -1,5 +1,7 @@
 # Session Tasks — Clerk Auth Alpha
 
+> **ARCHIVED** — All tasks complete. Auth gate and e2e gating are stable on main.
+
 ## Status
 
 - Current focus: Auth gate complete + e2e preview gating stabilized

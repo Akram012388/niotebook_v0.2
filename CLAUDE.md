@@ -8,13 +8,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 bun run dev          # Next.js dev server (Turbopack)
 bun run dev:convex   # Convex backend dev server
 bun run build        # Production build
-bun run lint         # ESLint 9 + Prettier
+bun run lint         # ESLint 9
 bun run typecheck    # TypeScript strict check
 bun run format       # Prettier format
 bun run format:check # Prettier check only
 bun run test         # Unit tests (Vitest)
 bun run test:e2e     # E2E tests (Playwright)
-bun run check:any    # Forbids `any` in src/convex/tests
+bun run check:any    # Forbids `any` in convex/ and tests/
 bun run check:unknown # Forbids `unknown` in src/domain
 ```
 
@@ -30,7 +30,7 @@ Run a single E2E test: `bunx playwright test path/to/test.ts`
 ### Source Layout
 
 - **`src/app/`** — Next.js routes. `workspace/` is the main protected route. `editor-sandbox/` is an isolated iframe with COOP/COEP headers for Wasmer WASM execution.
-- **`src/ui/`** — React components (all client-side). Organized by feature: `code/` (editor, terminal, file tree), `video/` (YouTube player), `chat/` (AI chat), `transcript/`, `shell/` (AppShell, TopNav), `layout/` (preset context, grid).
+- **`src/ui/`** — React components (all client-side). Organized by feature: `admin/` (dashboard), `auth/` (sign-in, boot sequence), `brand/` (wordmark, logos), `chat/` (AI chat), `code/` (editor, terminal, file tree), `content/` (lesson content), `courses/` (catalog, detail), `landing/` (hero, features), `layout/` (preset context, grid), `panes/` (workspace panes), `shared/` (ThemeToggle, NotebookFrame), `shell/` (SiteNav, TopNav), `transcript/`, `video/` (YouTube player).
 - **`src/domain/`** — Pure business logic and types. No React, no side effects. AI prompt building (`nioPrompt.ts`, `nioContextBuilder.ts`), lesson environment config, chat/transcript/video types.
 - **`src/infra/`** — Infrastructure layers:
   - `vfs/` — Virtual filesystem (in-memory tree + IndexedDB persistence via Zustand store)
@@ -48,15 +48,15 @@ Run a single E2E test: `bunx playwright test path/to/test.ts`
 
 ## Conventions
 
-- No `any` in `src/convex/tests`, no `unknown` in `src/domain` (enforced by CI scripts)
+- No `any` in `convex/` and `tests/`, no `unknown` in `src/domain` (enforced by CI scripts)
 - Lefthook git hooks run lint/format checks pre-commit
 - ESLint 9 flat config with Next.js + Prettier integration
 
 ## Agent Teams Guidelines
 
 - All teammates: read this CLAUDE.md before starting work.
-- Code style: [your style guide reference]
-- Test command: `npm test` / `pytest` / etc.
-- Build command: `npm run build` / `make` / etc.
+- Code style: `docs/guidelines.md`
+- Test command: `bun run test`
+- Build command: `bun run build`
 - Branch strategy: create feature branches, never push to main directly.
 - When in doubt about architecture decisions, message the lead instead of guessing.

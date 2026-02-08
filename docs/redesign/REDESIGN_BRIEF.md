@@ -1,8 +1,8 @@
 # Niotebook v2 — UI/UX Redesign Brief
 
-> **Status:** Complete (all 7 phases implemented)
+> **Status:** Complete (all 8 phases + SiteNav refactor implemented, merged to main 2026-02-08)
 > **Created:** 2026-02-06
-> **Last updated:** 2026-02-06
+> **Last updated:** 2026-02-08
 > **Supersedes:** `DESIGN_SYSTEM.md` (v1 — now updated to reflect v2 implementation)
 
 ---
@@ -28,7 +28,7 @@ A **complete visual refresh** of Niotebook's frontend, replicating the warmth, c
 
 | Role              | Font           | Usage                                                                    |
 | ----------------- | -------------- | ------------------------------------------------------------------------ |
-| **Display/Brand** | **Orbitron**   | Wordmark, page titles, major headings, section headers, key UI accents   |
+| **Display/Brand** | **Orbitron**   | Wordmark only (landing headings use Geist Sans, not Orbitron)            |
 | **UI/Body**       | **Geist Sans** | Body text, labels, buttons, navigation items, form inputs, chat messages |
 | **Code**          | **Geist Mono** | Code editor, terminal, inline code, file names, timestamps               |
 
@@ -262,6 +262,14 @@ Warm, subtle depth — never harsh or cold. Shadows use warm undertones.
 - Multi-column footer with social icons and legal stub pages
 - Section gap normalization (consistent 128px inter-frame spacing)
 
+### Phase 8 — Sidebar, Sign-in, Course Detail ✅
+
+- Collapsible SidebarShell (rail 56px ↔ expanded 240px) with localStorage persistence
+- Sign-in/sign-up redesign with NotebookFrame + ThemeToggle + OTP fix
+- Course detail lecture cards with animation alignment
+- SiteNav refactor: unified top nav replacing SidebarShell on courses/landing/auth
+- ThemeToggle + NotebookFrame moved to `src/ui/shared/`
+
 ---
 
 ## Reference Touchstones
@@ -299,3 +307,4 @@ _Track unresolved decisions here as the redesign progresses._
 | 2026-02-06 | Phase 1 complete: design tokens, warm palette, grid pattern, font assignments, shimmer animation. All token values finalized. frontend-designer agent enhanced with design system expertise.             |
 | 2026-02-06 | Phases 2-6 complete: full token migration across all components, pages, shell, panes. Zero hardcoded colors remaining. Focus states and transition polish done.                                          |
 | 2026-02-06 | Phase 7 complete: Landing page rework — NotebookFrame binder architecture, hero simplification, capsule theme toggle, text wordmark, multi-column footer, legal stubs, gap normalization. PR #87 merged. |
+| 2026-02-08 | Phase 8 complete: Sidebar, sign-in redesign, course detail cards. SiteNav refactor: unified top nav for courses/landing/auth. ThemeToggle + NotebookFrame moved to `src/ui/shared/`. All merged to main. |

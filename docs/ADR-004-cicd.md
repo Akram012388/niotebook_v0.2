@@ -27,6 +27,8 @@ Optional:
 
 - `format`
 - `format:check`
+- `check:any` (forbids `any` in `src/convex/tests`)
+- `check:unknown` (forbids `unknown` in `src/domain`)
 
 ### Vercel build command
 
@@ -53,6 +55,13 @@ Prod refresh (ingest):
 
 - Trigger: manual `workflow_dispatch` only
 - Deploy Convex to prod, run ingest with `NIOTEBOOK_INGEST_TOKEN`, then hard-fail if transcript windows are empty.
+
+Additional CI workflows:
+
+- Semgrep security scan (`semgrep.yml`): `p/security-audit` ruleset, fails PR on findings.
+- Claude code review (`claude-code-review.yml`): Automated AI-assisted code review on PRs.
+- Claude agent (`claude.yml`): AI agent workflow for automation tasks.
+- OpenCode (`opencode.yml`): Open-source code analysis workflow.
 
 E2E (Playwright) on preview deploy:
 

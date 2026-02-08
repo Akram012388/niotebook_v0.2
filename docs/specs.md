@@ -115,10 +115,11 @@ Locked. Below is a **frozen v0.2 spec** (with KISS + FP discipline) that bakes i
 
 Layouts are user-selectable per session and persisted.
 
-### 5.2 Visual design (opencode-inspired)
+### 5.2 Visual design (Claude-inspired warm palette)
 
-- Light-first palette; dark mode optional.
-- Sans-first typography with monospace accents in code/terminal contexts.
+- Light-first palette; dark mode optional. Warm terracotta accent (`--accent: #c15f3c` light / `#da7756` dark).
+- Background: `#f4f3ee` (light) / `#1c1917` (dark). See `src/app/globals.css` for full design token system.
+- Sans-first typography with monospace accents in code/terminal contexts. Orbitron as display font for wordmark only.
 - Minimal chrome, strong spacing discipline, subtle separators.
 - ChatGPT web app feel: YouTube + simple code lab embedded in a clean chat‑centric interface.
 
