@@ -212,6 +212,8 @@ const NiotepadEntry = memo(
     }, [isDeleting, onDelete, entry.id]);
 
     const isVideo = entry.source === "video";
+    const isCode = entry.source === "code";
+    const isChat = entry.source === "chat";
 
     // Build accessible label with content preview
     const contentPreview =
@@ -310,6 +312,36 @@ const NiotepadEntry = memo(
                 </span>
               )}
             </button>
+          )}
+
+          {/* Code entry header */}
+          {isCode && (
+            <span
+              className="block text-sm font-semibold text-accent"
+              style={{ lineHeight: "24px" }}
+              aria-hidden="true"
+            >
+              Code
+              {entry.metadata.filePath && (
+                <span
+                  className="ml-1 font-normal"
+                  style={{ color: "var(--niotepad-text-muted)" }}
+                >
+                  &mdash; {entry.metadata.filePath.split("/").pop()}
+                </span>
+              )}
+            </span>
+          )}
+
+          {/* Chat entry header */}
+          {isChat && (
+            <span
+              className="block text-sm font-semibold text-accent"
+              style={{ lineHeight: "24px" }}
+              aria-hidden="true"
+            >
+              Assistant
+            </span>
           )}
 
           {/* Content: edit mode or render mode */}
