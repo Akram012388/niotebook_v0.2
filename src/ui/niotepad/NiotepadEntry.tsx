@@ -343,7 +343,11 @@ const NiotepadEntry = memo(
             >
               <div
                 className="nio-markdown"
-                style={{ lineHeight: "24px" }}
+                style={{
+                  lineHeight: "24px",
+                  whiteSpace:
+                    entry.source === "code" ? "pre-wrap" : undefined,
+                }}
               >
                 <ReactMarkdown>{entry.content}</ReactMarkdown>
               </div>
