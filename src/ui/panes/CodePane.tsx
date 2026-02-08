@@ -27,6 +27,8 @@ import type { RuntimeLanguage, RuntimeState } from "../../infra/runtime/types";
 import type { LessonEnvironment } from "../../domain/lessonEnvironment";
 import { getPresetOrDefault } from "../../infra/runtime/envPresets";
 import { storageAdapter } from "../../infra/storageAdapter";
+import { useNiotepadStore } from "../../infra/niotepad/useNiotepadStore";
+import { useVideoDisplayTime } from "../layout/WorkspaceGrid";
 
 // ── SSR-safe dynamic import of EditorArea ─────────────────────
 
@@ -457,6 +459,61 @@ const CodePane = ({
     },
     [allowedLanguages],
   );
+
+  // ── Push-to-niotepad shortcut (Cmd/Ctrl+Shift+N) ────────
+  const videoTimeSec = useVideoDisplayTime();
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (
+        e.key.toLowerCase() !== "n" ||
+        !e.shiftKey ||
+        !(e.metaKey || e.ctrlKey)
+      ) {
+        return;
+      }
+
+      // Get active file's editor state for selection
+      const editorStore = useEditorStore.getState();
+      const activeFile = editorStore.openFiles.find(
+        (f) => f.id === editorStore.activeFileId,
+      );
+      if (!activeFile) return;
+
+      const { selection } = activeFile.editorState;
+      const mainRange = selection.main;
+      if (mainRange.empty) return;
+
+      const selectedCode = activeFile.editorState.doc.sliceString(
+        mainRange.from,
+        mainRange.to,
+      );
+      if (!selectedCode.trim()) return;
+
+      e.preventDefault();
+
+      const lang = activeFile.language ?? activeLanguage;
+      const content = `\`\`\`${lang}\n${selectedCode}\n\`\`\``;
+      const lectureTitle = `Lesson ${lessonId}`;
+
+      const store = useNiotepadStore.getState();
+      const pageId = store.getOrCreatePage(lessonId, lectureTitle);
+      store.addEntry({
+        source: "code",
+        content,
+        pageId,
+        videoTimeSec,
+        metadata: {
+          filePath: activeFile.path,
+          language: lang,
+        },
+      });
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [activeLanguage, lessonId, videoTimeSec]);
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">
