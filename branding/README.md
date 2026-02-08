@@ -40,17 +40,17 @@ terracotta; all other characters follow the theme mode.
 | foreground        | `#1c1917` | `#f4f3ee` | Primary text                   |
 | surface           | `#faf9f7` | `#252220` | Cards, panels                  |
 | surface-muted     | `#edeae4` | `#2e2a27` | Inputs, code blocks            |
-| surface-strong    | `#1c1917` | `#f4f3ee` | High-contrast surface          |
+| surface-strong    | `#1c1917` | `#141210` | High-contrast surface          |
 | border            | `#ddd8d0` | `#3a3531` | Default border                 |
 | border-muted      | `#edeae4` | `#2e2a27` | Subtle divider                 |
 | text-muted        | `#78716c` | `#a8a29e` | Secondary text                 |
 | accent            | `#c15f3c` | `#da7756` | CTAs, active states            |
-| accent-foreground | `#ffffff` | `#ffffff` | Text on accent                 |
-| accent-hover      | `#a8512f` | `#c15f3c` | Hover/pressed                  |
-| status-success    | `#5a8a5e` | `#6b9e6f` | Success                        |
-| status-warning    | `#b5882c` | `#c99b3f` | Warning                        |
-| status-error      | `#c24b3a` | `#d4594a` | Error                          |
-| status-info       | `#5b7fa5` | `#6d91b7` | Info                           |
+| accent-foreground | `#ffffff` | `#1c1917` | Text on accent                 |
+| accent-hover      | `#a8512f` | `#e8906e` | Hover/pressed                  |
+| status-success    | `#5a8a5e` | `#6da072` | Success                        |
+| status-warning    | `#b5882c` | `#d4a748` | Warning                        |
+| status-error      | `#c24b3a` | `#e06b5a` | Error                          |
+| status-info       | `#5b7fa5` | `#7a9fc0` | Info                           |
 
 ### Typography
 
@@ -58,7 +58,8 @@ terracotta; all other characters follow the theme mode.
 | ----------------- | ---------- | ----------- |
 | Logo / Wordmark   | Orbitron   | Bold (700)  |
 | UI Headings       | Geist Sans | SemiBold    |
-| UI Body / Code    | Geist Mono | Regular     |
+| UI Body           | Geist Sans | Regular     |
+| Code              | Geist Mono | Regular     |
 
 ## Directory Structure
 

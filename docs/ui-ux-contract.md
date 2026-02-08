@@ -100,8 +100,9 @@ Scope: UI structure + interaction behavior (not visual polish)
 
 Color policy:
 
-- Neutral-first. No dedicated accent color required.
-- Alive feel comes from contrast, borders, motion, typography, and iconography.
+- Warm terracotta accent (`--accent: #c15f3c` light / `#da7756` dark) — adopted in Redesign v2.
+- Background: `#f4f3ee` (light) / `#1c1917` (dark). Full token system in `src/app/globals.css`.
+- Alive feel comes from accent color, contrast, borders, motion, typography, and iconography.
 
 ## Keyboard Shortcuts (minimum set)
 
@@ -124,14 +125,14 @@ Color policy:
 
 ## Courses Route (`/courses`)
 
-- Apple TV+/Netflix-style carousel, accessible on all viewports.
+- Card grid layout, accessible on all viewports. (Note: `CourseCarousel.tsx` was removed during the SiteNav refactor; the carousel approach was replaced by a simpler card grid.)
 - Mobile/tablet: browse-only (course cards, descriptions, progress). No video playback, no workspace access.
 - Desktop: browse + "Enter Workspace" / "Resume" buttons.
 - Rows:
   1. **Continue Learning** (returning users): resume card with course, lecture, timestamp, progress bar.
   2. **Harvard CS50 Library**: horizontal scroll row of course cards (CS50x, CS50P, CS50AI, CS50W, CS50SQL).
   3. **Coming Soon**: greyed-out hardcoded cards (MIT, Stanford, Google, Meta, etc.).
-- Course cards: minimalist, title, provider badge, lecture count, progress bar. Hover: scale + shadow. Auto-sliding carousel (CSS scroll-snap).
+- Course cards: minimalist, title, provider badge, lecture count, progress bar. Hover: scale + shadow.
 - Click card → `/courses/[courseId]` detail page.
 
 ## Course Detail Page (`/courses/[courseId]`)

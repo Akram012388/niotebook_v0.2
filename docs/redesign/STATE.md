@@ -1,10 +1,12 @@
 # Niotebook v2 Redesign — Branch State
 
+> **ARCHIVED** — This state file tracked the `redesign-v2` branch which was merged to `main` on 2026-02-08 (commit `1d8214f`). It is retained as historical reference. Phase 8 + SiteNav refactor were completed after this state file was last updated; see `PROGRESS.md` for the full record.
+
 > **Purpose:** Cross-session persistence file for Claude Code to recall exact branch state.
-> **Last updated:** 2026-02-07
-> **Branch:** `redesign-v2`
+> **Last updated:** 2026-02-08
+> **Branch:** `redesign-v2` (merged to `main`)
 > **Base:** `main`
-> **Head commit:** `9d11205` (prerequisite: shared component moves)
+> **Status:** COMPLETE — merged to main
 >
 > **Phase 8 branches (merged to redesign-v2):**
 >
@@ -23,7 +25,7 @@
 
 The `redesign-v2` branch contains a complete visual refresh of Niotebook's frontend, replicating Claude.ai/code warmth. All 7 implementation phases are done. **52 files changed, +1,659 / -696 lines** vs `main`.
 
-**Status:** Ready for final review and merge to `main`.
+**Status:** COMPLETE — merged to `main` on 2026-02-08 (commit `1d8214f`).
 
 ---
 
@@ -168,8 +170,8 @@ src/ui/video/VideoPlayer.tsx
 - [ ] xterm.js theme — match the new palette?
 - [ ] Legal pages — draft actual Terms, Privacy, Cookie policy content
 - [ ] Legal pages SiteNav wiring — currently using inline Wordmark + ForceTheme dark (deferred from nav refactor)
-- [ ] Final PR: `redesign-v2` to `main`
-- [ ] Nav refactor: merge `refactor/courses-navbar-layout` into `redesign-v2`
+- [x] Final PR: `redesign-v2` to `main` — merged 2026-02-08 (commit `1d8214f`)
+- [x] Nav refactor: `refactor/courses-navbar-layout` merged into `redesign-v2`
 
 ---
 

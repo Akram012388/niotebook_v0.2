@@ -1,8 +1,10 @@
 # Workspace Polish Plan
 
+> **Status:** COMPLETE — all 5 tasks implemented and merged to main.
+
 Goal: deliver a flat, premium workspace canvas with no layout gaps, square pane frames, and default-min widths for file tree + terminal in 1-pane and 2-pane layouts, without altering runtime logic or internal pane content behavior.
 
-## Task 1: Full-bleed workspace canvas
+## Task 1: Full-bleed workspace canvas ✅
 
 - Remove workspace padding and max-width so content is flush under the header and to the bottom edge.
 - Keep the header layout intact; add a thin divider line between header and workspace.
@@ -14,7 +16,7 @@ Acceptance:
 - Workspace fills the viewport below the header.
 - Header remains unchanged aside from the divider line.
 
-## Task 2: Gapless layouts with hairline dividers
+## Task 2: Gapless layouts with hairline dividers ✅
 
 - Remove all `gap-4` spacing between panes in single, split, and triple layouts.
 - Add 1px hairline dividers between panes for a minimalist grid feel.
@@ -27,7 +29,7 @@ Acceptance:
 - A subtle 1px divider separates panes.
 - No layout spacing appears above, below, or around panes.
 
-## Task 3: Flat, square pane containers
+## Task 3: Flat, square pane containers ✅
 
 - Remove rounded corners on outer pane containers.
 - Remove outer borders to avoid double seams; rely on shared dividers instead.
@@ -40,7 +42,7 @@ Acceptance:
 - Internal pane styling remains intact.
 - Only the layout dividers define separation between panes.
 
-## Task 4: Default file tree + terminal width to minimum on load
+## Task 4: Default file tree + terminal width to minimum on load ✅
 
 - Apply minimum-width defaults on initial workspace load, for 1-pane and 2-pane layouts only.
 - Use the existing min widths already defined in code.
@@ -56,7 +58,7 @@ Acceptance:
 - Switching to 1-pane or 2-pane respects the min width default on load.
 - 3-pane behavior remains unchanged.
 
-## Task 5: Desktop-only workspace overlay
+## Task 5: Desktop-only workspace overlay ✅
 
 - For viewports below `lg` (<1024px), show a blocking overlay in the workspace route.
 - Overlay copy: "niotebook is best experinced on desktop".

@@ -3,7 +3,7 @@
 > **Branch**: `redesign-v2` (base) — phase sub-branches merged via PRs
 > **Brief**: `docs/redesign/REDESIGN_BRIEF.md`
 > **Started**: 2026-02-06
-> **Status**: All 7 phases complete. 52 files changed, +1,659 / -696 lines vs `main`.
+> **Status**: All 8 phases complete + SiteNav refactor. Merged to `main` on 2026-02-08 (commit `1d8214f`).
 
 ---
 
@@ -18,6 +18,9 @@
 | **5** | Pages                      | **Done** | `redesign/phase-5-pages`      | `9b85b96`         |
 | **6** | Polish                     | **Done** | `redesign/phase-6-polish`     | `2d71060`         |
 | **7** | Landing Page Rework        | **Done** | `feat/landing-hero-rework`    | `418f0f8` (merge) |
+| **8** | Route Redesign             | **Done** | `redesign/sidebar-courses`, `redesign/signin`, `redesign/course-detail-cards` | merged to `redesign-v2` |
+| —     | SiteNav Refactor           | **Done** | `refactor/courses-navbar-layout` | merged to `redesign-v2` |
+| —     | Merge to Main              | **Done** | `redesign-v2` → `main`       | `1d8214f`         |
 
 ---
 
@@ -186,6 +189,47 @@
 - [x] Footer wordmark accent — `[&>span]` direct child selector preserves terracotta 'i'
 - [x] Footer gap — `mt-12 sm:mt-16` matches inter-frame spacing
 - [x] Verification: typecheck, lint
+
+---
+
+## Phase 8 — Route Redesign (Sidebar, Sign-in, Course Detail Cards)
+
+**Branches:** `redesign/sidebar-courses` (`691a3f5`), `redesign/signin` (`239e2f9`), `redesign/course-detail-cards` (`c7757bf`)
+
+### Deliverables
+
+- [x] SidebarShell — collapsible rail (56px) ↔ expanded (240px) with localStorage persistence
+- [x] Courses layout refactored to use SidebarShell + NotebookFrame wrapping
+- [x] Sign-in/sign-up redesign — removed ForceTheme, added ThemeToggle to top bar
+- [x] NotebookFrame moved to `src/ui/shared/` (shared across landing, courses, auth)
+- [x] ThemeToggle moved to `src/ui/shared/` (shared across landing, courses, auth)
+- [x] OTP input field visibility fix for dark theme
+- [x] Course detail lecture cards with animation alignment
+- [x] `clerkAppearance` colorPrimary kept as foreground (not changed to accent per UX_SPEC)
+
+---
+
+## SiteNav Refactor
+
+**Branch:** `refactor/courses-navbar-layout`
+
+### Deliverables
+
+- [x] SiteNav shared top nav component (`src/ui/shared/SiteNav.tsx`) replaces SidebarShell
+- [x] SidebarShell deleted
+- [x] CourseCarousel deleted (carousel approach removed)
+- [x] Re-export shims cleaned up
+- [x] CoursesNavActions component for courses-specific nav items
+- [x] ThemeToggle integrated into SiteNav
+
+---
+
+## Merge to Main
+
+**Commit:** `1d8214f` — `feat(design): merge Redesign v2 — warm Claude palette & design token system`
+**Date:** 2026-02-08
+
+All 8 phases + SiteNav refactor merged from `redesign-v2` to `main`.
 
 ---
 

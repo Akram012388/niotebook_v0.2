@@ -14,7 +14,7 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 
 ### Core content
 
-- `courses`: sourcePlaylistId, title, description?, license, sourceUrl
+- `courses`: sourcePlaylistId, title, description?, license, sourceUrl, youtubePlaylistUrl?
 - `lessons`: courseId, videoId, title, durationSec, order, subtitlesUrl?, transcriptUrl?, transcriptDurationSec?, segmentCount?, ingestVersion?, transcriptStatus (ok|warn|missing|error), environmentConfig? (JSON — Tier 2 lesson environment: primaryLanguage, starterFiles, allowedLanguages)
 - `chapters`: lessonId, title, startSec, endSec
 - `transcriptSegments`: lessonId, idx, startSec, endSec, textRaw, textNormalized
@@ -34,11 +34,15 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 ### Chat
 
 - `chatThreads`: userId, lessonId
-- `chatMessages`: threadId, role (user|assistant|system), content, videoTimeSec?, timeWindowStartSec?, timeWindowEndSec?, codeHash?, createdAt
+- `chatMessages`: threadId, role (user|assistant|system), content, videoTimeSec?, timeWindowStartSec?, timeWindowEndSec?, codeHash?, createdAt, requestId?, provider?, model?, latencyMs?, usedFallback?, contextHash?
 
 ### Analytics
 
 - `events`: userId, lessonId?, sessionId?, type, metadata, createdAt
+
+### User feedback
+
+- `feedback`: userId, surface, rating (1-5), text?, createdAt
 
 ### System + abuse
 
@@ -89,7 +93,7 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 - `lessons` 1→N `chapters`
 - `lessons` 1→N `transcriptSegments`
 - `lessons` 1→N `lessonCompletions`
-- `users` 1→N `frames`, `codeSnapshots`, `chatThreads`, `events`, `lessonCompletions`
+- `users` 1→N `frames`, `codeSnapshots`, `chatThreads`, `events`, `lessonCompletions`, `feedback`
 - `chatThreads` 1→N `chatMessages`
 
 ## Indexes
@@ -104,6 +108,8 @@ Adopt the following baseline Convex schema (names are canonical and match implem
 - `chatThreads` by `userId+lessonId`
 - `chatMessages` by `threadId`
 - `chatMessages` by `threadId+createdAt`
+- `chatMessages` by `threadId+requestId`
+- `feedback` by `userId`
 - `users` by `tokenIdentifier`
 - `users` by `inviteBatchId`
 - `invites` by `code`

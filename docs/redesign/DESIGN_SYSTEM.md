@@ -93,8 +93,8 @@
 --workspace-border-muted: #2e2a27;
 --workspace-text: #f4f3ee;
 --workspace-text-muted: #a8a29e;
---workspace-accent: <theme-dependent>; /* #C15F3C (light) / #DA7756 (dark) */
---workspace-accent-muted: <theme-dependent>;
+--workspace-accent: var(--accent); /* #C15F3C (light) / #DA7756 (dark) */
+--workspace-accent-muted: var(--accent-muted);
 ```
 
 ---
@@ -105,7 +105,7 @@
 
 | Role        | Font       | CSS Variable     | Usage                                  |
 | ----------- | ---------- | ---------------- | -------------------------------------- |
-| **Display** | Orbitron   | `--font-display` | Wordmark, page titles, section headers |
+| **Display** | Orbitron   | `--font-display` | Wordmark only (landing headings use Geist Sans) |
 | **Body/UI** | Geist Sans | `--font-body`    | Body text, labels, buttons, nav, chat  |
 | **Code**    | Geist Mono | `--font-code`    | Code editor, terminal, inline code     |
 
@@ -331,8 +331,8 @@ No `tailwind.config.js` — uses `@theme inline` in `globals.css`:
 | ---------------------------------- | ----------------------------------------- |
 | `src/app/globals.css`              | Canonical token definitions + base styles |
 | `src/app/layout.tsx`               | Font loading, theme script, body classes  |
-| `src/ui/landing/ThemeToggle.tsx`   | Capsule theme toggle component            |
-| `src/ui/landing/NotebookFrame.tsx` | 3-layer binder frame component            |
+| `src/ui/shared/ThemeToggle.tsx`    | Capsule theme toggle component            |
+| `src/ui/shared/NotebookFrame.tsx`  | 3-layer binder frame component            |
 | `src/ui/brand/Wordmark.tsx`        | Text-based Orbitron wordmark              |
 | `docs/redesign/REDESIGN_BRIEF.md`  | Design direction and decisions            |
 | `docs/redesign/PROGRESS.md`        | Phase-by-phase implementation log         |

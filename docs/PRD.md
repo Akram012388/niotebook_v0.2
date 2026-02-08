@@ -20,7 +20,7 @@ Core Loop
 
 - Onboard with Clerk invite email → email code sign-in → courses route → pick course/lesson → workspace.
 - Initial content includes CS50x (2026), CS50P, CS50W, CS50SQL, and CS50 AI delivered as YouTube-embedded lessons; playlist = course, video = lesson, chapters = timestamps.
-- Courses route: Apple TV+/Netflix-style carousel with resume card, Harvard CS50 library row, and greyed-out "Coming Soon" cards (MIT, Stanford, Google, etc.).
+- Courses route: card grid layout with resume card, Harvard CS50 library section, and greyed-out "Coming Soon" cards (MIT, Stanford, Google, etc.). Note: `CourseCarousel.tsx` was removed during the SiteNav refactor; the carousel approach was replaced by a card grid.
 - Course detail page: progress bar, ordered lecture list with completion status, resume button.
 - Watch embedded YouTube, code in an IDE-like workspace, and chat with Nio (Prof. David Malan–modeled persona, not named in UI).
 - Continuous sync ties video time, code snapshot, and chat thread; resume on any device at last frame.
@@ -28,7 +28,7 @@ Core Loop
 
 UX Principles
 
-- KISS, brutal minimalism; light-first UI with theme toggle in control center settings.
+- KISS, brutal minimalism; light-first UI with theme toggle in SiteNav (top bar) on courses/landing/auth routes, and in control center on workspace.
 - Premium feel: instant or subtly-progressed actions; no jank or blocking modals.
 - Chat is continuous per lesson with lesson/timestamp badges and smooth seek on click.
 - Chat interaction matches modern ChatGPT-class UX (growing input, enter-to-send with shift+enter newline, autoscroll affordance, no layout shift during streaming).

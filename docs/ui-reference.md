@@ -1,6 +1,6 @@
 # UI Reference Contract (Mobbin-first)
 
-Status: DRAFT (upgrade to FROZEN when Phase‑1 UI scope is locked)
+Status: ACTIVE (Phase‑1 UI scope locked; Redesign v2 merged to main 2026-02-08)
 
 This document defines the **UI/UX reference baseline** for Niotebook v0.2.
 It is a **visual + interaction contract** to keep implementation consistent with:
@@ -24,7 +24,7 @@ These override any reference UI if there’s a conflict.
 1. Light-first UI
 
 - Default theme: **light**
-- Theme toggle: **always accessible** in the control center
+- Theme toggle: **always accessible** in the top navigation bar (SiteNav) on landing, courses, and auth pages; in control center on workspace
 
 2. KISS surfaces
 

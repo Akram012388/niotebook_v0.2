@@ -1,10 +1,10 @@
-# Session Handoff — Phases 1–4 Complete
+# Session Handoff — Through Redesign v2
 
 This file captures context for the next Claude Code session.
 
 ## What Has Been Implemented
 
-All 20 GitHub issues (#31–#50) are closed. 151 unit tests pass, typecheck and lint clean.
+All 20 GitHub issues (#31–#50) are closed. 153 unit tests pass, typecheck and lint clean. Redesign v2 has been merged to main with warm terracotta palette and full design token system.
 
 ### Phase 1 — Foundations (PR #51)
 
@@ -46,11 +46,69 @@ Branch: `test/e2e-alpha` → merged to `main`
 | #50   | E1: E2E Test Suite | 4 Playwright test files (auth, courses, workspace, admin) — 9 active, 10 skipped pending infrastructure                                                                               |
 | —     | E2: Unit Test Gaps | 22 new tests (129 → 151): CourseCard, comingSoonCourses, BootSequence, nioContextBuilder fileName/lastError. Bug fix: lastError was computed but not appended in nioContextBuilder.ts |
 
+### Redesign v2 — Warm Terracotta Palette (Phases 5–8)
+
+Branch: `redesign-v2` → merged to `main` (`1d8214f`)
+
+**Design System:**
+- Full CSS custom property token system in `globals.css` (light + dark modes)
+- Warm terracotta accent (`#c15f3c` light / `#da7756` dark) inspired by Claude.ai
+- Background pattern (subtle 24px grid overlay)
+- Consistent shadow, radius, and transition tokens
+
+**Phase 8 Route Redesign:**
+- **Sidebar Shell** — Collapsible rail (56px) ↔ expanded (240px) with localStorage persistence
+- **Sign-in/Sign-up** — Redesigned with NotebookFrame, ThemeToggle, OTP field fixes
+- **Course Detail Cards** — Lecture cards with animation alignment
+- **SiteNav Refactor** — Replaced SidebarShell with shared SiteNav component across courses and admin
+
+**Workspace Redesign:**
+- Unified terracotta accent for all active/selected states
+- Shared ThemeToggle component in `src/ui/shared/`
+- Terminal background flush, chat send button terracotta
+- TopNav matched to landing header
+
+**Admin Console Redesign:**
+- Snapshot feedback cards (replaced table)
+- User email displayed on feedback cards
+- V2 design system alignment
+
+**Chat UX Overhaul:**
+- StreamingText component with requestAnimationFrame char-reveal and live markdown
+- ChatGPT-style streaming with plain text, lerp scroll, and pulse dot
+- Canvas 2D thinking orb with terracotta heartbeat pulse
+
+**Landing Page:**
+- Hero rework with interactive enhancements
+- Remotion demo video project (4K 60fps intro animation)
+
+### SQL & R Language Support
+
+Branch: `upgrade/editor-r-sql` → merged to `main` (`6b22a06`)
+
+- sql.js (WASM) executor for SQL
+- WebR (WASM) executor for R
+- CS50R course added to ingest pipeline
+- CodeMirror language modes for SQL and R
+
+### Mobile Viewport Gate
+
+Branch: `feat/mobile-gate` → merged to `main` (`283f91b`)
+
+- Mobile viewport restricted to landing and info routes only
+- `/info` route consolidates all footer content
+
+### Figma Brand Plugin v2.0
+
+- Complete brand system rewrite with correct wordmark identity
+- Design tokens, dual-theme swatches, social assets, app icons
+- Full asset library exported from Figma
+
 ## Current State of Main
 
 ```
-Commit: latest on main (all PRs squash-merged)
-Tests: 151 unit tests passing (29 files)
+Commit: fc71c25 (2026-02-08)
+Tests: 153 unit tests passing (29 files)
 E2E: 9 active + 10 skipped (need seeded Convex data + admin role setup)
 Typecheck: clean
 Lint: clean
@@ -64,12 +122,19 @@ Lint: clean
 - `src/app/courses/[courseId]/page.tsx` — Course detail
 - `src/app/admin/layout.tsx` + `page.tsx` — Admin dashboard
 - `src/app/admin/{users,invites,feedback,analytics}/page.tsx` — Admin sub-pages
+- `src/app/sign-in/` + `src/app/sign-up/` — Auth routes (redesigned)
+- `src/app/(landing)/` — Landing page route group
 
 **New UI components:**
 
-- `src/ui/courses/` — CoursesPage, CourseDetailPage, CourseCard, CourseCarousel, ResumeCard, comingSoonCourses.ts, convexResume.ts, convexCompletions.ts
+- `src/ui/courses/` — CoursesPage, CourseDetailPage, CourseCard, ResumeCard, comingSoonCourses.ts, convexResume.ts, convexCompletions.ts
 - `src/ui/admin/` — AdminLayout, AdminGuard, InviteManagement, UserManagement, FeedbackDashboard, AnalyticsDashboard
 - `src/ui/auth/BootSequence.tsx` — Terminal typing animation
+- `src/ui/shared/ThemeToggle.tsx` — Theme toggle (used by LandingNav, SiteNav, sign-in)
+- `src/ui/shared/NotebookFrame.tsx` — Decorative notebook frame (compact prop, hidden on mobile)
+- `src/ui/shell/SiteNav.tsx` — Shared navigation component for courses and admin
+- `src/ui/brand/` — Wordmark and logo components
+- `src/ui/landing/` — Hero, features, interactive enhancements
 
 **Convex backend extensions:**
 
@@ -87,6 +152,7 @@ Lint: clean
 - `src/domain/nioContextBuilder.ts` — fileName + lastError fields (bug fix: lastError now appended to output)
 - `src/domain/nioPrompt.ts` — references file name, modification hash, last error
 - `src/domain/lessonEnvironment.ts` — added `cs50sql-sql` preset
+- `src/infra/runtime/` — SQL executor (sql.js), R executor (WebR)
 - `scripts/ingest-cs50-courses.ts` — Ingest payloads for all 5 CS50 courses
 
 **Tests:**
@@ -102,9 +168,11 @@ Lint: clean
 
 ### Claude Code Config (`.claude/`)
 
+- **Agents:** 10 custom agents in `.claude/agents/` (frontend-designer, backend-engineer, debugger, scout, architect, code-reviewer, code-simplifier, performance-analyst, test-writer, dx-advocate)
+- **Commands:** 11 custom commands — key ones: `/verify`, `/clean-commit`, `/clean-pr`, `/clean-checkout`, `/orchestrate-agent-team`, `/execution-pro`
+- **Skills:** 3 skills — web-design-guidelines, composition-patterns, react-best-practices
 - **Permissions:** `Bash(*)`, `Read(*)`, `Write(*)` in `.claude/settings.local.json`
 - **Hooks:** Auto-typecheck on `.ts`/`.tsx` edits (PostToolUse hook)
-- **Slash commands:** `/verify`, `/merge-check`, `/deploy-preview`, `/ws-status`
 
 ### MCP Servers
 
@@ -118,27 +186,20 @@ Lint: clean
 
 ### Immediate Next Steps
 
-1. **Run the CS50 ingest script** — `scripts/ingest-cs50-courses.ts` has payloads for all 5 courses but they may not be seeded into the Convex dev deployment yet. Run against your dev deployment to populate course/lesson data.
-
-2. **Activate skipped E2E tests** — 10 tests are skipped pending:
+1. **Activate skipped E2E tests** — 10 tests are skipped pending:
    - Seeded Convex data (courses, lessons) in the E2E environment
    - Admin role user for admin page tests
    - Wire up `.e2e-seed.json` or `scripts/e2eSeed.ts` with real course data
 
-3. **Visual QA & polish** — All features are wired but haven't been visually reviewed in-browser:
-   - `/courses` carousel layout, responsive behavior
-   - `/courses/[courseId]` detail page, progress bars
-   - `/admin` dashboard, tables, KPI cards
-   - Sign-in BootSequence animation
-   - Context strip in AiPane
-   - Share/feedback flow in ControlCenterDrawer
+2. **Custom icons** — Replace Phosphor Icons with custom icon set matching brand system
 
-4. **Deploy preview** — Push to trigger Vercel preview, manually test key flows
+3. **CodeMirror theme** — Custom editor theme aligned with warm terracotta tokens
 
-5. **Content verification** — After ingest, verify:
-   - All 5 CS50 courses appear in `/courses`
-   - Lessons load correctly in `/workspace?lessonId=X`
-   - Environment presets match (C for early CS50x, Python for later weeks, etc.)
+4. **xterm theme** — Custom terminal theme matching workspace design tokens
+
+5. **Legal content** — Fill in Terms of Service and Privacy Policy on `/info` page
+
+6. **Deploy preview** — Push to trigger Vercel preview, manually test key flows
 
 ### Future Work (beyond alpha roadmap)
 
@@ -146,13 +207,13 @@ Lint: clean
 - Auto-completion trigger (video >90% → lesson complete)
 - Collaborative features
 - Mobile workspace support
-- Landing page demo video
+- Landing page demo video integration
 
 ## Verification Commands
 
 ```bash
 bun run typecheck   # TypeScript strict
-bun run lint        # ESLint + Prettier
-bun run test        # 151 unit tests
+bun run lint        # ESLint 9
+bun run test        # 153 unit tests
 bun run test:e2e    # E2E (needs dev server + seeded data)
 ```

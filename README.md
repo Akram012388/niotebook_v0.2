@@ -81,12 +81,12 @@ Clerk-based invite-only alpha. Clerk issues JWTs consumed by Convex for identity
 
 ```
 src/
-├── app/            # Next.js App Router (workspace, courses, admin, editor-sandbox, API)
-├── ui/             # React components by feature (code, video, chat, shell, layout, admin, auth, courses, landing)
+├── app/            # Next.js App Router (workspace, courses, admin, sign-in, sign-up, (landing), editor-sandbox, API)
+├── ui/             # React components by feature (admin, auth, brand, chat, code, content, courses, landing, layout, panes, shared, shell, transcript, video)
 ├── domain/         # Pure business logic & types (no React, no side effects)
 └── infra/          # Infrastructure (VFS, multi-language runtime, AI streaming, Convex client)
 convex/             # Backend functions, schema, auth, crons
-docs/               # 23 documentation files (PRD, specs, ADRs, plans)
+docs/               # 35 documentation files (PRD, specs, ADRs, plans, redesign)
 tests/              # Unit & E2E tests
 ```
 
@@ -113,7 +113,7 @@ Auth is Clerk invite-only for the alpha. See `docs/clerk-auth-alpha.md`.
 | `bun run dev`          | Next.js dev server (Turbopack)                  |
 | `bun run dev:convex`   | Convex backend dev server                       |
 | `bun run build`        | Production build                                |
-| `bun run lint`         | ESLint 9 + Prettier                             |
+| `bun run lint`         | ESLint 9                                        |
 | `bun run typecheck`    | TypeScript strict check                         |
 | `bun run format`       | Prettier format                                 |
 | `bun run test`         | Unit tests (Vitest)                             |
@@ -138,19 +138,26 @@ See `.env.example` for the full list. Key groups:
 
 ## Documentation
 
-| Doc                              | Description                     |
-| -------------------------------- | ------------------------------- |
-| `docs/PRD.md`                    | Product requirements            |
-| `docs/specs.md`                  | Technical specifications        |
-| `docs/plan.md`                   | Project plan                    |
-| `docs/dev-workflow.md`           | Development workflow            |
-| `docs/env-requirements.md`       | Environment setup & secrets     |
-| `docs/clerk-auth-alpha.md`       | Auth gate plan                  |
-| `docs/ui-ux-contract.md`         | Binding UI/UX contract          |
-| `docs/ui-reference.md`           | UI component reference          |
-| `docs/code-editor-tier2-plan.md` | Code editor implementation plan |
-| `docs/editor-support-r-sql.md`   | R & SQL language support        |
-| `docs/landing-page.md`           | Landing page specs              |
-| `docs/guidelines.md`             | Code guidelines                 |
-| `docs/CHANGELOG.md`              | Version history                 |
-| `docs/ADR-*.md`                  | Architecture decision records   |
+| Doc                                      | Description                              |
+| ---------------------------------------- | ---------------------------------------- |
+| `docs/PRD.md`                            | Product requirements                     |
+| `docs/specs.md`                          | Technical specifications                 |
+| `docs/plan.md`                           | Project plan                             |
+| `docs/dev-workflow.md`                   | Development workflow                     |
+| `docs/env-requirements.md`              | Environment setup & secrets              |
+| `docs/clerk-auth-alpha.md`              | Auth gate plan                           |
+| `docs/ui-ux-contract.md`                | Binding UI/UX contract                   |
+| `docs/ui-reference.md`                  | UI component reference                   |
+| `docs/code-editor-tier2-plan.md`        | Code editor implementation plan          |
+| `docs/editor-support-r-sql.md`          | R & SQL language support                 |
+| `docs/landing-page.md`                  | Landing page specs                       |
+| `docs/guidelines.md`                    | Code guidelines                          |
+| `docs/CHANGELOG.md`                     | Version history                          |
+| `docs/HANDOFF.md`                       | Session handoff context                  |
+| `docs/ALPHA_LAUNCH_RECOMMENDATIONS.md`  | Alpha launch readiness recommendations   |
+| `docs/inspection.md`                    | Codebase inspection report               |
+| `docs/P0_BACKLOG_REVIEW.md`            | Priority backlog review                  |
+| `docs/polish-workspace.md`             | Workspace polish plan                    |
+| `docs/ADR-*.md`                         | Architecture decision records            |
+| `docs/architecture/`                    | Architecture refactor docs               |
+| `docs/redesign/`                        | Redesign v2 specs, plans, and progress   |

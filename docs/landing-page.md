@@ -1,6 +1,6 @@
 # Landing Page Plan — niotebook
 
-> **Status:** PLAN (brainstorming)
+> **Status:** IMPLEMENTED (Redesign v2, merged to main 2026-02-08)
 > **Author:** Jarvis
 > **Date:** 2026-01-30
 > **Route:** `/` (public) — workspace moves to `/workspace`
@@ -114,19 +114,21 @@ Each card: course thumbnail (YouTube playlist image), title, subtitle, lesson co
 
 Already defined in `globals.css`:
 
-| Token                 | Light     | Dark      |
-| --------------------- | --------- | --------- |
-| `--background`        | `#f8fafc` | `#0f172a` |
-| `--foreground`        | `#0f172a` | `#e2e8f0` |
-| `--surface`           | `#ffffff` | `#111827` |
-| `--surface-muted`     | `#f1f5f9` | `#1e293b` |
-| `--accent`            | `#0f172a` | `#f8fafc` |
-| `--accent-foreground` | `#f8fafc` | `#0f172a` |
-| `--text-muted`        | `#64748b` | `#94a3b8` |
+| Token                 | Light                    | Dark                     |
+| --------------------- | ------------------------ | ------------------------ |
+| `--background`        | `#f4f3ee` (Pampas)       | `#1c1917` (Charcoal)     |
+| `--foreground`        | `#1c1917`                | `#f4f3ee`                |
+| `--surface`           | `#faf9f7`                | `#252220`                |
+| `--surface-muted`     | `#edeae4`                | `#2e2a27`                |
+| `--accent`            | `#c15f3c` (Crail)        | `#da7756` (Terracotta)   |
+| `--accent-foreground` | `#ffffff`                | `#1c1917`                |
+| `--text-muted`        | `#78716c`                | `#a8a29e`                |
 
-**Fonts:** Geist Sans (body) + Geist Mono (code accents) — already imported in the app.
+**Fonts:** Geist Sans (body) + Geist Mono (code accents) + Orbitron (wordmark only) — already imported in the app.
 
-**The palette is deliberately muted/monochrome** — slate/gray tones with black/white accents. This gives a premium, Notion/Linear-esque feel. The content (YouTube thumbnails, code syntax colors) provides the color. The chrome stays neutral. This is correct and should carry through to the landing page.
+> **Note:** Orbitron is used exclusively for the wordmark. All landing headings use Geist Sans (`font-sans`), NOT `font-display` (Orbitron).
+
+**The palette uses warm terracotta accents** — inspired by Claude.ai/code. The content (YouTube thumbnails, code syntax colors) provides additional color. The dedicated `--accent: #c15f3c` gives interactive elements a warm, distinctive feel.
 
 ---
 
@@ -160,11 +162,12 @@ This means:
 
 ### Animation Strategy
 
-- **Intersection Observer** for scroll-triggered fade-in animations
-- CSS only — no heavy animation libraries
-- `transition-all duration-700 ease-out` for section entries
-- Product demo: subtle `translate-y-4 → translate-y-0` + `opacity-0 → opacity-1` on scroll into view
+- **Framer Motion** (`framer-motion`) for scroll-triggered fade-in animations and hero stagger sequences
+- `whileInView` with `viewport: { once: true, amount: 0.2 }` for section entries
+- Hero uses staggered `opacity:0, y:N → opacity:1, y:0` entrance animations
 - Keep it tasteful. This is premium, not flashy.
+
+> **Note:** The original plan called for "CSS only" animations, but `framer-motion` was adopted during implementation for richer scroll-triggered effects and stagger control.
 
 ### Responsive (Desktop-only)
 

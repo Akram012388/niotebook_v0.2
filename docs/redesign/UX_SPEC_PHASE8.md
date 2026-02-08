@@ -1,6 +1,8 @@
 # Phase 8 — UX Specification: Route Redesign
 
-> **Status:** Draft
+> **ARCHIVED** — This was a planning spec. Several recommendations were overridden during implementation: SidebarShell was replaced by SiteNav (shared top nav), Orbitron scope was corrected to wordmark-only (not for page titles/section headers), and `clerkAppearance` `colorPrimary` was kept as `--foreground` (not changed to `--accent`). See `docs/architecture/COURSES_LAYOUT_REFACTOR.md` and `docs/architecture/SITENAV_ROUTE_AUDIT.md` for actual implementation details.
+
+> **Status:** Archived (implementation complete, merged to main 2026-02-08)
 > **Author:** UX Specialist (architect agent)
 > **Scope:** Sign-in, Courses, Course Detail routes
 > **Source of truth:** Landing page (`src/app/page.tsx` + `src/ui/landing/*`)
