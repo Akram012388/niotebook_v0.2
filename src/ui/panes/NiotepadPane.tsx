@@ -46,6 +46,9 @@ const binderPosition = {
   width: BINDER_CONTAINER_W,
 };
 
+/** Content padding to the right of the binder edge. */
+const CONTENT_LEFT = BINDER_RIGHT_EDGE + 8;
+
 function generateMarkdownExport(
   entries: Array<{ source: string; content: string; createdAt: number }>,
 ): string {
@@ -81,6 +84,7 @@ const NiotepadPane = ({
   const clearAll = useNiotepadStore((s) => s.clearAll);
 
   const [composerValue, setComposerValue] = useState("");
+  const composerRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevEntryCountRef = useRef(entries.length);
 
@@ -97,7 +101,7 @@ const NiotepadPane = ({
     prevEntryCountRef.current = entries.length;
   }, [entries.length]);
 
-  const handleAddEntry = useCallback(() => {
+  const handleSubmitEntry = useCallback(() => {
     const trimmed = composerValue.trim();
     if (!trimmed) return;
     addEntry({
@@ -114,10 +118,19 @@ const NiotepadPane = ({
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        handleAddEntry();
+        handleSubmitEntry();
       }
     },
-    [handleAddEntry],
+    [handleSubmitEntry],
+  );
+
+  /** Click on the paper surface focuses the textarea at the bottom. */
+  const handlePaperClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if ((e.target as HTMLElement).closest("[data-niotepad-entry]")) return;
+      composerRef.current?.focus();
+    },
+    [],
   );
 
   const handleExport = useCallback(() => {
@@ -209,63 +222,46 @@ const NiotepadPane = ({
           style={{ ...binderPosition, ...stripMask, zIndex: 1 }}
         />
 
-        {/* Entry list — scrollable, with lined-paper background */}
+        {/* Ruled paper surface — scrollable, click anywhere to write */}
         <div
           ref={scrollRef}
-          className="relative flex-1 overflow-y-auto"
+          className="relative flex-1 cursor-text overflow-y-auto"
           style={{
-            paddingLeft: BINDER_RIGHT_EDGE + 8,
+            paddingLeft: CONTENT_LEFT,
             zIndex: 2,
             backgroundImage: linedPaperBg,
           }}
+          onClick={handlePaperClick}
         >
           {!isLoaded ? (
-            <div className="flex items-center justify-center py-12 text-xs text-text-muted">
+            <p className="pr-4 text-sm leading-[28px] text-text-muted">
               Loading...
-            </div>
-          ) : entries.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center text-text-muted">
-              <p className="text-sm">No entries yet</p>
-              <p className="mt-1 text-xs">
-                Capture thoughts from chat, code, or video
-              </p>
-            </div>
+            </p>
           ) : (
-            entries.map((entry) => (
-              <NiotepadEntry
-                key={entry.id}
-                entry={entry}
-                onSeek={onSeek}
-                onSendToChat={onSendToChat}
-                onInsertToEditor={onInsertToEditor}
+            <>
+              {entries.map((entry) => (
+                <NiotepadEntry
+                  key={entry.id}
+                  entry={entry}
+                  onSeek={onSeek}
+                  onSendToChat={onSendToChat}
+                  onInsertToEditor={onInsertToEditor}
+                />
+              ))}
+              {/* Always-visible textarea that IS the paper surface.
+                  No border, no box shadow, no outline — just a blinking cursor
+                  on ruled lines. Fills remaining space via large min-height. */}
+              <textarea
+                ref={composerRef}
+                value={composerValue}
+                onChange={(e) => setComposerValue(e.target.value)}
+                onKeyDown={handleComposerKeyDown}
+                placeholder={entries.length === 0 ? "Click anywhere to start writing..." : ""}
+                className="block w-full appearance-none resize-none bg-transparent p-0 pr-4 text-sm leading-[28px] text-foreground caret-foreground placeholder:text-text-subtle"
+                style={{ border: "none", outline: "none", boxShadow: "none", minHeight: 560 }}
               />
-            ))
+            </>
           )}
-        </div>
-
-        {/* Composer — bottom of pane */}
-        <div
-          className="relative shrink-0 border-t border-border bg-surface-muted px-3 py-2"
-          style={{ paddingLeft: BINDER_RIGHT_EDGE + 8, zIndex: 2 }}
-        >
-          <div className="flex items-end gap-2">
-            <textarea
-              value={composerValue}
-              onChange={(e) => setComposerValue(e.target.value)}
-              onKeyDown={handleComposerKeyDown}
-              placeholder="Capture a thought..."
-              className="min-h-[36px] flex-1 resize-none rounded-lg border border-border bg-surface px-3 py-1 text-sm leading-[28px] text-foreground placeholder:text-text-subtle focus:border-accent/40 focus:outline-none focus:ring-1 focus:ring-accent/20"
-              rows={1}
-            />
-            <button
-              type="button"
-              onClick={handleAddEntry}
-              disabled={!composerValue.trim()}
-              className="shrink-0 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-            >
-              Add
-            </button>
-          </div>
         </div>
       </div>
     </section>

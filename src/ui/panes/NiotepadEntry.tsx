@@ -118,7 +118,7 @@ const NiotepadEntryComponent = memo(function NiotepadEntryComponent({
   }, [onSeek, entry.videoTimeSec]);
 
   return (
-    <div className="group relative px-4" style={{ paddingTop: 0, paddingBottom: 0 }}>
+    <div className="group relative px-4" data-niotepad-entry style={{ paddingTop: 0, paddingBottom: 0 }}>
       {/* Header line — sits on one ruled line */}
       <div className="flex items-center gap-2 text-xs leading-[28px] text-text-muted">
         <span aria-label={entry.source} title={entry.source}>
@@ -145,7 +145,8 @@ const NiotepadEntryComponent = memo(function NiotepadEntryComponent({
           onChange={(e) => setEditContent(e.target.value)}
           onBlur={handleSaveEdit}
           onKeyDown={handleEditKeyDown}
-          className="w-full resize-none border-none bg-transparent px-0 text-sm leading-[28px] text-foreground focus:outline-none focus:ring-0"
+          className="w-full appearance-none resize-none bg-transparent px-0 text-sm leading-[28px] text-foreground"
+          style={{ border: "none", outline: "none", boxShadow: "none" }}
           rows={Math.max(2, editContent.split("\n").length)}
         />
       ) : (

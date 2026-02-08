@@ -464,8 +464,9 @@ const CodePane = ({
   const handlePushToNiotepad = useCallback((): void => {
     const content = getMainFileContent();
     if (!content || !mainFilePath) return;
+    const fenced = `\`\`\`${activeLanguage}\n${content}\n\`\`\``;
     useNiotepadStore.getState().addEntry({
-      content,
+      content: fenced,
       source: "code",
       lessonId,
       videoTimeSec: null,

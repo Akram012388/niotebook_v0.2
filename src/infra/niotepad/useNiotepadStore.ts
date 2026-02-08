@@ -14,7 +14,7 @@ type NiotepadActions = {
   loadLesson: (lessonId: string) => Promise<void>;
   addEntry: (
     entry: Omit<NiotepadEntry, "id" | "createdAt" | "updatedAt">,
-  ) => void;
+  ) => string;
   updateEntry: (
     id: string,
     updates: Partial<Pick<NiotepadEntry, "content">>,
@@ -58,14 +58,16 @@ const useNiotepadStore = create<NiotepadState & NiotepadActions>()(
 
     addEntry: (entry) => {
       const now = Date.now();
+      const id = nanoid();
       const newEntry: NiotepadEntry = {
         ...entry,
-        id: nanoid(),
+        id,
         createdAt: now,
         updatedAt: now,
       };
       set({ entries: [...get().entries, newEntry] });
       scheduleSave();
+      return id;
     },
 
     updateEntry: (id, updates) => {
