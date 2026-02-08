@@ -16,7 +16,8 @@ const GripDots = (): ReactElement => (
     height="14"
     viewBox="0 0 8 14"
     aria-hidden="true"
-    className="shrink-0 text-text-subtle"
+    className="shrink-0"
+    style={{ color: "var(--niotepad-text-subtle)" }}
   >
     {/* 3 rows x 2 cols of 3px circles, gap ~4px */}
     <circle cx="2" cy="2" r="1.5" fill="currentColor" />
@@ -40,7 +41,10 @@ const NiotepadDragHandle = memo(function NiotepadDragHandle({
       aria-label="Niotepad title bar — drag to reposition"
       aria-roledescription="draggable"
       className="flex h-10 shrink-0 cursor-grab items-center gap-2 border-b px-3 select-none active:cursor-grabbing"
-      style={{ borderColor: "var(--border)" }}
+      style={{
+        background: "var(--niotepad-header-bg)",
+        borderColor: "var(--niotepad-header-border)",
+      }}
       onPointerDown={onPointerDown}
     >
       {/* Left: grip + title */}
@@ -52,12 +56,18 @@ const NiotepadDragHandle = memo(function NiotepadDragHandle({
       {/* Center: page subtitle + count */}
       <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
         {pageTitle && (
-          <span className="truncate text-[11px] text-text-muted">
+          <span
+            className="truncate text-[11px]"
+            style={{ color: "var(--niotepad-text-muted)" }}
+          >
             {pageTitle}
           </span>
         )}
         {entryCount > 0 && (
-          <span className="shrink-0 text-[11px] text-text-muted">
+          <span
+            className="shrink-0 text-[11px]"
+            style={{ color: "var(--niotepad-text-muted)" }}
+          >
             ({entryCount})
           </span>
         )}
@@ -70,7 +80,8 @@ const NiotepadDragHandle = memo(function NiotepadDragHandle({
           e.stopPropagation();
           onClose();
         }}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-text-muted transition hover:bg-surface-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+        style={{ color: "var(--niotepad-text-muted)" }}
         aria-label="Close niotepad"
       >
         <X size={14} weight="bold" />

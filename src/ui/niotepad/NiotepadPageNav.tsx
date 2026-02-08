@@ -69,12 +69,16 @@ const NiotepadPageNav = memo(function NiotepadPageNav({
   const tabBase =
     "shrink-0 px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-1";
   const tabActive = "text-foreground font-semibold";
-  const tabInactive = "text-text-muted hover:text-foreground";
+  const tabInactive = "hover:text-foreground";
 
   return (
     <nav
       aria-label="Notebook pages"
-      className="shrink-0 border-b border-border-muted"
+      className="shrink-0 border-b"
+      style={{
+        background: "var(--niotepad-header-bg)",
+        borderColor: "var(--niotepad-header-border)",
+      }}
     >
       <div
         ref={scrollRef}
@@ -92,6 +96,11 @@ const NiotepadPageNav = memo(function NiotepadPageNav({
           tabIndex={activePageId === null ? 0 : -1}
           onClick={() => onSelectPage(null)}
           className={`${tabBase} ${activePageId === null ? tabActive : tabInactive} relative`}
+          style={
+            activePageId !== null
+              ? { color: "var(--niotepad-text-muted)" }
+              : undefined
+          }
         >
           All
           {activePageId === null && (
@@ -120,6 +129,9 @@ const NiotepadPageNav = memo(function NiotepadPageNav({
               title={page.title}
               onClick={() => onSelectPage(page.id)}
               className={`${tabBase} ${isActive ? tabActive : tabInactive} relative`}
+              style={
+                !isActive ? { color: "var(--niotepad-text-muted)" } : undefined
+              }
             >
               {label}
               {isActive && (

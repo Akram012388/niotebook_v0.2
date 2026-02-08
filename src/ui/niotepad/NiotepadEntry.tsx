@@ -249,7 +249,8 @@ const NiotepadEntry = memo(
         <button
           type="button"
           onClick={handleDeleteClick}
-          className="absolute right-2 top-1 z-10 flex h-5 w-5 items-center justify-center rounded text-text-subtle opacity-0 transition-opacity hover:bg-status-error/10 hover:text-status-error group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error/40"
+          className="absolute right-2 top-1 z-10 flex h-5 w-5 items-center justify-center rounded opacity-0 transition-opacity hover:bg-status-error/10 hover:text-status-error group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error/40"
+          style={{ color: "var(--niotepad-text-subtle)" }}
           aria-label="Delete note"
         >
           <X size={12} weight="bold" />
@@ -284,7 +285,10 @@ const NiotepadEntry = memo(
             >
               {entry.metadata.lectureTitle}
               {entry.videoTimeSec != null && (
-                <span className="ml-1 font-normal text-text-muted">
+                <span
+                  className="ml-1 font-normal"
+                  style={{ color: "var(--niotepad-text-muted)" }}
+                >
                   &mdash; {formatTimestamp(entry.videoTimeSec)}
                 </span>
               )}

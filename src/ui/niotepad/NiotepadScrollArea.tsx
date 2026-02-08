@@ -97,11 +97,19 @@ function NiotepadScrollArea({
       >
         <div
           className="absolute inset-y-0"
-          style={{ left: 0, width: RAIL_W, background: "var(--foreground)" }}
+          style={{
+            left: 0,
+            width: RAIL_W,
+            background: "var(--niotepad-text-subtle)",
+          }}
         />
         <div
           className="absolute inset-y-0"
-          style={{ right: 0, width: RAIL_W, background: "var(--foreground)" }}
+          style={{
+            right: 0,
+            width: RAIL_W,
+            background: "var(--niotepad-text-subtle)",
+          }}
         />
       </div>
 
