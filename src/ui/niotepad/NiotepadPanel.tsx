@@ -7,8 +7,9 @@ import {
   useRef,
   type ReactElement,
 } from "react";
-import { motion, useDragControls } from "framer-motion";
+import { AnimatePresence, motion, useDragControls } from "framer-motion";
 import { useNiotepadStore } from "@/infra/niotepad/useNiotepadStore";
+import { selectFilteredEntries } from "@/infra/niotepad/niotepadSelectors";
 import { NiotepadDragHandle } from "./NiotepadDragHandle";
 import {
   NiotepadResizeHandle,
@@ -17,6 +18,9 @@ import {
   MAX_WIDTH,
   MAX_HEIGHT,
 } from "./NiotepadResizeHandle";
+import { NiotepadScrollArea } from "./NiotepadScrollArea";
+import { NiotepadEntry } from "./NiotepadEntry";
+import { NiotepadComposer } from "./NiotepadComposer";
 
 // 5-layer elevation shadow (plan Section 3.1)
 const PANEL_SHADOW = [
@@ -35,9 +39,16 @@ const NiotepadPanel = (): ReactElement => {
   const pages = useNiotepadStore((s) => s.pages);
   const closePanel = useNiotepadStore((s) => s.closePanel);
   const updateGeometry = useNiotepadStore((s) => s.updateGeometry);
+  const addEntry = useNiotepadStore((s) => s.addEntry);
+  const updateEntry = useNiotepadStore((s) => s.updateEntry);
+  const editingEntryId = useNiotepadStore((s) => s.editingEntryId);
+  const setEditingEntry = useNiotepadStore((s) => s.setEditingEntry);
+  const getOrCreatePage = useNiotepadStore((s) => s.getOrCreatePage);
+  const filteredEntries = useNiotepadStore((s) => selectFilteredEntries(s));
 
   const dragControls = useDragControls();
   const panelRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
   const lastActiveRef = useRef<HTMLElement | null>(null);
 
   // Compute total entry count across all pages
@@ -127,6 +138,45 @@ const NiotepadPanel = (): ReactElement => {
     [dragControls],
   );
 
+  // --- Entry handlers ---
+  const handleStartEdit = useCallback(
+    (id: string) => {
+      setEditingEntry(id);
+    },
+    [setEditingEntry],
+  );
+
+  const handleSaveEdit = useCallback(
+    (id: string, content: string) => {
+      updateEntry(id, { content });
+      setEditingEntry(null);
+    },
+    [updateEntry, setEditingEntry],
+  );
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingEntry(null);
+  }, [setEditingEntry]);
+
+  const focusComposer = useCallback(() => {
+    composerRef.current?.focus();
+  }, []);
+
+  const handleSubmit = useCallback(
+    (content: string) => {
+      // Use a "general" page until page navigation wires in the actual lessonId
+      const pageId = getOrCreatePage("general", "General Notes");
+      addEntry({
+        source: "manual",
+        content,
+        pageId,
+        videoTimeSec: null,
+        metadata: {},
+      });
+    },
+    [getOrCreatePage, addEntry],
+  );
+
   return (
     <motion.aside
       ref={panelRef}
@@ -186,10 +236,26 @@ const NiotepadPanel = (): ReactElement => {
         onPointerDown={handleDragHandlePointerDown}
       />
 
-      {/* Content placeholder — Phase 3 will add ScrollArea, entries, composer */}
-      <div className="flex flex-1 items-center justify-center text-sm text-text-subtle">
-        Niotepad content goes here
-      </div>
+      {/* Ruled paper content area */}
+      <NiotepadScrollArea onPaperClick={focusComposer}>
+        <AnimatePresence initial={false}>
+          {filteredEntries.map((entry) => (
+            <NiotepadEntry
+              key={entry.id}
+              entry={entry}
+              isEditing={editingEntryId === entry.id}
+              onStartEdit={handleStartEdit}
+              onSaveEdit={handleSaveEdit}
+              onCancelEdit={handleCancelEdit}
+            />
+          ))}
+        </AnimatePresence>
+        <NiotepadComposer
+          ref={composerRef}
+          onSubmit={handleSubmit}
+          entryCount={filteredEntries.length}
+        />
+      </NiotepadScrollArea>
 
       <NiotepadResizeHandle
         onResize={handleResize}
