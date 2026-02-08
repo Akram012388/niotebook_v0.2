@@ -262,8 +262,8 @@ const TopNav = (): ReactElement => {
       <div className="flex items-center justify-between w-full max-w-[1600px] mx-auto">
         <Wordmark height={40} />
         <div className="flex items-center gap-3">
-          <LayoutPresetToggle />
           <NiotepadPill />
+          <LayoutPresetToggle />
           <button
             type="button"
             onClick={handleOpenDrawer}
