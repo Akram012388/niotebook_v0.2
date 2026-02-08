@@ -127,6 +127,21 @@
   --pattern-color: rgba(244, 243, 238, var(--pattern-opacity));
 }
 
+/* --- Niotepad --- */
+:root {
+  --niotepad-paper: color-mix(in srgb, #fdf6e3 4%, var(--surface));
+  --niotepad-ruled: color-mix(in srgb, var(--foreground) 6%, transparent);
+  --niotepad-margin: color-mix(in srgb, var(--accent) 15%, transparent);
+  --niotepad-panel-bg: var(--surface);
+  --niotepad-panel-border: var(--border);
+}
+
+[data-theme="dark"] {
+  --niotepad-paper: color-mix(in srgb, #2a2520 8%, var(--surface));
+  --niotepad-ruled: color-mix(in srgb, var(--foreground) 5%, transparent);
+  --niotepad-margin: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
 /* ==========================================================================
    Tailwind 4 Theme — Maps CSS custom properties to utility classes
    ========================================================================== */
