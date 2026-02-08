@@ -53,6 +53,40 @@
 - CoursesPage and CourseDetailPage wrap content in desktop-only NotebookFrame (`compact`)
 - Loading skeletons: `nio-shimmer` class (not `animate-pulse`)
 
+## Niotepad Panel Architecture (Phases 2-8 complete — 2026-02-08)
+- **Portal mount**: `createPortal(document.body)` — outside React tree, no overflow clipping
+- **Lazy loading**: `next/dynamic` with `ssr: false` for NiotepadPortal
+- **Z-index**: Backdrop z-49, Panel z-50 (same as ControlCenterDrawer — mutual exclusion prevents overlap)
+- **Animation**: Framer Motion spring — open: scale:0.92→1, y:12→0, stiffness:400, damping:28, mass:0.8
+- **Drag**: `useDragControls` — only drag handle initiates drag, not the whole panel
+- **Resize**: Pointer capture on resize handle, delta-based with min/max constraints
+- **Panel shadow**: 5-layer `color-mix()` elevation — no backdrop-filter, fully opaque surface
+- **Mutual exclusion**: Opening drawer calls `useNiotepadStore.getState().closePanel()`. Opening niotepad uses `useNiotepadStore.subscribe()` to close drawer.
+- **CSS tokens**: `--niotepad-paper`, `--niotepad-ruled`, `--niotepad-margin`, `--niotepad-panel-bg`, `--niotepad-panel-border`
+- **Ruled paper**: `repeating-linear-gradient` at 24px + margin line at 47px, `background-attachment: local`
+- **Binder**: BINDER_LEFT=12 (tighter than NotebookFrame's 20px), custom scrollbar `.niotepad-scroll`
+- **Entries**: CONTENT_PL=56, line-height:24px, ReactMarkdown `.nio-markdown`, memo'd by id+updatedAt+isEditing
+- **Swipe-to-delete**: drag="x", 80px threshold, `useMotionValue` + `useTransform` for strip opacity, height collapse
+- **Page nav**: tabs "All" + sorted lecture tabs, accent underline, ArrowLeft/Right keyboard, hidden when ≤1 page
+- **Search bar** (Phase 7): NiotepadSearch.tsx — collapsible magnifier icon -> input + filter chips
+  - Store: `searchQuery`, `sourceFilters`, `isSearchExpanded`, `toggleSearchExpanded`, `setSearchQuery`, `toggleSourceFilter`
+  - Selector: `selectFilteredEntries` in `niotepadSelectors.ts` — multi-term AND + source filter OR
+  - Filter chips: Code/Chat/Video/Notes, `bg-accent text-white` active, `bg-surface-muted text-text-muted` inactive
+  - Chips: `text-[10px] font-medium rounded-full px-2 py-0.5`, `aria-pressed` for a11y
+  - Empty state: "No notes match your search" centered in scroll area
+- **Phase 8 — Accessibility & Polish** (2026-02-08):
+  - `useReducedMotion()` from framer-motion in Panel, Entry, Backdrop
+  - Reduced motion: instant panel open/close (no scale/y), instant entry appear, instant delete (skip collapse)
+  - ScrollArea: `matchMedia("prefers-reduced-motion")` for `behavior: "instant"` vs `"smooth"`
+  - Focus trap: `onKeyDown` on `motion.aside`, query `button, [href], input, select, textarea, [tabindex]`, wrap Tab/Shift+Tab
+  - Scoped ESC: reads `useNiotepadStore.getState()` to check editingEntryId -> isSearchExpanded -> closePanel
+  - `aria-describedby="niotepad-description"` links dialog to sr-only description
+  - Entry `aria-label` includes source + first 50 chars of content
+  - Search `aria-live="polite"` announces result count: `"N notes found for 'query'"`
+  - ScrollArea: `id="niotepad-entries"`, `role="region"`, `aria-label="Notes"` — tabs use `aria-controls="niotepad-entries"`
+  - DragHandle: `role="toolbar"`, `aria-roledescription="draggable"`
+  - ResizeHandle: `role="separator"`, `aria-label="Resize niotepad panel"` (removed `aria-hidden`)
+
 ## Lessons Learned
 
 ### Inline Styles vs Tailwind Utilities (2026-02-07)
@@ -90,6 +124,25 @@
 - Move ref writes into `useEffect`: `useEffect(() => { ref.current = value }, [value])`
 - For RAF loops reading latest prop values: use `useEffect` to sync prop -> ref, RAF reads ref
 - Effect order: React runs effects after render, RAF runs before next paint -- timing is fine
+- **Tooltip positioning with refs**: Cannot call `containerRef.current?.getBoundingClientRect()` during render.
+  Pattern: use `useState<HTMLElement | null>` as callback ref (`ref={setElement}`), sync to ref via `useEffect`,
+  compute position from state element (not ref) in render body. Pass pre-computed coords to child components.
+
+### react-hooks/set-state-in-effect Lint Rule (2026-02-08)
+- Calling `setState` directly inside `useEffect` body triggers lint error
+- For Zustand mutual exclusion: use `store.subscribe()` inside useEffect — subscribe callback runs outside effect body
+- For syncing state from props: prefer memo comparison + key-based remount (e.g., memo'd by `entry.updatedAt`)
+
+### Framer Motion Swipe-to-Delete Pattern (2026-02-08)
+- `useMotionValue(0)` + `useTransform(dragX, [-threshold, 0], [1, 0])` for reactive opacity
+- Vertical scroll tolerance: track `dragDirectionRef` — if dy > dx, set to "vertical" and force `dragX.set(0)`
+- Delete animation via `isDeleting` state + `onAnimationComplete` triggers actual `onDelete(id)`
+
+### Framer Motion Drag with useDragControls (2026-02-08)
+- Set `drag` + `dragListener={false}` + `dragControls={dragControls}` on motion element
+- Handle starts drag via `dragControls.start(e)` in onPointerDown
+- `dragMomentum={false}` prevents fling behavior
+- Persist position on `onDragEnd` via `getBoundingClientRect()`
 
 ### RevealContent Typewriter Pattern (2026-02-07)
 - RAF loops that depend on growing content must NOT use content length in `useEffect` deps
@@ -138,6 +191,7 @@
 - Landing: `src/ui/landing/` (Hero, ValueProp, Features, CTA, LandingFooter, LandingNav)
 - Auth: `src/ui/auth/AuthShell.tsx`, `BootSequence.tsx`
 - Courses: `src/ui/courses/CoursesNavActions.tsx`, `CoursesPage.tsx`, `CourseDetailPage.tsx`
+- Niotepad: `src/ui/niotepad/` (Provider, Portal, Backdrop, Panel, DragHandle, ResizeHandle, Pill, ScrollArea, Entry, Composer, PageNav, Search)
 - Legal stubs: `src/app/(landing)/terms|privacy|cookies/page.tsx`
 - ForceTheme: `src/ui/ForceTheme.tsx`
 - StorageAdapter: `src/infra/storageAdapter.ts`

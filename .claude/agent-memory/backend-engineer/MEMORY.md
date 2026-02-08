@@ -33,3 +33,11 @@
 - No explicit `runtime` export on `/api/nio/route.ts` — defaults to Node.js runtime
 - Sentry wrapping via `withSentryConfig` in `next.config.ts`
 - COOP/COEP headers only on `/editor-sandbox` route
+
+## Niotepad Data Layer (Feb 2026)
+- **Domain types**: `src/domain/niotepad.ts` — NiotepadEntrySource, NiotepadEntryMetadata, NiotepadEntryData, NiotepadPage, NiotepadSnapshot, AddEntryParams
+- **IndexedDB**: `src/infra/niotepad/indexedDbNiotepad.ts` — DB: "niotebook-niotepad", store: "notebooks", key: "notebook-v1". Follows VFS pattern (singleton dbPromise, JSON serialize, try/catch with console.warn).
+- **Zustand store**: `src/infra/niotepad/useNiotepadStore.ts` — single store for panel state + data + actions. Module-level debounce timer for 500ms auto-save. Uses `storageAdapter` for localStorage.
+- **Selectors**: `src/infra/niotepad/niotepadSelectors.ts` — selectFilteredEntries, selectTotalEntryCount, selectActivePageEntryCount
+- **Key patterns**: `type` keyword (not `interface`), `crypto.randomUUID()` for IDs, `storageAdapter` for localStorage
+- **localStorage keys**: `niotebook.niotepad.geometry` (JSON), `niotebook.niotepad.unread` ("true" or absent)
