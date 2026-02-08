@@ -7,7 +7,12 @@ import {
   useRef,
   type ReactElement,
 } from "react";
-import { AnimatePresence, motion, useDragControls } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useDragControls,
+  useReducedMotion,
+} from "framer-motion";
 import { useNiotepadStore } from "@/infra/niotepad/useNiotepadStore";
 import { selectFilteredEntries } from "@/infra/niotepad/niotepadSelectors";
 import { NiotepadDragHandle } from "./NiotepadDragHandle";
@@ -57,6 +62,7 @@ const NiotepadPanel = (): ReactElement => {
   const isSearchExpanded = useNiotepadStore((s) => s.isSearchExpanded);
   const toggleSearchExpanded = useNiotepadStore((s) => s.toggleSearchExpanded);
 
+  const prefersReducedMotion = useReducedMotion();
   const dragControls = useDragControls();
   const panelRef = useRef<HTMLDivElement>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -102,16 +108,22 @@ const NiotepadPanel = (): ReactElement => {
     };
   }, [isOpen]);
 
-  // ESC to close
+  // Scoped ESC: cancel editing first, then collapse search, then close panel
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === "Escape") {
+      if (e.key !== "Escape") return;
+      const state = useNiotepadStore.getState();
+      if (state.editingEntryId) {
+        setEditingEntry(null);
+      } else if (state.isSearchExpanded) {
+        toggleSearchExpanded();
+      } else {
         closePanel();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [closePanel]);
+  }, [closePanel, setEditingEntry, toggleSearchExpanded]);
 
   // Handle resize delta
   const handleResize = useCallback(
@@ -196,13 +208,38 @@ const NiotepadPanel = (): ReactElement => {
     [activePageId, getOrCreatePage, addEntry],
   );
 
+  // Focus trap: wrap Tab to keep focus inside the panel
+  const handlePanelKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key !== "Tab") return;
+    const focusable = panelRef.current?.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    if (!focusable?.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }, []);
+
+  // Instant transitions when user prefers reduced motion
+  const panelTransition = prefersReducedMotion
+    ? { duration: 0.01 }
+    : { type: "spring" as const, stiffness: 400, damping: 28, mass: 0.8 };
+
   return (
     <motion.aside
       ref={panelRef}
       role="dialog"
       aria-modal="true"
       aria-label="Niotepad -- personal notes"
+      aria-describedby="niotepad-description"
       tabIndex={-1}
+      onKeyDown={handlePanelKeyDown}
       className="fixed z-50 flex flex-col overflow-hidden rounded-2xl outline-none"
       style={{
         width: geometry.width,
@@ -213,16 +250,21 @@ const NiotepadPanel = (): ReactElement => {
         border: "1px solid var(--niotepad-panel-border)",
         boxShadow: PANEL_SHADOW,
       }}
-      // Spring open animation
-      initial={{ scale: 0.92, opacity: 0, y: 12 }}
-      animate={{ scale: 1, opacity: 1, y: 0 }}
-      exit={{ scale: 0.95, opacity: 0, y: 8 }}
-      transition={{
-        type: "spring",
-        stiffness: 400,
-        damping: 28,
-        mass: 0.8,
-      }}
+      // Spring open animation (instant when reduced motion preferred)
+      initial={
+        prefersReducedMotion
+          ? { opacity: 1 }
+          : { scale: 0.92, opacity: 0, y: 12 }
+      }
+      animate={
+        prefersReducedMotion ? { opacity: 1 } : { scale: 1, opacity: 1, y: 0 }
+      }
+      exit={
+        prefersReducedMotion
+          ? { opacity: 0 }
+          : { scale: 0.95, opacity: 0, y: 8 }
+      }
+      transition={panelTransition}
       // Drag via handle only
       drag
       dragControls={dragControls}
@@ -270,6 +312,7 @@ const NiotepadPanel = (): ReactElement => {
         onFilterToggle={toggleSourceFilter}
         isExpanded={isSearchExpanded}
         onToggleExpanded={toggleSearchExpanded}
+        resultCount={filteredEntries.length}
       />
 
       {/* Ruled paper content area */}

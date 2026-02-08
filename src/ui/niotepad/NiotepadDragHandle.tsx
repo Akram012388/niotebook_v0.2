@@ -36,6 +36,9 @@ const NiotepadDragHandle = memo(function NiotepadDragHandle({
 }: NiotepadDragHandleProps): ReactElement {
   return (
     <div
+      role="toolbar"
+      aria-label="Niotepad title bar — drag to reposition"
+      aria-roledescription="draggable"
       className="flex h-10 shrink-0 cursor-grab items-center gap-2 border-b px-3 select-none active:cursor-grabbing"
       style={{ borderColor: "var(--border)" }}
       onPointerDown={onPointerDown}

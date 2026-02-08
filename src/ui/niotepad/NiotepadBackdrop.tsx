@@ -1,20 +1,24 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 interface NiotepadBackdropProps {
   onDismiss: () => void;
 }
 
-const NiotepadBackdrop = ({ onDismiss }: NiotepadBackdropProps): ReactElement => {
+const NiotepadBackdrop = ({
+  onDismiss,
+}: NiotepadBackdropProps): ReactElement => {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <motion.div
       className="fixed inset-0 z-[49]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.12 }}
+      transition={{ duration: prefersReducedMotion ? 0.01 : 0.12 }}
       onClick={onDismiss}
       role="presentation"
       aria-hidden="true"

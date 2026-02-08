@@ -11,6 +11,7 @@ import {
 import {
   motion,
   useMotionValue,
+  useReducedMotion,
   useTransform,
   type PanInfo,
 } from "framer-motion";
@@ -40,7 +41,7 @@ function formatTimestamp(sec: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-const entryAppear = {
+const entryAppearSpring = {
   initial: { opacity: 0, y: 8 },
   animate: { opacity: 1, y: 0 },
   transition: {
@@ -53,6 +54,12 @@ const entryAppear = {
   },
 };
 
+const entryAppearInstant = {
+  initial: { opacity: 1, y: 0 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.01 },
+};
+
 const NiotepadEntry = memo(
   function NiotepadEntry({
     entry,
@@ -63,6 +70,10 @@ const NiotepadEntry = memo(
     onDelete,
     onSeek,
   }: NiotepadEntryProps): ReactElement {
+    const prefersReducedMotion = useReducedMotion();
+    const entryAppear = prefersReducedMotion
+      ? entryAppearInstant
+      : entryAppearSpring;
     const [editValue, setEditValue] = useState(entry.content);
     const [isDeleting, setIsDeleting] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -77,9 +88,7 @@ const NiotepadEntry = memo(
     );
 
     // Track if this is a horizontal swipe vs vertical scroll
-    const dragDirectionRef = useRef<"none" | "horizontal" | "vertical">(
-      "none",
-    );
+    const dragDirectionRef = useRef<"none" | "horizontal" | "vertical">("none");
 
     // Auto-focus and auto-resize textarea when entering edit mode
     useEffect(() => {
@@ -169,11 +178,16 @@ const NiotepadEntry = memo(
           dragDirectionRef.current === "horizontal" &&
           info.offset.x < -SWIPE_THRESHOLD
         ) {
-          setIsDeleting(true);
+          if (prefersReducedMotion) {
+            // Instant delete -- skip collapse animation
+            onDelete(entry.id);
+          } else {
+            setIsDeleting(true);
+          }
         }
         dragDirectionRef.current = "none";
       },
-      [],
+      [prefersReducedMotion, onDelete, entry.id],
     );
 
     const handleDeleteClick = useCallback(() => {
@@ -189,10 +203,17 @@ const NiotepadEntry = memo(
 
     const isVideo = entry.source === "video";
 
+    // Build accessible label with content preview
+    const contentPreview =
+      entry.content.length > 50
+        ? entry.content.slice(0, 50).trimEnd() + "\u2026"
+        : entry.content;
+    const entryAriaLabel = `${entry.source} note: ${contentPreview}`;
+
     return (
       <motion.article
         layout
-        aria-label="Note entry"
+        aria-label={entryAriaLabel}
         {...entryAppear}
         animate={
           isDeleting
@@ -201,13 +222,15 @@ const NiotepadEntry = memo(
         }
         transition={
           isDeleting
-            ? {
-                type: "spring" as const,
-                stiffness: 300,
-                damping: 25,
-                opacity: { duration: 0.15 },
-                height: { delay: 0.05, duration: 0.2 },
-              }
+            ? prefersReducedMotion
+              ? { duration: 0.01 }
+              : {
+                  type: "spring" as const,
+                  stiffness: 300,
+                  damping: 25,
+                  opacity: { duration: 0.15 },
+                  height: { delay: 0.05, duration: 0.2 },
+                }
             : entryAppear.transition
         }
         onAnimationComplete={handleAnimationComplete}
@@ -238,7 +261,11 @@ const NiotepadEntry = memo(
           dragConstraints={{ left: -120, right: 0 }}
           dragElastic={0.2}
           dragMomentum={false}
-          style={{ x: dragX, paddingLeft: CONTENT_PL, paddingRight: CONTENT_PR }}
+          style={{
+            x: dragX,
+            paddingLeft: CONTENT_PL,
+            paddingRight: CONTENT_PR,
+          }}
           onDragStart={handleDragStart}
           onDrag={handleDrag}
           onDragEnd={handleDragEnd}
