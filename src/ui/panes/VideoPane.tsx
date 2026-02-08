@@ -217,16 +217,11 @@ const VideoPane = ({
 
   const handleBookmark = useCallback((): void => {
     const currentTime = lastSampleTimeSec ?? 0;
-    const mins = Math.floor(currentTime / 60);
-    const secs = Math.floor(currentTime % 60);
-    const timestamp = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-
-    const title = lesson?.title ?? "Lecture";
     const lecNum =
       lectureNumber !== null && lectureNumber !== undefined
         ? `Lecture ${lectureNumber}`
-        : title;
-    const content = `**${lecNum} — ${timestamp}**\n\nVideo moment bookmarked`;
+        : (lesson?.title ?? "Lecture");
+    const content = "Video moment bookmarked";
     const lectureTitle = lecNum;
 
     const store = useNiotepadStore.getState();
