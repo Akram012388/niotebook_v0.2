@@ -26,16 +26,16 @@ This plan synthesizes findings from three parallel analyses (UX specialist, tech
 
 ## Final Decisions (User-Resolved Conflicts)
 
-| Decision                  | Choice                                                                       | Rationale                                                 |
-| ------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Decision                  | Choice                                                                       | Rationale                                                                    |
+| ------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
 | **~~Sidebar~~ Nav**       | ~~Collapsible rail~~ → Shared SiteNav top bar                                | Originally sidebar; replaced by SiteNav for landing/auth/courses consistency |
-| **NotebookFrame**         | Full wrap on desktop, `hidden` below `sm` breakpoint                         | Preserves mobile usability (271px was too tight)          |
-| **NotebookFrame padding** | Add `compact` prop for dense content pages                                   | Tech architect recommendation accepted                    |
-| **`dark:` hover states**  | Remove, replace with theme-agnostic `hover:border-accent/30 hover:shadow-md` | Matches landing FeatureCard pattern                       |
-| **Animation density**     | Full landing density (0.5s, i×0.1 stagger) on all routes                     | User accepts the polish-over-speed tradeoff               |
-| **Clerk button**          | Keep `bg-foreground` (already theme-responsive)                              | Tech architect confirmed it swaps correctly               |
-| **Theme**                 | Light default + ThemeToggle on signin/courses/detail                         | Remove ForceTheme dark from these 3 route groups          |
-| **PR strategy**           | 3 parallel PRs after prerequisite commit on `redesign-v2`                    | Tech architect proved zero file overlap                   |
+| **NotebookFrame**         | Full wrap on desktop, `hidden` below `sm` breakpoint                         | Preserves mobile usability (271px was too tight)                             |
+| **NotebookFrame padding** | Add `compact` prop for dense content pages                                   | Tech architect recommendation accepted                                       |
+| **`dark:` hover states**  | Remove, replace with theme-agnostic `hover:border-accent/30 hover:shadow-md` | Matches landing FeatureCard pattern                                          |
+| **Animation density**     | Full landing density (0.5s, i×0.1 stagger) on all routes                     | User accepts the polish-over-speed tradeoff                                  |
+| **Clerk button**          | Keep `bg-foreground` (already theme-responsive)                              | Tech architect confirmed it swaps correctly                                  |
+| **Theme**                 | Light default + ThemeToggle on signin/courses/detail                         | Remove ForceTheme dark from these 3 route groups                             |
+| **PR strategy**           | 3 parallel PRs after prerequisite commit on `redesign-v2`                    | Tech architect proved zero file overlap                                      |
 
 ---
 
@@ -140,6 +140,7 @@ Before branching for parallel PRs:
 | `src/ui/landing/NotebookFrame.tsx` | Re-export shim removed |
 
 **SiteNav spec:**
+
 - Fixed top bar: `fixed top-0 left-0 right-0 z-50`, `backdrop-blur-md`
 - Background: `color-mix(in srgb, var(--background) 80%, transparent)`
 - Border: `1px solid var(--border)` bottom
@@ -197,15 +198,15 @@ SiteNav on the `refactor/courses-navbar-layout` branch.
 
 ## Testing Strategy
 
-| Test Type           | What                                   | When           |
-| ------------------- | -------------------------------------- | -------------- |
-| `bun run test`      | All 153 existing unit tests            | After each PR  |
-| `bun run typecheck` | TypeScript strict                      | After each PR  |
-| `bun run lint`      | ESLint + Prettier                      | After each PR  |
-| New unit test       | ~~SidebarShell~~ SiteNav component (if needed) | PR2 / nav refactor |
-| Manual QA           | Clerk OTP on light + dark themes       | PR1 (critical) |
+| Test Type           | What                                               | When               |
+| ------------------- | -------------------------------------------------- | ------------------ |
+| `bun run test`      | All 153 existing unit tests                        | After each PR      |
+| `bun run typecheck` | TypeScript strict                                  | After each PR      |
+| `bun run lint`      | ESLint + Prettier                                  | After each PR      |
+| New unit test       | ~~SidebarShell~~ SiteNav component (if needed)     | PR2 / nav refactor |
+| Manual QA           | Clerk OTP on light + dark themes                   | PR1 (critical)     |
 | Manual QA           | ~~Sidebar collapse/expand~~ SiteNav responsiveness | PR2 / nav refactor |
-| Manual QA           | NotebookFrame hidden on mobile         | All PRs        |
+| Manual QA           | NotebookFrame hidden on mobile                     | All PRs            |
 
 **Existing tests at risk:** None. All 153 tests cover domain logic, not theme/layout.
 
@@ -227,15 +228,15 @@ SiteNav on the `refactor/courses-navbar-layout` branch.
 
 ## Risk Register (from Devil's Advocate, Mitigated)
 
-| Risk                                          | Severity | Mitigation                                                                |
-| --------------------------------------------- | -------- | ------------------------------------------------------------------------- |
-| Clerk OTP invisible in light mode             | HIGH     | Fix in PR1 (hex → CSS vars). Manual QA before merge.                      |
+| Risk                                          | Severity   | Mitigation                                                                                 |
+| --------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------ |
+| Clerk OTP invisible in light mode             | HIGH       | Fix in PR1 (hex → CSS vars). Manual QA before merge.                                       |
 | ~~Sidebar hydration layout shift~~            | ~~MEDIUM~~ | ~~SSR renders expanded.~~ **Resolved:** SidebarShell deleted, SiteNav has no client state. |
-| NotebookFrame too tight on mobile             | MEDIUM   | `hidden sm:block` — skip entirely below `sm`. Accepted.                   |
-| NotebookFrame padding for dense grids         | LOW      | `compact` prop (prereq commit).                                           |
-| `dark:` hover states after ForceTheme removal | LOW      | Removing `dark:` prefixes, using theme-agnostic hover. Done in PR3.       |
-| Animation fatigue on repeat visits            | LOW      | User accepted. All `whileInView` use `once: true`.                        |
-| Sign-up page inconsistency                    | LOW      | PR1 includes sign-up page alignment.                                      |
+| NotebookFrame too tight on mobile             | MEDIUM     | `hidden sm:block` — skip entirely below `sm`. Accepted.                                    |
+| NotebookFrame padding for dense grids         | LOW        | `compact` prop (prereq commit).                                                            |
+| `dark:` hover states after ForceTheme removal | LOW        | Removing `dark:` prefixes, using theme-agnostic hover. Done in PR3.                        |
+| Animation fatigue on repeat visits            | LOW        | User accepted. All `whileInView` use `once: true`.                                         |
+| Sign-up page inconsistency                    | LOW        | PR1 includes sign-up page alignment.                                                       |
 
 ---
 

@@ -69,8 +69,7 @@ export async function createTextStyles() {
     }
 
     for (const size of def.sizes) {
-      const styleName =
-        def.sizes.length > 1 ? `${def.name}/${size}` : def.name;
+      const styleName = def.sizes.length > 1 ? `${def.name}/${size}` : def.name;
       if (existing.includes(styleName)) continue;
 
       const style = figma.createTextStyle();

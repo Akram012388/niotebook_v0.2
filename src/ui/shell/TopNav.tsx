@@ -258,9 +258,7 @@ const TopNav = (): ReactElement => {
   }, []);
 
   return (
-    <header
-      className="flex h-[72px] items-center justify-between border-b border-border bg-background px-4 sm:px-6"
-    >
+    <header className="flex h-[72px] items-center justify-between border-b border-border bg-background px-4 sm:px-6">
       <div className="flex items-center justify-between w-full max-w-[1600px] mx-auto">
         <Wordmark height={40} />
         <div className="flex items-center gap-3">

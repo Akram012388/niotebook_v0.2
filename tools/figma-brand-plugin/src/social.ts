@@ -143,7 +143,8 @@ export async function buildSocialAssets() {
     frame.y = 0;
 
     // Determine the target logo width and compute font size
-    const label: "niotebook" | "nio" = spec.logo === "wordmark" ? "niotebook" : "nio";
+    const label: "niotebook" | "nio" =
+      spec.logo === "wordmark" ? "niotebook" : "nio";
     const targetWidth = spec.width * spec.logoScale;
     // Orbitron Bold at fontSize N produces width ~ N * 0.65 * charCount
     const charCount = label.length;

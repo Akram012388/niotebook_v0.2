@@ -29,10 +29,7 @@ const SIZE_COLLECTION_NAME = "Niotebook/Size";
 async function removeExistingCollections() {
   const locals = await figma.variables.getLocalVariableCollectionsAsync();
   for (const c of locals) {
-    if (
-      c.name === COLOR_COLLECTION_NAME ||
-      c.name === SIZE_COLLECTION_NAME
-    ) {
+    if (c.name === COLOR_COLLECTION_NAME || c.name === SIZE_COLLECTION_NAME) {
       // Remove all variables in the collection first
       for (const varId of c.variableIds) {
         const v = await figma.variables.getVariableByIdAsync(varId);
@@ -79,9 +76,8 @@ export async function createDesignTokenVariables(): Promise<VariableRefs> {
   }
 
   // ── Size Collection ──
-  const sizeCollection = figma.variables.createVariableCollection(
-    SIZE_COLLECTION_NAME,
-  );
+  const sizeCollection =
+    figma.variables.createVariableCollection(SIZE_COLLECTION_NAME);
 
   const sizeModeId = sizeCollection.defaultModeId;
   sizeCollection.renameMode(sizeModeId, "Default");

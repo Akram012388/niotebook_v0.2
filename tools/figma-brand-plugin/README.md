@@ -29,21 +29,22 @@ Open any Figma file, then run the plugin from **Plugins → Development → Niot
 
 ### Commands
 
-| Command                        | What it creates                                                                                           |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| **Build All**                  | Everything below                                                                                          |
-| **Design Tokens (Variables)**  | ~30 semantic color variables (Light + Dark modes) + 5 border-radius variables                             |
-| **Colors & Text Styles**       | Design tokens + paint styles bound to variables + 5 text style families                                   |
-| **Logo System**                | Wordmark (Light/Dark) + Nio Mark (Light/Dark/Accent) components + badge                                   |
-| **Social Assets**              | 11 platform frames (OG, Twitter, LinkedIn, GitHub, Discord, YouTube, Facebook, Instagram, TikTok, ProductHunt, profile pic) |
-| **App Icons & Favicons**       | 1024px master icon + favicon frames (180, 192, 512, 32, 16) + email sig                                  |
-| **Brand Guide Page**           | Dual-theme color swatches, typography specimens, rules reference, token map                               |
+| Command                       | What it creates                                                                                                             |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Build All**                 | Everything below                                                                                                            |
+| **Design Tokens (Variables)** | ~30 semantic color variables (Light + Dark modes) + 5 border-radius variables                                               |
+| **Colors & Text Styles**      | Design tokens + paint styles bound to variables + 5 text style families                                                     |
+| **Logo System**               | Wordmark (Light/Dark) + Nio Mark (Light/Dark/Accent) components + badge                                                     |
+| **Social Assets**             | 11 platform frames (OG, Twitter, LinkedIn, GitHub, Discord, YouTube, Facebook, Instagram, TikTok, ProductHunt, profile pic) |
+| **App Icons & Favicons**      | 1024px master icon + favicon frames (180, 192, 512, 32, 16) + email sig                                                     |
+| **Brand Guide Page**          | Dual-theme color swatches, typography specimens, rules reference, token map                                                 |
 
 ### Design Token Structure
 
 The plugin creates two Figma Variable Collections:
 
 **Niotebook/Color** (Light + Dark modes)
+
 - `backgrounds/` — background, foreground, surface, surface-muted, surface-strong, surface-strong-foreground
 - `borders/` — border, border-muted
 - `text/` — text-muted, text-subtle
@@ -52,11 +53,13 @@ The plugin creates two Figma Variable Collections:
 - `workspace/` — workspace-editor, workspace-sidebar, workspace-terminal, workspace-tabbar, workspace-border, workspace-border-muted, workspace-text, workspace-text-muted, workspace-accent, workspace-accent-muted
 
 **Niotebook/Size** (Default mode)
+
 - `radius/` — radius-sm (6px), radius-md (8px), radius-lg (12px), radius-xl (16px), radius-full (9999px)
 
 ### Switching Themes in Figma
 
 After running the plugin, any frame or component can switch between Light and Dark modes:
+
 1. Select a frame
 2. In the right sidebar, find **Layer** section
 3. Click the mode dropdown next to **Niotebook/Color**

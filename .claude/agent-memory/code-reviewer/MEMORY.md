@@ -17,6 +17,7 @@
 See `chat-stream-review.md` for client-side findings. See `chat-backend-review.md` for server-side/route handler findings. Typewriter/RevealContent system was REMOVED in commit 72a08f1.
 
 ### Current key patterns
+
 - **Rendering**: `isStreaming` true -> plain `<span>` text; false -> `<ReactMarkdown>`. No typewriter.
 - **Token batching**: `tokenBuffer` + RAF-scheduled `flushTokens()` prevents per-token state updates.
 - **Three-layer dedup**: remote (Convex) > cached (localStorage) > local (React state) in `mergedMessages`
@@ -25,6 +26,7 @@ See `chat-stream-review.md` for client-side findings. See `chat-backend-review.m
 - **Stuck stream guard**: 30s `STUCK_STREAM_TIMEOUT_MS` allows force-sending new message
 
 ### Open issues (from 2026-02-07 reviews)
+
 - **CRITICAL: No AbortController on client fetch** -- streams leak on lesson change/unmount
 - **CRITICAL: Gemini API key in debug logs** (`geminiStream.ts:103-104`, requestUrl includes `?key=`)
 - **CRITICAL: Regex /g flag bug** in `promptInjection.ts:6-17` -- `.test()` with module-level `/gi` patterns causes alternating detection failures

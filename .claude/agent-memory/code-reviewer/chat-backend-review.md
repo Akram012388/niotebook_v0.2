@@ -1,6 +1,7 @@
 # Chat Backend Review (2026-02-07)
 
 ## Files Reviewed
+
 - `src/app/api/nio/route.ts` -- main POST handler (1170 lines)
 - `src/infra/ai/geminiStream.ts` -- Gemini streaming provider
 - `src/infra/ai/groqStream.ts` -- Groq streaming provider
@@ -21,18 +22,21 @@
 - `convex/auth.ts` -- Convex auth layer
 
 ## Architecture Summary
+
 - POST `/api/nio` -> validate -> auth -> rate limit -> sanitize -> build context -> stream
 - Gemini primary (10s first-token timeout) -> Groq fallback
-- SSE protocol: meta -> token* -> done/error
+- SSE protocol: meta -> token\* -> done/error
 - Fire-and-forget persistence to Convex after stream completes
 - Context builder truncates: drop history -> truncate transcript -> truncate code -> fail
 
 ## Critical Findings
+
 1. Regex /g statefulness on module-level patterns in promptInjection.ts
 2. Gemini API key in debug logs via URL in geminiStream.ts:103-104
 3. Provider iterators/HTTP connections never cancelled on fallback or abort
 
 ## Warning Findings
+
 1. No input size limits in validateNioChatRequest.ts
 2. SSRF via subtitlesUrl in subtitleFallback.ts
 3. Unbounded in-memory caches (subtitleCache, ytCache)
@@ -42,6 +46,7 @@
 7. Gemini 60s timeout doesn't propagate to stream reader
 
 ## Good Patterns Observed
+
 - Typed SSE event protocol with seq numbers
 - Idempotent completeAssistantMessage (checks requestId)
 - Defensive enqueue/close guards on ReadableStream

@@ -45,12 +45,12 @@ A solid surface creates focus and intuitiveness; the niotepad demands the user's
 full attention when invoked, like picking up a real notebook.
 
 It is not "another AI notes sidebar." It is the creative showpiece feature that
-transforms niotebook from a competent AI learning IDE into a *carefully crafted
-learning experience*.
+transforms niotebook from a competent AI learning IDE into a _carefully crafted
+learning experience_.
 
 ### Guiding Principle
 
-> *"Simplicity is the ultimate sophistication."* -- Leonardo da Vinci
+> _"Simplicity is the ultimate sophistication."_ -- Leonardo da Vinci
 
 Every decision in this plan prioritizes restraint over feature creep. The panel
 must feel like picking up a beautiful notebook -- inviting, tactile, effortless.
@@ -97,16 +97,16 @@ pane type** inside the workspace grid. That approach:
 This plan **supersedes** that approach entirely. We will however **reuse** the
 following proven artifacts from `feat/niotepad`:
 
-| Artifact | Reuse? | Notes |
-|----------|--------|-------|
-| `src/domain/niotepad.ts` | Yes, extend | Add page concept, richer metadata |
-| `src/infra/niotepad/useNiotepadStore.ts` | Yes, rewrite | Add pages, search, panel state |
-| `src/infra/niotepad/indexedDbNiotepad.ts` | Yes, extend | Store pages, not flat entries |
-| `src/ui/panes/NiotepadEntry.tsx` | Partial | Extract entry rendering, adapt for floating panel |
-| `src/ui/panes/NiotepadPane.tsx` | No | Replaced by floating panel architecture |
-| `src/ui/chat/useSelectionPush.ts` | Yes, as-is | Chat selection push hook |
-| `src/ui/shared/PushToNiotepad.tsx` | Partial | Push button component, adapt |
-| Binder geometry constants | Yes | From `NotebookFrame.tsx` |
+| Artifact                                  | Reuse?       | Notes                                             |
+| ----------------------------------------- | ------------ | ------------------------------------------------- |
+| `src/domain/niotepad.ts`                  | Yes, extend  | Add page concept, richer metadata                 |
+| `src/infra/niotepad/useNiotepadStore.ts`  | Yes, rewrite | Add pages, search, panel state                    |
+| `src/infra/niotepad/indexedDbNiotepad.ts` | Yes, extend  | Store pages, not flat entries                     |
+| `src/ui/panes/NiotepadEntry.tsx`          | Partial      | Extract entry rendering, adapt for floating panel |
+| `src/ui/panes/NiotepadPane.tsx`           | No           | Replaced by floating panel architecture           |
+| `src/ui/chat/useSelectionPush.ts`         | Yes, as-is   | Chat selection push hook                          |
+| `src/ui/shared/PushToNiotepad.tsx`        | Partial      | Push button component, adapt                      |
+| Binder geometry constants                 | Yes          | From `NotebookFrame.tsx`                          |
 
 ---
 
@@ -184,18 +184,18 @@ entire workspace page.
 
 ### 2.4 Key Architectural Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Mount strategy | Portal to `document.body` | Avoids workspace layout disruption |
-| Panel behavior | Floating overlay, not a pane | Preserves sacred layout modes |
-| State management | Single Zustand store | Richer than context; needs CRUD, pagination, panel state |
-| Persistence | IndexedDB for entries, localStorage for panel geometry | Same patterns as VFS store and layout preset |
-| Animation library | Framer Motion (already `^12.29.2` in deps) | Spring physics, drag, layout animations |
-| Shortcut key | `Cmd/Ctrl+J` (not `Cmd+N`) | `Cmd+N` is a browser-reserved shortcut and cannot be overridden |
-| Ruled lines | `repeating-linear-gradient` on scroll container | CSS-only, scrolls with content via `background-attachment: local` |
-| Panel surface | Fully opaque `var(--surface)` with multi-layer elevation shadows | Solid surface creates focus; no see-through distraction |
-| Entry rendering | Inline rich text with markdown | Consistent with chat messages (`nio-markdown` class) |
-| Page model | Per-lecture pages, auto-created on first push | Maps naturally to the lesson-scoped workspace |
+| Decision          | Choice                                                           | Rationale                                                         |
+| ----------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Mount strategy    | Portal to `document.body`                                        | Avoids workspace layout disruption                                |
+| Panel behavior    | Floating overlay, not a pane                                     | Preserves sacred layout modes                                     |
+| State management  | Single Zustand store                                             | Richer than context; needs CRUD, pagination, panel state          |
+| Persistence       | IndexedDB for entries, localStorage for panel geometry           | Same patterns as VFS store and layout preset                      |
+| Animation library | Framer Motion (already `^12.29.2` in deps)                       | Spring physics, drag, layout animations                           |
+| Shortcut key      | `Cmd/Ctrl+J` (not `Cmd+N`)                                       | `Cmd+N` is a browser-reserved shortcut and cannot be overridden   |
+| Ruled lines       | `repeating-linear-gradient` on scroll container                  | CSS-only, scrolls with content via `background-attachment: local` |
+| Panel surface     | Fully opaque `var(--surface)` with multi-layer elevation shadows | Solid surface creates focus; no see-through distraction           |
+| Entry rendering   | Inline rich text with markdown                                   | Consistent with chat messages (`nio-markdown` class)              |
+| Page model        | Per-lecture pages, auto-created on first push                    | Maps naturally to the lesson-scoped workspace                     |
 
 ---
 
@@ -230,12 +230,14 @@ Depth is conveyed entirely through **multi-layer elevation shadows**, not transp
 ```
 
 **Dark theme adjustments** (automatically via CSS custom properties):
+
 - `var(--surface)` shifts from `#faf9f7` to `#252220`
 - `var(--border)` shifts from `#ddd8d0` to `#3a3531`
 - Shadow opacities increase (dark theme shadows are already darker in tokens)
 - Panel remains fully opaque in both themes -- background is always `var(--surface)`
 
 **Why solid, not glass:**
+
 - Glass (backdrop-filter blur) creates visual noise -- workspace content bleeding through
   competes with niotepad content for cognitive attention
 - Solid surface = immediate focus, zero distraction, premium tactile feel
@@ -287,18 +289,19 @@ The scrollable content area uses ruled lines that align to the text `line-height
     ),
     /* Left margin line (subtle accent) */
     linear-gradient(
-      to right,
-      transparent 47px,
-      var(--ruled-margin-color) 47px,
-      var(--ruled-margin-color) 48px,
-      transparent 48px
-    );
+        to right,
+        transparent 47px,
+        var(--ruled-margin-color) 47px,
+        var(--ruled-margin-color) 48px,
+        transparent 48px
+      );
   background-attachment: local;
   background-position: 0 0;
 }
 ```
 
 **Dark theme paper tint:**
+
 ```css
 [data-theme="dark"] .niotepad-ruled-paper {
   --paper-tint: color-mix(in srgb, #2a2520 8%, var(--surface));
@@ -672,11 +675,11 @@ Visual:
 
 ### 5.1 Opening the Panel
 
-| Trigger | Description |
-|---------|-------------|
-| `Cmd/Ctrl+J` | Global keyboard shortcut. `J` for "journal." Does not conflict with any browser shortcut. Fires `togglePanel()` on the store. |
-| Click N pill | Click the N pill button in TopNav. Fires `togglePanel()`. |
-| Corner gesture | **Deferred to v2.** Swipe from bottom-right corner of viewport. |
+| Trigger        | Description                                                                                                                   |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `Cmd/Ctrl+J`   | Global keyboard shortcut. `J` for "journal." Does not conflict with any browser shortcut. Fires `togglePanel()` on the store. |
+| Click N pill   | Click the N pill button in TopNav. Fires `togglePanel()`.                                                                     |
+| Corner gesture | **Deferred to v2.** Swipe from bottom-right corner of viewport.                                                               |
 
 **Open animation:**
 
@@ -689,13 +692,13 @@ Duration:       ~300ms (spring settles)
 
 ### 5.2 Closing the Panel
 
-| Trigger | Description |
-|---------|-------------|
-| ESC key | Only when panel has focus (focus trap active). Fires `closePanel()`. |
-| Click outside | Click on `NiotepadBackdrop`. Fires `closePanel()`. |
-| Click X button | Close button in `NiotepadDragHandle`. Fires `closePanel()`. |
-| `Cmd/Ctrl+J` | Toggle -- closes if open. |
-| Drag-to-dismiss | **Deferred to v2.** Fling panel downward past threshold. |
+| Trigger         | Description                                                          |
+| --------------- | -------------------------------------------------------------------- |
+| ESC key         | Only when panel has focus (focus trap active). Fires `closePanel()`. |
+| Click outside   | Click on `NiotepadBackdrop`. Fires `closePanel()`.                   |
+| Click X button  | Close button in `NiotepadDragHandle`. Fires `closePanel()`.          |
+| `Cmd/Ctrl+J`    | Toggle -- closes if open.                                            |
+| Drag-to-dismiss | **Deferred to v2.** Fling panel downward past threshold.             |
 
 **Close animation:**
 
@@ -730,17 +733,20 @@ Duration:       ~200ms (faster than open -- feels snappier)
 ### 5.5 Deleting an Entry (Swipe-to-Delete)
 
 **Touch devices:**
+
 1. User swipe-lefts on an entry
 2. Entry slides left, revealing a red delete strip behind it
 3. If swipe exceeds 80px threshold, entry is deleted on release
 4. If swipe does not exceed threshold, entry snaps back
 
 **Desktop (mouse drag):**
+
 1. User holds pointer down on entry and drags left
 2. Same reveal/threshold behavior as touch
 3. cursor changes to `grabbing` during drag
 
 **Animation:**
+
 ```
 Swipe reveal:  translateX tracks pointer, spring back on release
 Delete:        height collapses to 0, opacity fades, 200ms spring
@@ -774,20 +780,20 @@ dragMomentum: false (panel stops where you release -- no fling)
 
 ### 5.8 Keyboard Shortcuts (Complete Map)
 
-| Shortcut | Context | Action |
-|----------|---------|--------|
-| `Cmd/Ctrl+J` | Global (workspace) | Toggle niotepad panel open/close |
-| `Esc` | Panel has focus | Close panel |
-| `Enter` | Composer focused | Submit entry |
-| `Shift+Enter` | Composer focused | Newline in composer |
-| `Enter` | Editing entry | Save edit |
-| `Esc` | Editing entry | Cancel edit |
-| `Cmd/Ctrl+Shift+N` | Code/Chat/Video pane | Push selection to niotepad |
-| `Tab` | Panel has focus | Cycle through focusable elements |
-| `Shift+Tab` | Panel has focus | Reverse cycle |
-| `Cmd/Ctrl+F` | Panel has focus | Focus search input |
-| `ArrowLeft` | Page nav focused | Previous page |
-| `ArrowRight` | Page nav focused | Next page |
+| Shortcut           | Context              | Action                           |
+| ------------------ | -------------------- | -------------------------------- |
+| `Cmd/Ctrl+J`       | Global (workspace)   | Toggle niotepad panel open/close |
+| `Esc`              | Panel has focus      | Close panel                      |
+| `Enter`            | Composer focused     | Submit entry                     |
+| `Shift+Enter`      | Composer focused     | Newline in composer              |
+| `Enter`            | Editing entry        | Save edit                        |
+| `Esc`              | Editing entry        | Cancel edit                      |
+| `Cmd/Ctrl+Shift+N` | Code/Chat/Video pane | Push selection to niotepad       |
+| `Tab`              | Panel has focus      | Cycle through focusable elements |
+| `Shift+Tab`        | Panel has focus      | Reverse cycle                    |
+| `Cmd/Ctrl+F`       | Panel has focus      | Focus search input               |
+| `ArrowLeft`        | Page nav focused     | Previous page                    |
+| `ArrowRight`       | Page nav focused     | Next page                        |
 
 **Note on `Cmd+N`:** This shortcut is reserved by all major browsers (opens new
 window) and **cannot** be overridden by web applications. We use `Cmd+J` instead,
@@ -861,7 +867,10 @@ type NiotepadActions = {
 
   // Entries
   addEntry: (params: AddEntryParams) => string;
-  updateEntry: (id: string, updates: Partial<Pick<NiotepadEntryData, "content">>) => void;
+  updateEntry: (
+    id: string,
+    updates: Partial<Pick<NiotepadEntryData, "content">>,
+  ) => void;
   deleteEntry: (id: string) => void;
 
   // Search
@@ -889,26 +898,26 @@ type NiotepadActions = {
 /** All entries for the active page, filtered by search query and source filters. */
 function selectFilteredEntries(state: NiotepadStore): NiotepadEntryData[] {
   const page = state.activePageId
-    ? state.pages.find(p => p.id === state.activePageId)
+    ? state.pages.find((p) => p.id === state.activePageId)
     : null;
 
   // "All" view: flatten all pages
-  const entries = page
-    ? page.entries
-    : state.pages.flatMap(p => p.entries);
+  const entries = page ? page.entries : state.pages.flatMap((p) => p.entries);
 
   // Apply source filter
-  const filtered = state.sourceFilters.length > 0
-    ? entries.filter(e => state.sourceFilters.includes(e.source))
-    : entries;
+  const filtered =
+    state.sourceFilters.length > 0
+      ? entries.filter((e) => state.sourceFilters.includes(e.source))
+      : entries;
 
   // Apply search query
   if (!state.searchQuery.trim()) return filtered;
 
   const query = state.searchQuery.trim().toLowerCase();
-  return filtered.filter(e =>
-    e.content.toLowerCase().includes(query) ||
-    e.metadata.lectureTitle?.toLowerCase().includes(query)
+  return filtered.filter(
+    (e) =>
+      e.content.toLowerCase().includes(query) ||
+      e.metadata.lectureTitle?.toLowerCase().includes(query),
   );
 }
 
@@ -920,7 +929,7 @@ function selectTotalEntryCount(state: NiotepadStore): number {
 /** Entry count for the active page. */
 function selectActivePageEntryCount(state: NiotepadStore): number {
   if (!state.activePageId) return selectTotalEntryCount(state);
-  const page = state.pages.find(p => p.id === state.activePageId);
+  const page = state.pages.find((p) => p.id === state.activePageId);
   return page?.entries.length ?? 0;
 }
 ```
@@ -928,21 +937,25 @@ function selectActivePageEntryCount(state: NiotepadStore): number {
 ### 6.3 Persistence Strategy
 
 **Entry data** (pages + entries):
+
 - Stored in IndexedDB database `niotebook-niotepad`, object store `notebooks`
 - Key: fixed string `"notebook-v1"` (single notebook per user for now)
 - Value: JSON-serialized `{ pages: NiotepadPage[], version: 1 }`
 - Auto-save: 500ms debounce after any mutation (same as `feat/niotepad`)
 
 **Panel geometry** (position + size):
+
 - Stored in `localStorage` key `"niotebook.niotepad.geometry"`
 - Value: JSON `{ x, y, width, height }`
 - Written on drag-end and resize-end (not during drag -- too frequent)
 
 **Panel open state:**
+
 - **Not persisted.** Panel starts closed on each page load.
 - Rationale: An auto-opening panel on workspace load would be disorienting.
 
 **Unread badge:**
+
 - Stored in `localStorage` key `"niotebook.niotepad.unread"`
 - Value: `"true"` or absent
 - Cleared when panel is opened
@@ -1053,12 +1066,12 @@ type AddEntryParams = {
 
 ### 7.3 Entry Content Formats by Source
 
-| Source | Content Format | Example |
-|--------|---------------|---------|
-| `manual` | Raw text or markdown | `"Remember: Big-O is about worst case"` |
-| `code` | Markdown code fence with language tag | ````\`\`\`python\nfor i in range(10):\n    print(i)\n\`\`\```` |
-| `chat` | Plain text (user-selected excerpt) | `"The key insight is that merge sort divides..."` |
-| `video` | AI-generated 1-2 sentence summary | `"Professor Malan introduces hash tables as a data structure..."` |
+| Source   | Content Format                        | Example                                                           |
+| -------- | ------------------------------------- | ----------------------------------------------------------------- |
+| `manual` | Raw text or markdown                  | `"Remember: Big-O is about worst case"`                           |
+| `code`   | Markdown code fence with language tag | ``\`\`\`python\nfor i in range(10):\n    print(i)\n\`\`\``        |
+| `chat`   | Plain text (user-selected excerpt)    | `"The key insight is that merge sort divides..."`                 |
+| `video`  | AI-generated 1-2 sentence summary     | `"Professor Malan introduces hash tables as a data structure..."` |
 
 ---
 
@@ -1071,7 +1084,7 @@ or clicks a "Push to N" button that appears in the editor toolbar on selection.
 
 **Flow:**
 
-```
+````
 1. User selects code in CodeMirror editor
 2. Selection detected via CodeMirror's view.state.selection
 3. Push action triggered (keyboard shortcut or button)
@@ -1091,7 +1104,7 @@ or clicks a "Push to N" button that appears in the editor toolbar on selection.
    }
 7. If panel is closed, set hasUnread = true (badge appears on N pill)
 8. If panel is open, scroll to new entry with highlight pulse
-```
+````
 
 **Integration point:** `src/ui/panes/CodePane.tsx` -- add push handler that reads
 from `useEditorStore` and `useFileSystemStore`.
@@ -1215,6 +1228,7 @@ The `NiotepadPageNav` renders as a horizontal tab strip below the drag handle:
 ### 9.4 "All" View
 
 When `activePageId` is `null`:
+
 - Entries from all pages are shown in chronological order
 - Each entry displays a subtle page/lecture label above it
 - Composer submits to the page matching the current workspace lesson
@@ -1235,16 +1249,18 @@ function searchEntries(
 
   const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
 
-  return entries.filter(entry => {
+  return entries.filter((entry) => {
     const searchable = [
       entry.content,
       entry.metadata.lectureTitle ?? "",
       entry.metadata.filePath ?? "",
       entry.metadata.language ?? "",
-    ].join(" ").toLowerCase();
+    ]
+      .join(" ")
+      .toLowerCase();
 
     // All terms must match (AND logic)
-    return terms.every(term => searchable.includes(term));
+    return terms.every((term) => searchable.includes(term));
   });
 }
 ```
@@ -1256,13 +1272,13 @@ function searchEntries(
 
 ### 10.2 Filter Categories
 
-| Filter | Matches | Chip Label |
-|--------|---------|------------|
-| (none) | All entries | "All" |
-| `code` | `source === "code"` | "Code" |
-| `chat` | `source === "chat"` | "Chat" |
-| `video` | `source === "video"` | "Video" |
-| `manual` | `source === "manual"` | "Notes" |
+| Filter   | Matches               | Chip Label |
+| -------- | --------------------- | ---------- |
+| (none)   | All entries           | "All"      |
+| `code`   | `source === "code"`   | "Code"     |
+| `chat`   | `source === "chat"`   | "Chat"     |
+| `video`  | `source === "video"`  | "Video"    |
+| `manual` | `source === "manual"` | "Notes"    |
 
 - Filters are toggleable chips below the search input
 - Multiple filters can be active simultaneously (OR logic between filters)
@@ -1424,8 +1440,8 @@ const shouldReduceMotion = useReducedMotion();
   aria-describedby="niotepad-description"
 >
   <p id="niotepad-description" class="sr-only">
-    A floating notebook for capturing notes from video lectures,
-    code exercises, and AI chat conversations.
+    A floating notebook for capturing notes from video lectures, code exercises,
+    and AI chat conversations.
   </p>
   ...
 </aside>
@@ -1441,9 +1457,7 @@ const shouldReduceMotion = useReducedMotion();
 </nav>
 
 <!-- Scroll area (page content) -->
-<div role="tabpanel" id="page-panel-l3" aria-label="Lecture 3 notes">
-  ...
-</div>
+<div role="tabpanel" id="page-panel-l3" aria-label="Lecture 3 notes">...</div>
 
 <!-- Individual entries -->
 <article aria-label="Note entry">
@@ -1477,11 +1491,13 @@ const shouldReduceMotion = useReducedMotion();
 ### 12.2 Focus Management
 
 **On open:**
+
 1. Store the currently focused element (`document.activeElement`)
 2. Move focus to the first focusable element inside the panel (search or composer)
 3. Activate focus trap: Tab/Shift+Tab cycle within panel
 
 **On close:**
+
 1. Restore focus to the previously focused element
 2. Deactivate focus trap
 
@@ -1515,6 +1531,7 @@ Tab order within panel:
 ### 12.5 Color Contrast
 
 All text within the panel must meet WCAG 2.1 AA:
+
 - Normal text (14px): minimum 4.5:1 contrast ratio
 - Large text (18px+): minimum 3:1 contrast ratio
 - The panel uses a fully opaque `var(--surface)` background -- contrast is inherently guaranteed
@@ -1578,10 +1595,9 @@ function useVisibleEntries(
 
 ```typescript
 // In NiotepadProvider.tsx:
-const NiotepadPortal = dynamic(
-  () => import("./NiotepadPortal"),
-  { ssr: false }
-);
+const NiotepadPortal = dynamic(() => import("./NiotepadPortal"), {
+  ssr: false,
+});
 ```
 
 ### 13.4 Animation Performance
@@ -1607,6 +1623,7 @@ const NiotepadPortal = dynamic(
 **Goal:** Data layer ready, zero UI.
 
 **Deliverables:**
+
 - `src/domain/niotepad.ts` -- types (page model, entry data, metadata)
 - `src/infra/niotepad/useNiotepadStore.ts` -- Zustand store with full CRUD
 - `src/infra/niotepad/indexedDbNiotepad.ts` -- IndexedDB persistence
@@ -1624,6 +1641,7 @@ const NiotepadPortal = dynamic(
 **Goal:** Empty solid floating panel that opens, closes, drags, and resizes.
 
 **Deliverables:**
+
 - `src/ui/niotepad/NiotepadProvider.tsx` -- keyboard shortcut + conditional portal
 - `src/ui/niotepad/NiotepadPortal.tsx` -- React portal
 - `src/ui/niotepad/NiotepadBackdrop.tsx` -- click-outside dismiss
@@ -1647,6 +1665,7 @@ const NiotepadPortal = dynamic(
 **Goal:** Ruled paper background, entry rendering, manual note creation.
 
 **Deliverables:**
+
 - `src/ui/niotepad/NiotepadScrollArea.tsx` -- ruled paper + binder dots
 - `src/ui/niotepad/NiotepadEntry.tsx` -- entry rendering (all source types)
 - `src/ui/niotepad/NiotepadComposer.tsx` -- inline textarea
@@ -1666,6 +1685,7 @@ const NiotepadPortal = dynamic(
 **Goal:** Gesture-based entry deletion.
 
 **Deliverables:**
+
 - Add swipe gesture to `NiotepadEntry.tsx` using Framer Motion drag
 - Delete animation (slide out + height collapse)
 - Fallback hover X button for non-touch devices
@@ -1683,6 +1703,7 @@ const NiotepadPortal = dynamic(
 **Goal:** Per-lecture pages with tab navigation.
 
 **Deliverables:**
+
 - `src/ui/niotepad/NiotepadPageNav.tsx` -- horizontal tab bar
 - Auto-create pages on entry push (linked to active lessonId)
 - "All" view for cross-page browsing
@@ -1701,6 +1722,7 @@ const NiotepadPortal = dynamic(
 **Goal:** Bidirectional push from all three workspace panes.
 
 **Deliverables:**
+
 - Push from CodePane: selection detection + push handler
 - Push from AiPane: reuse `useSelectionPush.ts` + floating tooltip
 - Push from VideoPane: pin button + async AI summarization
@@ -1719,6 +1741,7 @@ const NiotepadPortal = dynamic(
 **Goal:** Find entries by content, filter by source type.
 
 **Deliverables:**
+
 - `src/ui/niotepad/NiotepadSearch.tsx` -- expandable search + filter chips
 - Search algorithm with multi-term AND matching
 - Match highlighting in entry text
@@ -1736,6 +1759,7 @@ const NiotepadPortal = dynamic(
 **Goal:** Production-grade accessibility, performance tuning, edge cases.
 
 **Deliverables:**
+
 - Focus trap implementation
 - ARIA attributes on all interactive elements
 - Screen reader announcements (aria-live regions)
@@ -1754,17 +1778,17 @@ const NiotepadPortal = dynamic(
 
 ### Phase Summary
 
-| Phase | Description | New Files | Modified Files | Estimated Effort |
-|-------|-------------|-----------|----------------|------------------|
-| 1 | Foundation | 4 | 0 | Small |
-| 2 | Panel Shell | 7 | 3 | Medium |
-| 3 | Paper + Entries | 3 | 1 | Medium |
-| 4 | Swipe-to-Delete | 0 | 1 | Small |
-| 5 | Page Navigation | 1 | 2 | Medium |
-| 6 | Push Mechanics | 1 | 4 | Large |
-| 7 | Search & Filter | 1 | 2 | Medium |
-| 8 | Polish | 0 | ~8 | Medium |
-| **Total** | | **17** | **~21** | |
+| Phase     | Description     | New Files | Modified Files | Estimated Effort |
+| --------- | --------------- | --------- | -------------- | ---------------- |
+| 1         | Foundation      | 4         | 0              | Small            |
+| 2         | Panel Shell     | 7         | 3              | Medium           |
+| 3         | Paper + Entries | 3         | 1              | Medium           |
+| 4         | Swipe-to-Delete | 0         | 1              | Small            |
+| 5         | Page Navigation | 1         | 2              | Medium           |
+| 6         | Push Mechanics  | 1         | 4              | Large            |
+| 7         | Search & Filter | 1         | 2              | Medium           |
+| 8         | Polish          | 0         | ~8             | Medium           |
+| **Total** |                 | **17**    | **~21**        |                  |
 
 ---
 
@@ -1772,47 +1796,47 @@ const NiotepadPortal = dynamic(
 
 ### New Files
 
-| File Path | Description |
-|-----------|-------------|
-| `src/domain/niotepad.ts` | Domain types: entry, page, snapshot, metadata |
-| `src/infra/niotepad/useNiotepadStore.ts` | Zustand store: panel state + entry CRUD + persistence |
-| `src/infra/niotepad/indexedDbNiotepad.ts` | IndexedDB read/write for notebook snapshots |
-| `src/infra/niotepad/niotepadSelectors.ts` | Derived selectors: filtered entries, counts |
-| `src/ui/niotepad/NiotepadProvider.tsx` | Keyboard shortcut listener + conditional portal mount |
-| `src/ui/niotepad/NiotepadPortal.tsx` | React portal to document.body |
-| `src/ui/niotepad/NiotepadBackdrop.tsx` | Click-outside dismiss layer |
-| `src/ui/niotepad/NiotepadPanel.tsx` | Main solid floating panel with elevation shadows |
-| `src/ui/niotepad/NiotepadDragHandle.tsx` | Top bar: title, grip, close button |
-| `src/ui/niotepad/NiotepadResizeHandle.tsx` | Bottom-right resize grip |
-| `src/ui/niotepad/NiotepadPill.tsx` | "N" pill trigger for TopNav |
-| `src/ui/niotepad/NiotepadPageNav.tsx` | Horizontal page tab bar |
-| `src/ui/niotepad/NiotepadSearch.tsx` | Expandable search + filter chips |
-| `src/ui/niotepad/NiotepadScrollArea.tsx` | Ruled paper + binder dots scroll container |
-| `src/ui/niotepad/NiotepadEntry.tsx` | Individual entry renderer |
-| `src/ui/niotepad/NiotepadComposer.tsx` | Inline composer textarea |
-| `src/app/api/nio/summarize/route.ts` | Video moment AI summarization endpoint |
+| File Path                                  | Description                                           |
+| ------------------------------------------ | ----------------------------------------------------- |
+| `src/domain/niotepad.ts`                   | Domain types: entry, page, snapshot, metadata         |
+| `src/infra/niotepad/useNiotepadStore.ts`   | Zustand store: panel state + entry CRUD + persistence |
+| `src/infra/niotepad/indexedDbNiotepad.ts`  | IndexedDB read/write for notebook snapshots           |
+| `src/infra/niotepad/niotepadSelectors.ts`  | Derived selectors: filtered entries, counts           |
+| `src/ui/niotepad/NiotepadProvider.tsx`     | Keyboard shortcut listener + conditional portal mount |
+| `src/ui/niotepad/NiotepadPortal.tsx`       | React portal to document.body                         |
+| `src/ui/niotepad/NiotepadBackdrop.tsx`     | Click-outside dismiss layer                           |
+| `src/ui/niotepad/NiotepadPanel.tsx`        | Main solid floating panel with elevation shadows      |
+| `src/ui/niotepad/NiotepadDragHandle.tsx`   | Top bar: title, grip, close button                    |
+| `src/ui/niotepad/NiotepadResizeHandle.tsx` | Bottom-right resize grip                              |
+| `src/ui/niotepad/NiotepadPill.tsx`         | "N" pill trigger for TopNav                           |
+| `src/ui/niotepad/NiotepadPageNav.tsx`      | Horizontal page tab bar                               |
+| `src/ui/niotepad/NiotepadSearch.tsx`       | Expandable search + filter chips                      |
+| `src/ui/niotepad/NiotepadScrollArea.tsx`   | Ruled paper + binder dots scroll container            |
+| `src/ui/niotepad/NiotepadEntry.tsx`        | Individual entry renderer                             |
+| `src/ui/niotepad/NiotepadComposer.tsx`     | Inline composer textarea                              |
+| `src/app/api/nio/summarize/route.ts`       | Video moment AI summarization endpoint                |
 
 ### Modified Files
 
-| File Path | Changes |
-|-----------|---------|
-| `src/ui/shell/AppShell.tsx` | Wrap children with `<NiotepadProvider>` |
-| `src/ui/shell/TopNav.tsx` | Add `<NiotepadPill>` to header controls |
-| `src/app/globals.css` | Add `--niotepad-*` CSS custom properties |
-| `src/ui/panes/CodePane.tsx` | Add push-to-niotepad handler on code selection |
-| `src/ui/panes/AiPane.tsx` | Add `useSelectionPush` integration |
-| `src/ui/panes/VideoPane.tsx` | Add pin/bookmark button for video push |
+| File Path                     | Changes                                        |
+| ----------------------------- | ---------------------------------------------- |
+| `src/ui/shell/AppShell.tsx`   | Wrap children with `<NiotepadProvider>`        |
+| `src/ui/shell/TopNav.tsx`     | Add `<NiotepadPill>` to header controls        |
+| `src/app/globals.css`         | Add `--niotepad-*` CSS custom properties       |
+| `src/ui/panes/CodePane.tsx`   | Add push-to-niotepad handler on code selection |
+| `src/ui/panes/AiPane.tsx`     | Add `useSelectionPush` integration             |
+| `src/ui/panes/VideoPane.tsx`  | Add pin/bookmark button for video push         |
 | `src/ui/chat/ChatMessage.tsx` | Render selection push tooltip (if not already) |
 
 ### Files Explicitly NOT Modified
 
-| File Path | Reason |
-|-----------|--------|
-| `src/ui/layout/WorkspaceGrid.tsx` | Sacred layout grid -- no niotepad integration |
-| `src/ui/layout/LayoutGrid.tsx` | Sacred layout grid -- no changes |
-| `src/ui/layout/layoutTypes.ts` | No new layout presets needed |
-| `src/ui/layout/LayoutPresetContext.tsx` | No layout state changes |
-| `src/ui/layout/LayoutPresetToggle.tsx` | No new toggles (N pill is separate) |
+| File Path                               | Reason                                        |
+| --------------------------------------- | --------------------------------------------- |
+| `src/ui/layout/WorkspaceGrid.tsx`       | Sacred layout grid -- no niotepad integration |
+| `src/ui/layout/LayoutGrid.tsx`          | Sacred layout grid -- no changes              |
+| `src/ui/layout/layoutTypes.ts`          | No new layout presets needed                  |
+| `src/ui/layout/LayoutPresetContext.tsx` | No layout state changes                       |
+| `src/ui/layout/LayoutPresetToggle.tsx`  | No new toggles (N pill is separate)           |
 
 ---
 
@@ -1820,29 +1844,29 @@ const NiotepadPortal = dynamic(
 
 ### High Risk
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Multi-layer box-shadow rendering on low-end devices | Panel shadow looks flat or causes minor paint overhead | Low | 5-layer shadow is well within browser paint budgets. Test on 2019-era hardware. Reduce to 3 layers if needed. |
-| Focus trap conflicts with CodeMirror | Keyboard shortcuts in editor stop working when panel is open | Medium | Panel focus trap only activates when panel itself has focus. CodeMirror is in the main DOM tree (outside portal), so Tab will not escape into it. Test extensively with editor open. |
-| IndexedDB storage limits on iOS Safari | Data loss after 7 days of inactivity (WebKit eviction) | Low | Display warning in export flow. IndexedDB data is not critical (can be re-captured). Long-term: Convex sync. |
-| Z-index conflicts with ControlCenterDrawer | Panel and drawer fight for visibility | Low | ControlCenterDrawer is z-50. Panel is z-50. They should not both be open. Add mutual exclusion: opening drawer closes niotepad, and vice versa. |
+| Risk                                                | Impact                                                       | Likelihood | Mitigation                                                                                                                                                                           |
+| --------------------------------------------------- | ------------------------------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Multi-layer box-shadow rendering on low-end devices | Panel shadow looks flat or causes minor paint overhead       | Low        | 5-layer shadow is well within browser paint budgets. Test on 2019-era hardware. Reduce to 3 layers if needed.                                                                        |
+| Focus trap conflicts with CodeMirror                | Keyboard shortcuts in editor stop working when panel is open | Medium     | Panel focus trap only activates when panel itself has focus. CodeMirror is in the main DOM tree (outside portal), so Tab will not escape into it. Test extensively with editor open. |
+| IndexedDB storage limits on iOS Safari              | Data loss after 7 days of inactivity (WebKit eviction)       | Low        | Display warning in export flow. IndexedDB data is not critical (can be re-captured). Long-term: Convex sync.                                                                         |
+| Z-index conflicts with ControlCenterDrawer          | Panel and drawer fight for visibility                        | Low        | ControlCenterDrawer is z-50. Panel is z-50. They should not both be open. Add mutual exclusion: opening drawer closes niotepad, and vice versa.                                      |
 
 ### Medium Risk
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Cmd+J conflict with browser "Downloads" shortcut | Firefox uses Cmd+J for Downloads panel | Medium | Firefox intercepts this. Test on Firefox; if blocked, use `Cmd+Shift+J` or `Cmd+.` as fallback. Add settings for custom shortcut in future. |
-| Swipe-to-delete accidental triggers | Users accidentally delete entries while scrolling | Medium | Require 80px horizontal threshold. Vertical scroll tolerance: if dy > dx, treat as scroll, not swipe. Add undo toast for 3 seconds after delete. |
-| AI summarization latency | Video push entries show "Summarizing..." for too long | Low | Set 8-second timeout. Show progress indicator. Fallback to static bookmark text. |
-| Panel visual weight in light mode | Solid white panel may feel heavy against workspace | Low | Warm cream paper tint (`--niotepad-paper`) + ruled lines add warmth. Elevation shadows provide float. The solid surface is the intentional design choice for focus. |
+| Risk                                             | Impact                                                | Likelihood | Mitigation                                                                                                                                                          |
+| ------------------------------------------------ | ----------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cmd+J conflict with browser "Downloads" shortcut | Firefox uses Cmd+J for Downloads panel                | Medium     | Firefox intercepts this. Test on Firefox; if blocked, use `Cmd+Shift+J` or `Cmd+.` as fallback. Add settings for custom shortcut in future.                         |
+| Swipe-to-delete accidental triggers              | Users accidentally delete entries while scrolling     | Medium     | Require 80px horizontal threshold. Vertical scroll tolerance: if dy > dx, treat as scroll, not swipe. Add undo toast for 3 seconds after delete.                    |
+| AI summarization latency                         | Video push entries show "Summarizing..." for too long | Low        | Set 8-second timeout. Show progress indicator. Fallback to static bookmark text.                                                                                    |
+| Panel visual weight in light mode                | Solid white panel may feel heavy against workspace    | Low        | Warm cream paper tint (`--niotepad-paper`) + ruled lines add warmth. Elevation shadows provide float. The solid surface is the intentional design choice for focus. |
 
 ### Low Risk
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| nanoid not available as dependency | Build failure | Very Low | nanoid is already in node_modules as transitive dep. If needed, add as direct dependency. |
-| ReactMarkdown bundle size | Larger initial chunk | Low | Dynamic import (`next/dynamic`) ensures it loads only when panel opens. |
-| Page proliferation | Too many tabs in page nav | Very Low | Courses typically have 10-15 lectures. Tab overflow scroll handles it. |
+| Risk                               | Impact                    | Likelihood | Mitigation                                                                                |
+| ---------------------------------- | ------------------------- | ---------- | ----------------------------------------------------------------------------------------- |
+| nanoid not available as dependency | Build failure             | Very Low   | nanoid is already in node_modules as transitive dep. If needed, add as direct dependency. |
+| ReactMarkdown bundle size          | Larger initial chunk      | Low        | Dynamic import (`next/dynamic`) ensures it loads only when panel opens.                   |
+| Page proliferation                 | Too many tabs in page nav | Very Low   | Courses typically have 10-15 lectures. Tab overflow scroll handles it.                    |
 
 ---
 
@@ -1850,23 +1874,23 @@ const NiotepadPortal = dynamic(
 
 ### Requiring Decision Before Implementation
 
-| # | Question | Options | Recommendation |
-|---|----------|---------|----------------|
-| 1 | **Keyboard shortcut:** `Cmd+J` works in Chrome/Safari but Firefox uses it for Downloads. | A) `Cmd+J` and accept Firefox conflict. B) `Cmd+Shift+J`. C) `Cmd+.` (period). D) Make it configurable. | **B) `Cmd+Shift+J`** -- avoids all known browser conflicts. Or accept `Cmd+J` and note Firefox limitation. |
-| 2 | **Mutual exclusion with ControlCenterDrawer:** Should opening one close the other? | A) Yes, mutual exclusion. B) Both can be open simultaneously. | **A) Mutual exclusion.** Two overlays is visually chaotic and confusing. |
-| 3 | **Undo on delete:** Should swipe-to-delete show a 3-second undo toast? | A) Yes, with toast. B) No, immediate permanent delete. C) Move to "trash" with periodic cleanup. | **A) Undo toast.** Gestures are error-prone. 3-second window is standard. |
-| 4 | **Corner gesture invocation:** Worth implementing in v1? | A) Yes, implement swipe-from-corner. B) Defer to v2. | **B) Defer.** Corner gestures are hard to discover and conflict with OS gestures (macOS Hot Corners, iPad multitasking). Keyboard + pill is sufficient for v1. |
-| 5 | **Drag-to-dismiss:** Worth implementing in v1? | A) Yes, fling downward to dismiss. B) Defer to v2. | **B) Defer.** ESC + click-outside + X button provide three dismiss mechanisms already. Fling-to-dismiss is a polish item. |
+| #   | Question                                                                                 | Options                                                                                                 | Recommendation                                                                                                                                                 |
+| --- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Keyboard shortcut:** `Cmd+J` works in Chrome/Safari but Firefox uses it for Downloads. | A) `Cmd+J` and accept Firefox conflict. B) `Cmd+Shift+J`. C) `Cmd+.` (period). D) Make it configurable. | **B) `Cmd+Shift+J`** -- avoids all known browser conflicts. Or accept `Cmd+J` and note Firefox limitation.                                                     |
+| 2   | **Mutual exclusion with ControlCenterDrawer:** Should opening one close the other?       | A) Yes, mutual exclusion. B) Both can be open simultaneously.                                           | **A) Mutual exclusion.** Two overlays is visually chaotic and confusing.                                                                                       |
+| 3   | **Undo on delete:** Should swipe-to-delete show a 3-second undo toast?                   | A) Yes, with toast. B) No, immediate permanent delete. C) Move to "trash" with periodic cleanup.        | **A) Undo toast.** Gestures are error-prone. 3-second window is standard.                                                                                      |
+| 4   | **Corner gesture invocation:** Worth implementing in v1?                                 | A) Yes, implement swipe-from-corner. B) Defer to v2.                                                    | **B) Defer.** Corner gestures are hard to discover and conflict with OS gestures (macOS Hot Corners, iPad multitasking). Keyboard + pill is sufficient for v1. |
+| 5   | **Drag-to-dismiss:** Worth implementing in v1?                                           | A) Yes, fling downward to dismiss. B) Defer to v2.                                                      | **B) Defer.** ESC + click-outside + X button provide three dismiss mechanisms already. Fling-to-dismiss is a polish item.                                      |
 
 ### Deferred to Post-MVP
 
-| # | Question | Notes |
-|---|----------|-------|
-| 6 | Convex sync for cross-device persistence | Requires schema addition, auth integration, conflict resolution. Out of scope for v1. |
-| 7 | Rich text editing (bold, italic, lists) | Current model: raw text with markdown rendering. Could add toolbar in v2. |
-| 8 | Collaborative notes (shared between users) | Requires significant backend work. Not in scope. |
-| 9 | Custom niotepad themes/colors | Users pick paper color, line color, etc. Nice-to-have for v2. |
-| 10 | Context menu (right-click) on entries | Alternative to hover actions for send-to-chat, insert-to-editor. Deferred until pull actions are redesigned. |
+| #   | Question                                   | Notes                                                                                                        |
+| --- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| 6   | Convex sync for cross-device persistence   | Requires schema addition, auth integration, conflict resolution. Out of scope for v1.                        |
+| 7   | Rich text editing (bold, italic, lists)    | Current model: raw text with markdown rendering. Could add toolbar in v2.                                    |
+| 8   | Collaborative notes (shared between users) | Requires significant backend work. Not in scope.                                                             |
+| 9   | Custom niotepad themes/colors              | Users pick paper color, line color, etc. Nice-to-have for v2.                                                |
+| 10  | Context menu (right-click) on entries      | Alternative to hover actions for send-to-chat, insert-to-editor. Deferred until pull actions are redesigned. |
 
 ---
 
@@ -1949,10 +1973,10 @@ ControlCenterDrawer             50         Existing -- mutual exclusion with nio
 
 ## Appendix D: localStorage Keys
 
-| Key | Value Type | Purpose |
-|-----|-----------|---------|
+| Key                           | Value Type                | Purpose                                                                   |
+| ----------------------------- | ------------------------- | ------------------------------------------------------------------------- |
 | `niotebook.niotepad.geometry` | `{ x, y, width, height }` | Panel X position (only `x` used at runtime; Y is computed, size is fixed) |
-| `niotebook.niotepad.unread` | `"true"` or absent | Unread badge state |
+| `niotebook.niotepad.unread`   | `"true"` or absent        | Unread badge state                                                        |
 
 **Note:** Entry data is stored in IndexedDB, not localStorage. Panel open/close
 state is NOT persisted (panel starts closed).
@@ -1984,24 +2008,24 @@ state is NOT persisted (panel starts closed).
 
 All five open questions from Section 17 were resolved before implementation:
 
-| # | Decision | Rationale |
-|---|----------|-----------|
-| 1 | **Cmd+J** (accept Firefox conflict) | Firefox intercepts Cmd+J for Downloads. Accepted trade-off; Cmd+J is the most discoverable shortcut. |
-| 2 | **Mutual exclusion** with ControlCenterDrawer | Two overlays is chaotic. Zustand subscribe pattern: opening one closes the other. |
-| 3 | **Undo toast** on swipe-to-delete (3 seconds) | Gestures are error-prone. Standard undo window. *(Toast UI deferred to iteration.)* |
-| 4 | **Corner gesture deferred** to v2 | Conflicts with OS gestures. Keyboard + pill is sufficient. |
-| 5 | **Drag-to-dismiss deferred** to v2 | ESC + click-outside + X button provide three dismiss mechanisms already. |
+| #   | Decision                                      | Rationale                                                                                            |
+| --- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 1   | **Cmd+J** (accept Firefox conflict)           | Firefox intercepts Cmd+J for Downloads. Accepted trade-off; Cmd+J is the most discoverable shortcut. |
+| 2   | **Mutual exclusion** with ControlCenterDrawer | Two overlays is chaotic. Zustand subscribe pattern: opening one closes the other.                    |
+| 3   | **Undo toast** on swipe-to-delete (3 seconds) | Gestures are error-prone. Standard undo window. _(Toast UI deferred to iteration.)_                  |
+| 4   | **Corner gesture deferred** to v2             | Conflicts with OS gestures. Keyboard + pill is sufficient.                                           |
+| 5   | **Drag-to-dismiss deferred** to v2            | ESC + click-outside + X button provide three dismiss mechanisms already.                             |
 
 ### 18.2 Deviations from Plan
 
-| Area | Plan | Implementation | Reason |
-|------|------|----------------|--------|
-| **IDs** | nanoid | `crypto.randomUUID()` | nanoid was not a direct dependency. `crypto.randomUUID()` is native, zero-bundle-cost, and produces sufficiently unique IDs for local-only storage. |
-| **Resize** | Resizable panel (320x360 min, 640x800 max) | **Fixed size** (440x560), resize handle removed | During manual testing, resize added complexity without value. Fixed dimensions produce a more Apple-esque, opinionated experience. The panel is a focused tool, not a window manager. |
-| **Drag axis** | Free-form drag (X + Y) | **X-axis only**, Y locked to vertically centered below TopNav | Locking Y eliminates visual chaos of a panel floating at arbitrary heights. Horizontal sliding feels native (Apple Sheets, iOS panels). Y is computed: `TOPNAV_HEIGHT + (workspaceHeight - PANEL_HEIGHT) / 2`. |
-| **Drag constraints** | Viewport edges with 24px padding | Viewport edges with 16px padding, X-only | Tighter padding maximizes usable slide range. |
-| **Open animation `y`** | `y: 12` initial offset | Kept as-is (spring animates Y offset relative to final position) | The `y` in framer-motion `initial/animate` is relative, not absolute. It works correctly with locked Y positioning. |
-| **Summarize API route** | `/api/nio/summarize` for video push | Not implemented | Video push creates bookmark entries with timestamp. AI summarization deferred to iteration. |
+| Area                    | Plan                                       | Implementation                                                   | Reason                                                                                                                                                                                                         |
+| ----------------------- | ------------------------------------------ | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IDs**                 | nanoid                                     | `crypto.randomUUID()`                                            | nanoid was not a direct dependency. `crypto.randomUUID()` is native, zero-bundle-cost, and produces sufficiently unique IDs for local-only storage.                                                            |
+| **Resize**              | Resizable panel (320x360 min, 640x800 max) | **Fixed size** (440x560), resize handle removed                  | During manual testing, resize added complexity without value. Fixed dimensions produce a more Apple-esque, opinionated experience. The panel is a focused tool, not a window manager.                          |
+| **Drag axis**           | Free-form drag (X + Y)                     | **X-axis only**, Y locked to vertically centered below TopNav    | Locking Y eliminates visual chaos of a panel floating at arbitrary heights. Horizontal sliding feels native (Apple Sheets, iOS panels). Y is computed: `TOPNAV_HEIGHT + (workspaceHeight - PANEL_HEIGHT) / 2`. |
+| **Drag constraints**    | Viewport edges with 24px padding           | Viewport edges with 16px padding, X-only                         | Tighter padding maximizes usable slide range.                                                                                                                                                                  |
+| **Open animation `y`**  | `y: 12` initial offset                     | Kept as-is (spring animates Y offset relative to final position) | The `y` in framer-motion `initial/animate` is relative, not absolute. It works correctly with locked Y positioning.                                                                                            |
+| **Summarize API route** | `/api/nio/summarize` for video push        | Not implemented                                                  | Video push creates bookmark entries with timestamp. AI summarization deferred to iteration.                                                                                                                    |
 
 ### 18.3 Principles Adhered To
 
@@ -2012,12 +2036,14 @@ Every component was built with minimal props, minimal state, and zero unnecessar
 The panel uses `var(--surface)` with a 5-layer elevation shadow. No `backdrop-filter`, no transparency, no glassmorphism. This was a deliberate correction from the initial plan draft, documented in commit `1efea22`.
 
 **3. Form follows function.**
+
 - Entries have no source badges, no hover action buttons, no visual chrome differentiating code vs chat vs manual entries. Every note looks the same on the ruled paper.
 - The only visual distinction is video entries, which show a clickable lecture title header above their content.
 - Swipe-to-delete is the primary delete gesture; the hover X button exists solely as an accessibility fallback.
 
 **4. Spring physics, never linear easing.**
 All animations use Framer Motion springs with specific stiffness/damping/mass tuning:
+
 - Panel open: `stiffness: 400, damping: 28, mass: 0.8`
 - Panel close: `stiffness: 500, damping: 30, mass: 0.6` (faster = snappier)
 - Entry appear: `stiffness: 350, damping: 25, mass: 0.5`
@@ -2027,6 +2053,7 @@ All animations use Framer Motion springs with specific stiffness/damping/mass tu
 The panel renders via `createPortal(document.body)`, completely outside the React tree that contains `WorkspaceGrid`. Zero CSS or DOM interference with the pane layout. The backdrop sits at z-49, panel at z-50.
 
 **6. Accessibility is not optional.**
+
 - Focus trap with Tab/Shift+Tab wrapping
 - Scoped ESC priority chain: cancel edit > collapse search > close panel
 - `aria-describedby` linking dialog to its description
@@ -2043,34 +2070,34 @@ Derived selectors that return new array references (like `selectFilteredEntries`
 
 ### 18.4 Commit History
 
-| Commit | Phase | Description |
-|--------|-------|-------------|
-| `c65fd42` | -- | Initial architecture plan |
-| `1efea22` | -- | Glassmorphism to solid surface correction |
-| `777702d` | 1 | Domain types, Zustand store, IndexedDB persistence |
-| `3177eab` | 2 | Floating solid-surface panel shell |
-| `eae9c23` | 3 | Ruled-paper content area with entries and composer |
-| `da965d6` | 6 | Bidirectional push from code, chat, and video |
-| `0d49d29` | 4 | Swipe-to-delete gesture |
-| `8e4ffde` | 5 | Per-lecture page navigation |
-| `998df76` | 7 | Search and filter |
-| `d5a03d5` | 8 | Accessibility, performance, and polish |
+| Commit    | Phase | Description                                        |
+| --------- | ----- | -------------------------------------------------- |
+| `c65fd42` | --    | Initial architecture plan                          |
+| `1efea22` | --    | Glassmorphism to solid surface correction          |
+| `777702d` | 1     | Domain types, Zustand store, IndexedDB persistence |
+| `3177eab` | 2     | Floating solid-surface panel shell                 |
+| `eae9c23` | 3     | Ruled-paper content area with entries and composer |
+| `da965d6` | 6     | Bidirectional push from code, chat, and video      |
+| `0d49d29` | 4     | Swipe-to-delete gesture                            |
+| `8e4ffde` | 5     | Per-lecture page navigation                        |
+| `998df76` | 7     | Search and filter                                  |
+| `d5a03d5` | 8     | Accessibility, performance, and polish             |
 
 **Note:** Phase 6 was implemented in parallel with Phase 2 (they had no file overlap), which is why it appears before Phases 4-5 in the commit log.
 
 ### 18.5 Remaining Work (Post-Implementation)
 
-| Item | Priority | Notes |
-|------|----------|-------|
-| Undo toast on delete | Medium | 3-second undo window after swipe-to-delete. Approved but not yet implemented. |
-| Video push AI summarization | Low | `/api/nio/summarize` route. Currently creates plain bookmark entries. |
-| Push animation on N pill | Low | Visual feedback when an entry is pushed while panel is closed. |
-| Convex sync | Future | Cross-device persistence. Requires schema, auth, conflict resolution. |
-| Tests | Medium | Unit tests for store, selectors, swipe threshold. E2E for keyboard shortcuts. |
-| Corner gesture | v2 | Swipe from bottom-right corner to invoke. |
-| Drag-to-dismiss | v2 | Fling panel downward past threshold to close. |
+| Item                        | Priority | Notes                                                                         |
+| --------------------------- | -------- | ----------------------------------------------------------------------------- |
+| Undo toast on delete        | Medium   | 3-second undo window after swipe-to-delete. Approved but not yet implemented. |
+| Video push AI summarization | Low      | `/api/nio/summarize` route. Currently creates plain bookmark entries.         |
+| Push animation on N pill    | Low      | Visual feedback when an entry is pushed while panel is closed.                |
+| Convex sync                 | Future   | Cross-device persistence. Requires schema, auth, conflict resolution.         |
+| Tests                       | Medium   | Unit tests for store, selectors, swipe threshold. E2E for keyboard shortcuts. |
+| Corner gesture              | v2       | Swipe from bottom-right corner to invoke.                                     |
+| Drag-to-dismiss             | v2       | Fling panel downward past threshold to close.                                 |
 
 ---
 
-*End of plan. This document serves as both the architecture specification and
-the implementation record for the Niotepad Experimental feature.*
+_End of plan. This document serves as both the architecture specification and
+the implementation record for the Niotepad Experimental feature._

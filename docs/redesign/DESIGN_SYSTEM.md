@@ -103,11 +103,11 @@
 
 ### Font Stack
 
-| Role        | Font       | CSS Variable     | Usage                                  |
-| ----------- | ---------- | ---------------- | -------------------------------------- |
+| Role        | Font       | CSS Variable     | Usage                                           |
+| ----------- | ---------- | ---------------- | ----------------------------------------------- |
 | **Display** | Orbitron   | `--font-display` | Wordmark only (landing headings use Geist Sans) |
-| **Body/UI** | Geist Sans | `--font-body`    | Body text, labels, buttons, nav, chat  |
-| **Code**    | Geist Mono | `--font-code`    | Code editor, terminal, inline code     |
+| **Body/UI** | Geist Sans | `--font-body`    | Body text, labels, buttons, nav, chat           |
+| **Code**    | Geist Mono | `--font-code`    | Code editor, terminal, inline code              |
 
 ### Loading (layout.tsx)
 
@@ -327,12 +327,12 @@ No `tailwind.config.js` — uses `@theme inline` in `globals.css`:
 
 ## Key Files
 
-| File                               | Purpose                                   |
-| ---------------------------------- | ----------------------------------------- |
-| `src/app/globals.css`              | Canonical token definitions + base styles |
-| `src/app/layout.tsx`               | Font loading, theme script, body classes  |
-| `src/ui/shared/ThemeToggle.tsx`    | Capsule theme toggle component            |
-| `src/ui/shared/NotebookFrame.tsx`  | 3-layer binder frame component            |
-| `src/ui/brand/Wordmark.tsx`        | Text-based Orbitron wordmark              |
-| `docs/redesign/REDESIGN_BRIEF.md`  | Design direction and decisions            |
-| `docs/redesign/PROGRESS.md`        | Phase-by-phase implementation log         |
+| File                              | Purpose                                   |
+| --------------------------------- | ----------------------------------------- |
+| `src/app/globals.css`             | Canonical token definitions + base styles |
+| `src/app/layout.tsx`              | Font loading, theme script, body classes  |
+| `src/ui/shared/ThemeToggle.tsx`   | Capsule theme toggle component            |
+| `src/ui/shared/NotebookFrame.tsx` | 3-layer binder frame component            |
+| `src/ui/brand/Wordmark.tsx`       | Text-based Orbitron wordmark              |
+| `docs/redesign/REDESIGN_BRIEF.md` | Design direction and decisions            |
+| `docs/redesign/PROGRESS.md`       | Phase-by-phase implementation log         |

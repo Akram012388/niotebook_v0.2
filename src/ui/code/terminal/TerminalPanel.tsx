@@ -34,7 +34,10 @@ const TerminalPanel = ({
       actionsDisabled={actionsDisabled}
     />
     <div id="niotebook-runtime-frame" className="h-48" />
-    <div className="min-h-0 flex-1 overflow-hidden p-4" style={{ background: "#0A0A0A" }}>
+    <div
+      className="min-h-0 flex-1 overflow-hidden p-4"
+      style={{ background: "#0A0A0A" }}
+    >
       <XTermView />
     </div>
   </div>

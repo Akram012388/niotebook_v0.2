@@ -160,8 +160,7 @@ const FeedbackDashboard = (): ReactElement => {
 
   const filtered = feedback?.filter(
     (f) =>
-      surfaceFilter === "all" ||
-      f.category.split(", ").includes(surfaceFilter),
+      surfaceFilter === "all" || f.category.split(", ").includes(surfaceFilter),
   );
 
   return (

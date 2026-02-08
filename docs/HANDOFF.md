@@ -51,34 +51,40 @@ Branch: `test/e2e-alpha` → merged to `main`
 Branch: `redesign-v2` → merged to `main` (`1d8214f`)
 
 **Design System:**
+
 - Full CSS custom property token system in `globals.css` (light + dark modes)
 - Warm terracotta accent (`#c15f3c` light / `#da7756` dark) inspired by Claude.ai
 - Background pattern (subtle 24px grid overlay)
 - Consistent shadow, radius, and transition tokens
 
 **Phase 8 Route Redesign:**
+
 - **Sidebar Shell** — Collapsible rail (56px) ↔ expanded (240px) with localStorage persistence
 - **Sign-in/Sign-up** — Redesigned with NotebookFrame, ThemeToggle, OTP field fixes
 - **Course Detail Cards** — Lecture cards with animation alignment
 - **SiteNav Refactor** — Replaced SidebarShell with shared SiteNav component across courses and admin
 
 **Workspace Redesign:**
+
 - Unified terracotta accent for all active/selected states
 - Shared ThemeToggle component in `src/ui/shared/`
 - Terminal background flush, chat send button terracotta
 - TopNav matched to landing header
 
 **Admin Console Redesign:**
+
 - Snapshot feedback cards (replaced table)
 - User email displayed on feedback cards
 - V2 design system alignment
 
 **Chat UX Overhaul:**
+
 - StreamingText component with requestAnimationFrame char-reveal and live markdown
 - ChatGPT-style streaming with plain text, lerp scroll, and pulse dot
 - Canvas 2D thinking orb with terracotta heartbeat pulse
 
 **Landing Page:**
+
 - Hero rework with interactive enhancements
 - Remotion demo video project (4K 60fps intro animation)
 
