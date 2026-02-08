@@ -205,6 +205,7 @@ const AiPane = ({
             <ChatMessage
               key={message.id}
               message={message}
+              lessonId={lessonId}
               onSeek={onSeek}
               streamingTextRef={message.isStreaming ? streamingTextRef : undefined}
             />

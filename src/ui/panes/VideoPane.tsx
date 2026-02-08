@@ -6,6 +6,7 @@ import {
   useState,
   type ReactElement,
 } from "react";
+import { useNiotepadStore } from "../../infra/niotepad/useNiotepadStore";
 import { useQuery } from "convex/react";
 import { VideoPlayer } from "../video/VideoPlayer";
 import { useAutoCompletion } from "../video/useAutoCompletion";
@@ -210,6 +211,24 @@ const VideoPane = ({
     [checkAutoCompletion, onTimeChange],
   );
 
+  const [pushMomentFeedback, setPushMomentFeedback] = useState(false);
+
+  const handlePushMoment = useCallback((): void => {
+    const timeSec = lastSampleTimeSec ?? 0;
+    const minutes = Math.floor(timeSec / 60);
+    const seconds = Math.floor(timeSec % 60);
+    const formatted = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    useNiotepadStore.getState().addEntry({
+      content: `Video moment at ${formatted}`,
+      source: "video",
+      lessonId,
+      videoTimeSec: timeSec,
+      metadata: {},
+    });
+    setPushMomentFeedback(true);
+    setTimeout(() => setPushMomentFeedback(false), 1500);
+  }, [lastSampleTimeSec, lessonId]);
+
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">
       <header className="flex h-14 items-center justify-between border-b border-border-muted px-4 py-3">
@@ -225,6 +244,14 @@ const VideoPane = ({
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={handlePushMoment}
+            className="text-xs text-text-muted transition-all hover:text-accent"
+            aria-label="Push moment to Niotepad"
+          >
+            {pushMomentFeedback ? "\u2713" : "\uD83D\uDCCC"}
+          </button>
           {headerExtras}
           <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
             1080p

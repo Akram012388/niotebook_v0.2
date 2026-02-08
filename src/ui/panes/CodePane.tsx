@@ -5,6 +5,7 @@ import {
   useState,
   type ReactElement,
 } from "react";
+import { useNiotepadStore } from "../../infra/niotepad/useNiotepadStore";
 import dynamic from "next/dynamic";
 import { useMutation } from "convex/react";
 import { makeFunctionReference } from "convex/server";
@@ -458,6 +459,22 @@ const CodePane = ({
     [allowedLanguages],
   );
 
+  const [pushFeedback, setPushFeedback] = useState(false);
+
+  const handlePushToNiotepad = useCallback((): void => {
+    const content = getMainFileContent();
+    if (!content || !mainFilePath) return;
+    useNiotepadStore.getState().addEntry({
+      content,
+      source: "code",
+      lessonId,
+      videoTimeSec: null,
+      metadata: { filePath: mainFilePath, language: activeLanguage },
+    });
+    setPushFeedback(true);
+    setTimeout(() => setPushFeedback(false), 1500);
+  }, [getMainFileContent, mainFilePath, lessonId, activeLanguage]);
+
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">
       <header className="flex h-14 items-center justify-between border-b border-border-muted px-4 py-3">
@@ -465,6 +482,16 @@ const CodePane = ({
           <p className="truncate text-sm font-semibold text-foreground">Code</p>
         </div>
         <div className="flex shrink-0 items-center gap-3 text-xs">
+          {mainFileContent ? (
+            <button
+              type="button"
+              onClick={handlePushToNiotepad}
+              className="text-xs text-text-muted transition-all hover:text-accent"
+              aria-label="Push to Niotepad"
+            >
+              {pushFeedback ? "\u2713" : "\uD83D\uDCCC"}
+            </button>
+          ) : null}
           <LanguageSelect
             value={activeLanguage}
             options={allowedLanguages}

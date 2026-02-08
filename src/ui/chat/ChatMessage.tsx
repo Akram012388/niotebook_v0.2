@@ -4,9 +4,11 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import type { ChatMessage as ChatMessageType } from "./chatTypes";
 import { StreamingText, type StreamingTextHandle } from "./StreamingText";
+import { PushToNiotepad } from "../shared/PushToNiotepad";
 
 type ChatMessageProps = {
   message: ChatMessageType;
+  lessonId?: string;
   onSeek?: (timestampSec: number) => void;
   /** Ref to the StreamingText imperative handle (only for the active streaming message). */
   streamingTextRef?: RefObject<StreamingTextHandle | null>;
@@ -30,6 +32,7 @@ const RenderedMarkdown = memo(function RenderedMarkdown({
 
 const ChatMessage = memo(function ChatMessage({
   message,
+  lessonId,
   onSeek,
   streamingTextRef,
 }: ChatMessageProps): ReactElement {
@@ -73,16 +76,27 @@ const ChatMessage = memo(function ChatMessage({
             )}
           </div>
         )}
-        {message.badge ? (
-          <button
-            type="button"
-            onClick={handleSeek}
-            className={`text-[11px] font-medium opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 text-text-muted hover:text-foreground dark:text-text-subtle dark:hover:text-foreground ${isUser ? "" : "self-start"}`}
-            aria-label={`Seek to ${message.badge}`}
-          >
-            {message.badge}
-          </button>
-        ) : null}
+        <div className={`flex items-center gap-1.5 ${isUser ? "" : "self-start"}`}>
+          {message.badge ? (
+            <button
+              type="button"
+              onClick={handleSeek}
+              className={`text-[11px] font-medium opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 text-text-muted hover:text-foreground dark:text-text-subtle dark:hover:text-foreground`}
+              aria-label={`Seek to ${message.badge}`}
+            >
+              {message.badge}
+            </button>
+          ) : null}
+          {!isUser && !message.isStreaming && lessonId ? (
+            <PushToNiotepad
+              content={message.content}
+              source="chat"
+              lessonId={lessonId}
+              metadata={{ chatMessageId: message.id }}
+              className="opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100"
+            />
+          ) : null}
+        </div>
       </div>
     </div>
   );

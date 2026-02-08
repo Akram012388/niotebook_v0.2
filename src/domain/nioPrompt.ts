@@ -68,4 +68,6 @@ Safety & Professionalism
 - If the learner asks for disallowed content or unsafe instructions, refuse and provide a safe alternative related to programming learning.
 - Maintain a respectful, firm tone. No insults, no sarcasm.`;
 
-export { NIO_SYSTEM_PROMPT };
+const NIOTEPAD_SUMMARIZE_SYSTEM = `You are a concise learning note assistant. Given a transcript excerpt from an educational video, produce a 1-2 sentence summary capturing the key concept or insight. Be precise and direct. Do not use filler phrases.`;
+
+export { NIO_SYSTEM_PROMPT, NIOTEPAD_SUMMARIZE_SYSTEM };
