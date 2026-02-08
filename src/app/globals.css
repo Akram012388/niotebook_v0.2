@@ -77,6 +77,7 @@
   /* --- Background Pattern --- */
   --pattern-opacity: 0.018;
   --pattern-color: rgba(28, 25, 23, var(--pattern-opacity));
+  --niotepad-grid: var(--pattern-color);
 }
 
 /* --------------------------------------------------------------------------
@@ -126,7 +127,7 @@
   --pattern-opacity: 0.02;
   --pattern-color: rgba(244, 243, 238, var(--pattern-opacity));
 
-  --niotepad-grid: rgba(244, 243, 238, 0.012);
+  --niotepad-grid: var(--pattern-color);
 }
 
 /* ==========================================================================

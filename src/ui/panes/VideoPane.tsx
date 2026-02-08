@@ -215,47 +215,25 @@ const VideoPane = ({
 
   const handlePushMoment = useCallback((): void => {
     const timeSec = lastSampleTimeSec ?? 0;
-    const store = useNiotepadStore.getState();
+    const minutes = Math.floor(timeSec / 60);
+    const seconds = Math.floor(timeSec % 60);
+    const formatted = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    const title = headerTitle.secondary
+      ? `${headerTitle.primary}: ${headerTitle.secondary}`
+      : headerTitle.primary;
 
-    // Create entry immediately with placeholder — user sees the timestamp bookmark right away
-    const entryId = store.addEntry({
-      content: "Summarizing...",
+    useNiotepadStore.getState().addEntry({
+      content: `${title} \u2014 ${formatted}`,
       source: "video",
       lessonId,
       videoTimeSec: timeSec,
       metadata: {
-        transcriptRange: [Math.max(0, timeSec - 15), timeSec + 15],
-        lectureTitle: headerTitle.secondary
-          ? `${headerTitle.primary}: ${headerTitle.secondary}`
-          : headerTitle.primary,
+        lectureTitle: title,
       },
     });
 
     setPushMomentFeedback(true);
     setTimeout(() => setPushMomentFeedback(false), 1500);
-
-    // Fire async AI summarization — updates the entry when complete
-    fetch("/api/nio/summarize", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lessonId, timeSec }),
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Summarization failed");
-        const data = (await res.json()) as { summary: string };
-        useNiotepadStore.getState().updateEntry(entryId, {
-          content: data.summary,
-        });
-      })
-      .catch(() => {
-        // Fallback: replace "Summarizing..." with a simple timestamp note
-        const minutes = Math.floor(timeSec / 60);
-        const seconds = Math.floor(timeSec % 60);
-        const formatted = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-        useNiotepadStore.getState().updateEntry(entryId, {
-          content: `Video moment at ${formatted}`,
-        });
-      });
   }, [lastSampleTimeSec, lessonId, headerTitle.primary, headerTitle.secondary]);
 
   return (
@@ -281,10 +259,10 @@ const VideoPane = ({
           >
             {pushMomentFeedback ? "\u2713" : "\uD83D\uDCCC"}
           </button>
-          {headerExtras}
           <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
             1080p
           </span>
+          {headerExtras}
         </div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col p-4">

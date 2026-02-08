@@ -154,12 +154,8 @@ const NiotepadPane = ({
           <p className="truncate text-sm font-semibold text-foreground">
             Niotepad
           </p>
-          {entries.length > 0 ? (
-            <span className="text-xs text-text-muted">({entries.length})</span>
-          ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {headerExtras}
           {entries.length > 0 ? (
             <>
               <button
@@ -182,6 +178,7 @@ const NiotepadPane = ({
               </button>
             </>
           ) : null}
+          {headerExtras}
         </div>
       </header>
 
@@ -228,7 +225,7 @@ const NiotepadPane = ({
           onClick={handlePaperClick}
         >
           {!isLoaded ? (
-            <p className="pr-4 text-sm leading-[28px] text-text-muted">
+            <p className="pr-4 text-sm leading-6 text-text-muted">
               Loading...
             </p>
           ) : (
@@ -240,16 +237,20 @@ const NiotepadPane = ({
                   onSeek={onSeek}
                 />
               ))}
+              {/* Divider between last entry and composer */}
+              {entries.length > 0 && (
+                <div className="border-t border-border-muted" />
+              )}
               {/* Always-visible textarea that IS the paper surface.
                   No border, no box shadow, no outline — just a blinking cursor
-                  on ruled lines. Fills remaining space via large min-height. */}
+                  on the grid. Fills remaining space via large min-height. */}
               <textarea
                 ref={composerRef}
                 value={composerValue}
                 onChange={(e) => setComposerValue(e.target.value)}
                 onKeyDown={handleComposerKeyDown}
                 placeholder={entries.length === 0 ? "Click anywhere to start writing..." : ""}
-                className="block w-full appearance-none resize-none bg-transparent p-0 pr-4 text-sm leading-[28px] text-foreground caret-foreground placeholder:text-text-subtle"
+                className="block w-full appearance-none resize-none bg-transparent p-0 pr-4 pt-2 text-sm leading-6 text-foreground caret-foreground placeholder:text-text-subtle"
                 style={{ border: "none", outline: "none", boxShadow: "none", minHeight: 560 }}
               />
             </>
