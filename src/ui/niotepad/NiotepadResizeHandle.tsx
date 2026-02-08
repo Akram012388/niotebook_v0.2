@@ -61,7 +61,7 @@ const NiotepadResizeHandle = memo(function NiotepadResizeHandle({
         width="10"
         height="10"
         viewBox="0 0 10 10"
-        className="text-text-subtle"
+        style={{ color: "var(--niotepad-text-subtle)" }}
       >
         <line
           x1="9"

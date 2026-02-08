@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  forwardRef,
-  useCallback,
-  useState,
-  type ReactElement,
-} from "react";
+import { forwardRef, useCallback, useState, type ReactElement } from "react";
 
 // Same content padding as NiotepadEntry
 const CONTENT_PL = 56;
@@ -17,10 +12,7 @@ interface NiotepadComposerProps {
 }
 
 const NiotepadComposer = forwardRef<HTMLTextAreaElement, NiotepadComposerProps>(
-  function NiotepadComposer(
-    { onSubmit, entryCount },
-    ref,
-  ): ReactElement {
+  function NiotepadComposer({ onSubmit, entryCount }, ref): ReactElement {
     const [value, setValue] = useState("");
 
     const handleKeyDown = useCallback(

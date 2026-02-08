@@ -22,13 +22,13 @@ import { NiotepadComposer } from "./NiotepadComposer";
 import { NiotepadPageNav } from "./NiotepadPageNav";
 import { NiotepadSearch } from "./NiotepadSearch";
 
-// 5-layer elevation shadow (plan Section 3.1)
+// 5-layer elevation shadow — warm-tinted to harmonize with the parchment panel
 const PANEL_SHADOW = [
-  "0 0 0 1px color-mix(in srgb, var(--foreground) 5%, transparent)",
-  "0 1px 2px 0 color-mix(in srgb, var(--foreground) 6%, transparent)",
-  "0 4px 8px -2px color-mix(in srgb, var(--foreground) 8%, transparent)",
-  "0 12px 24px -4px color-mix(in srgb, var(--foreground) 10%, transparent)",
-  "0 32px 64px -8px color-mix(in srgb, var(--foreground) 12%, transparent)",
+  "0 0 0 1px color-mix(in srgb, var(--niotepad-panel-border) 60%, transparent)",
+  "0 1px 2px 0 rgba(120, 90, 60, 0.08)",
+  "0 4px 8px -2px rgba(120, 90, 60, 0.10)",
+  "0 12px 24px -4px rgba(100, 75, 50, 0.12)",
+  "0 32px 64px -8px rgba(80, 60, 40, 0.14)",
 ].join(", ");
 
 const VIEWPORT_PADDING = 16;
@@ -62,7 +62,12 @@ const NiotepadPanel = (): ReactElement => {
   // which triggers infinite re-renders with Zustand's Object.is comparison.
   const filteredEntries = useMemo(
     () =>
-      selectFilteredEntries({ pages, activePageId, sourceFilters, searchQuery }),
+      selectFilteredEntries({
+        pages,
+        activePageId,
+        sourceFilters,
+        searchQuery,
+      }),
     [pages, activePageId, sourceFilters, searchQuery],
   );
 
@@ -87,12 +92,11 @@ const NiotepadPanel = (): ReactElement => {
     }
     const vw = document.documentElement.clientWidth;
     const workspaceHeight = window.innerHeight - TOPNAV_HEIGHT;
-    const y = TOPNAV_HEIGHT + Math.max(VIEWPORT_PADDING, (workspaceHeight - PANEL_HEIGHT) / 2);
+    const y =
+      TOPNAV_HEIGHT +
+      Math.max(VIEWPORT_PADDING, (workspaceHeight - PANEL_HEIGHT) / 2);
     const maxX = vw - PANEL_WIDTH - VIEWPORT_PADDING;
-    const rawX =
-      geometry.x === -1
-        ? maxX
-        : geometry.x;
+    const rawX = geometry.x === -1 ? maxX : geometry.x;
     // Clamp so the panel stays within the viewport even with stale geometry
     const x = Math.max(VIEWPORT_PADDING, Math.min(rawX, maxX));
     return { x, y };
@@ -321,7 +325,10 @@ const NiotepadPanel = (): ReactElement => {
         {/* Empty state when search/filter yields no results */}
         {filteredEntries.length === 0 &&
           (searchQuery || sourceFilters.length > 0) && (
-            <p className="py-8 text-center text-xs text-text-muted">
+            <p
+              className="py-8 text-center text-xs"
+              style={{ color: "var(--niotepad-text-muted)" }}
+            >
               No notes match your search
             </p>
           )}
@@ -332,7 +339,6 @@ const NiotepadPanel = (): ReactElement => {
           entryCount={filteredEntries.length}
         />
       </NiotepadScrollArea>
-
     </motion.aside>
   );
 };
