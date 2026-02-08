@@ -41,6 +41,16 @@ function formatTimestamp(sec: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+/** Format millisecond timestamp as short date+time (e.g., "Feb 8, 2:34 PM") */
+function formatDate(ms: number): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(ms));
+}
+
 const entryAppearSpring = {
   initial: { opacity: 0, y: 8 },
   animate: { opacity: 1, y: 0 },
@@ -234,7 +244,7 @@ const NiotepadEntry = memo(
             : entryAppear.transition
         }
         onAnimationComplete={handleAnimationComplete}
-        className="group relative overflow-hidden py-0.5 text-sm text-foreground"
+        className="group relative mb-[24px] overflow-hidden text-sm text-foreground"
       >
         {/* Delete strip (revealed behind entry on swipe) */}
         <motion.div
@@ -245,7 +255,14 @@ const NiotepadEntry = memo(
           <X size={18} weight="bold" />
         </motion.div>
 
-        {/* Hover X button (desktop fallback) */}
+        {/* Timestamp + delete on hover */}
+        <span
+          className="absolute right-8 top-1 z-10 select-none text-[10px] opacity-0 transition-opacity group-hover:opacity-60"
+          style={{ color: "var(--niotepad-text-subtle)", lineHeight: "20px" }}
+          aria-hidden="true"
+        >
+          {formatDate(entry.createdAt)}
+        </span>
         <button
           type="button"
           onClick={handleDeleteClick}
@@ -280,7 +297,7 @@ const NiotepadEntry = memo(
             <button
               type="button"
               onClick={handleSeek}
-              className="mb-0.5 block text-left text-sm font-semibold text-accent transition-colors hover:text-accent-hover"
+              className="block text-left text-sm font-semibold text-accent transition-colors hover:text-accent-hover"
               style={{ lineHeight: "24px" }}
             >
               {entry.metadata.lectureTitle}
@@ -324,7 +341,10 @@ const NiotepadEntry = memo(
               className="cursor-text"
               aria-label="Click to edit this note"
             >
-              <div className="nio-markdown" style={{ lineHeight: "24px" }}>
+              <div
+                className="nio-markdown"
+                style={{ lineHeight: "24px" }}
+              >
                 <ReactMarkdown>{entry.content}</ReactMarkdown>
               </div>
             </div>
