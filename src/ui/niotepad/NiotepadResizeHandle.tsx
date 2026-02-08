@@ -49,9 +49,12 @@ const NiotepadResizeHandle = memo(function NiotepadResizeHandle({
 
   return (
     <div
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label="Resize niotepad panel"
+      aria-valuenow={0}
       className="absolute bottom-0 right-0 z-10 flex h-4 w-4 cursor-nwse-resize items-end justify-end p-0.5"
       onPointerDown={handlePointerDown}
-      aria-hidden="true"
     >
       {/* 3-line diagonal grip */}
       <svg
@@ -60,9 +63,30 @@ const NiotepadResizeHandle = memo(function NiotepadResizeHandle({
         viewBox="0 0 10 10"
         className="text-text-subtle"
       >
-        <line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" strokeWidth="1" />
-        <line x1="9" y1="4" x2="4" y2="9" stroke="currentColor" strokeWidth="1" />
-        <line x1="9" y1="7" x2="7" y2="9" stroke="currentColor" strokeWidth="1" />
+        <line
+          x1="9"
+          y1="1"
+          x2="1"
+          y2="9"
+          stroke="currentColor"
+          strokeWidth="1"
+        />
+        <line
+          x1="9"
+          y1="4"
+          x2="4"
+          y2="9"
+          stroke="currentColor"
+          strokeWidth="1"
+        />
+        <line
+          x1="9"
+          y1="7"
+          x2="7"
+          y2="9"
+          stroke="currentColor"
+          strokeWidth="1"
+        />
       </svg>
     </div>
   );

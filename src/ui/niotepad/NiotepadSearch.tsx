@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
-  type ReactElement,
-} from "react";
+import { memo, useCallback, useEffect, useRef, type ReactElement } from "react";
 import type { NiotepadEntrySource } from "@/domain/niotepad";
 
 // ---------------------------------------------------------------------------
@@ -20,6 +14,8 @@ interface NiotepadSearchProps {
   onFilterToggle: (source: NiotepadEntrySource) => void;
   isExpanded: boolean;
   onToggleExpanded: () => void;
+  /** Number of entries matching the current search/filter, for aria-live announcement */
+  resultCount?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -85,6 +81,7 @@ const NiotepadSearch = memo(function NiotepadSearch({
   onFilterToggle,
   isExpanded,
   onToggleExpanded,
+  resultCount,
 }: NiotepadSearchProps): ReactElement {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -207,7 +204,9 @@ const NiotepadSearch = memo(function NiotepadSearch({
 
       {/* Screen reader announcement for result count */}
       <div aria-live="polite" className="sr-only">
-        {query && `Showing results for "${query}"`}
+        {(query || activeFilters.length > 0) &&
+          resultCount != null &&
+          `${resultCount} ${resultCount === 1 ? "note" : "notes"} found${query ? ` for "${query}"` : ""}`}
       </div>
     </div>
   );

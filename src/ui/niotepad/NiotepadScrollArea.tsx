@@ -27,6 +27,18 @@ function NiotepadScrollArea({
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevChildCountRef = useRef(0);
 
+  // Check reduced motion preference for scroll behavior
+  const reducedMotionRef = useRef(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    reducedMotionRef.current = mq.matches;
+    const handler = (e: MediaQueryListEvent): void => {
+      reducedMotionRef.current = e.matches;
+    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   // Auto-scroll to bottom when new entries are added
   useEffect(() => {
     const el = scrollRef.current;
@@ -35,7 +47,10 @@ function NiotepadScrollArea({
     // Count direct children to detect new entries
     const currentCount = el.children.length;
     if (currentCount > prevChildCountRef.current) {
-      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: reducedMotionRef.current ? "instant" : "smooth",
+      });
     }
     prevChildCountRef.current = currentCount;
   });
@@ -104,6 +119,9 @@ function NiotepadScrollArea({
       {/* Scrollable ruled paper */}
       <div
         ref={scrollRef}
+        id="niotepad-entries"
+        role="region"
+        aria-label="Notes"
         className="niotepad-scroll relative z-[3] h-full overflow-y-auto"
         style={{
           backgroundColor: "var(--niotepad-paper)",

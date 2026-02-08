@@ -54,9 +54,8 @@ const NiotepadPageNav = memo(function NiotepadPageNav({
         // Focus the next tab button
         const container = scrollRef.current;
         if (container) {
-          const buttons = container.querySelectorAll<HTMLButtonElement>(
-            '[role="tab"]',
-          );
+          const buttons =
+            container.querySelectorAll<HTMLButtonElement>('[role="tab"]');
           buttons[nextIdx]?.focus();
         }
       }
@@ -89,6 +88,7 @@ const NiotepadPageNav = memo(function NiotepadPageNav({
           type="button"
           role="tab"
           aria-selected={activePageId === null}
+          aria-controls="niotepad-entries"
           tabIndex={activePageId === null ? 0 : -1}
           onClick={() => onSelectPage(null)}
           className={`${tabBase} ${activePageId === null ? tabActive : tabInactive} relative`}
@@ -115,6 +115,7 @@ const NiotepadPageNav = memo(function NiotepadPageNav({
               type="button"
               role="tab"
               aria-selected={isActive}
+              aria-controls="niotepad-entries"
               tabIndex={isActive ? 0 : -1}
               title={page.title}
               onClick={() => onSelectPage(page.id)}
