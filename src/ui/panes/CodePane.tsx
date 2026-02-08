@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
 } from "react";
@@ -460,8 +461,47 @@ const CodePane = ({
     [allowedLanguages],
   );
 
-  // ── Push-to-niotepad shortcut (Cmd/Ctrl+Shift+N) ────────
+  // ── Bookmark to niotepad ────────────────────────────────
   const videoTimeSec = useVideoDisplayTime();
+  const [bookmarkConfirm, setBookmarkConfirm] = useState(false);
+  const bookmarkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleBookmark = useCallback((): void => {
+    const mainContent = getMainFileContent();
+    if (!mainContent) return;
+
+    const lang = activeLanguage;
+    const content = mainContent;
+    const lectureTitle = `Lesson ${lessonId}`;
+
+    const store = useNiotepadStore.getState();
+    const pageId = store.getOrCreatePage(lessonId, lectureTitle);
+    store.addEntry({
+      source: "code",
+      content,
+      pageId,
+      videoTimeSec,
+      metadata: {
+        filePath: mainFilePath ?? undefined,
+        language: lang,
+      },
+    });
+
+    setBookmarkConfirm(true);
+    if (bookmarkTimerRef.current) clearTimeout(bookmarkTimerRef.current);
+    bookmarkTimerRef.current = setTimeout(() => {
+      setBookmarkConfirm(false);
+      bookmarkTimerRef.current = null;
+    }, 1500);
+  }, [getMainFileContent, activeLanguage, lessonId, videoTimeSec, mainFilePath]);
+
+  useEffect(() => {
+    return () => {
+      if (bookmarkTimerRef.current) clearTimeout(bookmarkTimerRef.current);
+    };
+  }, []);
+
+  // ── Push-to-niotepad shortcut (Cmd/Ctrl+Shift+N) ────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
       if (
@@ -492,7 +532,7 @@ const CodePane = ({
       e.preventDefault();
 
       const lang = activeFile.language ?? activeLanguage;
-      const content = `\`\`\`${lang}\n${selectedCode}\n\`\`\``;
+      const content = selectedCode;
       const lectureTitle = `Lesson ${lessonId}`;
 
       const store = useNiotepadStore.getState();
@@ -522,6 +562,46 @@ const CodePane = ({
           <p className="truncate text-sm font-semibold text-foreground">Code</p>
         </div>
         <div className="flex shrink-0 items-center gap-3 text-xs">
+          <button
+            type="button"
+            onClick={handleBookmark}
+            className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            aria-label="Bookmark code to niotepad"
+          >
+            {bookmarkConfirm ? (
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 7L6 10L11 4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            ) : (
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3.5 2.5H10.5V12L7 9.5L3.5 12V2.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+          </button>
           <LanguageSelect
             value={activeLanguage}
             options={allowedLanguages}
