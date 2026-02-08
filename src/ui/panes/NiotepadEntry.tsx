@@ -173,9 +173,7 @@ const NiotepadEntryComponent = memo(function NiotepadEntryComponent({
   // --- Video entry header ---
   const isVideoEntry =
     entry.source === "video" && entry.videoTimeSec !== null;
-  const lectureTitle = (
-    entry.metadata as { lectureTitle?: string }
-  ).lectureTitle;
+  const lectureTitle = entry.metadata.lectureTitle;
 
   return (
     <div className="relative mb-6 overflow-hidden" data-niotepad-entry>
