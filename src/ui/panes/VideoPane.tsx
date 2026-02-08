@@ -271,7 +271,6 @@ const VideoPane = ({
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {headerExtras}
           <button
             type="button"
             onClick={handleBookmark}
@@ -315,6 +314,7 @@ const VideoPane = ({
           <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
             1080p
           </span>
+          {headerExtras}
         </div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col p-4">
