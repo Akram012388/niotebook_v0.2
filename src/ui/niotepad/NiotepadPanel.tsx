@@ -109,11 +109,26 @@ const NiotepadPanel = (): ReactElement => {
     return { x, y };
   });
 
-  // Ref-based drag constraint — an invisible box inset by VIEWPORT_PADDING on
-  // left/right. FM keeps the panel's bounding box inside this element during
-  // drag, so the panel can never exceed viewport padding. The constraint box
-  // uses CSS left/right (not a fixed width) so it auto-adjusts on resize.
-  const constraintRef = useRef<HTMLDivElement>(null);
+  // Object-based drag constraints — smoother than ref-based constraints.
+  // FM object constraints are RELATIVE to the element's CSS left position,
+  // so we compute how far left/right the panel can travel from mountPosition.x.
+  const computeConstraints = useCallback(() => {
+    if (typeof window === "undefined") return { left: 0, right: 0 };
+    const vw = document.documentElement.clientWidth;
+    return {
+      left: VIEWPORT_PADDING - mountPosition.x,
+      right: vw - PANEL_WIDTH - VIEWPORT_PADDING - mountPosition.x,
+    };
+  }, [mountPosition.x]);
+
+  const [dragConstraints, setDragConstraints] = useState(computeConstraints);
+
+  // Re-compute constraints on viewport resize
+  useEffect(() => {
+    const onResize = () => setDragConstraints(computeConstraints());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [computeConstraints]);
 
   // Focus trap: store previous active element, focus panel on mount
   useEffect(() => {
@@ -150,9 +165,8 @@ const NiotepadPanel = (): ReactElement => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [closePanel, setEditingEntry, toggleSearchExpanded]);
 
-  // Persist visual X on drag end for the next mount. No clamping needed here —
-  // FM + the constraint ref already enforced bounds during drag, and the mount
-  // initializer will re-clamp if the viewport changed between sessions.
+  // Persist visual X on drag end for the next mount. FM's object constraints
+  // enforce bounds during drag, and the mount initializer re-clamps on open.
   const handleDragEnd = useCallback(() => {
     const el = panelRef.current;
     if (!el) return;
@@ -237,15 +251,6 @@ const NiotepadPanel = (): ReactElement => {
     : { type: "spring" as const, stiffness: 400, damping: 28, mass: 0.8 };
 
   return (
-    <>
-      {/* Invisible constraint boundary — FM keeps the panel inside this box
-          during drag. Uses CSS left/right so it auto-adapts to viewport resize. */}
-      <div
-        ref={constraintRef}
-        aria-hidden
-        className="pointer-events-none fixed inset-y-0"
-        style={{ left: VIEWPORT_PADDING, right: VIEWPORT_PADDING }}
-      />
       <motion.aside
         ref={panelRef}
         role="dialog"
@@ -286,8 +291,8 @@ const NiotepadPanel = (): ReactElement => {
         dragControls={dragControls}
         dragListener={false}
         dragMomentum={false}
-        dragElastic={0}
-        dragConstraints={constraintRef}
+        dragElastic={0.04}
+        dragConstraints={dragConstraints}
         onDragEnd={handleDragEnd}
       >
       {/* Screen reader description */}
@@ -354,7 +359,6 @@ const NiotepadPanel = (): ReactElement => {
         />
       </NiotepadScrollArea>
     </motion.aside>
-    </>
   );
 };
 
