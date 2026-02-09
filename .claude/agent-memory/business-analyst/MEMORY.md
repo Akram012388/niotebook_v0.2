@@ -2,49 +2,90 @@
 
 ## Key Reports Written
 - `docs/strategy/board-meeting-analyst-competitive-threat.md` -- Sherlock risk & defensibility analysis (2026-02-08)
+- `docs/customer-acquisition/cac-modeling.md` -- CAC model, funnel benchmarks, channel ROI (2026-02-09)
+- `docs/customer-acquisition/organic-growth-playbook.md` -- Community map, SEO, referral, experiments (2026-02-09)
+- `docs/customer-acquisition/user-personas.md` -- 5 personas with JTBD, RICE prioritization (2026-02-09)
+- `docs/administration/incorporation-guide.md` -- Jurisdiction comparison, Delaware C-Corp path (2026-02-09)
+- `docs/administration/licensing-compliance.md` -- CC BY-NC-SA risk, GDPR, COPPA, YouTube TOS (2026-02-09)
+- `docs/administration/operational-checklist.md` -- 23-item pre-launch checklist, compliance calendar (2026-02-09)
 
 ## Critical Competitive Intelligence (as of 2026-02-08)
 
 ### Highest Threats to Niotebook
-1. **Google (LearnLM + YouTube + Colab)** -- Sherlock probability 7/10. LearnLM is pedagogy-tuned AI, already integrated into YouTube. $30M education AI commitment. Free Gemini for students through 2026.
-2. **Scrimba** -- Sherlock probability 7/10. Already merges video + IDE ("scrim" format). YC-backed, 120K MAU, $1.9M revenue. Closest architectural competitor.
-3. **Coursera Coach** -- Sherlock probability 6/10. Already has video + AI tutor + Socratic dialogue. 1M+ Coach users. Powered by Gemini.
+1. **Google (LearnLM + YouTube + Colab)** -- Sherlock probability 7/10
+2. **Scrimba** -- Sherlock probability 7/10. Closest architectural competitor.
+3. **Coursera Coach** -- Sherlock probability 6/10
 
 ### CS50-Specific Risk
-- CS50 itself builds AI tools: CS50 Duck (chatbot), help50, design50, style50 -- all VS Code extensions + web apps
-- edX owns CS50 distribution. edX Xpert already provides AI tutoring.
-- Niotebook's entire content catalog depends on CS50 open licensing.
+- CS50 licensed CC BY-NC-SA 4.0. NonCommercial clause is CRITICAL legal risk for paid tier.
+- CS50 builds its own AI tools (Duck, help50). edX Xpert provides AI tutoring.
+- MIT OCW uses same CC BY-NC-SA license. Stanford courses are NOT openly licensed.
 
-### Market Structure
-- Porter's Five Forces: 4.2/5 hostile. Very unattractive for venture-scale business.
-- Buyer power EXTREME (students, free alternatives everywhere, zero switching costs)
-- Substitutes VERY HIGH (YouTube + VS Code + ChatGPT is the default)
+## CAC & Unit Economics Benchmarks (as of 2026-02-09)
 
-### Sherlocking Survival Patterns
-- Survivors had: massive user base, revenue, cross-platform, enterprise/B2B, community/network effects
-- Casualties had: tiny user base, zero revenue, single-platform, single feature, no community
-- Niotebook maps to casualty profile on 6/8 indicators
-- HBR: only 11.3% of startups fail specifically due to Big Tech replication; more common: market fit (42%), cash (29%), team (23%)
+### EdTech CAC Ranges
+- Consumer edtech (mass market): ~$42 CAC (Source: Financial Models Lab)
+- Consumer edtech (targeted): $100-$150 CAC
+- B2B edtech (institutional): $1,143 CAC (Source: UserMaven)
+- Referral-acquired: $141-$200 (Source: Genesys Growth)
+- Industry-wide CAC rising 40-60% since 2023 (Source: ScaleXP)
 
-### Key Numbers
-- Codecademy: acquired by Skillsoft ~$525M, 50M+ learners
-- Khan Academy Khanmigo: 700K users (up from 68K), $4/mo pricing
-- Replit: $222M raised, 10x revenue growth 2025, 30M+ devs
-- Coursera: public, $1.5B+ revenue, 148M+ learners
-- Scrimba: ~$940K raised, 120K MAU, $1.9M revenue 2024
-- Brilliant: ~$90M raised, 10M+ learners
+### Funnel Benchmarks
+- Visitor-to-signup: 2-5% average, 10%+ top performers
+- Signup-to-activation: 25-60%
+- EdTech free trial-to-paid: ~24.8%
+- Freemium-to-paid: 5-8%
+- EdTech CAC payback: 3.8 months (fastest SaaS vertical)
 
-## Niotebook Ground Truth (from codebase)
-- 7 runtime executors: JS, Python, C, HTML, CSS, SQL, R
-- Context builder: lesson ID + video time + transcript window (+/-60s) + code + language + file name + hash + last error
-- AI prompt: Socratic, refuses off-topic, hints not answers, references timestamps
-- 9 env presets: cs50x-c, cs50x-python, cs50p-python, cs50w-js, cs50w-html, cs50ai-python, cs50sql-sql, cs50r, sandbox
-- Schema: courses, lessons, chapters, transcriptSegments, users, invites, frames, lessonCompletions, codeSnapshots, chatThreads, chatMessages, events, feedback, rateLimits
-- Stack: Next.js 16, React 19, Convex, Clerk, Pyodide, Wasmer, Gemini/Groq
+### LTV:CAC Benchmarks
+- Organic channels: ~4:1 LTV:CAC
+- Paid channels: ~2.5:1 LTV:CAC
+- EdTech benchmark: 3.5:1 to 5:1
+- Healthy minimum: 3:1
+
+## Community Sizes (Key Acquisition Channels)
+- r/learnprogramming: 4.3M members
+- CS50 Discord: 186K+ members
+- r/cs50: ~200K+ subscribers (est.)
+- freeCodeCamp Forum: 250K+ members
+- freeCodeCamp YouTube: 10M subscribers
+- Stack Overflow: 18M+ users, 82% visit weekly
+
+## CS Learner Demographics (JetBrains Survey, 18K respondents)
+- 69% under 30, 84% male, 62% single, 80% no children
+- Motivation: 46% challenge/hobby, 41% salary, 34% remote work
+- 66% of under-29 use AI assistants
+- Python most popular language for learners
+- 30% struggle with courses lacking practical exercises
+
+## Persona Prioritization (RICE-scored)
+1. P0: Self-Study CS50 Student ("Alex") -- RICE 518
+2. P1: Career Changer ("Priya") -- RICE 336
+3. P1: International Learner ("Wei") -- RICE 392
+4. P2: CS Teaching Assistant ("Jordan") -- RICE 150 (hub user)
+5. P2: Hobbyist Tinkerer ("Sam") -- RICE 210 (highest LTV)
+
+## Legal & Compliance Critical Findings
+- CS50 CC BY-NC-SA 4.0: NonCommercial clause is biggest legal risk
+- YouTube embedding permitted under API TOS (updated Aug 2025)
+- Gemini FREE tier uses data for training (GDPR issue) -- must use paid tier for EU users
+- Groq: does NOT use data for training, ZDR available
+- Clerk: DPF certified, GDPR-compliant DPA
+- Convex: DPA available (March 2024)
+- COPPA: likely does not apply (college audience) but add age gate
+- "niotebook" not found on USPTO -- name available for trademark
+
+## Incorporation Recommendation
+- Delaware C-Corp via Stripe Atlas ($500)
+- 83(b) election CRITICAL (30-day deadline after stock issuance)
+- Franchise tax: use Assumed Par Value method (NOT Authorized Shares)
+- Total Year 1 cost: ~$2,500 (recommended path)
 
 ## Strategic Recommendations (Priority Order)
 1. URGENT: Remove invite gate, get to 10K+ users in 90 days
-2. Expand content beyond CS50 (MIT OCW, Stanford, Berkeley)
-3. Build community features (timestamp discussions, study groups, shared notebooks)
-4. Secure institutional partnership (CS50 endorsement)
-5. Generate any revenue (validates willingness to pay)
+2. Publish Privacy Policy + TOS before public launch
+3. Email CS50 team for commercial use permission
+4. Incorporate (Delaware C-Corp via Stripe Atlas)
+5. Expand content beyond CS50 (MIT OCW has same license terms)
+6. Build community features (study groups, shared notebooks)
+7. File trademark ITU application for "niotebook"

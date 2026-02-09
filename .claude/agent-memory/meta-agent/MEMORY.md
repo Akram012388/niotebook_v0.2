@@ -1,8 +1,8 @@
 # Meta-Agent Memory
 
-## Agent Inventory (as of 2026-02-08)
+## Agent Inventory (as of 2026-02-09)
 
-12 agents in `.claude/agents/`:
+15 agents in `.claude/agents/`:
 
 | Agent | Color | Model | Purpose |
 |-------|-------|-------|---------|
@@ -18,13 +18,23 @@
 | performance-analyst | green | opus | Performance profiling and optimization |
 | scout | pink | opus | Codebase exploration and mapping |
 | test-writer | ? | ? | Test creation |
+| ceo | blue | opus | Mark Cuban persona. Product strategy, growth, competitive warfare, brand |
+| cfo | green | opus | Kevin O'Leary persona. Financial strategy, unit economics, pricing |
+| visionary | magenta | opus | Steve Jobs persona. Product vision, simplicity, taste, design philosophy |
+
+## Business Agent Personas
+
+- CEO channels Mark Cuban (sweat equity, earned growth, bootstrap mentality)
+- CFO channels Kevin O'Leary (financial discipline, every dollar is a soldier)
+- Visionary channels Steve Jobs (simplicity, taste, reality distortion field, category creation)
+- Business Analyst has no persona (pure analytical rigor)
 
 ## Format Conventions
 
 - No number prefixes in filenames (use descriptive kebab-case names)
 - YAML frontmatter: name, description (with examples), model, color, memory
 - Description field contains user/assistant example pairs with `<commentary>` tags
-- Colors used: blue, cyan, green, orange, pink, purple, red, yellow (all taken)
+- Colors used: blue, cyan, green, magenta, orange, pink, purple, red, yellow
 - Model: `opus` for high-reasoning agents
 - Memory: `project` for agents that benefit from persistent context
 - System prompts are detailed (hundreds of words), not capped at 200

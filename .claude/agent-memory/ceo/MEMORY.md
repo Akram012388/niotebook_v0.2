@@ -23,6 +23,23 @@
 - AI failover: Gemini primary -> Groq fallback with first-token timeout detection
 - Zero server-side execution = near-zero marginal COGS per user
 
+## Marketing & Distribution Docs (Feb 2026)
+- Brand strategy: `docs/marketing/brand-strategy.md` (positioning, voice, competitive comparison, messaging framework)
+- Content strategy: `docs/marketing/content-strategy.md` (5 product videos with scripts, 16-week blog SEO calendar, social/YouTube/community plans)
+- Earned media playbook: `docs/marketing/earned-media-playbook.md` (PH launch, HN strategy, press targets, 30+ YouTuber outreach targets with subscriber counts)
+- Channel strategy: `docs/distribution/channel-strategy.md` (12 channels ranked, CS community map with subscriber counts, university outreach, browser extension plan)
+- Partnership playbook: `docs/distribution/partnership-playbook.md` (OCW providers, creators, universities with outreach templates)
+- Platform expansion roadmap: `docs/distribution/platform-expansion-roadmap.md` (15 courses prioritized across MIT/Stanford/Berkeley, runtime expansion plan, quarterly targets)
+
+## Key Market Data (Feb 2026)
+- CS50 total enrollments: 7.1M+; 1,000 on-campus Harvard students/semester
+- r/learnprogramming: ~4.2M members; r/csMajors: ~424K; r/cs50: ~200K
+- freeCodeCamp YouTube: 11.4M subs; Mosh: 4.9M; Fireship: 4M+; Bro Code: 3M
+- CS50 YouTube: 1.88M subs; Stanford YouTube: 1.9M subs
+- MIT OCW: 2,500+ courses, 300M visits/year
+- Class Central: 1,000+ free CS courses from top 60 universities
+- Product Hunt 2025-2026: only "Featured" products get traffic; authentic demos > polished videos
+
 ## Key Risks
 - CS50 academic honesty policy prohibits non-CS50 AI tools
 - Google could build "YouTube + Gemini + Colab" integration in one quarter
