@@ -2,7 +2,7 @@
 
 > **Status:** Approved by Founder (Akram) — February 9, 2026
 > **Branch:** `feat/niotebook-build` (on niotebook_v0.2 — plan document only)
-> **New Repo:** `niotebook_v0.3` — fresh monorepo, built from scratch
+> **New Repo:** `niotebook-v0.3` — fresh monorepo, built from scratch
 > **Decision:** Full Variant C from Day 0 — no phased compromise
 
 ---
@@ -16,7 +16,7 @@ Niotebook Build is the **BUILD layer** — a full-stack vibe coding environment 
 
 ---
 
-## Repository Strategy: niotebook_v0.3
+## Repository Strategy: niotebook-v0.3
 
 ### Why a new repo?
 
@@ -30,14 +30,14 @@ Niotebook Build is the **BUILD layer** — a full-stack vibe coding environment 
 ### What happens to v0.2?
 
 - `niotebook_v0.2` repo is **archived on GitHub** as reference (git history preserved)
-- Its codebase is imported into `niotebook_v0.3/apps/focus/` (no git history carried over — clean start)
+- Its codebase is imported into `niotebook-v0.3/apps/focus/` (no git history carried over — clean start)
 - The alpha deployment continues running from v0.2 until v0.3 is ready for cutover
 - Bug fixes to the live alpha go to v0.2; v0.3 gets them during import or as manual ports
 
 ### Monorepo Structure
 
 ```text
-niotebook_v0.3/
+niotebook-v0.3/
 │
 ├── apps/
 │   ├── focus/                    ← Focus mode (imported from niotebook_v0.2)
@@ -154,7 +154,7 @@ For browsing OpenHands source code during development (not committed to repo):
 ```text
 ~/Learning/Projects/Niotebook/
 ├── niotebook_v0.2/              ← Archived alpha (reference only)
-├── niotebook_v0.3/              ← Active monorepo (this plan)
+├── niotebook-v0.3/              ← Active monorepo (this plan)
 └── .reference/                  ← Local clones for reading (gitignored globally)
     ├── bolt.diy/                (upstream bolt.diy for diffing)
     └── OpenHands/               (OpenHands source for API reference)
@@ -481,9 +481,9 @@ BUILDS WITH AI ◄─────────┼──────────�
 
 ### Phase 0: Monorepo Scaffolding (Week 0 — FIRST)
 
-> **This is the very first thing to do in the new Claude Code session on niotebook_v0.3.**
+> **This is the very first thing to do in the new Claude Code session on niotebook-v0.3.**
 
-1. **Create new repo** — `niotebook_v0.3` on GitHub
+1. **Create new repo** — `niotebook-v0.3` on GitHub
 2. **Initialize monorepo** — pnpm + Turborepo + TypeScript base config
 3. **Import Focus mode** — Copy niotebook_v0.2 source into `apps/focus/` (no .git history)
 4. **Import Build mode** — Clone bolt.diy, strip WebContainers, place into `apps/build/`
@@ -584,7 +584,7 @@ BUILDS WITH AI ◄─────────┼──────────�
 
 ## Transition Instructions: v0.2 Session → v0.3 Session
 
-> **For the new Claude Code session working on niotebook_v0.3:**
+> **For the new Claude Code session working on niotebook-v0.3:**
 
 ### Context to carry forward
 
@@ -640,7 +640,7 @@ Then strip WebContainer (Phase A step 1) and remove StackBlitz-specific features
 - **OpenHands** — Clone repo, deploy Agent Server (Docker), get API endpoint
 - **Clerk** — Same instance as v0.2 (add build.niotebook.com to allowed origins)
 - **Convex** — Same deployment as v0.2 (both apps share it)
-- **GitHub** — Create `niotebook_v0.3` repo under Akram012388
+- **GitHub** — Create `niotebook-v0.3` repo under Akram012388
 
 ### Key conventions for the new repo
 
