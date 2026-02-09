@@ -2,7 +2,7 @@
 
 ## Codebase Navigation Map
 
-### Route → Shell Mapping (as of 2026-02-07, refactor/courses-navbar-layout branch)
+### Route → Shell Mapping (merged to main)
 
 | Route                            | Layout shell                            | Nav component                     |
 | -------------------------------- | --------------------------------------- | --------------------------------- |
@@ -20,7 +20,7 @@
 - `src/ui/shared/NotebookFrame.tsx` — canonical location (re-export shim deleted)
 - `src/ui/courses/CoursesNavActions.tsx` — right-side actions for courses nav
 
-### Deleted Components (refactor/courses-navbar-layout)
+### Deleted Components (completed, merged to main)
 
 - `src/ui/shell/SidebarShell.tsx` — replaced by SiteNav
 - `src/ui/courses/CourseCarousel.tsx` — dead code (never imported)

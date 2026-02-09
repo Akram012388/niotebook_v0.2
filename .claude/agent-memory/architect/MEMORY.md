@@ -29,13 +29,13 @@
 | `/editor-sandbox`          | None (iframe)       | NO                |
 | `/terms,/privacy,/cookies` | Inline Wordmark     | NO (stubs, defer) |
 
-## Dead Code Status (branch: refactor/courses-navbar-layout)
+## Dead Code Cleanup (completed, merged to main)
 
-- SidebarShell.tsx: DELETED, zero source imports, doc refs updated (marked superseded/deleted)
-- CourseCarousel.tsx: DELETED, zero source imports, doc refs cleaned
-- Landing re-export shims (ThemeToggle, NotebookFrame): DELETED, doc refs cleaned
-- `niotebook.sidebar` localStorage key: orphaned (zero source refs, doc refs updated)
-- `storageAdapter.ts`: NOT dead (used by ThemeToggle + 4 workspace components)
+- SidebarShell.tsx: DELETED (zero source imports)
+- CourseCarousel.tsx: DELETED (zero source imports)
+- Landing re-export shims (ThemeToggle, NotebookFrame): DELETED
+- `niotebook.sidebar` localStorage key: orphaned (zero source refs)
+- `storageAdapter.ts`: NOT dead (used by ThemeToggle + workspace components)
 - `ForceTheme.tsx`: NOT dead (workspace + 3 legal pages)
 
 ## Theme Architecture
@@ -70,24 +70,19 @@
 - Tests mock framer-motion and next/link — safe from visual changes
 - No E2E tests exercise auth UI
 
-## Niotepad Architecture (2026-02-08)
+## Niotepad Architecture (merged to main — PR #98)
 
-- **Plan:** `docs/niotepad-feature.md` -- comprehensive floating panel plan
-- **Branch:** `feat/niotepad-experimental` (fresh from main, supersedes `feat/niotepad`)
-- **Key decision:** Floating portal overlay, NOT a fourth pane type (unlike feat/niotepad)
+- **Plan:** `docs/niotepad-feature.md` — comprehensive floating panel plan
+- **Branch:** `feat/niotepad` (merged to main)
+- **Key decision:** Floating portal overlay, NOT a fourth pane type
 - **Mount:** React portal to document.body, outside workspace DOM tree
-- **Z-index:** 50 (same as ControlCenterDrawer -- mutual exclusion required)
-- **Shortcut:** `Cmd/Ctrl+J` (NOT Cmd+N -- browser-reserved, cannot be overridden)
-- **State:** Single Zustand store for panel state + entry CRUD + page navigation
-- **Persistence:** IndexedDB for entries (debounced 500ms), localStorage for panel geometry
-- **Pages:** Per-lecture, auto-created on first push/write for a lesson
-- **Glassmorphism:** backdrop-filter: blur(12px) + 78% alpha surface bg + multi-layer shadows
-- **Paper:** repeating-linear-gradient ruled lines at 24px spacing + binder dots from NotebookFrame
-- **Prior work reusable:** domain types, IndexedDB backend, useSelectionPush hook, /api/nio/summarize
-- **Sacred files (DO NOT MODIFY):** WorkspaceGrid.tsx, LayoutGrid.tsx, layoutTypes.ts
-- **8 implementation phases:** Foundation -> Shell -> Paper -> Swipe -> Pages -> Push -> Search -> Polish
-- **nanoid:** Available as transitive dep (via convex or other), not direct -- may need explicit dep
-- **framer-motion:** Already ^12.29.2 in deps, used by 9 files currently
+- **Z-index:** 50 (same as ControlCenterDrawer — mutual exclusion required)
+- **Shortcut:** `Cmd/Ctrl+J` (NOT Cmd+N — browser-reserved, cannot be overridden)
+- **State:** Single Zustand store (`src/infra/niotepad/useNiotepadStore.ts`) for panel state + entry CRUD + page navigation
+- **Persistence:** IndexedDB (`src/infra/niotepad/indexedDbNiotepad.ts`) for entries (debounced 500ms), localStorage for panel geometry
+- **Domain types:** `src/domain/niotepad.ts`
+- **UI components:** `src/ui/niotepad/` — NiotepadPortal, NiotepadPanel, NiotepadEntry, NiotepadComposer, NiotepadPageNav, NiotepadSearch, NiotepadPill, NiotepadDragHandle, NiotepadScrollArea, NiotepadProvider
+- **Selection push:** `src/ui/chat/useSelectionPush.ts` (lives in chat/, not niotepad/)
 
 ## Workspace Layout Architecture
 

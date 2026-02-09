@@ -1,9 +1,9 @@
 # Phase 8 — Route Redesign: Technical Architecture
 
-> **Status:** Partially superseded — see note below
+> **Status:** COMPLETE — All work merged to main (2026-02-08, commit `1d8214f`). Retained as architectural decision record.
 > **Author:** Architect Agent
-> **Date:** 2026-02-06 (updated 2026-02-07)
-> **Branch:** `redesign-v2` (base for all PRs)
+> **Date:** 2026-02-06 (updated 2026-02-09)
+> **Branch:** `redesign-v2` (merged to `main`)
 > **Scope:** Sign-in, Courses, Course Detail pages + navigation
 >
 > **Note:** The sidebar shell described in Section 1 was implemented on branch `redesign/sidebar-courses`

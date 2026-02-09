@@ -19,13 +19,15 @@ Quick entry points for Niotebook v0.2 documentation.
 - `docs/HANDOFF.md` — Session handoff context (Phases 1–4 + Redesign v2)
 - `docs/ALPHA_LAUNCH_RECOMMENDATIONS.md` — Alpha launch readiness review
 
+## Features
+
+- `docs/niotepad-feature.md` — Niotepad experimental feature plan
+
 ## Planning & Reviews
 
 - `docs/inspection.md` — Codebase inspection report
 - `docs/P0_BACKLOG_REVIEW.md` — Priority backlog review
-- `docs/phase4-tasks.md` — Phase 4 task breakdown
-- `docs/polish-workspace.md` — Workspace polish plan
-- `docs/session-tasks.md` — Session task tracking
+- `docs/polish-workspace.md` — Workspace polish plan (COMPLETE)
 
 ## Architecture
 

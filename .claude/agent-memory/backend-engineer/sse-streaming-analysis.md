@@ -86,44 +86,16 @@ to batch token updates. This means:
 If the server sends 10 tokens in a 50ms burst (due to Issue 1/3), the client
 receives them across ~3 RAF frames, but they may all land in 1-2 flushes.
 
-#### ISSUE 5: The 200-char reveal transition causes a visual jump
+#### ~~ISSUE 5: The 200-char reveal transition causes a visual jump~~ (RESOLVED — system removed)
 
-**File**: `src/ui/chat/useChatThread.ts`, lines 464-489
-**Severity**: HIGH (likely the flickering cause)
+> The entire RevealContent/typewriter system was removed in the chat overhaul.
+> `wasStreaming`, `isRevealing`, and the 200-char threshold no longer exist.
+> Current rendering: `isStreaming` true → plain `<span>` text; false → `<ReactMarkdown>`.
 
-When `totalChars >= REVEAL_THRESHOLD` (200 chars), `flushTokens()` does:
+#### ~~ISSUE 6: RevealContent renders content as plain text, then switches to markdown~~ (RESOLVED — system removed)
 
-```
-isStreaming: false, isRevealing: true, wasStreaming: true
-```
-
-This changes the message from the "thinking dot" phase (`isStreaming && !isRevealing`)
-to the typewriter reveal phase. At this moment:
-
-1. The thinking dot disappears (isStreaming becomes false)
-2. BUT the content is NOT empty — it already has 200+ chars accumulated
-3. `ChatMessage.tsx` (line 134-136) checks `isThinking = isStreaming && !isRevealing`
-4. When isThinking becomes false, it renders `AssistantContent` with `wasStreaming=true`
-5. `AssistantContent` starts `RevealContent` which begins at `visible=0`
-6. So there is a frame where 200+ chars of content exist in the data model but
-   `visible` is 0 in the RevealContent — this may cause a layout shift
-
-Additionally, the transition is non-atomic: `updateLocalMessage` triggers a
-React state update, which is async. Between the state update setting
-`isStreaming=false` and the `RevealContent` component mounting and starting its
-animation, there could be an intermediate render frame showing nothing (the
-thinking dot is gone, but the reveal has not started).
-
-#### ISSUE 6: RevealContent renders content as plain text, then switches to markdown
-
-**File**: `src/ui/chat/ChatMessage.tsx`, lines 43-95, 104-129
-**Severity**: LOW-MEDIUM (visual inconsistency)
-
-During the typewriter reveal, content is rendered as `<span>` plain text
-(line 94). Once the reveal completes (`revealed=true`), it switches to
-`<RenderedMarkdown>` which renders the full markdown with syntax highlighting.
-This causes a visual reflow — markdown elements (headings, lists, code blocks)
-suddenly "snap" into their formatted layout when the reveal finishes.
+> Same as above — RevealContent no longer exists. The plain-text-to-markdown
+> transition still happens but without the typewriter animation layer.
 
 #### ISSUE 7: Token events carry variable-size payloads
 
@@ -167,17 +139,12 @@ tokens into fixed-size pieces).
    Node.js runtime, investigate whether `controller.enqueue()` can be paired
    with a flush mechanism, or switch to a `TransformStream` approach.
 
-3. **Fix the 200-char transition** — instead of abruptly switching from
-   thinking dot to typewriter reveal, consider: (a) starting the reveal
-   immediately with the first token (skip the thinking dot phase), or
-   (b) pre-populating `RevealContent` with the buffered content so it
-   starts revealing from character 0 through 200+ immediately without
-   a blank frame.
+3. ~~**Fix the 200-char transition**~~ — RESOLVED: typewriter/RevealContent system was removed entirely.
 
 4. **Normalize token sizes on the server** — split large tokens (>50 chars)
    into smaller chunks before enqueuing to the SSE stream, providing more
    consistent delivery cadence.
 
 5. **Consider streaming markdown rendering** — instead of plain text during
-   reveal then snapping to markdown, use an incremental markdown parser that
-   renders partial markdown as it arrives.
+   streaming then snapping to markdown on done, use an incremental markdown
+   parser that renders partial markdown as it arrives.

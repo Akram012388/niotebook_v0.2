@@ -37,7 +37,7 @@ See `chat-stream-review.md` for client-side findings. See `chat-backend-review.m
 - **WARNING: Auth bypassed in dev/preview** -- `isConvexAuthRequired()` returns false, rate limit errors silently swallowed -> no auth AND no rate limiting
 - **WARNING: Fire-and-forget persistence** -- `persistAssistantMessage` has no retry, messages lost on Convex errors
 - `mergedMessages` new object refs defeat React.memo on every token flush
-- `wasStreaming` field set but never read (dead code from old typewriter)
+- `wasStreaming` and `isRevealing` fields fully removed from codebase (old typewriter system deleted)
 - `ChatStreamState` "error" variant defined but never set
 - No unit tests for `neutralizePromptInjection`
 - `ReadableStream.cancel()` callback is a no-op (should propagate abort)

@@ -110,11 +110,31 @@ Branch: `feat/mobile-gate` → merged to `main` (`283f91b`)
 - Design tokens, dual-theme swatches, social assets, app icons
 - Full asset library exported from Figma
 
+### Niotepad Feature
+
+Branch: `feat/niotepad-experimental` → merged to `main` (`e2c431b`)
+
+- Floating solid-surface panel with grid-paper background
+- Bidirectional push from code, chat, and video panes
+- Swipe-to-delete gesture, click-to-edit inline, click-to-write
+- Per-lecture page navigation, search and filter
+- Ring pulse animation on bookmark push events
+- Zustand store (`useNiotepadStore`) with IndexedDB persistence
+
+### Gmail Automation
+
+Branch: `feat/gmail-automation` → merged to `main` (`f7f4c83`)
+
+- Gmail API client using `google-auth-library` + raw fetch
+- Buffer-based UTF-8 safe base64 encoding/decoding
+- OAuth2 flow with token persistence (`.gmail-tokens.json`)
+- Env vars: `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REDIRECT_URI`
+
 ## Current State of Main
 
 ```
-Commit: fc71c25 (2026-02-08)
-Tests: 153 unit tests passing (29 files)
+Commit: f7f4c83 (2026-02-09)
+Tests: 153+ unit tests passing
 E2E: 9 active + 10 skipped (need seeded Convex data + admin role setup)
 Typecheck: clean
 Lint: clean
@@ -153,12 +173,19 @@ Lint: clean
 - `convex/ingest.ts` — ingestCourse mutation
 - `convex/schema.ts` — added `feedback` table
 
+**Niotepad:**
+
+- `src/ui/niotepad/` — NiotepadPanel, NiotepadComposer, NiotepadEntry, NiotepadSearch, NiotepadPageNav, NiotepadPill, NiotepadPortal, NiotepadProvider, NiotepadScrollArea, NiotepadDragHandle
+- `src/infra/niotepad/` — useNiotepadStore (Zustand), niotepadSelectors, indexedDbNiotepad
+- `src/domain/niotepad.ts` — Domain types for niotepad entries
+
 **Domain/infra:**
 
 - `src/domain/nioContextBuilder.ts` — fileName + lastError fields (bug fix: lastError now appended to output)
 - `src/domain/nioPrompt.ts` — references file name, modification hash, last error
 - `src/domain/lessonEnvironment.ts` — added `cs50sql-sql` preset
 - `src/infra/runtime/` — SQL executor (sql.js), R executor (WebR)
+- `src/infra/email/` — gmailClient.ts, gmailService.ts, types.ts (Gmail API automation)
 - `scripts/ingest-cs50-courses.ts` — Ingest payloads for all 5 CS50 courses
 
 **Tests:**
@@ -211,6 +238,7 @@ Lint: clean
 
 - Wasmer C compilation (currently static analysis only)
 - Auto-completion trigger (video >90% → lesson complete)
+- Niotepad Convex sync and push animation
 - Collaborative features
 - Mobile workspace support
 - Landing page demo video integration

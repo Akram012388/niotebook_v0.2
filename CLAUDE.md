@@ -29,13 +29,15 @@ Run a single E2E test: `bunx playwright test path/to/test.ts`
 
 ### Source Layout
 
-- **`src/app/`** — Next.js routes. `workspace/` is the main protected route. `editor-sandbox/` is an isolated iframe with COOP/COEP headers for Wasmer WASM execution.
-- **`src/ui/`** — React components (all client-side). Organized by feature: `admin/` (dashboard), `auth/` (sign-in, boot sequence), `brand/` (wordmark, logos), `chat/` (AI chat), `code/` (editor, terminal, file tree), `content/` (lesson content), `courses/` (catalog, detail), `landing/` (hero, features), `layout/` (preset context, grid), `panes/` (workspace panes), `shared/` (ThemeToggle, NotebookFrame), `shell/` (SiteNav, TopNav), `transcript/`, `video/` (YouTube player).
-- **`src/domain/`** — Pure business logic and types. No React, no side effects. AI prompt building (`nioPrompt.ts`, `nioContextBuilder.ts`), lesson environment config, chat/transcript/video types.
+- **`src/app/`** — Next.js routes. `(landing)/` is the public landing + info pages. `workspace/` is the main protected route. `courses/` is the course catalog. `admin/` is the admin dashboard. `sign-in/` + `sign-up/` are auth routes. `editor-sandbox/` is an isolated iframe with COOP/COEP headers for Wasmer WASM execution. `api/nio/` is the AI chat endpoint. `api/gmail/` is the Gmail automation callback.
+- **`src/ui/`** — React components (all client-side). Organized by feature: `admin/` (dashboard), `auth/` (sign-in, boot sequence), `brand/` (wordmark, logos), `chat/` (AI chat), `code/` (editor, terminal, file tree), `content/` (lesson content), `courses/` (catalog, detail), `landing/` (hero, features), `layout/` (preset context, grid), `niotepad/` (floating notepad panel), `panes/` (workspace panes), `shared/` (ThemeToggle, NotebookFrame), `shell/` (SiteNav, TopNav), `transcript/`, `video/` (YouTube player).
+- **`src/domain/`** — Pure business logic and types. No React, no side effects. AI prompt building (`nioPrompt.ts`, `nioContextBuilder.ts`), lesson environment config, niotepad types, chat/transcript/video types.
 - **`src/infra/`** — Infrastructure layers:
   - `vfs/` — Virtual filesystem (in-memory tree + IndexedDB persistence via Zustand store)
   - `runtime/` — Multi-language code execution: JS (`new Function`), Python (Pyodide WASM), C (Wasmer WASM), HTML/CSS (iframe). Each language has its own executor + import resolver.
   - `ai/` — AI provider interfaces
+  - `niotepad/` — Niotepad Zustand store + IndexedDB persistence
+  - `email/` — Gmail API client for niotebook@gmail.com automation
 - **`convex/`** — Convex backend functions. `schema.ts` defines the data model. Auth via Clerk JWT. Real-time queries/mutations consumed by React hooks.
 
 ### Key Patterns
