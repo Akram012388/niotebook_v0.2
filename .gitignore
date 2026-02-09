@@ -65,3 +65,6 @@ next-env.d.ts
 /niotebook-demo-videos/remotion/out/
 /public/videos/
 .playwright-mcp/
+
+# gmail oauth tokens
+.gmail-tokens.json

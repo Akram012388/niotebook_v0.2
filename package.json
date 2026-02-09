@@ -51,6 +51,7 @@
     "codemirror-lang-r": "^0.1.1",
     "convex": "^1.31.4",
     "framer-motion": "^12.29.2",
+    "googleapis": "^171.4.0",
     "idb": "^8.0.1",
     "next": "16.1.2",
     "react": "19.2.3",
