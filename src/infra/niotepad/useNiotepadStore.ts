@@ -60,6 +60,7 @@ type NiotepadState = {
   sourceFilters: NiotepadEntrySource[];
   isSearchExpanded: boolean;
   hasUnread: boolean;
+  pushSignal: number;
 
   // Data
   pages: NiotepadPage[];
@@ -149,6 +150,7 @@ const useNiotepadStore = create<NiotepadState & NiotepadActions>()(
     sourceFilters: [],
     isSearchExpanded: false,
     hasUnread: readUnread(),
+    pushSignal: 0,
 
     // ----- Data state -----
     pages: [],
@@ -234,6 +236,7 @@ const useNiotepadStore = create<NiotepadState & NiotepadActions>()(
 
       if (!get().isOpen) {
         updates.hasUnread = true;
+        updates.pushSignal = get().pushSignal + 1;
         storageAdapter.setItem(UNREAD_KEY, "true");
       }
 
