@@ -36,7 +36,7 @@ Niotebook Build is the **BUILD layer** — a full-stack vibe coding environment 
 
 ### Monorepo Structure
 
-```
+```text
 niotebook_v0.3/
 │
 ├── apps/
@@ -151,7 +151,7 @@ is manual and intentional. We cherry-pick what helps, ignore what doesn't.
 
 For browsing OpenHands source code during development (not committed to repo):
 
-```
+```text
 ~/Learning/Projects/Niotebook/
 ├── niotebook_v0.2/              ← Archived alpha (reference only)
 ├── niotebook_v0.3/              ← Active monorepo (this plan)
@@ -164,7 +164,7 @@ For browsing OpenHands source code during development (not committed to repo):
 
 ## Architecture: Variant C (Maximum Power)
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                    build.niotebook.com                   │
 │                                                         │
@@ -279,7 +279,7 @@ For browsing OpenHands source code during development (not committed to repo):
 
 **OpenHands Agent Server API surface used:**
 
-```
+```text
 POST   /workspaces                    # Create workspace for user session
 DELETE /workspaces/{id}               # Cleanup on session end
 POST   /conversations                 # Start a new conversation
@@ -348,7 +348,7 @@ pty.onData((data) => { /* stream to xterm.js */ });
 
 ## Data Flow: User Prompt → Running App
 
-```
+```text
 1. User types: "Build me a todo app with drag-and-drop"
                     │
                     ▼
@@ -392,7 +392,7 @@ pty.onData((data) => { /* stream to xterm.js */ });
 
 ## Subdomain Architecture
 
-```
+```text
 niotebook.com                    build.niotebook.com
 ┌────────────────────┐           ┌────────────────────┐
 │  Focus Mode        │           │  Build Mode         │
@@ -457,7 +457,7 @@ niotebook.com                    build.niotebook.com
 
 ## Competitive Position
 
-```
+```text
                     UNDERSTANDS CODE
                          ▲
                          │
@@ -597,7 +597,7 @@ BUILDS WITH AI ◄─────────┼──────────�
 
 From the `niotebook_v0.2` repository, copy these into `apps/focus/`:
 
-```
+```text
 src/           → apps/focus/src/
 public/        → apps/focus/public/
 next.config.ts → apps/focus/next.config.ts
@@ -608,13 +608,13 @@ package.json   → apps/focus/package.json (app-specific deps only, remove turbo
 ```
 
 Move to monorepo root:
-```
+```text
 convex/        → convex/         (root level — shared by both apps)
 .env.local     → .env.local      (root level — shared env vars)
 ```
 
 Do NOT copy:
-```
+```text
 .git/          (fresh history for v0.3)
 node_modules/  (pnpm will install)
 .next/         (build artifact)
@@ -625,7 +625,7 @@ docs/          (v0.2 docs stay in v0.2 repo, except this plan file)
 
 Clone `stackblitz-labs/bolt.diy`, then copy into `apps/build/`:
 
-```
+```text
 app/           → apps/build/app/
 vite.config.ts → apps/build/vite.config.ts
 tsconfig.json  → apps/build/tsconfig.json (modify to extend ../../tsconfig.base.json)
