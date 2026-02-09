@@ -40,8 +40,7 @@ const ChatScroll = forwardRef<ChatScrollHandle, ChatScrollProps>(
     const handleScroll = useCallback((): void => {
       const el = containerRef.current;
       if (!el) return;
-      const distFromBottom =
-        el.scrollHeight - el.scrollTop - el.clientHeight;
+      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
       const bottom = distFromBottom < BOTTOM_THRESHOLD;
       atBottomRef.current = bottom;
       setAtBottom(bottom);
@@ -165,9 +164,7 @@ const ChatScroll = forwardRef<ChatScrollHandle, ChatScrollProps>(
           className="h-full overflow-y-auto pr-2"
           style={{ overflowAnchor: "none" }}
         >
-          <div className="space-y-4 pb-4">
-            {children}
-          </div>
+          <div className="space-y-4 pb-4">{children}</div>
         </div>
         {!atBottom ? (
           <button

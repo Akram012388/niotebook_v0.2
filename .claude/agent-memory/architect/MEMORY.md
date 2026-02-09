@@ -69,3 +69,33 @@
 - CourseCard test checks `opacity-60` — fragile if changed
 - Tests mock framer-motion and next/link — safe from visual changes
 - No E2E tests exercise auth UI
+
+## Niotepad Architecture (2026-02-08)
+
+- **Plan:** `docs/niotepad-feature.md` -- comprehensive floating panel plan
+- **Branch:** `feat/niotepad-experimental` (fresh from main, supersedes `feat/niotepad`)
+- **Key decision:** Floating portal overlay, NOT a fourth pane type (unlike feat/niotepad)
+- **Mount:** React portal to document.body, outside workspace DOM tree
+- **Z-index:** 50 (same as ControlCenterDrawer -- mutual exclusion required)
+- **Shortcut:** `Cmd/Ctrl+J` (NOT Cmd+N -- browser-reserved, cannot be overridden)
+- **State:** Single Zustand store for panel state + entry CRUD + page navigation
+- **Persistence:** IndexedDB for entries (debounced 500ms), localStorage for panel geometry
+- **Pages:** Per-lecture, auto-created on first push/write for a lesson
+- **Glassmorphism:** backdrop-filter: blur(12px) + 78% alpha surface bg + multi-layer shadows
+- **Paper:** repeating-linear-gradient ruled lines at 24px spacing + binder dots from NotebookFrame
+- **Prior work reusable:** domain types, IndexedDB backend, useSelectionPush hook, /api/nio/summarize
+- **Sacred files (DO NOT MODIFY):** WorkspaceGrid.tsx, LayoutGrid.tsx, layoutTypes.ts
+- **8 implementation phases:** Foundation -> Shell -> Paper -> Swipe -> Pages -> Push -> Search -> Polish
+- **nanoid:** Available as transitive dep (via convex or other), not direct -- may need explicit dep
+- **framer-motion:** Already ^12.29.2 in deps, used by 9 files currently
+
+## Workspace Layout Architecture
+
+- **3 modes:** single (1-col), split (3fr+2fr), triple (2fr+1.5fr+1.5fr)
+- **State:** `useSyncExternalStore` with module-level snapshot + localStorage
+- **Pane state:** Module-level snapshots for singlePane, leftPane, rightPane
+- **Video time:** Module-level external store with Set<listener> pattern
+- **Key constraint:** Code in left pane forces Chat in right pane (split mode)
+- **Keyboard:** 1/2/3 for layout, v/c/a for pane switching (raw keydown, not meta)
+- **TopNav height:** 72px (h-[72px]), contains LayoutPresetToggle + ControlCenter button
+- **ControlCenterDrawer:** fixed inset-0 z-50, right-0 slide-in, 360px wide, has focus trap

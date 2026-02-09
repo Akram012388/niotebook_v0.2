@@ -1,6 +1,7 @@
 # Workspace Architecture - Full Scout Report
 
 ## Overview
+
 The workspace is the core product experience of Niotebook: a three-pane IDE that combines video lectures, a code editor, and an AI assistant in a single view. It lives at `/workspace?lessonId=...` and is protected by Clerk authentication. The layout supports three column presets (1/2/3 columns) with pane switching for flexible study workflows.
 
 ## File Map
@@ -114,6 +115,7 @@ WorkspacePage (server component)
 ```
 
 ### VideoPane subtree
+
 ```
 VideoPane
   |-- header (course title, lecture label, headerExtras, "1080p" badge)
@@ -122,6 +124,7 @@ VideoPane
 ```
 
 ### CodePane subtree
+
 ```
 CodePane
   |-- header ("Code", LanguageSelect, headerExtras)
@@ -138,6 +141,7 @@ CodePane
 ```
 
 ### AiPane subtree
+
 ```
 AiPane
   |-- header ("Assistant", headerExtras, "Live" badge)
@@ -151,6 +155,7 @@ AiPane
 ## Data Flow
 
 ### Lesson Selection
+
 ```
 URL ?lessonId=... --> WorkspacePage (server, validates param)
   --> WorkspaceGrid reads searchParams.get("lessonId")
@@ -159,6 +164,7 @@ URL ?lessonId=... --> WorkspacePage (server, validates param)
 ```
 
 ### Video Time Flow
+
 ```
 VideoPlayer.onTimeSample(sec) --> WorkspaceGrid.handleVideoTime()
   --> setVideoTime(sec) [module-level external store]
@@ -168,6 +174,7 @@ VideoPlayer.onTimeSample(sec) --> WorkspaceGrid.handleVideoTime()
 ```
 
 ### Code Execution Flow
+
 ```
 CodePane.handleRun()
   --> useEditorStore.saveAll() (flush dirty editors to VFS)
@@ -178,6 +185,7 @@ CodePane.handleRun()
 ```
 
 ### AI Chat Flow
+
 ```
 User types in ChatComposer --> AiPane.handleSend(content)
   --> sendMessage(content, context) where context includes:
@@ -191,6 +199,7 @@ User types in ChatComposer --> AiPane.handleSend(content)
 ```
 
 ### Code Snapshot Flow
+
 ```
 CodePane watches VFS main file changes (reactive via files array)
   --> onSnapshot({ language, code, codeHash, fileName })
@@ -202,36 +211,40 @@ CodePane watches VFS main file changes (reactive via files array)
 ## State Management
 
 ### React Context
-| Context | Provider | Location | Consumers |
-|---------|----------|----------|-----------|
+
+| Context             | Provider             | Location | Consumers                                   |
+| ------------------- | -------------------- | -------- | ------------------------------------------- |
 | LayoutPresetContext | LayoutPresetProvider | AppShell | WorkspaceGrid, CodePane, LayoutPresetToggle |
 
 ### Zustand Stores
-| Store | Location | Purpose | Consumers |
-|-------|----------|---------|-----------|
-| useFileSystemStore | infra/vfs/useFileSystemStore.ts | VFS tree + IndexedDB persistence | CodePane, useEditorStore |
-| useEditorStore | ui/code/useEditorStore.ts | Multi-tab CM6 editor state | CodePane, EditorArea, TabbedEditor |
-| useTerminalStore | ui/code/terminal/useTerminalStore.ts | xterm.js terminal + run state | CodePane, AiPane, TerminalPanel |
+
+| Store              | Location                             | Purpose                          | Consumers                          |
+| ------------------ | ------------------------------------ | -------------------------------- | ---------------------------------- |
+| useFileSystemStore | infra/vfs/useFileSystemStore.ts      | VFS tree + IndexedDB persistence | CodePane, useEditorStore           |
+| useEditorStore     | ui/code/useEditorStore.ts            | Multi-tab CM6 editor state       | CodePane, EditorArea, TabbedEditor |
+| useTerminalStore   | ui/code/terminal/useTerminalStore.ts | xterm.js terminal + run state    | CodePane, AiPane, TerminalPanel    |
 
 ### Module-Level External Stores (useSyncExternalStore)
-| Store | Location | Purpose |
-|-------|----------|---------|
-| videoTime | WorkspaceGrid.tsx (lines 28-62) | Video playback time, subscribed by AiPane |
-| paneState | WorkspaceGrid.tsx (lines 123-179) | single/left/right pane selection |
-| presetState | LayoutPresetContext.tsx (lines 24-48) | Layout preset with localStorage |
+
+| Store       | Location                              | Purpose                                   |
+| ----------- | ------------------------------------- | ----------------------------------------- |
+| videoTime   | WorkspaceGrid.tsx (lines 28-62)       | Video playback time, subscribed by AiPane |
+| paneState   | WorkspaceGrid.tsx (lines 123-179)     | single/left/right pane selection          |
+| presetState | LayoutPresetContext.tsx (lines 24-48) | Layout preset with localStorage           |
 
 ### localStorage Keys
-| Key | Used By | Purpose |
-|-----|---------|---------|
-| niotebook.theme | TopNav, root layout, ThemeToggle | Theme preference |
-| niotebook.layout | LayoutPresetContext | Layout preset (single/split/triple) |
-| niotebook.lesson | TopNav, WorkspaceGrid | Last selected lesson ID |
-| niotebook.language | CodePane | Last selected language |
-| niotebook.pane.single | WorkspaceGrid | Single-mode pane (video/code) |
-| niotebook.pane.left | WorkspaceGrid | Split-mode left pane |
-| niotebook.pane.right | WorkspaceGrid | Split-mode right pane |
-| niotebook:split-editor-output | SplitPane | Editor/terminal split position |
-| niotebook:split-file-tree:* | SplitPane | File tree split position per layout |
+
+| Key                           | Used By                          | Purpose                             |
+| ----------------------------- | -------------------------------- | ----------------------------------- |
+| niotebook.theme               | TopNav, root layout, ThemeToggle | Theme preference                    |
+| niotebook.layout              | LayoutPresetContext              | Layout preset (single/split/triple) |
+| niotebook.lesson              | TopNav, WorkspaceGrid            | Last selected lesson ID             |
+| niotebook.language            | CodePane                         | Last selected language              |
+| niotebook.pane.single         | WorkspaceGrid                    | Single-mode pane (video/code)       |
+| niotebook.pane.left           | WorkspaceGrid                    | Split-mode left pane                |
+| niotebook.pane.right          | WorkspaceGrid                    | Split-mode right pane               |
+| niotebook:split-editor-output | SplitPane                        | Editor/terminal split position      |
+| niotebook:split-file-tree:\*  | SplitPane                        | File tree split position per layout |
 
 ## Theme Handling
 
@@ -241,41 +254,46 @@ CodePane watches VFS main file changes (reactive via files array)
 4. **Conflict note**: ForceTheme forces light, but TopNav also sets theme. The ControlCenterDrawer theme toggle in workspace actually sets the attribute directly, which ForceTheme's cleanup will override on unmount.
 
 ## Convex Queries Used in Workspace
-| Query | Used By | Purpose |
-|-------|---------|---------|
-| content:getCourses | TopNav, VideoPane | List available courses |
-| content:getLesson | TopNav, VideoPane, AiPane | Single lesson details |
-| content:getLessonsByCourse | TopNav | Lessons for course picker |
-| resume:getLatestFrame | useVideoFrame (VideoPane) | Resume video position |
-| transcript:getTranscriptWindow | useTranscriptWindow (AiPane) | Transcript around current time |
-| events:logEvent | CodePane, ControlCenterDrawer | Analytics events |
-| feedback:submit | ControlCenterDrawer | User feedback |
-| me:get | TopNav (via meRef) | User role/invite info |
+
+| Query                          | Used By                       | Purpose                        |
+| ------------------------------ | ----------------------------- | ------------------------------ |
+| content:getCourses             | TopNav, VideoPane             | List available courses         |
+| content:getLesson              | TopNav, VideoPane, AiPane     | Single lesson details          |
+| content:getLessonsByCourse     | TopNav                        | Lessons for course picker      |
+| resume:getLatestFrame          | useVideoFrame (VideoPane)     | Resume video position          |
+| transcript:getTranscriptWindow | useTranscriptWindow (AiPane)  | Transcript around current time |
+| events:logEvent                | CodePane, ControlCenterDrawer | Analytics events               |
+| feedback:submit                | ControlCenterDrawer           | User feedback                  |
+| me:get                         | TopNav (via meRef)            | User role/invite info          |
 
 ## Keyboard Shortcuts (WorkspaceGrid)
-| Key | Action |
-|-----|--------|
-| 1 | Switch to single layout |
-| 2 | Switch to split layout |
-| 3 | Switch to triple layout |
-| V | Show video pane (single/split left) |
-| C | Show code pane (context-dependent) |
-| A | Show assistant pane (split right) |
+
+| Key | Action                              |
+| --- | ----------------------------------- |
+| 1   | Switch to single layout             |
+| 2   | Switch to split layout              |
+| 3   | Switch to triple layout             |
+| V   | Show video pane (single/split left) |
+| C   | Show code pane (context-dependent)  |
+| A   | Show assistant pane (split right)   |
 
 ## Risk Assessment
 
 ### Complexity Hotspots
+
 - **ControlCenterDrawer** (760 LOC): Monolithic component with 6+ internal state variables, handles lectures, courses, settings, feedback, user panel, share. Strong candidate for decomposition.
 - **WorkspaceGrid** (592 LOC): Orchestrates all layout modes, pane state, video time, keyboard shortcuts, lesson routing. Does too many things.
 - **useChatThread** (581 LOC): SSE streaming, message management, error handling, Convex integration all in one hook.
 - **CodePane** (511 LOC): Runtime lifecycle, VFS initialization, snapshot reporting, language switching.
 
 ### Tight Coupling
+
 - **WorkspaceGrid <-> AiPane**: Video time communicated via module-level store exported from WorkspaceGrid, imported by AiPane. Circular module concern.
 - **CodePane <-> useFileSystemStore <-> useEditorStore**: Three-way dependency for code editing. Editor reads from VFS on open, writes back on save. CodePane coordinates both.
 - **TopNav <-> ControlCenterDrawer**: TopNav manages all drawer state and passes 15+ props.
 
 ### Architecture Observations
+
 - No workspace-level layout.tsx -- workspace is a single page.tsx under `src/app/workspace/`, not a route group with shared layout.
 - ForceTheme("light") means workspace is always light-mode regardless of user preference. Theme toggle in ControlCenterDrawer is misleading in workspace context.
 - Mobile users see a dead-end "best on desktop" message with no fallback.

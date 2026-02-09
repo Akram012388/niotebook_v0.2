@@ -37,8 +37,7 @@ const TL_POP_DURATION = 60; //                 1.0s
 const TL_HOLD = 90; //                         1.5s  (+1s breathing room)
 const TL_SNAP_DURATION = 18; //                0.3s
 
-const INTRO_TOTAL =
-  TL_START + TL_POP_DURATION + TL_HOLD + TL_SNAP_DURATION; // frame 492 = 8.2s
+const INTRO_TOTAL = TL_START + TL_POP_DURATION + TL_HOLD + TL_SNAP_DURATION; // frame 492 = 8.2s
 
 export const TIMING = {
   leadIn: LEAD_IN,

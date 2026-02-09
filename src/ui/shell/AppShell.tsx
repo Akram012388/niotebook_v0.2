@@ -6,6 +6,7 @@ import {
   useLayoutPreset,
 } from "../layout/LayoutPresetContext";
 import { TopNav } from "./TopNav";
+import { NiotepadProvider } from "../niotepad/NiotepadProvider";
 
 type AppShellProps = {
   children: ReactNode;
@@ -44,7 +45,9 @@ const AppShellFrame = ({ children }: AppShellProps): ReactElement => {
 const AppShell = ({ children }: AppShellProps): ReactElement => {
   return (
     <LayoutPresetProvider>
-      <AppShellFrame>{children}</AppShellFrame>
+      <NiotepadProvider>
+        <AppShellFrame>{children}</AppShellFrame>
+      </NiotepadProvider>
     </LayoutPresetProvider>
   );
 };

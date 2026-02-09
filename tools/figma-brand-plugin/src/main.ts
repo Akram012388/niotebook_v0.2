@@ -51,7 +51,10 @@ async function buildGuide() {
   await buildBrandGuide();
 }
 
-async function runStep(name: string, fn: () => Promise<void>): Promise<boolean> {
+async function runStep(
+  name: string,
+  fn: () => Promise<void>,
+): Promise<boolean> {
   try {
     console.log("[niotebook] step " + name + ": starting…");
     await fn();
@@ -83,11 +86,20 @@ async function buildAll() {
   const total = Object.keys(results).length;
 
   if (passed === total) {
-    figma.notify("✓ Brand system v2 complete! (" + total + "/" + total + " steps)");
+    figma.notify(
+      "✓ Brand system v2 complete! (" + total + "/" + total + " steps)",
+    );
   } else {
-    figma.notify("⚠ Brand system: " + passed + "/" + total + " steps succeeded — check console", {
-      error: true,
-    });
+    figma.notify(
+      "⚠ Brand system: " +
+        passed +
+        "/" +
+        total +
+        " steps succeeded — check console",
+      {
+        error: true,
+      },
+    );
   }
 }
 

@@ -41,8 +41,7 @@ export const Wordmark: React.FC = () => {
 
   // ── Phase 3: "i" dot-bounce (punchy!) ─────────────────────────
   const isBouncing =
-    frame >= wm.iBounceStart &&
-    frame < wm.iBounceStart + wm.iBounceDuration;
+    frame >= wm.iBounceStart && frame < wm.iBounceStart + wm.iBounceDuration;
   const bf = Math.max(0, frame - wm.iBounceStart);
 
   // Stick: sharp jump up → spring back with overshoot (px scaled for 288px font)
@@ -120,8 +119,7 @@ export const Wordmark: React.FC = () => {
                 left: -I_DOT.maskPadSide,
                 right: -I_DOT.maskPadSide,
                 top: I_DOT.offsetTop - I_DOT.maskPadTop,
-                height:
-                  I_DOT.height + I_DOT.maskPadTop + I_DOT.maskPadBottom,
+                height: I_DOT.height + I_DOT.maskPadTop + I_DOT.maskPadBottom,
                 backgroundColor: BRAND.background,
                 transform: `translateY(${stickY}px)`,
               }}

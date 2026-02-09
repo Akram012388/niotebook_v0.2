@@ -114,15 +114,15 @@ Each card: course thumbnail (YouTube playlist image), title, subtitle, lesson co
 
 Already defined in `globals.css`:
 
-| Token                 | Light                    | Dark                     |
-| --------------------- | ------------------------ | ------------------------ |
-| `--background`        | `#f4f3ee` (Pampas)       | `#1c1917` (Charcoal)     |
-| `--foreground`        | `#1c1917`                | `#f4f3ee`                |
-| `--surface`           | `#faf9f7`                | `#252220`                |
-| `--surface-muted`     | `#edeae4`                | `#2e2a27`                |
-| `--accent`            | `#c15f3c` (Crail)        | `#da7756` (Terracotta)   |
-| `--accent-foreground` | `#ffffff`                | `#1c1917`                |
-| `--text-muted`        | `#78716c`                | `#a8a29e`                |
+| Token                 | Light              | Dark                   |
+| --------------------- | ------------------ | ---------------------- |
+| `--background`        | `#f4f3ee` (Pampas) | `#1c1917` (Charcoal)   |
+| `--foreground`        | `#1c1917`          | `#f4f3ee`              |
+| `--surface`           | `#faf9f7`          | `#252220`              |
+| `--surface-muted`     | `#edeae4`          | `#2e2a27`              |
+| `--accent`            | `#c15f3c` (Crail)  | `#da7756` (Terracotta) |
+| `--accent-foreground` | `#ffffff`          | `#1c1917`              |
+| `--text-muted`        | `#78716c`          | `#a8a29e`              |
 
 **Fonts:** Geist Sans (body) + Geist Mono (code accents) + Orbitron (wordmark only) — already imported in the app.
 

@@ -157,10 +157,10 @@ export default function InfoPage(): ReactElement {
               your programs, and a file tree for navigating your project.
             </p>
             <p>
-              Courses cover web development, systems programming, and more.
-              Each lesson includes an AI assistant that can answer questions
-              about the material, help debug your code, and suggest next steps.
-              The assistant is context-aware: it knows which lecture you&rsquo;re
+              Courses cover web development, systems programming, and more. Each
+              lesson includes an AI assistant that can answer questions about
+              the material, help debug your code, and suggest next steps. The
+              assistant is context-aware: it knows which lecture you&rsquo;re
               watching, what code you&rsquo;ve written, and where you are in the
               curriculum.
             </p>
@@ -243,7 +243,8 @@ export default function InfoPage(): ReactElement {
             <p>
               Niotebook is in active development. The changelog will document
               every meaningful update &mdash; new features, improvements, and
-              fixes &mdash; so you can see exactly what&rsquo;s changed and when.
+              fixes &mdash; so you can see exactly what&rsquo;s changed and
+              when.
             </p>
             <p>
               The platform is currently in alpha. Early access users are helping

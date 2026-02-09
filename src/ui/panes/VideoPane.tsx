@@ -12,6 +12,7 @@ import { useAutoCompletion } from "../video/useAutoCompletion";
 import { useVideoFrame } from "../video/useVideoFrame";
 import { getCoursesRef, getLessonRef } from "../content/convexContent";
 import { resolveLectureNumber } from "../../domain/lectureNumber";
+import { useNiotepadStore } from "../../infra/niotepad/useNiotepadStore";
 
 type VideoSeekRequest = {
   timeSec: number;
@@ -210,6 +211,46 @@ const VideoPane = ({
     [checkAutoCompletion, onTimeChange],
   );
 
+  // ── Bookmark to niotepad ────────────────────────────────
+  const [bookmarkConfirm, setBookmarkConfirm] = useState(false);
+  const bookmarkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleBookmark = useCallback((): void => {
+    const currentTime = lastSampleTimeSec ?? 0;
+    const lecNum =
+      lectureNumber !== null && lectureNumber !== undefined
+        ? `Lecture ${lectureNumber}`
+        : (lesson?.title ?? "Lecture");
+    const content = "Video moment bookmarked";
+    const lectureTitle = lecNum;
+
+    const store = useNiotepadStore.getState();
+    const pageId = store.getOrCreatePage(lessonId, lectureTitle);
+    store.addEntry({
+      source: "video",
+      content,
+      pageId,
+      videoTimeSec: currentTime,
+      metadata: {
+        lectureTitle,
+        lectureNumber: lectureNumber ?? null,
+      },
+    });
+
+    setBookmarkConfirm(true);
+    if (bookmarkTimerRef.current) clearTimeout(bookmarkTimerRef.current);
+    bookmarkTimerRef.current = setTimeout(() => {
+      setBookmarkConfirm(false);
+      bookmarkTimerRef.current = null;
+    }, 1500);
+  }, [lastSampleTimeSec, lesson?.title, lectureNumber, lessonId]);
+
+  useEffect(() => {
+    return () => {
+      if (bookmarkTimerRef.current) clearTimeout(bookmarkTimerRef.current);
+    };
+  }, []);
+
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">
       <header className="flex h-14 items-center justify-between border-b border-border-muted px-4 py-3">
@@ -225,10 +266,50 @@ const VideoPane = ({
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {headerExtras}
+          <button
+            type="button"
+            onClick={handleBookmark}
+            className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            aria-label="Bookmark this moment to niotepad"
+          >
+            {bookmarkConfirm ? (
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 7L6 10L11 4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            ) : (
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3.5 2.5H10.5V12L7 9.5L3.5 12V2.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+          </button>
           <span className="rounded-full border border-border bg-surface-muted px-2 py-1 text-[11px] font-medium text-text-muted">
             1080p
           </span>
+          {headerExtras}
         </div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col p-4">
@@ -256,7 +337,10 @@ const VideoPane = ({
           )}
         </div>
         {showInfoStrip && infoItems.length > 0 ? (
-          <div ref={infoStripRef} className="mx-auto mt-3 rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] text-text-muted">
+          <div
+            ref={infoStripRef}
+            className="mx-auto mt-3 rounded-lg border border-border bg-surface-muted px-3 py-2 text-[11px] text-text-muted"
+          >
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               {infoItems.map((item) => (
                 <div key={item.label} className="flex items-center gap-1">

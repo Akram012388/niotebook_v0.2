@@ -71,6 +71,7 @@ After implementation:
 ### Phase 5: Report
 
 When done, give me:
+
 - What you changed and why (be concise, not exhaustive)
 - Any decisions you made that I should know about
 - Any tech debt or concerns you noticed but intentionally did not address (and why)
