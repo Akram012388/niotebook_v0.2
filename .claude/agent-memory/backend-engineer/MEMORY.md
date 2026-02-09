@@ -40,6 +40,13 @@
 - Sentry wrapping via `withSentryConfig` in `next.config.ts`
 - COOP/COEP headers only on `/editor-sandbox` route
 
+## Transcript Context Fix (Feb 2026)
+
+- **Root cause**: Client-side `useTranscriptWindow` React hook can return empty segments due to render timing when additional hooks/state are added to `AiPane.tsx` (e.g. niotepad push-bookmark feature). The server-side API route previously only fetched transcript from Convex when the client sent empty lines.
+- **Fix**: Changed `/api/nio/route.ts` to ALWAYS fetch transcript server-side from Convex (line ~904), removing the `!hasTranscriptLines` condition. Server is now the authoritative transcript source regardless of client data.
+- **Key lesson**: When client-side React hooks have timing dependencies, the server should independently fetch authoritative data rather than trusting client-provided context.
+- **Transcript fallback chain** (all in `/api/nio/route.ts`): Convex query -> SRT subtitle fetch -> YouTube transcript fetch. Each step only fires if previous steps returned empty.
+
 ## Niotepad Data Layer (Feb 2026)
 
 - **Domain types**: `src/domain/niotepad.ts` — NiotepadEntrySource, NiotepadEntryMetadata, NiotepadEntryData, NiotepadPage, NiotepadSnapshot, AddEntryParams

@@ -901,26 +901,23 @@ export const POST = async (request: Request): Promise<Response> => {
       }
     : null;
 
-  // Always fetch lesson meta server-side to avoid stale client data
-  const needsTranscript = !hasTranscriptLines && isConvexEnabled();
-  const needsLessonMeta = isConvexEnabled();
-
-  if (needsTranscript || needsLessonMeta) {
+  // Always fetch transcript AND lesson meta server-side. The server-side
+  // Convex query is the authoritative source for transcript segments —
+  // client-side data may arrive empty when the React query hasn't resolved
+  // yet (e.g. due to render timing, Suspense boundaries, or additional
+  // hooks in the component tree).
+  if (isConvexEnabled()) {
     const [transcriptResult, lessonMetaResult] = await Promise.allSettled([
-      needsTranscript
-        ? fetchTranscriptWindow({
-            lessonId: validation.data.lessonId,
-            startSec: transcriptPayload.startSec,
-            endSec: transcriptPayload.endSec,
-            client: convexClient,
-          })
-        : Promise.resolve(null),
-      needsLessonMeta
-        ? fetchLessonMeta({
-            lessonId: validation.data.lessonId,
-            client: convexClient,
-          })
-        : Promise.resolve(null),
+      fetchTranscriptWindow({
+        lessonId: validation.data.lessonId,
+        startSec: transcriptPayload.startSec,
+        endSec: transcriptPayload.endSec,
+        client: convexClient,
+      }),
+      fetchLessonMeta({
+        lessonId: validation.data.lessonId,
+        client: convexClient,
+      }),
     ]);
 
     if (transcriptResult.status === "fulfilled" && transcriptResult.value) {
