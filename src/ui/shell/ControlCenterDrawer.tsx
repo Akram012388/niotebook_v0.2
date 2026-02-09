@@ -19,7 +19,9 @@ import {
 import { ThemeToggle } from "../shared/ThemeToggle";
 import {
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
   type RefObject,
@@ -34,6 +36,8 @@ type UserInfo = {
   role: string | null;
   inviteBatchId: string | null;
 };
+
+type SettingsRoute = "share" | "feedback";
 
 type ControlCenterDrawerProps = {
   isOpen: boolean;
@@ -50,6 +54,8 @@ type ControlCenterDrawerProps = {
   onSelectCourse: (courseId: string | null) => void;
   userInfo?: UserInfo;
   onSignOut?: () => void;
+  /** When set, the drawer opens directly to the settings panel with this card expanded. */
+  initialSettingsCard?: SettingsRoute | null;
 };
 
 const getLectureNumber = (lesson: LessonSummary): number | null => {
@@ -76,6 +82,7 @@ const ControlCenterDrawer = ({
   onSelectCourse,
   userInfo,
   onSignOut,
+  initialSettingsCard,
 }: ControlCenterDrawerProps): ReactElement | null => {
   const [activeTab, setActiveTab] = useState<"lectures" | "courses">(
     "lectures",
@@ -88,6 +95,22 @@ const ControlCenterDrawer = ({
   const [activeSettingsCard, setActiveSettingsCard] = useState<
     "share" | "feedback" | null
   >(null);
+
+  // When the drawer opens with an initial settings card route, navigate directly to it.
+  // Using a ref to detect the open transition avoids the set-state-in-effect lint rule
+  // by deferring state updates to a rAF callback.
+  const prevIsOpenRef = useRef(false);
+  useEffect(() => {
+    const wasOpen = prevIsOpenRef.current;
+    prevIsOpenRef.current = isOpen;
+
+    if (isOpen && !wasOpen && initialSettingsCard) {
+      window.requestAnimationFrame(() => {
+        setPanelView("settings");
+        setActiveSettingsCard(initialSettingsCard);
+      });
+    }
+  }, [isOpen, initialSettingsCard]);
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackCategories, setFeedbackCategories] = useState<string[]>([]);
   const [feedbackNotes, setFeedbackNotes] = useState("");
@@ -358,14 +381,20 @@ const ControlCenterDrawer = ({
                               }`}
                             >
                               <div className="flex flex-col">
-                                <span className={`text-[10px] uppercase tracking-[0.08em] ${isActive ? "text-white/70" : "text-text-subtle"}`}>
+                                <span
+                                  className={`text-[10px] uppercase tracking-[0.08em] ${isActive ? "text-white/70" : "text-text-subtle"}`}
+                                >
                                   Lecture {lectureNumber ?? lesson.order}
                                 </span>
-                                <span className={`text-sm ${isActive ? "text-white" : "text-foreground"}`}>
+                                <span
+                                  className={`text-sm ${isActive ? "text-white" : "text-foreground"}`}
+                                >
                                   {lesson.title}
                                 </span>
                               </div>
-                              <span className={`text-xs ${isActive ? "text-white/70" : "text-text-subtle"}`}>
+                              <span
+                                className={`text-xs ${isActive ? "text-white/70" : "text-text-subtle"}`}
+                              >
                                 →
                               </span>
                             </button>
@@ -414,15 +443,21 @@ const ControlCenterDrawer = ({
                                   : "border-border text-text-muted hover:scale-[1.02] hover:shadow-md hover:border-accent/20 hover:bg-surface-muted hover:text-foreground"
                               }`}
                             >
-                              <span className={`text-sm ${isActive ? "text-white" : "text-foreground"}`}>
+                              <span
+                                className={`text-sm ${isActive ? "text-white" : "text-foreground"}`}
+                              >
                                 {course.title}
                               </span>
                               {course.description ? (
-                                <span className={`text-xs ${isActive ? "text-white/70" : "text-text-subtle"}`}>
+                                <span
+                                  className={`text-xs ${isActive ? "text-white/70" : "text-text-subtle"}`}
+                                >
                                   {course.description}
                                 </span>
                               ) : null}
-                              <span className={`text-[10px] uppercase tracking-[0.08em] ${isActive ? "text-white/70" : "text-text-subtle"}`}>
+                              <span
+                                className={`text-[10px] uppercase tracking-[0.08em] ${isActive ? "text-white/70" : "text-text-subtle"}`}
+                              >
                                 {course.license} · {course.sourceUrl}
                               </span>
                             </button>
@@ -747,3 +782,4 @@ const ControlCenterDrawer = ({
 };
 
 export { ControlCenterDrawer };
+export type { SettingsRoute };

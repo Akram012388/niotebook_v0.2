@@ -9,18 +9,18 @@ import { MobileGate } from "@/ui/shared/MobileGate";
 const SignUpPage = (): ReactElement => {
   return (
     <MobileGate>
-    <AuthShell
-      title="Create your account"
-      subtitle="Complete the invite flow with your email code to enter the alpha."
-    >
-      <SignUp
-        appearance={clerkAppearance}
-        routing="path"
-        path="/sign-up"
-        fallbackRedirectUrl="/courses"
-        signInUrl="/sign-in"
-      />
-    </AuthShell>
+      <AuthShell
+        title="Create your account"
+        subtitle="Complete the invite flow with your email code to enter the alpha."
+      >
+        <SignUp
+          appearance={clerkAppearance}
+          routing="path"
+          path="/sign-up"
+          fallbackRedirectUrl="/courses"
+          signInUrl="/sign-in"
+        />
+      </AuthShell>
     </MobileGate>
   );
 };

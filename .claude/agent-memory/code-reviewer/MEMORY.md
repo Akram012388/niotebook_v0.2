@@ -17,6 +17,7 @@
 See `chat-stream-review.md` for client-side findings. See `chat-backend-review.md` for server-side/route handler findings. Typewriter/RevealContent system was REMOVED in commit 72a08f1.
 
 ### Current key patterns
+
 - **Rendering**: `isStreaming` true -> plain `<span>` text; false -> `<ReactMarkdown>`. No typewriter.
 - **Token batching**: `tokenBuffer` + RAF-scheduled `flushTokens()` prevents per-token state updates.
 - **Three-layer dedup**: remote (Convex) > cached (localStorage) > local (React state) in `mergedMessages`
@@ -25,6 +26,7 @@ See `chat-stream-review.md` for client-side findings. See `chat-backend-review.m
 - **Stuck stream guard**: 30s `STUCK_STREAM_TIMEOUT_MS` allows force-sending new message
 
 ### Open issues (from 2026-02-07 reviews)
+
 - **CRITICAL: No AbortController on client fetch** -- streams leak on lesson change/unmount
 - **CRITICAL: Gemini API key in debug logs** (`geminiStream.ts:103-104`, requestUrl includes `?key=`)
 - **CRITICAL: Regex /g flag bug** in `promptInjection.ts:6-17` -- `.test()` with module-level `/gi` patterns causes alternating detection failures
@@ -39,6 +41,18 @@ See `chat-stream-review.md` for client-side findings. See `chat-backend-review.m
 - `ChatStreamState` "error" variant defined but never set
 - No unit tests for `neutralizePromptInjection`
 - `ReadableStream.cancel()` callback is a no-op (should propagate abort)
+
+## Niotepad Panel (reviewed 2026-02-08)
+
+### Key patterns
+
+- **Drag system**: FM `drag="x"` with object-based constraints (not ref-based). Constraints are RELATIVE to CSS `left`.
+- **Position persistence**: `mountPosition` via `useState` lazy initializer. `handleDragEnd` persists `getBoundingClientRect().left`. Remounts on each open/close.
+- **Constraint math**: `left: VIEWPORT_PADDING - mountPosition.x`, `right: vw - PANEL_WIDTH - VIEWPORT_PADDING - mountPosition.x`.
+- **Elasticity**: `dragElastic={0.04}`, `dragMomentum={false}`.
+- **Portal structure**: `NiotepadPortal` > Fragment > `NiotepadBackdrop` + `NiotepadPanel` (single `<motion.aside>`).
+- **Focus trap**: Tab wrapping + ESC 3-tier cascade (editing > search > close).
+- **Minor**: resize listener fires on vertical resize too (harmless, constraints width-only).
 
 ## Review Findings (Phase 8, 2026-02-07)
 

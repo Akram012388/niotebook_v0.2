@@ -174,7 +174,11 @@ const XTermView = (): ReactElement => {
   }, [setTerminal, writePrompt]);
 
   return (
-    <div ref={containerRef} className="h-full w-full" style={{ background: "#0A0A0A" }} />
+    <div
+      ref={containerRef}
+      className="h-full w-full"
+      style={{ background: "#0A0A0A" }}
+    />
   );
 };
 

@@ -8,7 +8,11 @@ import {
   useState,
   type ReactElement,
 } from "react";
-import { SidebarSimple } from "@phosphor-icons/react";
+import {
+  SidebarSimple,
+  ShareNetwork,
+  ChatCenteredText,
+} from "@phosphor-icons/react";
 import { Wordmark } from "../brand/Wordmark";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -23,6 +27,9 @@ import {
 } from "../content/convexContent";
 import { LayoutPresetToggle } from "../layout/LayoutPresetToggle";
 import { ControlCenterDrawer } from "./ControlCenterDrawer";
+import type { SettingsRoute } from "./ControlCenterDrawer";
+import { NiotepadPill } from "../niotepad/NiotepadPill";
+import { useNiotepadStore } from "@/infra/niotepad/useNiotepadStore";
 
 const LESSON_STORAGE_KEY = "niotebook.lesson";
 
@@ -36,6 +43,8 @@ const TopNav = (): ReactElement => {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDrawerMounted, setIsDrawerMounted] = useState(false);
+  const [drawerSettingsCard, setDrawerSettingsCard] =
+    useState<SettingsRoute | null>(null);
   const drawerRef = useRef<HTMLDivElement | null>(null);
   const lastActiveRef = useRef<HTMLElement | null>(null);
   const drawerWasOpenRef = useRef(false);
@@ -124,13 +133,26 @@ const TopNav = (): ReactElement => {
     }
   }, [lessonId, lessonOptions, selectedCourseId, updateLesson]);
 
+  const handleOpenDrawerWithRoute = useCallback(
+    (route: SettingsRoute): void => {
+      useNiotepadStore.getState().closePanel();
+      lastActiveRef.current = document.activeElement as HTMLElement | null;
+      setDrawerSettingsCard(route);
+      setIsDrawerMounted(true);
+      window.requestAnimationFrame(() => {
+        setIsDrawerOpen(true);
+      });
+    },
+    [],
+  );
+
   const handleShare = useCallback((): void => {
-    // Placeholder for share modal trigger.
-  }, []);
+    handleOpenDrawerWithRoute("share");
+  }, [handleOpenDrawerWithRoute]);
 
   const handleFeedback = useCallback((): void => {
-    // Placeholder for feedback modal trigger.
-  }, []);
+    handleOpenDrawerWithRoute("feedback");
+  }, [handleOpenDrawerWithRoute]);
 
   const handleSelectLesson = useCallback(
     (nextLessonId: string | null): void => {
@@ -148,7 +170,10 @@ const TopNav = (): ReactElement => {
   );
 
   const handleOpenDrawer = useCallback((): void => {
+    // Mutual exclusion: close niotepad when opening drawer
+    useNiotepadStore.getState().closePanel();
     lastActiveRef.current = document.activeElement as HTMLElement | null;
+    setDrawerSettingsCard(null);
     setIsDrawerMounted(true);
     window.requestAnimationFrame(() => {
       setIsDrawerOpen(true);
@@ -157,6 +182,7 @@ const TopNav = (): ReactElement => {
 
   const handleCloseDrawer = useCallback((): void => {
     setIsDrawerOpen(false);
+    setDrawerSettingsCard(null);
   }, []);
 
   useEffect(() => {
@@ -243,18 +269,45 @@ const TopNav = (): ReactElement => {
     };
   }, [isDrawerOpen]);
 
+  // Mutual exclusion: when niotepad opens, close drawer
+  useEffect(() => {
+    const unsubscribe = useNiotepadStore.subscribe((state, prev) => {
+      if (state.isOpen && !prev.isOpen) {
+        setIsDrawerOpen(false);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
   return (
-    <header
-      className="flex h-[72px] items-center justify-between border-b border-border bg-background px-4 sm:px-6"
-    >
+    <header className="flex h-[72px] items-center justify-between border-b border-border bg-background px-4 sm:px-6">
       <div className="flex items-center justify-between w-full max-w-[1600px] mx-auto">
         <Wordmark height={40} />
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleShare}
+            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface hover:text-foreground"
+            aria-label="Share"
+            title="Share"
+          >
+            <ShareNetwork size={16} weight="regular" />
+          </button>
+          <button
+            type="button"
+            onClick={handleFeedback}
+            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface hover:text-foreground"
+            aria-label="Send feedback"
+            title="Feedback"
+          >
+            <ChatCenteredText size={16} weight="regular" />
+          </button>
+          <NiotepadPill />
           <LayoutPresetToggle />
           <button
             type="button"
             onClick={handleOpenDrawer}
-            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
+            className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface hover:text-foreground"
             aria-label="Open control center"
             title="Control center"
           >
@@ -281,6 +334,7 @@ const TopNav = (): ReactElement => {
           inviteBatchId: meData?.inviteBatchId ?? null,
         }}
         onSignOut={() => void signOut()}
+        initialSettingsCard={drawerSettingsCard}
       />
     </header>
   );

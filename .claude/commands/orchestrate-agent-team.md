@@ -32,9 +32,11 @@ Before spawning any teammate:
 ### Spawning Each Teammate in Its Pane
 
 For each teammate, execute in their dedicated tmux pane:
+
 ```bash
 tmux send-keys -t {pane_id} "claude --dangerously-skip-permissions" Enter
 ```
+
 Then send the task to that Claude instance. Each teammate is a separate Claude Code process visible in its own pane.
 
 If tmux is not available or not in a tmux session, STOP and inform the user: "tmux is required for agent team orchestration. Please start a tmux session first."
@@ -44,6 +46,7 @@ If tmux is not available or not in a tmux session, STOP and inform the user: "tm
 ## Phase 0: Understand Before You Move
 
 Read CLAUDE.md and explore the codebase structure relevant to this task. You need to understand:
+
 - The tech stack, frameworks, and language(s) in use
 - File organization and module boundaries
 - Existing conventions: naming, error handling, testing patterns, state management
@@ -74,6 +77,7 @@ Break the task into discrete, independently-executable work units. For each unit
 If ANY of the following are true, STOP. Use AskUserQuestionsTool to present the ambiguity with your strong opinionated recommendation and wait for a response. You are a senior principal-level orchestrator — you don't ask aimless questions. You present the situation, state your stance, offer the alternative, and ask for a decision.
 
 Situations that require clarification:
+
 - The task is ambiguous about the desired outcome (not the implementation — you own the implementation decisions)
 - Multiple valid architectural approaches exist with materially different tradeoffs (performance vs. simplicity, new dependency vs. manual implementation, etc.)
 - The task would introduce a breaking change, a new external dependency, or a migration
@@ -132,6 +136,7 @@ If High: Submit your plan to the lead BEFORE implementing. Do not write code unt
 ### tmux Integration for Spawning
 
 Each teammate MUST be spawned in its own tmux pane. The sequence for each teammate:
+
 1. Create tmux pane: `tmux split-window -h -t {session}`
 2. Name the pane: `tmux select-pane -T "{role-name}"`
 3. Launch Claude Code in that pane with the task
@@ -197,6 +202,7 @@ If verification reveals issues, route fixes to the appropriate teammate. Do NOT 
 ### tmux Cleanup
 
 After all work is verified and complete:
+
 1. Shut down all teammate Claude Code processes
 2. Close all teammate tmux panes: `tmux kill-pane -t {pane_id}` for each
 3. Verify only the orchestrator's pane remains

@@ -138,26 +138,26 @@ See `.env.example` for the full list. Key groups:
 
 ## Documentation
 
-| Doc                                      | Description                              |
-| ---------------------------------------- | ---------------------------------------- |
-| `docs/PRD.md`                            | Product requirements                     |
-| `docs/specs.md`                          | Technical specifications                 |
-| `docs/plan.md`                           | Project plan                             |
-| `docs/dev-workflow.md`                   | Development workflow                     |
-| `docs/env-requirements.md`              | Environment setup & secrets              |
-| `docs/clerk-auth-alpha.md`              | Auth gate plan                           |
-| `docs/ui-ux-contract.md`                | Binding UI/UX contract                   |
-| `docs/ui-reference.md`                  | UI component reference                   |
-| `docs/code-editor-tier2-plan.md`        | Code editor implementation plan          |
-| `docs/editor-support-r-sql.md`          | R & SQL language support                 |
-| `docs/landing-page.md`                  | Landing page specs                       |
-| `docs/guidelines.md`                    | Code guidelines                          |
-| `docs/CHANGELOG.md`                     | Version history                          |
-| `docs/HANDOFF.md`                       | Session handoff context                  |
-| `docs/ALPHA_LAUNCH_RECOMMENDATIONS.md`  | Alpha launch readiness recommendations   |
-| `docs/inspection.md`                    | Codebase inspection report               |
-| `docs/P0_BACKLOG_REVIEW.md`            | Priority backlog review                  |
-| `docs/polish-workspace.md`             | Workspace polish plan                    |
-| `docs/ADR-*.md`                         | Architecture decision records            |
-| `docs/architecture/`                    | Architecture refactor docs               |
-| `docs/redesign/`                        | Redesign v2 specs, plans, and progress   |
+| Doc                                    | Description                            |
+| -------------------------------------- | -------------------------------------- |
+| `docs/PRD.md`                          | Product requirements                   |
+| `docs/specs.md`                        | Technical specifications               |
+| `docs/plan.md`                         | Project plan                           |
+| `docs/dev-workflow.md`                 | Development workflow                   |
+| `docs/env-requirements.md`             | Environment setup & secrets            |
+| `docs/clerk-auth-alpha.md`             | Auth gate plan                         |
+| `docs/ui-ux-contract.md`               | Binding UI/UX contract                 |
+| `docs/ui-reference.md`                 | UI component reference                 |
+| `docs/code-editor-tier2-plan.md`       | Code editor implementation plan        |
+| `docs/editor-support-r-sql.md`         | R & SQL language support               |
+| `docs/landing-page.md`                 | Landing page specs                     |
+| `docs/guidelines.md`                   | Code guidelines                        |
+| `docs/CHANGELOG.md`                    | Version history                        |
+| `docs/HANDOFF.md`                      | Session handoff context                |
+| `docs/ALPHA_LAUNCH_RECOMMENDATIONS.md` | Alpha launch readiness recommendations |
+| `docs/inspection.md`                   | Codebase inspection report             |
+| `docs/P0_BACKLOG_REVIEW.md`            | Priority backlog review                |
+| `docs/polish-workspace.md`             | Workspace polish plan                  |
+| `docs/ADR-*.md`                        | Architecture decision records          |
+| `docs/architecture/`                   | Architecture refactor docs             |
+| `docs/redesign/`                       | Redesign v2 specs, plans, and progress |

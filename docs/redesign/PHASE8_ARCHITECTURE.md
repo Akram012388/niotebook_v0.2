@@ -560,22 +560,22 @@ If we don't add the `compact` prop, course card grids inside NotebookFrame will 
 
 > **Updated 2026-02-07:** PR2 outcome changed — SidebarShell replaced by SiteNav.
 
-| File                                  | PR1    | PR2 (original)  | PR2 (actual)  | PR3    | Prereq        |
-| ------------------------------------- | ------ | --------------- | ------------- | ------ | ------------- |
-| `src/ui/shared/ThemeToggle.tsx`       |        |                 |               |        | Move          |
-| `src/ui/shared/NotebookFrame.tsx`     |        |                 |               |        | Move          |
-| `src/ui/shared/SiteNav.tsx`           |        |                 | Create        |        |               |
-| `src/ui/landing/LandingNav.tsx`       |        |                 | Modify        |        | Import update |
-| `src/ui/landing/*.tsx` (sections)     |        |                 |               |        | Import update |
-| `src/app/sign-in/page.tsx`            | Modify |                 |               |        |               |
-| `src/app/sign-up/page.tsx`            | Modify |                 |               |        |               |
-| `src/ui/auth/AuthShell.tsx`           | Modify |                 | Modify        |        |               |
-| `src/app/globals.css`                 | Modify |                 |               |        |               |
-| `src/app/courses/layout.tsx`          |        | Modify          | Modify        |        |               |
-| `src/ui/courses/CoursesNavActions.tsx` |       |                 | Create        |        |               |
-| `src/ui/shell/SidebarShell.tsx`       |        | Create          | **Delete**    |        |               |
-| `src/ui/courses/CourseCarousel.tsx`   |        |                 | **Delete**    |        |               |
-| `src/ui/landing/ThemeToggle.tsx`      |        |                 | **Delete**    |        |               |
-| `src/ui/landing/NotebookFrame.tsx`    |        |                 | **Delete**    |        |               |
-| `src/ui/courses/CourseDetailPage.tsx` |        |                 |               | Modify |               |
-| `src/ui/courses/CoursesPage.tsx`      |        |                 |               | Modify |               |
+| File                                   | PR1    | PR2 (original) | PR2 (actual) | PR3    | Prereq        |
+| -------------------------------------- | ------ | -------------- | ------------ | ------ | ------------- |
+| `src/ui/shared/ThemeToggle.tsx`        |        |                |              |        | Move          |
+| `src/ui/shared/NotebookFrame.tsx`      |        |                |              |        | Move          |
+| `src/ui/shared/SiteNav.tsx`            |        |                | Create       |        |               |
+| `src/ui/landing/LandingNav.tsx`        |        |                | Modify       |        | Import update |
+| `src/ui/landing/*.tsx` (sections)      |        |                |              |        | Import update |
+| `src/app/sign-in/page.tsx`             | Modify |                |              |        |               |
+| `src/app/sign-up/page.tsx`             | Modify |                |              |        |               |
+| `src/ui/auth/AuthShell.tsx`            | Modify |                | Modify       |        |               |
+| `src/app/globals.css`                  | Modify |                |              |        |               |
+| `src/app/courses/layout.tsx`           |        | Modify         | Modify       |        |               |
+| `src/ui/courses/CoursesNavActions.tsx` |        |                | Create       |        |               |
+| `src/ui/shell/SidebarShell.tsx`        |        | Create         | **Delete**   |        |               |
+| `src/ui/courses/CourseCarousel.tsx`    |        |                | **Delete**   |        |               |
+| `src/ui/landing/ThemeToggle.tsx`       |        |                | **Delete**   |        |               |
+| `src/ui/landing/NotebookFrame.tsx`     |        |                | **Delete**   |        |               |
+| `src/ui/courses/CourseDetailPage.tsx`  |        |                |              | Modify |               |
+| `src/ui/courses/CoursesPage.tsx`       |        |                |              | Modify |               |

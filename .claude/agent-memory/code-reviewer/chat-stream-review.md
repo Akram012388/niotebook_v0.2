@@ -6,6 +6,7 @@ The current architecture (commit 72a08f1) is simpler: plain text during streamin
 ## Current Architecture
 
 ### Client pipeline
+
 1. `AiPane.tsx` -- wires `useChatThread` + `ChatScroll` + `ChatComposer`
 2. `useChatThread.ts` -- core hook: manages messages, streaming fetch, RAF token batching
 3. `ChatMessage.tsx` -- memo'd component: plain `<span>` during streaming, `<ReactMarkdown>` after
@@ -13,12 +14,14 @@ The current architecture (commit 72a08f1) is simpler: plain text during streamin
 5. `ChatComposer.tsx` -- textarea + send button, disabled during streaming
 
 ### Server pipeline
+
 1. `route.ts` (POST /api/nio) -- validates, rate-limits, builds context, streams SSE
 2. `geminiStream.ts` / `groqStream.ts` -- async generator wrappers for AI providers
 3. `nioSse.ts` -- encode/decode SSE events (meta, token, done, error)
 4. `fallbackGate.ts` -- decides when to fall back from Gemini to Groq
 
 ### Key patterns
+
 - **Token batching**: `tokenBuffer` + RAF-scheduled `flushTokens()` in useChatThread
 - **Three-layer dedup**: remote (Convex) > cached (localStorage) > local (React state)
 - **Provider fallback**: Gemini first, read first token with timeout, fall to Groq if needed
@@ -32,11 +35,13 @@ The current architecture (commit 72a08f1) is simpler: plain text during streamin
 ## Known issues (2026-02-07 review)
 
 ### Critical
+
 - **No AbortController on client fetch** -- streams not cancellable, leak on lesson change/unmount
 - **Gemini API key logged in debug output** (requestUrl includes `?key=`)
 - **Regex /g flag on module-level patterns** in promptInjection.ts causes `.test()` lastIndex bugs
 
 ### Warnings
+
 - `ChatStreamState` "error" variant is defined but never set
 - `mergedMessages` creates new object refs for ALL messages on every recompute (defeats memo)
 - Server-side iterators never explicitly cancelled on abort (TCP connection leak)
