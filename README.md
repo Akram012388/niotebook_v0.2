@@ -81,12 +81,12 @@ Clerk-based invite-only alpha. Clerk issues JWTs consumed by Convex for identity
 
 ```
 src/
-├── app/            # Next.js App Router (workspace, courses, admin, sign-in, sign-up, (landing), editor-sandbox, API)
-├── ui/             # React components by feature (admin, auth, brand, chat, code, content, courses, landing, layout, panes, shared, shell, transcript, video)
+├── app/            # Next.js App Router (workspace, courses, admin, sign-in, sign-up, (landing)/info, editor-sandbox, API: nio + gmail)
+├── ui/             # React components by feature (admin, auth, brand, chat, code, content, courses, landing, layout, niotepad, panes, shared, shell, transcript, video)
 ├── domain/         # Pure business logic & types (no React, no side effects)
-└── infra/          # Infrastructure (VFS, multi-language runtime, AI streaming, Convex client)
+└── infra/          # Infrastructure (VFS, multi-language runtime, AI streaming, Convex client, niotepad store, Gmail API)
 convex/             # Backend functions, schema, auth, crons
-docs/               # 35 documentation files (PRD, specs, ADRs, plans, redesign)
+docs/               # Documentation (PRD, specs, ADRs, plans, redesign, features)
 tests/              # Unit & E2E tests
 ```
 
@@ -135,6 +135,7 @@ See `.env.example` for the full list. Key groups:
 - **AI** — `GEMINI_API_KEY` (primary), `GROQ_API_KEY` (fallback)
 - **Monitoring** — `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`
 - **Admin** — `NIOTEBOOK_ADMIN_EMAILS`
+- **Gmail** — `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REDIRECT_URI`
 
 ## Documentation
 

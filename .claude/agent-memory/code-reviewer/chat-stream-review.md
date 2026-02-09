@@ -1,7 +1,8 @@
-# Chat Stream Architecture Review (updated 2026-02-07, post-overhaul)
+# Chat Stream Architecture Review (updated 2026-02-07, post-overhaul — merged to main)
 
 Previous review covered the typewriter/RevealContent system. That has been entirely removed.
-The current architecture (commit 72a08f1) is simpler: plain text during streaming, markdown after done.
+The current architecture is simpler: plain text during streaming, markdown after done.
+`wasStreaming` and `isRevealing` fields have been fully removed from the codebase.
 
 ## Current Architecture
 

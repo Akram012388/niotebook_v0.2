@@ -1,8 +1,8 @@
 # SiteNav Route Audit & File Boundary Plan
 
 **Date:** 2026-02-07
-**Branch:** `refactor/courses-navbar-layout`
-**Status:** Analysis complete
+**Branch:** `refactor/courses-navbar-layout` (merged to `main` via `redesign-v2` on 2026-02-08)
+**Status:** COMPLETE — Analysis and implementation done. Retained as architecture reference.
 
 ---
 

@@ -12,8 +12,8 @@ src/app/workspace/
 
 src/ui/shell/
   AppShell.tsx                      (52 LOC)  LayoutPresetProvider + TopNav + main
-  TopNav.tsx                        (310 LOC) Header bar: wordmark, layout toggle, drawer trigger
-  ControlCenterDrawer.tsx           (760 LOC) Slide-out drawer: lecture/course picker, settings, user, feedback
+  TopNav.tsx                        (343 LOC) Header bar: wordmark, layout toggle, drawer trigger
+  ControlCenterDrawer.tsx           (785 LOC) Slide-out drawer: lecture/course picker, settings, user, feedback
 
 src/ui/layout/
   layoutTypes.ts                    (16 LOC)  LayoutPreset type + LAYOUT_PRESETS config
@@ -25,7 +25,7 @@ src/ui/layout/
 
 src/ui/panes/
   VideoPane.tsx                      (285 LOC) Video player + header + info strip
-  CodePane.tsx                       (511 LOC) Editor + terminal + language select + runtime management
+  CodePane.tsx                       (648 LOC) Editor + terminal + language select + runtime management
   AiPane.tsx                         (177 LOC) Chat interface: messages, composer, context strip
 
 src/ui/code/
@@ -52,9 +52,9 @@ src/ui/video/
 
 src/ui/chat/
   ChatComposer.tsx                   (86 LOC)  Message input form
-  ChatMessage.tsx                    (173 LOC) Single message renderer (markdown, timestamps)
+  ChatMessage.tsx                    (91 LOC)  Single message renderer (markdown, timestamps)
   ChatScroll.tsx                     (91 LOC)  Auto-scroll container
-  useChatThread.ts                   (581 LOC) SSE streaming chat hook (Gemini/Groq)
+  useChatThread.ts                   (563 LOC) SSE streaming chat hook (Gemini/Groq)
 
 src/ui/transcript/
   useTranscriptWindow.ts             (59 LOC)  Convex query for transcript segments around current time
@@ -281,10 +281,10 @@ CodePane watches VFS main file changes (reactive via files array)
 
 ### Complexity Hotspots
 
-- **ControlCenterDrawer** (760 LOC): Monolithic component with 6+ internal state variables, handles lectures, courses, settings, feedback, user panel, share. Strong candidate for decomposition.
+- **ControlCenterDrawer** (785 LOC): Monolithic component with 6+ internal state variables, handles lectures, courses, settings, feedback, user panel, share. Strong candidate for decomposition.
+- **CodePane** (648 LOC): Runtime lifecycle, VFS initialization, snapshot reporting, language switching.
 - **WorkspaceGrid** (592 LOC): Orchestrates all layout modes, pane state, video time, keyboard shortcuts, lesson routing. Does too many things.
-- **useChatThread** (581 LOC): SSE streaming, message management, error handling, Convex integration all in one hook.
-- **CodePane** (511 LOC): Runtime lifecycle, VFS initialization, snapshot reporting, language switching.
+- **useChatThread** (563 LOC): SSE streaming, message management, error handling, Convex integration all in one hook.
 
 ### Tight Coupling
 

@@ -241,7 +241,7 @@
 - Landing: `src/ui/landing/` (Hero, ValueProp, Features, CTA, LandingFooter, LandingNav)
 - Auth: `src/ui/auth/AuthShell.tsx`, `BootSequence.tsx`
 - Courses: `src/ui/courses/CoursesNavActions.tsx`, `CoursesPage.tsx`, `CourseDetailPage.tsx`
-- Niotepad: `src/ui/niotepad/` (Provider, Portal, Backdrop, Panel, DragHandle, ResizeHandle, Pill, ScrollArea, Entry, Composer, PageNav, Search)
+- Niotepad: `src/ui/niotepad/` (Provider, Portal, Panel, DragHandle, Pill, ScrollArea, Entry, Composer, PageNav, Search)
 - Legal stubs: `src/app/(landing)/terms|privacy|cookies/page.tsx`
 - ForceTheme: `src/ui/ForceTheme.tsx`
 - StorageAdapter: `src/infra/storageAdapter.ts`

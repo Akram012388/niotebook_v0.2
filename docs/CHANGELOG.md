@@ -1,9 +1,19 @@
 # Docs Changelog
 
+## 2026-02-09
+
+- Gmail API automation for niotebook@gmail.com — re-implemented with `google-auth-library` + raw fetch, UTF-8 safe base64 encoding (`f7f4c83`, PR #99).
+- Niotepad feature merged — floating solid-surface panel with bidirectional push from code/chat/video, swipe-to-delete, per-lecture pages, search/filter, accessibility polish (`e2c431b`, PR #98).
+- Niotepad polish: terracotta headers, circle hover highlights, bookmark buttons in chat/code panes, ring pulse animation, grid alignment fixes (PR #97).
+- Transcript fix: always fetch server-side to fix missing chat context (`1dc7776`).
+- Workspace: share/feedback shortcut buttons, niotepad pill sizing (`355252b`).
+- Doc audit: deleted 5 stale planning docs (PHASE8_PLAN, STATE, UX_SPEC_PHASE8, session-tasks, phase4-tasks), updated status on remaining architecture docs.
+
 ## 2026-02-08
 
 - Redesign v2 merged to main — warm terracotta palette, full design token system (`1d8214f`).
 - Public branding assets updated to v2 palette (`fc71c25`).
+- Comprehensive documentation refresh — align 26 docs with current codebase (`cf17f9c`).
 - Mobile viewport gate: restrict mobile access to landing and info routes only (`8c7325b`).
 - `/info` route added, consolidating all footer content into a single page (`8659078`).
 - CI: align claude-code-review workflow with main for OIDC validation (`93914f6`).

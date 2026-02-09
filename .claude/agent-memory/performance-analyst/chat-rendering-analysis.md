@@ -1,6 +1,8 @@
-# Chat Rendering Performance Analysis (2026-02-07)
+# Chat Rendering Performance Analysis (2026-02-07) — HISTORICAL
 
-## The Flicker Root Cause
+> **Note**: The entire RevealContent/typewriter system described below was REMOVED in the chat overhaul (commit 72a08f1). This file is preserved as a historical reference for the analysis methodology.
+
+## The Flicker Root Cause (RESOLVED — system removed)
 
 The primary flickering is caused by `RevealContent` in `src/ui/chat/ChatMessage.tsx:58-92`.
 

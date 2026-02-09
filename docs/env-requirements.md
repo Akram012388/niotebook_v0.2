@@ -19,6 +19,12 @@ Tag: `auth-e2e-docs-alignment-2026-01-30`
 - `CLERK_JWT_ISSUER_DOMAIN` - Clerk issuer for Convex auth config (set in Convex env vars).
 - `NIOTEBOOK_ADMIN_EMAILS` - Comma-separated allowlist for admin users.
 
+## Gmail automation
+
+- `GMAIL_CLIENT_ID` - Google OAuth2 client ID for Gmail API. Used in `src/infra/email/gmailClient.ts`.
+- `GMAIL_CLIENT_SECRET` - Google OAuth2 client secret. Used in `src/infra/email/gmailClient.ts`.
+- `GMAIL_REDIRECT_URI` - OAuth2 redirect URI (default: `http://localhost:3000/api/gmail/callback`). Used in `src/infra/email/gmailClient.ts`.
+
 ## Feature toggles
 
 - `NIOTEBOOK_E2E_PREVIEW` - Enables stubbed AI responses and allows dev auth bypass in preview. Used in `src/app/api/nio/route.ts` and `convex/auth.ts`.

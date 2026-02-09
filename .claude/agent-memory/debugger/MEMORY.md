@@ -22,13 +22,12 @@
 - **Symptom**: Content grows inside scroll container but doesn't auto-scroll → messages hidden behind ChatComposer
 - **Contributing factor**: ResizeObserver is the ONLY scroll trigger; when disabled, no fallback
 
-## Chat Streaming Pipeline (Reference)
+## Chat Streaming Pipeline (Reference — post-overhaul)
 
 - SSE flow: `/api/nio/route.ts` → Gemini/Groq → SSE events → `useChatThread.ts` RAF-batched flush → `setLocalMessages` → `mergedMessages` useMemo → `AiPane` render → `ChatScroll` + `ChatMessage` list
-- Token buffering: `useChatThread.ts:461-501` uses RAF to batch tokens every 16ms
-- Typewriter reveal: `ChatMessage.tsx:67-103` RAF loop reveals 3 chars every 12ms AFTER full response received
-- 3 message phases: `isStreaming` (thinking dot) → `isRevealing` (typewriter) → fully revealed (markdown parsed once)
-- 200-char threshold: streaming switches to revealing when buffer hits 200 chars
+- Token buffering: `useChatThread.ts` uses RAF to batch tokens every 16ms
+- Rendering: `isStreaming` true → plain `<span>` text; false → `<ReactMarkdown>`. No typewriter.
+- **Note**: The old 3-phase typewriter/RevealContent system (thinking dot → typewriter → markdown) was REMOVED. `wasStreaming` and `isRevealing` fields no longer exist.
 
 ## Key Files - Chat
 
@@ -53,10 +52,10 @@
 
 ## Performance Optimizations Observed (Not Bugs)
 
-- `ChatMessage.tsx:163-166` — `contentVisibility: auto` for off-screen messages ✓
-- `ChatScroll.tsx:97` — `overflowAnchor: none` (intentional, prevents native scroll anchoring) ✓
-- RAF batching in token flush + typewriter reveal ✓
-- Memo on `RenderedMarkdown` and `AssistantContent` ✓
+- `ChatMessage.tsx` — `contentVisibility: auto` for off-screen messages ✓
+- `ChatScroll.tsx` — `overflowAnchor: none` (intentional, prevents native scroll anchoring) ✓
+- RAF batching in token flush ✓
+- Memo on `RenderedMarkdown` and `ChatMessage` ✓
 
 ## General Patterns
 

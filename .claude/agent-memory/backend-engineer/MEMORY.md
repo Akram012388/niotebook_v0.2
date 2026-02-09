@@ -51,7 +51,7 @@
 - **Transcript fallback chain** (all in `/api/nio/route.ts`): Convex transcript query -> SRT subtitle fetch (needs `subtitlesUrl`) -> YouTube transcript fetch (needs `videoId`). Each step only fires if previous steps returned empty.
 - **Lesson**: Never trust client-side timing-dependent data for critical server operations. Compute values server-side from authoritative inputs (`videoTimeSec`).
 
-## Niotepad Data Layer (Feb 2026)
+## Niotepad Data Layer (merged to main — PR #98)
 
 - **Domain types**: `src/domain/niotepad.ts` — NiotepadEntrySource, NiotepadEntryMetadata, NiotepadEntryData, NiotepadPage, NiotepadSnapshot, AddEntryParams
 - **IndexedDB**: `src/infra/niotepad/indexedDbNiotepad.ts` — DB: "niotebook-niotepad", store: "notebooks", key: "notebook-v1". Follows VFS pattern (singleton dbPromise, JSON serialize, try/catch with console.warn).
@@ -59,3 +59,4 @@
 - **Selectors**: `src/infra/niotepad/niotepadSelectors.ts` — selectFilteredEntries, selectTotalEntryCount, selectActivePageEntryCount
 - **Key patterns**: `type` keyword (not `interface`), `crypto.randomUUID()` for IDs, `storageAdapter` for localStorage
 - **localStorage keys**: `niotebook.niotepad.geometry` (JSON), `niotebook.niotepad.unread` ("true" or absent)
+- **Note**: No separate `types.ts` in `src/infra/niotepad/` — domain types live in `src/domain/niotepad.ts`

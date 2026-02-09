@@ -11,7 +11,7 @@ See `workspace-architecture.md` for the full scout report.
 - **Shell**: AppShell wraps LayoutPresetProvider + TopNav + main content
 - **Layout modes**: single | split | triple (3 presets), default "split"
 - **Pane switching**: single: V/C toggle; split: left V/C + right A/C; triple: all 3 fixed
-- **Complexity hotspots**: WorkspaceGrid (592 LOC), ControlCenterDrawer (760 LOC), CodePane (511 LOC), useChatThread (581 LOC), VideoPlayer (381 LOC)
+- **Complexity hotspots**: WorkspaceGrid (592 LOC), ControlCenterDrawer (785 LOC), CodePane (648 LOC), useChatThread (563 LOC), TopNav (343 LOC)
 
 ### State Management Summary
 

@@ -1,10 +1,10 @@
 # Niotepad Experimental -- Feature Plan
 
-> **Branch:** `feat/niotepad-experimental`
+> **Branch:** `feat/niotepad-experimental` (merged to `main` via PR #98 on 2026-02-08)
 > **Base:** `main` @ `cf17f9c`
 > **Author:** Architect Agent
 > **Created:** 2026-02-08
-> **Status:** Implemented -- Phases 1-8 complete, manual testing in progress
+> **Status:** COMPLETE — Phases 1-8 implemented, merged to main. Retained as architecture spec + implementation log.
 
 ---
 
