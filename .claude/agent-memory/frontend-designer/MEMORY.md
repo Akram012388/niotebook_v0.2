@@ -45,6 +45,17 @@
 - Reusable wrapper — landing, auth, course pages
 - `compact` prop for tighter padding; `hidden sm:block` pattern for mobile
 
+### TopNav Circle Button Pattern (workspace header)
+
+- Location: `src/ui/shell/TopNav.tsx`
+- Standard circle class: `rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface hover:text-foreground`
+- Icon size: `size={16} weight="regular"` (Phosphor icons)
+- Computed size: 16px icon + 8px*2 padding = 32px (h-8)
+- NiotepadPill uses `h-8 w-8` instead of `p-2` (letter "N" not an icon, needs explicit dims)
+- Buttons (L to R): Share, Feedback, NiotepadPill, LayoutPresetToggle, ControlCenter
+- Share/Feedback are shortcuts that open ControlCenterDrawer to settings > share/feedback card
+- ControlCenterDrawer accepts `initialSettingsCard?: SettingsRoute | null` prop
+
 ## Auth Pages Pattern
 
 - **Top bar**: SiteNav with ThemeToggle + "← Home" link
@@ -142,6 +153,7 @@
 - Calling `setState` directly inside `useEffect` body triggers lint error
 - For Zustand mutual exclusion: use `store.subscribe()` inside useEffect — subscribe callback runs outside effect body
 - For syncing state from props: prefer memo comparison + key-based remount (e.g., memo'd by `entry.updatedAt`)
+- For prop-driven state transitions: use `window.requestAnimationFrame(() => setState(...))` inside effect — rAF callback runs outside effect body, passes lint
 
 ### Framer Motion Swipe-to-Delete Pattern (2026-02-08)
 
