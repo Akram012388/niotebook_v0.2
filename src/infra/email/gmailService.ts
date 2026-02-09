@@ -44,10 +44,9 @@ export const sendEmail = async (params: SendEmailParams): Promise<string> => {
     headers.push(`References: ${params.replyToMessageId}`);
   }
 
-  const raw = btoa(`${headers.join("\r\n")}\r\n\r\n${params.body}`)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  const raw = encodeBase64Url(
+    `${headers.join("\r\n")}\r\n\r\n${params.body}`,
+  );
 
   const res = await gmailFetch("/messages/send", {
     method: "POST",
@@ -296,7 +295,16 @@ const extractBodyFromPart = (part: GmailApiPayloadPart): string => {
   return "";
 };
 
+/** UTF-8 safe base64url encode (handles non-ASCII like em-dash, emoji, etc.) */
+const encodeBase64Url = (text: string): string =>
+  Buffer.from(text, "utf-8")
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+/** UTF-8 safe base64url decode. */
 const decodeBase64Url = (data: string): string => {
   const base64 = data.replace(/-/g, "+").replace(/_/g, "/");
-  return atob(base64);
+  return Buffer.from(base64, "base64").toString("utf-8");
 };
