@@ -40,12 +40,16 @@
 - Sentry wrapping via `withSentryConfig` in `next.config.ts`
 - COOP/COEP headers only on `/editor-sandbox` route
 
-## Transcript Context Fix (Feb 2026)
+## Transcript Context Fix v2 (Feb 2026)
 
-- **Root cause**: Client-side `useTranscriptWindow` React hook can return empty segments due to render timing when additional hooks/state are added to `AiPane.tsx` (e.g. niotepad push-bookmark feature). The server-side API route previously only fetched transcript from Convex when the client sent empty lines.
-- **Fix**: Changed `/api/nio/route.ts` to ALWAYS fetch transcript server-side from Convex (line ~904), removing the `!hasTranscriptLines` condition. Server is now the authoritative transcript source regardless of client data.
-- **Key lesson**: When client-side React hooks have timing dependencies, the server should independently fetch authoritative data rather than trusting client-provided context.
-- **Transcript fallback chain** (all in `/api/nio/route.ts`): Convex query -> SRT subtitle fetch -> YouTube transcript fetch. Each step only fires if previous steps returned empty.
+- **Root cause (deeper)**: The `transcriptSegments` table is EMPTY in the dev Convex deployment. The first fix (unconditional Convex query) correctly removed the client-trust issue, but the Convex query itself returns nothing. Transcript data actually comes from the SRT/YouTube fallback chain, which depends on `lessonMeta` (fetched from the `lessons` table, which DOES have data).
+- **Three issues fixed**:
+  1. Server now computes `startSec`/`endSec` from `videoTimeSec` instead of trusting client values (which could be stale/zero due to React render timing).
+  2. `lessonMeta` processing moved BEFORE transcript result processing so fallback URLs are available immediately.
+  3. All fallback fetches (`fetchSubtitleWindow`, `fetchYoutubeTranscriptWindow`) now use `serverStartSec`/`serverEndSec` consistently.
+- **Key architecture insight**: `NioLessonMetaPayload` (client payload type) does NOT include `videoId`. Only the server-side `fetchLessonMeta` returns `videoId`. This means YouTube fallback ONLY works when the server-side lesson meta fetch succeeds.
+- **Transcript fallback chain** (all in `/api/nio/route.ts`): Convex transcript query -> SRT subtitle fetch (needs `subtitlesUrl`) -> YouTube transcript fetch (needs `videoId`). Each step only fires if previous steps returned empty.
+- **Lesson**: Never trust client-side timing-dependent data for critical server operations. Compute values server-side from authoritative inputs (`videoTimeSec`).
 
 ## Niotepad Data Layer (Feb 2026)
 
