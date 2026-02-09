@@ -89,3 +89,37 @@
 5. Expand content beyond CS50 (MIT OCW has same license terms)
 6. Build community features (study groups, shared notebooks)
 7. File trademark ITU application for "niotebook"
+
+## Vibe Mode Research (2026-02-09)
+See `vibe-mode-research.md` for full findings.
+
+### Key Insight
+Vibe coders suffer "learning debt" -- they build with AI but can't understand/debug.
+The product gap: short concept video + micro-challenge + AI tutor = "aha moment" loop.
+
+### Vibe Coder Dopamine Loop
+- Variable-ratio reinforcement (like slot machines) -- 64% describe vibe coding as "magical"
+- "Dark flow" / "junk flow" (fast.ai) -- counterfeit productivity
+- 11% of vibe coding sessions end in total project abandonment
+
+### Knowledge Gaps (Tier 0 -- what breaks vibe-coded apps)
+async/await, state management, APIs, databases, scope/closures, CSS layout, auth flows
+
+### Optimal Content Format
+- 3-5 min video = 83% completion (vs 20-30% long-form)
+- Microlearning = 50% more engagement, 17% more effective knowledge transfer
+- "Aha moments" trigger same neural reward as food/substances (Drexel 2020 study)
+- Duolingo streaks: 7-day streak users are 3.6x more likely to stay long-term
+
+### Embeddable Content Sources (YouTube embed, legally clean)
+- Fireship "100 Seconds" (2 min, Standard YT License)
+- CS50 Shorts (5-15 min, CC BY-NC-SA -- embed OK, NC clause for monetization)
+- 3Blue1Brown (10-25 min, Standard YT License)
+- ByteByteGo (5-15 min, Standard YT License)
+- NeetCode (10-20 min, Standard YT License)
+- The Coding Train (10-30 min, Standard YT License / some CC)
+- freeCodeCamp (varies, check per video)
+
+### No Direct Competitor
+No product combines: curated video + AI tutor + in-browser code challenge + streak.
+Scrimba closest but no AI tutor. Brilliant no video/code. Duolingo not programming.
