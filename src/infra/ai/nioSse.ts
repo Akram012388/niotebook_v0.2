@@ -32,6 +32,7 @@ const isBoolean = (value: unknown): value is boolean => {
 
 const isErrorCode = (value: unknown): value is NioErrorCode => {
   return (
+    value === "NO_API_KEY" ||
     value === "RATE_LIMITED" ||
     value === "VALIDATION_ERROR" ||
     value === "PROVIDER_429" ||

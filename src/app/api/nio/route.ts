@@ -1,7 +1,6 @@
 import { ConvexHttpClient } from "convex/browser";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { api } from "../../../../convex/_generated/api";
-import { AI_FALLBACK_TIMEOUT_MS } from "../../../domain/ai-fallback";
 import type { RateLimitDecision } from "../../../domain/rate-limits";
 import type { NioErrorCode, NioSseEvent } from "../../../domain/ai/types";
 import {
@@ -10,9 +9,9 @@ import {
 } from "../../../domain/nioContextBuilder";
 import { NIO_SYSTEM_PROMPT } from "../../../domain/nioPrompt";
 import { streamGemini } from "../../../infra/ai/geminiStream";
-import { streamGroq } from "../../../infra/ai/groqStream";
+import { streamOpenAI } from "../../../infra/ai/openaiStream";
+import { streamAnthropic } from "../../../infra/ai/anthropicStream";
 import { encodeSseEvent, NIO_SSE_HEADERS } from "../../../infra/ai/nioSse";
-import { shouldFallbackBeforeFirstToken } from "../../../infra/ai/fallbackGate";
 import { neutralizePromptInjection } from "../../../infra/ai/promptInjection";
 import { fetchSubtitleWindow } from "../../../infra/ai/subtitleFallback";
 import { fetchYoutubeTranscriptWindow } from "../../../infra/ai/youtubeTranscriptFallback";
@@ -21,7 +20,6 @@ import type {
   NioProviderStreamResult,
 } from "../../../infra/ai/providerTypes";
 import {
-  createProviderStreamError,
   isProviderStreamError,
   NioProviderStreamError,
 } from "../../../infra/ai/providerTypes";
@@ -201,36 +199,6 @@ const persistAssistantMessage = async (args: {
   });
 };
 
-const logAiFallbackEvent = async (args: {
-  lessonId: string;
-  threadId: string;
-  fromProvider: NioProviderId;
-  toProvider: NioProviderId;
-  reason: string;
-  client: ConvexHttpClient;
-}): Promise<void> => {
-  if (!isConvexEnabled()) {
-    return;
-  }
-
-  await args.client.mutation(api.events.logEvent, {
-    eventType: "ai_fallback_triggered",
-    lessonId: args.lessonId as Id<"lessons">,
-    metadata: {
-      lessonId: args.lessonId as Id<"lessons">,
-      threadId: args.threadId as Id<"chatThreads">,
-      fromProvider: args.fromProvider,
-      toProvider: args.toProvider,
-      reason: args.reason,
-    },
-  });
-};
-
-type FirstTokenResult =
-  | { kind: "token"; token: string }
-  | { kind: "timeout" }
-  | { kind: "error"; error: NioProviderStreamError };
-
 const normalizeProviderError = (
   error: unknown,
   provider: NioProviderId,
@@ -239,78 +207,12 @@ const normalizeProviderError = (
     return error;
   }
 
-  return createProviderStreamError(
+  return new NioProviderStreamError(
     "Provider stream error.",
+    "STREAM_ERROR",
     undefined,
     provider,
   );
-};
-
-const readFirstToken = async (
-  iterator: AsyncIterator<string>,
-  timeoutMs: number,
-  provider: NioProviderId,
-): Promise<FirstTokenResult> => {
-  if (timeoutMs <= 0) {
-    return { kind: "timeout" };
-  }
-
-  try {
-    const result = await Promise.race([
-      iterator.next().then((value) => ({ kind: "result" as const, value })),
-      sleep(timeoutMs).then(() => ({ kind: "timeout" as const })),
-    ]);
-
-    if (result.kind === "timeout") {
-      return { kind: "timeout" };
-    }
-
-    if (result.value.done || typeof result.value.value !== "string") {
-      return {
-        kind: "error",
-        error: createProviderStreamError(
-          "Provider stream ended before first token.",
-          undefined,
-          provider,
-        ),
-      };
-    }
-
-    return { kind: "token", token: result.value.value };
-  } catch (error) {
-    return { kind: "error", error: normalizeProviderError(error, provider) };
-  }
-};
-
-const shouldFallbackForFirstToken = (
-  result: FirstTokenResult,
-  elapsedMs: number,
-): boolean => {
-  return shouldFallbackBeforeFirstToken({
-    hasFirstToken: result.kind === "token",
-    elapsedMs,
-    error: result.kind === "error" ? result.error : undefined,
-  });
-};
-
-const resolveFallbackReason = (result: FirstTokenResult): string => {
-  if (result.kind === "timeout") {
-    return "timeout_first_token";
-  }
-
-  if (result.kind === "error") {
-    if (result.error.code === "PROVIDER_429") {
-      return "provider_429";
-    }
-
-    if (result.error.code === "PROVIDER_5XX") {
-      return "provider_5xx";
-    }
-
-    return "provider_error";
-  }
-
-  return "unknown";
 };
 
 const streamStub = async (args: {
@@ -410,7 +312,7 @@ const streamStub = async (args: {
   });
 };
 
-const streamWithProviders = async (args: {
+const streamWithByok = async (args: {
   requestId: string;
   assistantTempId: string;
   contextHash: string;
@@ -431,187 +333,74 @@ const streamWithProviders = async (args: {
   isAborted: () => boolean;
 }): Promise<void> => {
   const startedAtMs = Date.now();
-  let usedFallback = false;
-  let providerResult: NioProviderStreamResult | null = null;
-  let iterator: AsyncIterator<string> | null = null;
-  let firstToken: string | null = null;
-  let seq = 1;
 
-  const emitErrorEvent = (
-    code: NioErrorCode,
-    message: string,
-    provider?: NioProviderId,
-  ): void => {
+  const emitError = (code: NioErrorCode, message: string): void => {
     args.enqueue({
       type: "error",
       requestId: args.requestId,
       assistantTempId: args.assistantTempId,
-      seq,
+      seq: 1,
       code,
       message,
-      provider,
     });
   };
 
-  const attemptProvider = async (
-    factory: () => Promise<NioProviderStreamResult>,
-    providerId: NioProviderId,
-  ): Promise<{
-    result: NioProviderStreamResult | null;
-    iterator: AsyncIterator<string> | null;
-    first: FirstTokenResult;
-  }> => {
-    try {
-      const result = await factory();
-      const nextIterator = result.stream[Symbol.asyncIterator]();
-      const remainingTimeout = Math.max(
-        0,
-        AI_FALLBACK_TIMEOUT_MS - (Date.now() - startedAtMs),
-      );
-      const first = await readFirstToken(
-        nextIterator,
-        remainingTimeout,
-        result.provider,
-      );
+  // Resolve user's API key from Convex
+  let resolved: { provider: NioProviderId; key: string } | null = null;
+  try {
+    resolved = await args.client.action(api.userApiKeys.resolveForRequest, {});
+  } catch (err) {
+    console.error("[nio] resolveForRequest failed", err);
+    emitError("STREAM_ERROR", "Failed to resolve API key.");
+    return;
+  }
 
-      return { result, iterator: nextIterator, first };
-    } catch (error) {
-      return {
-        result: null,
-        iterator: null,
-        first: {
-          kind: "error",
-          error: normalizeProviderError(error, providerId),
-        },
-      };
-    }
-  };
+  if (!resolved) {
+    emitError("NO_API_KEY", "No API key configured. Add one in Settings.");
+    return;
+  }
 
-  debugLog("gemini attempt", { requestId: args.requestId });
-  const primaryAttempt = await attemptProvider(
-    () =>
-      streamGemini({
+  const { provider, key } = resolved;
+
+  let providerResult: NioProviderStreamResult;
+  try {
+    if (provider === "gemini") {
+      providerResult = await streamGemini({
         messages: args.messages,
         maxOutputTokens: args.budget.maxOutputTokens,
-        apiKey: process.env.GEMINI_API_KEY ?? "",
-      }),
-    "gemini",
-  );
-
-  if (primaryAttempt.first.kind === "token") {
-    debugLog("gemini first token", {
-      requestId: args.requestId,
-      elapsedMs: Date.now() - startedAtMs,
-    });
-  }
-
-  if (
-    primaryAttempt.first.kind === "token" &&
-    primaryAttempt.result &&
-    primaryAttempt.iterator
-  ) {
-    providerResult = primaryAttempt.result;
-    iterator = primaryAttempt.iterator;
-    firstToken = primaryAttempt.first.token;
-  } else if (
-    shouldFallbackForFirstToken(primaryAttempt.first, Date.now() - startedAtMs)
-  ) {
-    usedFallback = true;
-    const fallbackReason = resolveFallbackReason(primaryAttempt.first);
-    debugLog("fallback decision", {
-      requestId: args.requestId,
-      reason: fallbackReason,
-      elapsedMs: Date.now() - startedAtMs,
-      hasToken: primaryAttempt.first.kind === "token",
-    });
-    logAiFallbackEvent({
-      lessonId: args.lessonId,
-      threadId: args.threadId,
-      fromProvider: "gemini",
-      toProvider: "groq",
-      reason: fallbackReason,
-      client: args.client,
-    }).catch((error) => {
-      console.error("[nio] fallback event failed", error);
-    });
-    const fallbackAttempt = await attemptProvider(
-      () =>
-        streamGroq({
-          messages: args.messages,
-          maxOutputTokens: args.budget.maxOutputTokens,
-        }),
-      "groq",
-    );
-
-    if (
-      fallbackAttempt.first.kind === "token" &&
-      fallbackAttempt.result &&
-      fallbackAttempt.iterator
-    ) {
-      providerResult = fallbackAttempt.result;
-      iterator = fallbackAttempt.iterator;
-      firstToken = fallbackAttempt.first.token;
+        apiKey: key,
+      });
+    } else if (provider === "openai") {
+      providerResult = await streamOpenAI({
+        messages: args.messages,
+        maxOutputTokens: args.budget.maxOutputTokens,
+        apiKey: key,
+      });
+    } else if (provider === "anthropic") {
+      providerResult = await streamAnthropic({
+        messages: args.messages,
+        maxOutputTokens: args.budget.maxOutputTokens,
+        apiKey: key,
+      });
     } else {
-      if (fallbackAttempt.first.kind === "timeout") {
-        emitErrorEvent(
-          "TIMEOUT_FIRST_TOKEN",
-          "Timed out waiting for first token.",
-          "groq",
-        );
-        return;
-      }
-
-      if (fallbackAttempt.first.kind === "error") {
-        emitErrorEvent(
-          fallbackAttempt.first.error.code,
-          fallbackAttempt.first.error.message,
-          fallbackAttempt.first.error.provider ?? "groq",
-        );
-        return;
-      }
-
-      emitErrorEvent("STREAM_ERROR", "Provider failed before first token.");
+      emitError("STREAM_ERROR", "Unknown provider.");
       return;
     }
-  } else {
-    if (primaryAttempt.first.kind === "timeout") {
-      debugLog("gemini timeout", {
-        requestId: args.requestId,
-        elapsedMs: Date.now() - startedAtMs,
-      });
-      emitErrorEvent(
-        "TIMEOUT_FIRST_TOKEN",
-        "Timed out waiting for first token.",
-        "gemini",
-      );
-      return;
-    }
-
-    if (primaryAttempt.first.kind === "error") {
-      debugLog("gemini error", {
-        requestId: args.requestId,
-        name: primaryAttempt.first.error.name,
-        message: primaryAttempt.first.error.message,
-        stack: primaryAttempt.first.error.stack
-          ?.split("\n")
-          .slice(0, 4)
-          .join(" | "),
-      });
-      emitErrorEvent(
-        primaryAttempt.first.error.code,
-        primaryAttempt.first.error.message,
-        primaryAttempt.first.error.provider ?? "gemini",
-      );
-      return;
-    }
-
-    emitErrorEvent("STREAM_ERROR", "Provider failed before first token.");
+  } catch (error) {
+    const providerError = normalizeProviderError(error, provider);
+    args.enqueue({
+      type: "error",
+      requestId: args.requestId,
+      assistantTempId: args.assistantTempId,
+      seq: 1,
+      code: providerError.code,
+      message: providerError.message,
+      provider: providerError.provider ?? provider,
+    });
     return;
   }
 
-  if (!providerResult || !iterator || !firstToken || args.isAborted()) {
-    return;
-  }
+  const iterator = providerResult.stream[Symbol.asyncIterator]();
 
   const timeToFirstTokenMs = Date.now() - startedAtMs;
 
@@ -627,30 +416,15 @@ const streamWithProviders = async (args: {
     seq: 0,
   });
 
-  let fullText = firstToken;
-  args.enqueue({
-    type: "token",
-    requestId: args.requestId,
-    assistantTempId: args.assistantTempId,
-    seq,
-    token: firstToken,
-  });
-  seq += 1;
+  let fullText = "";
+  let seq = 1;
 
   try {
     while (true) {
       const { value, done } = await iterator.next();
-      if (done) {
-        break;
-      }
-
-      if (args.isAborted()) {
-        return;
-      }
-
-      if (!value) {
-        continue;
-      }
+      if (done) break;
+      if (args.isAborted()) return;
+      if (!value) continue;
 
       fullText += value;
       args.enqueue({
@@ -663,15 +437,16 @@ const streamWithProviders = async (args: {
       seq += 1;
     }
   } catch (error) {
-    const providerError = normalizeProviderError(
-      error,
-      providerResult.provider,
-    );
-    emitErrorEvent(
-      providerError.code,
-      providerError.message,
-      providerError.provider ?? providerResult.provider,
-    );
+    const providerError = normalizeProviderError(error, providerResult.provider);
+    args.enqueue({
+      type: "error",
+      requestId: args.requestId,
+      assistantTempId: args.assistantTempId,
+      seq,
+      code: providerError.code,
+      message: providerError.message,
+      provider: providerError.provider ?? providerResult.provider,
+    });
     return;
   }
 
@@ -683,7 +458,7 @@ const streamWithProviders = async (args: {
     seq,
     provider: providerResult.provider,
     model: providerResult.model,
-    usedFallback,
+    usedFallback: false,
     latencyMs,
     timeToFirstTokenMs,
     usageApprox: {
@@ -693,7 +468,6 @@ const streamWithProviders = async (args: {
     finalText: fullText,
   });
 
-  // Fire-and-forget: don't block stream close on persistence
   void persistAssistantMessage({
     threadId: args.threadId,
     requestId: args.requestId,
@@ -704,7 +478,7 @@ const streamWithProviders = async (args: {
     provider: providerResult.provider,
     model: providerResult.model,
     latencyMs,
-    usedFallback,
+    usedFallback: false,
     contextHash: args.contextHash,
     client: args.client,
   }).catch((error) => {
@@ -807,8 +581,6 @@ export const POST = async (request: Request): Promise<Response> => {
 
   debugLog("nio request", {
     requestId: validation.data.requestId,
-    hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
-    hasGroqKey: Boolean(process.env.GROQ_API_KEY),
     stubMode: isStubPreview(),
     disableConvex: process.env.NEXT_PUBLIC_DISABLE_CONVEX === "true",
   });
@@ -1127,7 +899,7 @@ export const POST = async (request: Request): Promise<Response> => {
           return;
         }
 
-        await streamWithProviders({
+        await streamWithByok({
           requestId: validation.data.requestId,
           assistantTempId: validation.data.assistantTempId,
           contextHash,
