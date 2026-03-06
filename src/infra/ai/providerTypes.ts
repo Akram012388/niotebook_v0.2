@@ -1,6 +1,6 @@
 import type { NioErrorCode } from "../../domain/ai/types";
 
-type NioProviderId = "gemini" | "groq";
+type NioProviderId = "gemini" | "groq" | "openai" | "anthropic";
 
 type NioProviderErrorCode = Extract<
   NioErrorCode,

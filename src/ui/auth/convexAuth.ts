@@ -3,7 +3,7 @@ import { makeFunctionReference } from "convex/server";
 type UpsertUserReference = import("convex/server").FunctionReference<
   "mutation",
   "public",
-  { inviteBatchId?: string },
+  Record<string, never>,
   { userId: string; role: "admin" | "user" }
 >;
 
@@ -15,7 +15,7 @@ type MeReference = import("convex/server").FunctionReference<
   "query",
   "public",
   Record<string, never>,
-  { role: "admin" | "user" | "guest"; inviteBatchId?: string } | null
+  { role: "admin" | "user" } | null
 >;
 
 const meRef = makeFunctionReference<"query">("users:me") as MeReference;

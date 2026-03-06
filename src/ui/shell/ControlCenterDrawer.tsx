@@ -17,6 +17,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { ThemeToggle } from "../shared/ThemeToggle";
+import { ApiKeySettings } from "../settings/ApiKeySettings";
 import {
   useCallback,
   useEffect,
@@ -34,10 +35,9 @@ import { resolveLectureNumber } from "../../domain/lectureNumber";
 type UserInfo = {
   email: string | null;
   role: string | null;
-  inviteBatchId: string | null;
 };
 
-type SettingsRoute = "share" | "feedback";
+type SettingsRoute = "share" | "feedback" | "api-keys";
 
 type ControlCenterDrawerProps = {
   isOpen: boolean;
@@ -93,7 +93,7 @@ const ControlCenterDrawer = ({
   const [lectureQuery, setLectureQuery] = useState("");
   const [courseQuery, setCourseQuery] = useState("");
   const [activeSettingsCard, setActiveSettingsCard] = useState<
-    "share" | "feedback" | null
+    "share" | "feedback" | "api-keys" | null
   >(null);
 
   // When the drawer opens with an initial settings card route, navigate directly to it.
@@ -107,7 +107,9 @@ const ControlCenterDrawer = ({
     if (isOpen && !wasOpen && initialSettingsCard) {
       window.requestAnimationFrame(() => {
         setPanelView("settings");
-        setActiveSettingsCard(initialSettingsCard);
+        setActiveSettingsCard(
+          initialSettingsCard === "api-keys" ? null : initialSettingsCard,
+        );
       });
     }
   }, [isOpen, initialSettingsCard]);
@@ -474,6 +476,10 @@ const ControlCenterDrawer = ({
                 )
               ) : panelView === "settings" ? (
                 <div className="flex flex-col gap-4">
+                  {/* Nio AI settings */}
+                  <section className="flex flex-col gap-2 border-b border-border pb-4">
+                    <ApiKeySettings />
+                  </section>
                   <div className="flex items-center justify-between">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
                       Theme
@@ -723,16 +729,6 @@ const ControlCenterDrawer = ({
                       </span>
                     </div>
                   </div>
-                  {userInfo?.inviteBatchId ? (
-                    <div className="flex flex-col gap-1">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                        Invite batch
-                      </div>
-                      <div className="rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs text-text-muted">
-                        {userInfo.inviteBatchId}
-                      </div>
-                    </div>
-                  ) : null}
                   {onSignOut ? (
                     <button
                       type="button"

@@ -60,6 +60,7 @@ type UseChatThreadResult = {
   threadId: string | null;
   streamState: ChatStreamState;
   streamError: string | null;
+  noApiKey: boolean;
   sendMessage: (content: string, context: ChatSendContext) => Promise<void>;
   /** Mutable ref — set this to a callback to receive tokens without React state. */
   onStreamTokenRef: MutableRefObject<OnStreamToken | null>;
@@ -140,6 +141,7 @@ const useChatThread = (
   const isConvexEnabled = process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
   const [streamState, setStreamState] = useState<ChatStreamState>("idle");
   const [streamError, setStreamError] = useState<string | null>(null);
+  const [noApiKey, setNoApiKey] = useState(false);
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
 
   const thread = useQuery(
@@ -308,6 +310,7 @@ const useChatThread = (
       );
 
       setStreamError(null);
+      setNoApiKey(false);
       setStreamState("streaming");
       streamStartedAtRef.current = Date.now();
 
@@ -500,6 +503,9 @@ const useChatThread = (
 
               if (event.type === "error") {
                 receivedError = true;
+                if (event.code === "NO_API_KEY") {
+                  setNoApiKey(true);
+                }
                 updateLocalMessage(assistantTempId, (message) => ({
                   ...message,
                   content: event.message,
@@ -555,6 +561,7 @@ const useChatThread = (
     threadId: activeThreadId ?? null,
     streamState,
     streamError,
+    noApiKey,
     sendMessage,
     onStreamTokenRef,
   };

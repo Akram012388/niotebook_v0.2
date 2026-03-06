@@ -8,6 +8,7 @@ import {
 type GeminiStreamInput = {
   messages: NioContextMessage[];
   maxOutputTokens: number;
+  apiKey: string;
 };
 
 const GEMINI_MODEL = "gemini-3-flash-preview";
@@ -59,7 +60,7 @@ const parseGeminiToken = (payload: unknown): string | null => {
 const streamGemini = async (
   input: GeminiStreamInput,
 ): Promise<NioProviderStreamResult> => {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = input.apiKey;
   const isDebug = process.env.NIO_DEBUG === "1";
   const debugLog = (message: string, data?: Record<string, unknown>): void => {
     if (!isDebug) {
@@ -73,10 +74,6 @@ const streamGemini = async (
 
     console.log(`[nio:gemini] ${message}`);
   };
-
-  if (!apiKey) {
-    throw createProviderStreamError("Gemini API key is missing.");
-  }
 
   const systemMessages = input.messages
     .filter((message) => message.role === "system")

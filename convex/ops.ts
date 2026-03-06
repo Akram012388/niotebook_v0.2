@@ -221,7 +221,6 @@ const seedE2E = mutation({
           tokenIdentifier: "e2e-preview",
           email: "e2e@niotebook.local",
           role: "admin",
-          inviteBatchId: "e2e-preview",
         });
 
     const existingCourse = (await ctx.db.query("courses").collect()).find(

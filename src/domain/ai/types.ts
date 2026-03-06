@@ -40,6 +40,7 @@ type NioChatRequest = {
 };
 
 type NioErrorCode =
+  | "NO_API_KEY"
   | "RATE_LIMITED"
   | "VALIDATION_ERROR"
   | "PROVIDER_429"

@@ -9,8 +9,8 @@ type UserRecord = {
   _creationTime: number;
   tokenIdentifier: string;
   email?: string;
-  role: "admin" | "user" | "guest";
-  inviteBatchId?: string;
+  role: "admin" | "user";
+  activeAiProvider?: "gemini" | "openai" | "anthropic";
 };
 
 const parseAdminEmails = (): Set<string> => {
@@ -23,12 +23,9 @@ const parseAdminEmails = (): Set<string> => {
 };
 
 const upsertUser = mutation({
-  args: {
-    inviteBatchId: v.optional(v.string()),
-  },
+  args: {},
   handler: async (
     ctx,
-    args,
   ): Promise<{ userId: string; role: "admin" | "user" }> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
@@ -48,15 +45,8 @@ const upsertUser = mutation({
       )
       .first()) as UserRecord | null;
 
-    const inviteBatchId = args.inviteBatchId ?? existing?.inviteBatchId;
-
     if (existing) {
-      await ctx.db.patch(existing._id, {
-        email,
-        role,
-        inviteBatchId,
-      });
-
+      await ctx.db.patch(existing._id, { email, role });
       return { userId: toDomainId(existing._id), role };
     }
 
@@ -64,7 +54,6 @@ const upsertUser = mutation({
       tokenIdentifier,
       email,
       role,
-      inviteBatchId,
     });
 
     return { userId: toDomainId(userId as GenericId<"users">), role };
@@ -75,10 +64,7 @@ const me = query({
   args: {},
   handler: async (
     ctx,
-  ): Promise<{
-    role: "admin" | "user" | "guest";
-    inviteBatchId?: string;
-  } | null> => {
+  ): Promise<{ role: "admin" | "user" } | null> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       return null;
@@ -95,7 +81,7 @@ const me = query({
       return null;
     }
 
-    return { role: user.role, inviteBatchId: user.inviteBatchId };
+    return { role: user.role };
   },
 });
 
@@ -107,8 +93,7 @@ const listAll = query({
     Array<{
       id: string;
       email?: string;
-      role: "admin" | "user" | "guest";
-      inviteBatchId?: string;
+      role: "admin" | "user";
       createdAt: number;
     }>
   > => {
@@ -120,7 +105,6 @@ const listAll = query({
       id: toDomainId(user._id),
       email: user.email,
       role: user.role,
-      inviteBatchId: user.inviteBatchId,
       createdAt: user._creationTime,
     }));
   },
@@ -129,7 +113,7 @@ const listAll = query({
 const updateRole = mutation({
   args: {
     userId: v.id("users"),
-    role: v.union(v.literal("admin"), v.literal("user"), v.literal("guest")),
+    role: v.union(v.literal("admin"), v.literal("user")),
   },
   handler: async (ctx, args): Promise<{ ok: boolean }> => {
     await requireMutationAdmin(ctx);

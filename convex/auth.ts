@@ -6,7 +6,7 @@ import { toDomainId } from "./idUtils";
 
 type AuthenticatedUser = {
   id: UserId;
-  role: "admin" | "user" | "guest";
+  role: "admin" | "user";
 };
 
 type QueryCtx = GenericQueryCtx<DataModel>;
@@ -60,10 +60,6 @@ const requireUser = async (ctx: AuthContext): Promise<AuthenticatedUser> => {
 
   if (!user) {
     throw new Error("Not authenticated.");
-  }
-
-  if (user.role === "guest") {
-    throw new Error("Guest access denied.");
   }
 
   return user;
@@ -156,7 +152,6 @@ const ensureDevBypassUser = async (
     tokenIdentifier: "dev-bypass",
     email: "dev@niotebook.local",
     role: "admin",
-    inviteBatchId: "dev-bypass",
   });
 
   return {

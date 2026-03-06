@@ -279,6 +279,17 @@ const TopNav = (): ReactElement => {
     return unsubscribe;
   }, []);
 
+  // Listen for settings open requests from other components (e.g. AiPane NO_API_KEY)
+  useEffect(() => {
+    const handleOpenSettings = (): void => {
+      handleOpenDrawerWithRoute("api-keys");
+    };
+    window.addEventListener("niotebook:open-settings", handleOpenSettings);
+    return () => {
+      window.removeEventListener("niotebook:open-settings", handleOpenSettings);
+    };
+  }, [handleOpenDrawerWithRoute]);
+
   return (
     <header className="flex h-[72px] items-center justify-between border-b border-border bg-background px-4 sm:px-6">
       <div className="flex items-center justify-between w-full max-w-[1600px] mx-auto">
@@ -331,7 +342,6 @@ const TopNav = (): ReactElement => {
         userInfo={{
           email: clerkUser?.primaryEmailAddress?.emailAddress ?? null,
           role: meData?.role ?? null,
-          inviteBatchId: meData?.inviteBatchId ?? null,
         }}
         onSignOut={() => void signOut()}
         initialSettingsCard={drawerSettingsCard}
