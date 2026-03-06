@@ -493,6 +493,7 @@ const streamWithProviders = async (args: {
       streamGemini({
         messages: args.messages,
         maxOutputTokens: args.budget.maxOutputTokens,
+        apiKey: process.env.GEMINI_API_KEY ?? "",
       }),
     "gemini",
   );
