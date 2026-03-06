@@ -11,7 +11,7 @@ type BootstrapState = {
 };
 
 const useBootstrapUser = (enabled = true): BootstrapState => {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { isLoaded, isSignedIn } = useUser();
   const upsertUser = useMutation(upsertUserRef);
   const hasRunRef = useRef(false);
   const [ready, setReady] = useState(false);
@@ -32,12 +32,8 @@ const useBootstrapUser = (enabled = true): BootstrapState => {
     }
 
     hasRunRef.current = true;
-    const inviteBatchId =
-      typeof user?.publicMetadata?.inviteBatchId === "string"
-        ? user?.publicMetadata?.inviteBatchId
-        : undefined;
 
-    void upsertUser({ inviteBatchId }).then(
+    void upsertUser({}).then(
       () => {
         setReady(true);
       },
@@ -48,13 +44,7 @@ const useBootstrapUser = (enabled = true): BootstrapState => {
         setReady(false);
       },
     );
-  }, [
-    enabled,
-    isLoaded,
-    isSignedIn,
-    upsertUser,
-    user?.publicMetadata?.inviteBatchId,
-  ]);
+  }, [enabled, isLoaded, isSignedIn, upsertUser]);
 
   return {
     ready: enabled && isSignedIn ? ready : false,
