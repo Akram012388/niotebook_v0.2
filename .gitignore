@@ -59,6 +59,9 @@ next-env.d.ts
 # clerk configuration (can include secrets)
 /.clerk/
 
+# Claude Code local settings (may contain API keys)
+.claude/settings.json
+
 # demo video assets (large files)
 /niotebook-demo-videos/recordings/
 /niotebook-demo-videos/exports/
