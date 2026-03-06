@@ -9,8 +9,9 @@ Tag: `auth-e2e-docs-alignment-2026-01-30`
 
 - `NEXT_PUBLIC_CONVEX_URL` - Required for the client Convex SDK unless Convex is disabled. Used in `src/infra/convexClient.ts`.
 - `CONVEX_URL` - Optional server-side fallback for Convex HTTP client. Used in `src/app/api/nio/route.ts`.
-- `GEMINI_API_KEY` - Required for real Gemini streaming. Used in `src/infra/ai/geminiStream.ts`.
-- `GROQ_API_KEY` - Required for Groq fallback streaming. Used in `src/infra/ai/groqStream.ts`.
+- `NIOTEBOOK_KEY_ENCRYPTION_SECRET` - Required for BYOK AI key encryption. 32-byte random value. Generate with `openssl rand -base64 32`. Must be set in both Vercel env vars AND Convex dashboard env vars.
+- `GEMINI_API_KEY` - No longer required in production. Users supply their own key via the settings panel. May still be set for local dev testing.
+- `GROQ_API_KEY` - No longer required. Groq fallback removed in BYOK model.
 
 ## Auth (Clerk)
 
@@ -48,15 +49,6 @@ Tag: `auth-e2e-docs-alignment-2026-01-30`
 
 Do not set `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS=true` in production. The client
 throws on production builds if the bypass is enabled without preview allowances.
-
-## Invite tracking
-
-Alpha uses Clerk invitations. Store `inviteBatchId` in Clerk invitation metadata
-and sync it into the `users` table on first sign-in. If the invite UI does not
-expose metadata in Dev, set it on the user profile after sign-in.
-
-For alpha, preview + prod deployments use the Clerk Dev issuer in
-`CLERK_JWT_ISSUER_DOMAIN`.
 
 ## CI requirements
 
@@ -119,7 +111,7 @@ Required for production:
 
 - `NEXT_PUBLIC_CONVEX_URL`
 - `CONVEX_URL` (server-side Convex HTTP client)
-- `GEMINI_API_KEY` and `GROQ_API_KEY` if you want real AI providers
+- `NIOTEBOOK_KEY_ENCRYPTION_SECRET` (BYOK encryption secret)
 
 Do not set preview-only flags in production.
 
@@ -130,8 +122,7 @@ Use this as a baseline for local development:
 ```
 NEXT_PUBLIC_CONVEX_URL=...your Convex URL...
 CONVEX_URL=...same as above for server-side calls...
-GEMINI_API_KEY=...your Gemini key...
-GROQ_API_KEY=...your Groq key...
+NIOTEBOOK_KEY_ENCRYPTION_SECRET=...generate with: openssl rand -base64 32...
 NIOTEBOOK_E2E_PREVIEW=false
 NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=false
 NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS=true
