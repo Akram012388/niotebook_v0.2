@@ -1,164 +1,100 @@
-# Niotebook v0.2
+# Niotebook
 
-An AI-native learning workspace that synchronizes **Video**, **Code**, and **AI** into a single, real-time environment. Niotebook lets learners watch lecture videos, write and execute code in multiple languages, and chat with an AI assistant—all in one coordinated interface where each pane shares context with the others.
+A free, open-source learning companion for CS50 students. Watch lectures, write
+and run code, and chat with Nio — an AI tutor that knows exactly where you are
+in the course.
 
-## Overview
+Built by someone six months into learning to program. The git history is the story.
 
-Niotebook is built around the idea that learning to code is most effective when video instruction, hands-on coding, and AI assistance happen together. The workspace is organized into synchronized panes:
+## What It Does
 
-- **Video Pane** — YouTube-based lecture playback with time-synced transcript segments, resume-aware bookmarking, and chapter navigation.
-- **Code Pane** — A full-featured CodeMirror 6 editor with a file tree sidebar, tabbed multi-file editing, an xterm.js terminal, and in-browser execution for 7 languages.
-- **AI Pane** — A chat assistant (powered by Gemini, with Groq fallback) that automatically incorporates the current video timestamp, transcript context, and code state into its responses.
-
-Layout presets and keyboard shortcuts let you switch between different pane arrangements depending on what you're doing—watching, coding, or asking questions.
-
-## Features
-
-### Multi-Language Code Execution
-
-Code runs entirely in the browser via WebAssembly and sandboxed runtimes:
-
-| Language   | Runtime                                               |
-| ---------- | ----------------------------------------------------- |
-| JavaScript | `new Function()` sandbox                              |
-| Python     | Pyodide (WASM)                                        |
-| C / C++    | JSCPP + Wasmer/WASIX (isolated iframe with COOP/COEP) |
-| HTML / CSS | iframe preview                                        |
-| SQL        | sql.js (WASM)                                         |
-| R          | WebR (WASM)                                           |
-
-Each lesson can define its own environment config—starter files, language presets, and available packages—so the editor adapts to the lecture content automatically.
-
-### Virtual Filesystem (VFS)
-
-An in-memory file tree persisted to IndexedDB via Zustand. Supports multi-file projects with cross-file imports (Python, C, JS), a file tree sidebar, and tabbed editing. 1 MB per-file limit, 50 MB total.
-
-### AI Chat with Full Context
-
-The AI assistant receives:
-
-- Current transcript window around the video playback position
-- The learner's code from the active editor
-- Video timestamp and lesson metadata
-
-Streaming responses are delivered via SSE from the `/api/nio/chat` endpoint. Gemini 2.5 Flash is the primary provider; Groq is the automatic fallback.
-
-### Course & Lesson Management
-
-- Convex-backed data model for courses, lessons, chapters, and transcript segments.
-- CS50x 2026 ingest pipeline seeds lessons and transcripts from YouTube.
-- Resume snapshots and lesson completion tracking per user.
-- Code snapshots with content hashing for version history.
-
-### Admin Dashboard
-
-Role-gated admin routes (`/admin`) for user management, invite code management, feedback review, and analytics.
-
-### Auth
-
-Clerk-based invite-only alpha. Clerk issues JWTs consumed by Convex for identity. Invite codes with expiry, batch tracking, and role assignment.
+- Embedded YouTube player synced to a code editor and AI chat
+- Multi-language code execution: JavaScript, Python, C, HTML/CSS, SQL, R
+- Nio AI chat — context-aware, transcript-grounded, bring your own API key
+- Progress sync across devices via Convex
+- Niotepad — a floating notepad that captures your thoughts and AI insights
 
 ## Tech Stack
 
-| Layer           | Technology                                           |
-| --------------- | ---------------------------------------------------- |
-| Framework       | Next.js 16 (App Router, Turbopack)                   |
-| UI              | React 19, Tailwind CSS 4                             |
-| Language        | TypeScript (strict mode)                             |
-| Backend         | Convex 1.31 (serverless DB, real-time subscriptions) |
-| Auth            | Clerk (@clerk/nextjs 6.37)                           |
-| Editor          | CodeMirror 6 (JS, Python, C++, HTML, CSS, SQL, R)    |
-| Terminal        | xterm.js 5.5                                         |
-| State           | Zustand 5 (client), Convex React hooks (remote)      |
-| AI              | Google Gemini (primary), Groq (fallback)             |
-| WASM Runtimes   | Pyodide, Wasmer/WASIX, sql.js, WebR, JSCPP           |
-| Icons           | Phosphor Icons                                       |
-| Monitoring      | Sentry                                               |
-| Testing         | Vitest, Playwright, Testing Library                  |
-| Package Manager | Bun 1.1                                              |
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
+| Backend | Convex (serverless, real-time) |
+| Auth | Clerk (email OTP, free tier) |
+| Runtime | Bun |
+| Code execution | Pyodide (Python), Wasmer (C), native JS |
 
-## Project Structure
+## Local Setup
 
-```
-src/
-├── app/            # Next.js App Router (workspace, courses, admin, sign-in, sign-up, (landing)/info, editor-sandbox, API: nio + gmail)
-├── ui/             # React components by feature (admin, auth, brand, chat, code, content, courses, landing, layout, niotepad, panes, shared, shell, transcript, video)
-├── domain/         # Pure business logic & types (no React, no side effects)
-└── infra/          # Infrastructure (VFS, multi-language runtime, AI streaming, Convex client, niotepad store, Gmail API)
-convex/             # Backend functions, schema, auth, crons
-docs/               # Documentation (PRD, specs, ADRs, plans, redesign, features)
-tests/              # Unit & E2E tests
-```
+### Prerequisites
 
-## Getting Started
+- [Bun](https://bun.sh) 1.1.x
+- [Convex account](https://convex.dev) (free)
+- [Clerk account](https://clerk.com) (free)
 
-**Requirements:** Node 20.x, Bun 1.1.x
+### Steps
 
 ```bash
+git clone https://github.com/your-username/niotebook
+cd niotebook
 bun install
 cp .env.example .env.local
-# Set at minimum: NEXT_PUBLIC_CONVEX_URL, CONVEX_URL,
-# NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY
+```
+
+Fill in `.env.local` with your Convex and Clerk credentials (see table below).
+
+```bash
+# Terminal 1
+bun run dev:convex
+
+# Terminal 2
 bun run dev
 ```
 
-Open `http://localhost:3000`. Optionally run the Convex dev server with `bun run dev:convex`.
-
-Auth is Clerk invite-only for the alpha. See `docs/clerk-auth-alpha.md`.
-
-## Scripts
-
-| Command                | Description                                     |
-| ---------------------- | ----------------------------------------------- |
-| `bun run dev`          | Next.js dev server (Turbopack)                  |
-| `bun run dev:convex`   | Convex backend dev server                       |
-| `bun run build`        | Production build                                |
-| `bun run lint`         | ESLint 9                                        |
-| `bun run typecheck`    | TypeScript strict check                         |
-| `bun run format`       | Prettier format                                 |
-| `bun run test`         | Unit tests (Vitest)                             |
-| `bun run test:e2e`     | E2E tests (Playwright)                          |
-| `bun run ingest:cs50x` | Seed CS50x 2026 lessons/transcripts into Convex |
-
-Run a single test: `bunx vitest run path/to/test.ts` or `bunx playwright test path/to/test.ts`.
-
-## Data Ingest
-
-`bun run ingest:cs50x` seeds CS50x 2026 lessons and transcripts into Convex. Ingest and transcript verification require `NIOTEBOOK_INGEST_TOKEN` when running against preview or production deployments.
+Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment Variables
 
-See `.env.example` for the full list. Key groups:
+| Variable | Required | Where to get it |
+|---|---|---|
+| `NEXT_PUBLIC_CONVEX_URL` | Yes | Convex dashboard |
+| `CONVEX_URL` | Yes | Same as above |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes | Clerk dashboard |
+| `CLERK_SECRET_KEY` | Yes | Clerk dashboard |
+| `NIOTEBOOK_ADMIN_EMAILS` | Yes | Comma-separated list |
+| `NIOTEBOOK_KEY_ENCRYPTION_SECRET` | Yes | `openssl rand -base64 32` |
 
-- **Convex** — `CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_URL`, `CONVEX_URL`
-- **Clerk** — `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_JWT_ISSUER_DOMAIN`
-- **AI** — `GEMINI_API_KEY` (primary), `GROQ_API_KEY` (fallback)
-- **Monitoring** — `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`
-- **Admin** — `NIOTEBOOK_ADMIN_EMAILS`
-- **Gmail** — `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REDIRECT_URI`
+See `.env.example` for the full list with descriptions.
 
-## Documentation
+## AI (Bring Your Own Key)
 
-| Doc                                    | Description                            |
-| -------------------------------------- | -------------------------------------- |
-| `docs/PRD.md`                          | Product requirements                   |
-| `docs/specs.md`                        | Technical specifications               |
-| `docs/plan.md`                         | Project plan                           |
-| `docs/dev-workflow.md`                 | Development workflow                   |
-| `docs/env-requirements.md`             | Environment setup & secrets            |
-| `docs/clerk-auth-alpha.md`             | Auth gate plan                         |
-| `docs/ui-ux-contract.md`               | Binding UI/UX contract                 |
-| `docs/ui-reference.md`                 | UI component reference                 |
-| `docs/code-editor-tier2-plan.md`       | Code editor implementation plan        |
-| `docs/editor-support-r-sql.md`         | R & SQL language support               |
-| `docs/landing-page.md`                 | Landing page specs                     |
-| `docs/guidelines.md`                   | Code guidelines                        |
-| `docs/CHANGELOG.md`                    | Version history                        |
-| `docs/HANDOFF.md`                      | Session handoff context                |
-| `docs/ALPHA_LAUNCH_RECOMMENDATIONS.md` | Alpha launch readiness recommendations |
-| `docs/inspection.md`                   | Codebase inspection report             |
-| `docs/P0_BACKLOG_REVIEW.md`            | Priority backlog review                |
-| `docs/polish-workspace.md`             | Workspace polish plan                  |
-| `docs/ADR-*.md`                        | Architecture decision records          |
-| `docs/architecture/`                   | Architecture refactor docs             |
-| `docs/redesign/`                       | Redesign v2 specs, plans, and progress |
+Nio AI chat requires users to supply their own API key. The app supports:
+
+- **Google Gemini** — free tier available at [aistudio.google.com](https://aistudio.google.com)
+- **OpenAI** — [platform.openai.com](https://platform.openai.com)
+- **Anthropic** — [console.anthropic.com](https://console.anthropic.com)
+
+Keys are stored encrypted (AES-256-GCM) in Convex. The raw key is never returned
+to the client after saving. Users without a key can use all other features freely.
+
+## Self-Hosting
+
+1. Deploy Convex: `npx convex deploy`
+2. Deploy to Vercel (or any Next.js host)
+3. Set all env vars from `.env.example` in your deployment
+
+### Content Licensing Notice
+
+CS50 course content (transcripts, video metadata) is sourced from Harvard's CS50
+courses and licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+(non-commercial, share-alike). The Niotebook codebase is MIT-licensed, but the
+course content carries its own license. Self-hosters who ingest CS50 content are
+responsible for compliance — specifically the **non-commercial restriction**.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+MIT — see [LICENSE](LICENSE).
