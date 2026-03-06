@@ -9,12 +9,11 @@ import type { GenericId } from "convex/values";
 type UserRow = {
   id: string;
   email?: string;
-  role: "admin" | "user" | "guest";
-  inviteBatchId?: string;
+  role: "admin" | "user";
   createdAt: number;
 };
 
-type Role = "admin" | "user" | "guest";
+type Role = "admin" | "user";
 
 const listAllRef = makeFunctionReference<"query">(
   "users:listAll",
@@ -40,7 +39,6 @@ const RoleBadge = ({ role }: { role: string }): ReactElement => {
   const colors: Record<string, string> = {
     admin: "bg-accent-muted text-accent",
     user: "bg-status-info/10 text-status-info",
-    guest: "bg-surface-muted text-text-muted",
   };
 
   return (
@@ -95,7 +93,6 @@ const UserManagement = (): ReactElement => {
           <option value="all">All roles</option>
           <option value="admin">Admin</option>
           <option value="user">User</option>
-          <option value="guest">Guest</option>
         </select>
       </div>
 
@@ -110,9 +107,6 @@ const UserManagement = (): ReactElement => {
                 Role
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
-                Batch
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
                 Joined
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-text-muted">
@@ -124,7 +118,7 @@ const UserManagement = (): ReactElement => {
             {filtered === undefined ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={4}
                   className="px-4 py-8 text-center text-text-muted"
                 >
                   Loading...
@@ -133,7 +127,7 @@ const UserManagement = (): ReactElement => {
             ) : filtered.length === 0 ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={4}
                   className="px-4 py-8 text-center text-text-muted"
                 >
                   No users found.
@@ -152,9 +146,6 @@ const UserManagement = (): ReactElement => {
                     <RoleBadge role={user.role} />
                   </td>
                   <td className="px-4 py-2.5 text-text-muted">
-                    {user.inviteBatchId ?? "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-text-muted">
                     {formatDate(user.createdAt)}
                   </td>
                   <td className="px-4 py-2.5">
@@ -167,7 +158,6 @@ const UserManagement = (): ReactElement => {
                     >
                       <option value="admin">Admin</option>
                       <option value="user">User</option>
-                      <option value="guest">Guest</option>
                     </select>
                   </td>
                 </tr>

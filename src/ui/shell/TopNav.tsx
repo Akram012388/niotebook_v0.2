@@ -331,7 +331,6 @@ const TopNav = (): ReactElement => {
         userInfo={{
           email: clerkUser?.primaryEmailAddress?.emailAddress ?? null,
           role: meData?.role ?? null,
-          inviteBatchId: meData?.inviteBatchId ?? null,
         }}
         onSignOut={() => void signOut()}
         initialSettingsCard={drawerSettingsCard}
