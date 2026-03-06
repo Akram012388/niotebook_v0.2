@@ -122,6 +122,7 @@ const AiPane = ({
     threadId,
     streamState,
     streamError,
+    noApiKey,
     onStreamTokenRef,
   } = useChatThread(lessonId, lectureLabel);
   const chatScrollRef = useRef<ChatScrollHandle>(null);
@@ -387,15 +388,33 @@ const AiPane = ({
               );
             })()
           : null}
-        {streamError ? (
+        {streamError && !noApiKey ? (
           <div className="rounded-lg border border-status-warning/25 bg-status-warning/10 px-3 py-2 text-xs text-status-warning">
             {streamError}
           </div>
         ) : null}
-        <ChatComposer
-          onSend={handleSend}
-          disabled={streamState === "streaming"}
-        />
+        {noApiKey ? (
+          <div className="flex items-center justify-center rounded-xl border border-border bg-surface px-4 py-3">
+            <p className="text-sm text-text-subtle">
+              Add an API key in{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("niotebook:open-settings"));
+                }}
+                className="text-accent underline-offset-2 hover:underline"
+              >
+                Settings
+              </button>{" "}
+              to chat with Nio.
+            </p>
+          </div>
+        ) : (
+          <ChatComposer
+            onSend={handleSend}
+            disabled={streamState === "streaming"}
+          />
+        )}
       </div>
     </section>
   );
