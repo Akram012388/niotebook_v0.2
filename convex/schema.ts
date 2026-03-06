@@ -80,28 +80,24 @@ const schema = defineSchema({
   users: defineTable({
     tokenIdentifier: v.string(),
     email: v.optional(v.string()),
-    role: v.union(v.literal("admin"), v.literal("user"), v.literal("guest")),
-    inviteBatchId: v.optional(v.string()),
-  })
-    .index("by_tokenIdentifier", ["tokenIdentifier"])
-    .index("by_inviteBatchId", ["inviteBatchId"]),
-  invites: defineTable({
-    code: v.string(),
-    createdAt: v.number(),
-    createdByUserId: v.optional(v.id("users")),
-    expiresAt: v.number(),
-    status: v.union(
-      v.literal("active"),
-      v.literal("used"),
-      v.literal("expired"),
+    role: v.union(v.literal("admin"), v.literal("user")),
+    activeAiProvider: v.optional(
+      v.union(v.literal("gemini"), v.literal("openai"), v.literal("anthropic")),
     ),
-    usedAt: v.optional(v.number()),
-    usedByUserId: v.optional(v.id("users")),
-    inviteBatchId: v.string(),
-    role: v.union(v.literal("user"), v.literal("admin")),
   })
-    .index("by_code", ["code"])
-    .index("by_inviteBatchId", ["inviteBatchId"]),
+    .index("by_tokenIdentifier", ["tokenIdentifier"]),
+  userApiKeys: defineTable({
+    userId: v.id("users"),
+    provider: v.union(
+      v.literal("gemini"),
+      v.literal("openai"),
+      v.literal("anthropic"),
+    ),
+    encryptedKey: v.string(),
+    iv: v.string(),
+    keyHint: v.string(),
+    updatedAt: v.number(),
+  }).index("by_userId_provider", ["userId", "provider"]),
   frames: defineTable({
     userId: v.id("users"),
     lessonId: v.id("lessons"),
@@ -158,7 +154,7 @@ const schema = defineSchema({
     sessionId: v.optional(v.string()),
     type: v.string(),
     metadata: v.object({
-      inviteId: v.optional(v.id("invites")),
+      inviteId: v.optional(v.string()),
       createdBy: v.optional(v.id("users")),
       redeemedBy: v.optional(v.id("users")),
       userId: v.optional(v.id("users")),
