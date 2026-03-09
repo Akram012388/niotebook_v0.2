@@ -1,6 +1,12 @@
 import { v } from "convex/values";
 import type { GenericId } from "convex/values";
-import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
 import { internal } from "./_generated/api";
 import { encryptApiKey, decryptApiKey } from "./lib/crypto";
 
@@ -147,7 +153,7 @@ const save = action({
 
     const secret = process.env.NIOTEBOOK_KEY_ENCRYPTION_SECRET;
     if (!secret) {
-      throw new Error("Encryption secret not configured.");
+      throw new Error("NIOTEBOOK_KEY_ENCRYPTION_SECRET is not configured");
     }
 
     const keyHint = trimmedKey.slice(-4);
@@ -160,9 +166,12 @@ const save = action({
       throw new Error("User record not found.");
     }
 
-    const existingKeys = await ctx.runQuery(internal.userApiKeys._getKeysByUser, {
-      tokenIdentifier: identity.tokenIdentifier,
-    });
+    const existingKeys = await ctx.runQuery(
+      internal.userApiKeys._getKeysByUser,
+      {
+        tokenIdentifier: identity.tokenIdentifier,
+      },
+    );
     const isFirstKey = existingKeys.keys.length === 0;
 
     await ctx.runMutation(internal.userApiKeys._upsertKey, {
@@ -186,7 +195,7 @@ const resolveForRequest = action({
 
     const secret = process.env.NIOTEBOOK_KEY_ENCRYPTION_SECRET;
     if (!secret) {
-      return null;
+      throw new Error("NIOTEBOOK_KEY_ENCRYPTION_SECRET is not configured");
     }
 
     const activeKey = await ctx.runQuery(internal.userApiKeys._getActiveKey, {
@@ -197,7 +206,11 @@ const resolveForRequest = action({
       return null;
     }
 
-    const key = await decryptApiKey(activeKey.encryptedKey, activeKey.iv, secret);
+    const key = await decryptApiKey(
+      activeKey.encryptedKey,
+      activeKey.iv,
+      secret,
+    );
 
     return { provider: activeKey.provider, key };
   },

@@ -12,8 +12,7 @@ type InnertubeTrack = {
 const ytCache = new Map<string, YtCacheEntry>();
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
-const INNERTUBE_PLAYER_URL =
-  "https://www.youtube.com/youtubei/v1/player";
+const INNERTUBE_PLAYER_URL = "https://www.youtube.com/youtubei/v1/player";
 const INNERTUBE_CONTEXT = {
   client: { clientName: "ANDROID", clientVersion: "19.29.37", hl: "en" },
 };
@@ -33,9 +32,7 @@ const decodeHtmlEntities = (text: string): string =>
  * Pick the best English caption track.
  * Preference: manual en → manual en-US/en-GB → auto-generated en.
  */
-const pickEnglishTrack = (
-  tracks: InnertubeTrack[],
-): InnertubeTrack | null => {
+const pickEnglishTrack = (tracks: InnertubeTrack[]): InnertubeTrack | null => {
   const manualEn = tracks.find(
     (t) => t.languageCode === "en" && t.kind !== "asr",
   );
@@ -87,8 +84,7 @@ const fetchAllSegments = async (
     };
   };
 
-  const tracks =
-    data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+  const tracks = data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
   if (!tracks || tracks.length === 0) {
     return [];
   }

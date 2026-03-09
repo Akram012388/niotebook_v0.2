@@ -101,6 +101,9 @@ const resolveConvexAuthHeader = (request: Request): string | null => {
     return null;
   }
 
+  // TODO: Client-side auth token interpolation can produce "Bearer undefined" before
+  // the token is available. Fix on the client side; this guard is a temporary server-side
+  // safety net.
   if (trimmed.includes("undefined") || trimmed.includes("null")) {
     return null;
   }
@@ -437,7 +440,10 @@ const streamWithByok = async (args: {
       seq += 1;
     }
   } catch (error) {
-    const providerError = normalizeProviderError(error, providerResult.provider);
+    const providerError = normalizeProviderError(
+      error,
+      providerResult.provider,
+    );
     args.enqueue({
       type: "error",
       requestId: args.requestId,
@@ -468,7 +474,7 @@ const streamWithByok = async (args: {
     finalText: fullText,
   });
 
-  void persistAssistantMessage({
+  const persistArgs = {
     threadId: args.threadId,
     requestId: args.requestId,
     content: fullText,
@@ -481,9 +487,29 @@ const streamWithByok = async (args: {
     usedFallback: false,
     contextHash: args.contextHash,
     client: args.client,
-  }).catch((error) => {
-    console.error("[nio] assistant persistence failed", error);
-  });
+  };
+
+  void (async () => {
+    try {
+      await persistAssistantMessage(persistArgs);
+    } catch (err) {
+      console.error(
+        "[nio/chat] persistAssistantMessage failed, retrying in 2s",
+        {
+          error: err instanceof Error ? err.message : String(err),
+        },
+      );
+      await sleep(2000);
+      try {
+        await persistAssistantMessage(persistArgs);
+      } catch (retryErr) {
+        console.error("[nio/chat] persistAssistantMessage retry failed", {
+          error:
+            retryErr instanceof Error ? retryErr.message : String(retryErr),
+        });
+      }
+    }
+  })();
 };
 
 const fetchTranscriptWindow = async (args: {
@@ -607,7 +633,15 @@ export const POST = async (request: Request): Promise<Response> => {
     rateLimitDecision = await consumeAiRateLimit(convexClient);
   } catch (error) {
     console.error("[nio] rate limit check failed", error);
-    rateLimitDecision = null;
+    return buildJsonResponse(
+      {
+        error: {
+          code: "SERVICE_UNAVAILABLE",
+          message: "Service temporarily unavailable. Please try again.",
+        },
+      },
+      503,
+    );
   }
 
   if (rateLimitDecision && !rateLimitDecision.ok) {
@@ -918,7 +952,20 @@ export const POST = async (request: Request): Promise<Response> => {
         close();
       };
 
-      run().catch(() => {
+      let streamTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
+      const streamTimeoutPromise = new Promise<never>((_, reject) => {
+        streamTimeoutHandle = setTimeout(
+          () => reject(new Error("Stream body timeout")),
+          120_000,
+        );
+      });
+
+      Promise.race([
+        run().finally(() => {
+          clearTimeout(streamTimeoutHandle);
+        }),
+        streamTimeoutPromise,
+      ]).catch(() => {
         enqueue({
           type: "error",
           requestId: validation.data.requestId,

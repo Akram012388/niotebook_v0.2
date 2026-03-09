@@ -24,9 +24,7 @@ const parseAdminEmails = (): Set<string> => {
 
 const upsertUser = mutation({
   args: {},
-  handler: async (
-    ctx,
-  ): Promise<{ userId: string; role: "admin" | "user" }> => {
+  handler: async (ctx): Promise<{ userId: string; role: "admin" | "user" }> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error("Not authenticated.");
@@ -62,9 +60,7 @@ const upsertUser = mutation({
 
 const me = query({
   args: {},
-  handler: async (
-    ctx,
-  ): Promise<{ role: "admin" | "user" } | null> => {
+  handler: async (ctx): Promise<{ role: "admin" | "user" } | null> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       return null;

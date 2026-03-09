@@ -40,12 +40,7 @@ const resolveIdentity = async (
     .first();
 
   if (!user) {
-    console.error(
-      "[auth] User not found for tokenIdentifier:",
-      identity.tokenIdentifier,
-      "| email:",
-      identity.email,
-    );
+    console.error("[auth] Auth failure: no matching user for token");
     return null;
   }
 
@@ -179,13 +174,6 @@ const requireQueryUser = async (ctx: QueryCtx): Promise<AuthenticatedUser> => {
   return devUser ?? requireUser(ctx);
 };
 
-const requireQueryWorkspaceUser = async (
-  ctx: QueryCtx,
-): Promise<AuthenticatedUser> => {
-  const devUser = await resolveDevBypass(ctx);
-  return devUser ?? requireUser(ctx);
-};
-
 const requireQueryAdmin = async (ctx: QueryCtx): Promise<AuthenticatedUser> => {
   const devUser = await resolveDevBypass(ctx);
   return devUser ?? requireAdmin(ctx);
@@ -197,5 +185,4 @@ export {
   requireMutationUser,
   requireQueryAdmin,
   requireQueryUser,
-  requireQueryWorkspaceUser,
 };

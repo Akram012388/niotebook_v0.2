@@ -13,11 +13,13 @@
 ## Before You Start
 
 Read these files to orient yourself:
+
 - `CLAUDE.md` — project conventions, commands, architecture overview
 - `docs/plans/2026-03-07-oss-transition-design.md` — the approved design this plan implements
 - `docs/env-requirements.md` — all environment variables
 
 Key commands:
+
 ```bash
 bun run dev          # Next.js dev server
 bun run dev:convex   # Convex backend (separate terminal)
@@ -61,6 +63,7 @@ If you see a live credential (real-looking key, not a placeholder), note it and 
 ### Task 2: Create LICENSE
 
 **Files:**
+
 - Create: `LICENSE`
 
 **Step 1: Write the file**
@@ -96,6 +99,7 @@ SOFTWARE.
 ### Task 3: Create .env.example
 
 **Files:**
+
 - Create: `.env.example`
 
 **Step 1: Write the file**
@@ -162,11 +166,12 @@ NIOTEBOOK_ALLOW_DEV_BYPASS_IN_DEV=true
 ### Task 4: Create CONTRIBUTING.md
 
 **Files:**
+
 - Create: `CONTRIBUTING.md`
 
 **Step 1: Write the file**
 
-```markdown
+````markdown
 # Contributing to Niotebook
 
 Thanks for your interest in contributing.
@@ -198,6 +203,7 @@ bun run lint        # ESLint 9
 bun run test        # Vitest unit tests
 bun run build       # Production build
 ```
+````
 
 ## Code Rules
 
@@ -210,7 +216,8 @@ bun run build       # Production build
 - All checks pass
 - Clear description of what changes and why
 - Focused — one logical change per PR
-```
+
+````
 
 **Step 2: No test needed.**
 
@@ -265,7 +272,7 @@ git clone https://github.com/your-username/niotebook
 cd niotebook
 bun install
 cp .env.example .env.local
-```
+````
 
 Fill in `.env.local` with your Convex and Clerk credentials (see table below).
 
@@ -281,14 +288,14 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment Variables
 
-| Variable | Required | Where to get it |
-|---|---|---|
-| `NEXT_PUBLIC_CONVEX_URL` | Yes | Convex dashboard |
-| `CONVEX_URL` | Yes | Same as above |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes | Clerk dashboard |
-| `CLERK_SECRET_KEY` | Yes | Clerk dashboard |
-| `NIOTEBOOK_ADMIN_EMAILS` | Yes | Comma-separated list |
-| `NIOTEBOOK_KEY_ENCRYPTION_SECRET` | Yes | `openssl rand -base64 32` |
+| Variable                            | Required | Where to get it           |
+| ----------------------------------- | -------- | ------------------------- |
+| `NEXT_PUBLIC_CONVEX_URL`            | Yes      | Convex dashboard          |
+| `CONVEX_URL`                        | Yes      | Same as above             |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes      | Clerk dashboard           |
+| `CLERK_SECRET_KEY`                  | Yes      | Clerk dashboard           |
+| `NIOTEBOOK_ADMIN_EMAILS`            | Yes      | Comma-separated list      |
+| `NIOTEBOOK_KEY_ENCRYPTION_SECRET`   | Yes      | `openssl rand -base64 32` |
 
 See `.env.example` for the full list with descriptions.
 
@@ -324,7 +331,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 MIT — see [LICENSE](LICENSE).
-```
+
+````
 
 **Step 2: No test needed.**
 
@@ -337,7 +345,7 @@ MIT — see [LICENSE](LICENSE).
 ```bash
 git add LICENSE .env.example CONTRIBUTING.md README.md
 git commit -m "docs: add MIT license, README, CONTRIBUTING, and .env.example for OSS publication"
-```
+````
 
 **Step 2: Verify**
 
@@ -363,6 +371,7 @@ git checkout -b feat/open-access-byok
 ### Task 7: Update domain types
 
 **Files:**
+
 - Modify: `src/domain/ai/types.ts`
 - Modify: `src/infra/ai/providerTypes.ts`
 
@@ -384,10 +393,13 @@ type NioErrorCode =
 **Step 2: Expand `NioProviderId` in `src/infra/ai/providerTypes.ts`**
 
 Change line 3 from:
+
 ```ts
 type NioProviderId = "gemini" | "groq";
 ```
+
 To:
+
 ```ts
 type NioProviderId = "gemini" | "groq" | "openai" | "anthropic";
 ```
@@ -412,6 +424,7 @@ git commit -m "feat: add NO_API_KEY error code and expand NioProviderId for BYOK
 ### Task 8: Update Convex schema
 
 **Files:**
+
 - Modify: `convex/schema.ts`
 
 **Step 1: Open `convex/schema.ts` and make three changes:**
@@ -419,6 +432,7 @@ git commit -m "feat: add NO_API_KEY error code and expand NioProviderId for BYOK
 **Change 1** — In the `users` table, remove `inviteBatchId` and add `activeAiProvider`:
 
 Replace:
+
 ```ts
 users: defineTable({
   tokenIdentifier: v.string(),
@@ -431,6 +445,7 @@ users: defineTable({
 ```
 
 With:
+
 ```ts
 users: defineTable({
   tokenIdentifier: v.string(),
@@ -482,6 +497,7 @@ git commit -m "feat(schema): add userApiKeys table, remove invites table, add ac
 ### Task 9: Create encryption utilities
 
 **Files:**
+
 - Create: `convex/lib/crypto.ts`
 
 **Step 1: Create the directory and file**
@@ -588,7 +604,10 @@ describe("encryptApiKey / decryptApiKey", () => {
   });
 
   it("fails to decrypt with wrong secret", async () => {
-    const { encryptedKey, iv } = await encryptApiKey("my-key", "correct-secret");
+    const { encryptedKey, iv } = await encryptApiKey(
+      "my-key",
+      "correct-secret",
+    );
 
     await expect(
       decryptApiKey(encryptedKey, iv, "wrong-secret"),
@@ -617,6 +636,7 @@ git commit -m "feat: add AES-256-GCM encryption utilities for Convex BYOK key st
 ### Task 10: Create convex/userApiKeys.ts
 
 **Files:**
+
 - Create: `convex/userApiKeys.ts`
 - Modify: `convex/auth.ts` (add `requireActionUser` helper if not present)
 
@@ -629,7 +649,13 @@ Open `convex/auth.ts`. Look for a `requireActionUser` or similar helper. If it o
 ```ts
 import { v } from "convex/values";
 import type { GenericId } from "convex/values";
-import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
 import { internal } from "./_generated/api";
 import { encryptApiKey, decryptApiKey } from "./lib/crypto";
 import { toDomainId } from "./idUtils";
@@ -790,9 +816,12 @@ const save = action({
       throw new Error("User record not found.");
     }
 
-    const existingKeys = await ctx.runQuery(internal.userApiKeys._getKeysByUser, {
-      tokenIdentifier: identity.tokenIdentifier,
-    });
+    const existingKeys = await ctx.runQuery(
+      internal.userApiKeys._getKeysByUser,
+      {
+        tokenIdentifier: identity.tokenIdentifier,
+      },
+    );
     const isFirstKey = existingKeys.keys.length === 0;
 
     await ctx.runMutation(internal.userApiKeys._upsertKey, {
@@ -827,7 +856,11 @@ const resolveForRequest = action({
       return null;
     }
 
-    const key = await decryptApiKey(activeKey.encryptedKey, activeKey.iv, secret);
+    const key = await decryptApiKey(
+      activeKey.encryptedKey,
+      activeKey.iv,
+      secret,
+    );
 
     return { provider: activeKey.provider, key };
   },
@@ -994,6 +1027,7 @@ git commit -m "feat(convex): add userApiKeys actions/mutations for encrypted BYO
 ### Task 11: Update convex/users.ts
 
 **Files:**
+
 - Modify: `convex/users.ts`
 - Modify: `src/ui/auth/convexAuth.ts`
 - Modify: `src/infra/useBootstrapUser.ts`
@@ -1031,9 +1065,7 @@ const parseAdminEmails = (): Set<string> => {
 
 const upsertUser = mutation({
   args: {},
-  handler: async (
-    ctx,
-  ): Promise<{ userId: string; role: "admin" | "user" }> => {
+  handler: async (ctx): Promise<{ userId: string; role: "admin" | "user" }> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error("Not authenticated.");
@@ -1069,9 +1101,7 @@ const upsertUser = mutation({
 
 const me = query({
   args: {},
-  handler: async (
-    ctx,
-  ): Promise<{ role: "admin" | "user" } | null> => {
+  handler: async (ctx): Promise<{ role: "admin" | "user" } | null> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       return null;
@@ -1207,10 +1237,12 @@ git commit -m "feat: remove inviteBatchId from users, simplify upsertUser to no-
 ### Task 12: Delete invite infrastructure
 
 **Files to delete:**
+
 - `convex/invites.ts`
 - `src/domain/invites.ts`
 
 **Files to check and clean:**
+
 - `src/ui/shell/ControlCenterDrawer.tsx` — remove `inviteBatchId` from `UserInfo` type
 - `src/ui/admin/UserManagement.tsx` — remove `inviteBatchId` column if present
 
@@ -1233,7 +1265,7 @@ Open `src/ui/shell/ControlCenterDrawer.tsx`. Find the `UserInfo` type around lin
 type UserInfo = {
   email: string | null;
   role: string | null;
-  inviteBatchId: string | null;  // ← remove this line
+  inviteBatchId: string | null; // ← remove this line
 };
 ```
 
@@ -1267,10 +1299,12 @@ git commit -m "feat: remove invite infrastructure (convex/invites.ts, domain/inv
 ### Task 13: Delete admin invites panel
 
 **Files to delete:**
+
 - `src/app/admin/invites/page.tsx`
 - `src/ui/admin/InviteManagement.tsx`
 
 **Files to modify:**
+
 - `src/ui/admin/AdminLayout.tsx`
 
 **Step 1: Delete the files**
@@ -1304,6 +1338,7 @@ git commit -m "feat(admin): remove invites panel and nav item from admin console
 ### Task 14: Update geminiStream.ts to accept apiKey param
 
 **Files:**
+
 - Modify: `src/infra/ai/geminiStream.ts`
 
 **Step 1: Update the input type and the function**
@@ -1360,6 +1395,7 @@ git commit -m "feat(ai): update geminiStream to accept apiKey param instead of r
 ### Task 15: Create openaiStream.ts
 
 **Files:**
+
 - Create: `src/infra/ai/openaiStream.ts`
 
 **Step 1: Write the file**
@@ -1367,7 +1403,10 @@ git commit -m "feat(ai): update geminiStream to accept apiKey param instead of r
 ```ts
 import type { NioContextMessage } from "../../domain/nioContextBuilder";
 import type { NioProviderStreamResult } from "./providerTypes";
-import { createProviderStreamError, NioProviderStreamError } from "./providerTypes";
+import {
+  createProviderStreamError,
+  NioProviderStreamError,
+} from "./providerTypes";
 
 type OpenAIStreamInput = {
   messages: NioContextMessage[];
@@ -1515,6 +1554,7 @@ git commit -m "feat(ai): add OpenAI Chat Completions streaming provider"
 ### Task 16: Create anthropicStream.ts
 
 **Files:**
+
 - Create: `src/infra/ai/anthropicStream.ts`
 
 **Step 1: Write the file**
@@ -1522,7 +1562,10 @@ git commit -m "feat(ai): add OpenAI Chat Completions streaming provider"
 ```ts
 import type { NioContextMessage } from "../../domain/nioContextBuilder";
 import type { NioProviderStreamResult } from "./providerTypes";
-import { createProviderStreamError, NioProviderStreamError } from "./providerTypes";
+import {
+  createProviderStreamError,
+  NioProviderStreamError,
+} from "./providerTypes";
 
 type AnthropicStreamInput = {
   messages: NioContextMessage[];
@@ -1635,7 +1678,8 @@ const streamAnthropic = async (
           typeof parsed === "object" &&
           parsed !== null &&
           (parsed as { type?: string }).type === "content_block_delta" &&
-          typeof (parsed as { delta?: { text?: string } }).delta?.text === "string"
+          typeof (parsed as { delta?: { text?: string } }).delta?.text ===
+            "string"
         ) {
           const text = (parsed as { delta: { text: string } }).delta.text;
           if (text) yield text;
@@ -1674,9 +1718,11 @@ git commit -m "feat(ai): add Anthropic Messages API streaming provider"
 ### Task 17: Update the API route for BYOK
 
 **Files:**
+
 - Modify: `src/app/api/nio/route.ts`
 
 This is the largest change. The route needs to:
+
 1. Remove the Gemini+Groq server-key logic
 2. Call `userApiKeys.resolveForRequest` to get the user's provider + key
 3. Emit `NO_API_KEY` SSE event if no key is configured
@@ -1686,6 +1732,7 @@ This is the largest change. The route needs to:
 **Step 1: Add new imports at the top of route.ts**
 
 Add these after the existing imports:
+
 ```ts
 import { streamOpenAI } from "../../../infra/ai/openaiStream";
 import { streamAnthropic } from "../../../infra/ai/anthropicStream";
@@ -1825,7 +1872,10 @@ const streamWithByok = async (args: {
       seq += 1;
     }
   } catch (error) {
-    const providerError = normalizeProviderError(error, providerResult.provider);
+    const providerError = normalizeProviderError(
+      error,
+      providerResult.provider,
+    );
     args.enqueue({
       type: "error",
       requestId: args.requestId,
@@ -1909,6 +1959,7 @@ git commit -m "feat(api): replace server-key AI with BYOK resolution via Convex,
 ### Task 18: Create ApiKeySettings.tsx
 
 **Files:**
+
 - Create: `src/ui/settings/ApiKeySettings.tsx`
 
 **Step 1: Create directory**
@@ -2005,7 +2056,11 @@ const ProviderRow = ({
                   ? "border-accent bg-accent"
                   : "border-border bg-transparent hover:border-accent/60"
               }`}
-              aria-label={isActive ? "Active provider" : `Switch to ${PROVIDER_LABELS[provider]}`}
+              aria-label={
+                isActive
+                  ? "Active provider"
+                  : `Switch to ${PROVIDER_LABELS[provider]}`
+              }
             />
           )}
           <span className="text-sm font-medium text-foreground">
@@ -2081,9 +2136,7 @@ const ProviderRow = ({
               Cancel
             </button>
           </div>
-          {error && (
-            <p className="text-xs text-red-500">{error}</p>
-          )}
+          {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
       )}
     </div>
@@ -2121,7 +2174,8 @@ const ApiKeySettings = (): ReactElement => {
         ))}
       </div>
       <p className="text-xs text-text-subtle leading-relaxed">
-        Keys are encrypted and stored securely. Your key is never shown after saving.
+        Keys are encrypted and stored securely. Your key is never shown after
+        saving.
         <br />
         Get a free Gemini key at{" "}
         <a
@@ -2161,6 +2215,7 @@ git commit -m "feat(ui): add ApiKeySettings component for multi-provider BYOK ke
 ### Task 19: Integrate ApiKeySettings into ControlCenterDrawer
 
 **Files:**
+
 - Modify: `src/ui/shell/ControlCenterDrawer.tsx`
 
 **Step 1: Import the component**
@@ -2176,10 +2231,12 @@ import { ApiKeySettings } from "../settings/ApiKeySettings";
 Find the settings panel section in the component (where `ThemeToggle` and layout presets live). Add the `<ApiKeySettings />` block above the layout section:
 
 ```tsx
-{/* Nio AI settings */}
+{
+  /* Nio AI settings */
+}
 <section className="flex flex-col gap-2 border-b border-border pb-4">
   <ApiKeySettings />
-</section>
+</section>;
 ```
 
 **Step 3: Run typecheck and lint**
@@ -2202,6 +2259,7 @@ git commit -m "feat(ui): integrate ApiKeySettings into workspace control center"
 ### Task 20: Handle NO_API_KEY in the chat pane
 
 **Files:**
+
 - Modify: `src/ui/chat/ChatComposer.tsx` (or the chat pane parent that renders it)
 
 **Step 1: Identify where the chat input renders**
@@ -2217,23 +2275,25 @@ In the component or hook that processes SSE events, handle the `NO_API_KEY` code
 In the component that renders `<ChatComposer />`, wrap it with a check:
 
 ```tsx
-{noApiKey ? (
-  <div className="flex items-center justify-center rounded-xl border border-border bg-surface px-4 py-3">
-    <p className="text-sm text-text-subtle">
-      Add an API key in{" "}
-      <button
-        type="button"
-        onClick={onOpenSettings}
-        className="text-accent underline-offset-2 hover:underline"
-      >
-        Settings
-      </button>{" "}
-      to chat with Nio.
-    </p>
-  </div>
-) : (
-  <ChatComposer onSend={handleSend} disabled={isStreaming} />
-)}
+{
+  noApiKey ? (
+    <div className="flex items-center justify-center rounded-xl border border-border bg-surface px-4 py-3">
+      <p className="text-sm text-text-subtle">
+        Add an API key in{" "}
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="text-accent underline-offset-2 hover:underline"
+        >
+          Settings
+        </button>{" "}
+        to chat with Nio.
+      </p>
+    </div>
+  ) : (
+    <ChatComposer onSend={handleSend} disabled={isStreaming} />
+  );
+}
 ```
 
 You'll need to wire `onOpenSettings` to open the ControlCenterDrawer — check how the drawer is currently triggered in the workspace layout.
@@ -2256,16 +2316,19 @@ git commit -m "feat(chat): show API key prompt when NO_API_KEY error received fr
 ### Task 21: Update docs/env-requirements.md
 
 **Files:**
+
 - Modify: `docs/env-requirements.md`
 
 **Step 1: Make three edits:**
 
 1. **Add the new variable** in the "Core runtime variables" section:
+
    ```
    - `NIOTEBOOK_KEY_ENCRYPTION_SECRET` - Required for BYOK AI key encryption. 32-byte random value. Generate with `openssl rand -base64 32`. Must be set in both Vercel env vars AND Convex dashboard env vars.
    ```
 
 2. **Mark Gemini and Groq as no longer required** (in the "Core runtime variables" section):
+
    ```
    - `GEMINI_API_KEY` - No longer required in production. Users supply their own key via the settings panel. May still be set for local dev testing.
    - `GROQ_API_KEY` - No longer required. Groq fallback removed in BYOK model.
@@ -2313,6 +2376,7 @@ Expected: exits 0.
 **Step 4: Manual Clerk dashboard check (one-time)**
 
 In the Clerk dashboard for your app:
+
 - Navigate to "User & Authentication" → "Email, Phone, Username"
 - Ensure "Email address" is enabled and public sign-up is allowed (not invite-only)
 - Remove any invite-only restriction that was set during alpha
@@ -2339,6 +2403,7 @@ git push -u origin feat/open-access-byok
 Title: `feat: open public access and add BYOK multi-provider AI (Gemini, OpenAI, Anthropic)`
 
 Body:
+
 ```
 ## Summary
 
@@ -2371,6 +2436,7 @@ Body:
 Track 1 published the repo. Track 2 ships open access + BYOK Nio.
 
 **Success criteria from the design doc:**
+
 - [ ] Repository is public with LICENSE, README, CONTRIBUTING, .env.example
 - [ ] New users can sign up without an invite
 - [ ] BYOK works for Gemini, OpenAI, Anthropic with per-user encrypted storage

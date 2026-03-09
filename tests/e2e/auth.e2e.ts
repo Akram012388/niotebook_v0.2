@@ -15,7 +15,7 @@ test.describe("Auth flow", () => {
       .isVisible()
       .catch(() => false);
     // At least one of these should be present on the sign-in page
-    expect(hasBoot || hasClerk || true).toBe(true);
+    expect(hasBoot || hasClerk).toBe(true);
   });
 
   test("dev auth bypass allows access to /courses", async ({ page }) => {

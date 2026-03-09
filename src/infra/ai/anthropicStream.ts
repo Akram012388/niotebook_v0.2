@@ -1,6 +1,9 @@
 import type { NioContextMessage } from "../../domain/nioContextBuilder";
 import type { NioProviderStreamResult } from "./providerTypes";
-import { createProviderStreamError, NioProviderStreamError } from "./providerTypes";
+import {
+  createProviderStreamError,
+  NioProviderStreamError,
+} from "./providerTypes";
 
 type AnthropicStreamInput = {
   messages: NioContextMessage[];
@@ -113,7 +116,8 @@ const streamAnthropic = async (
           typeof parsed === "object" &&
           parsed !== null &&
           (parsed as { type?: string }).type === "content_block_delta" &&
-          typeof (parsed as { delta?: { text?: string } }).delta?.text === "string"
+          typeof (parsed as { delta?: { text?: string } }).delta?.text ===
+            "string"
         ) {
           const text = (parsed as { delta: { text: string } }).delta.text;
           if (text) yield text;

@@ -62,3 +62,9 @@ Run a single E2E test: `bunx playwright test path/to/test.ts`
 - Build command: `bun run build`
 - Branch strategy: create feature branches, never push to main directly.
 - When in doubt about architecture decisions, message the lead instead of guessing.
+
+## Remediation Work
+
+Active remediation plan: docs/REMEDIATION*PLAN.md
+Current wave: Wave 1 (parallel fixes - security, devops, data, tests)
+Branch naming: fix/SEC-01-*, refactor/ARCH-_, test/TEST-_, docs/oss-\_

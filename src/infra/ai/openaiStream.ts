@@ -1,6 +1,9 @@
 import type { NioContextMessage } from "../../domain/nioContextBuilder";
 import type { NioProviderStreamResult } from "./providerTypes";
-import { createProviderStreamError, NioProviderStreamError } from "./providerTypes";
+import {
+  createProviderStreamError,
+  NioProviderStreamError,
+} from "./providerTypes";
 
 type OpenAIStreamInput = {
   messages: NioContextMessage[];

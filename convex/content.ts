@@ -175,11 +175,14 @@ const seedLesson = mutation({
 const getLessonCountsByCourse = query({
   args: {},
   handler: async (ctx): Promise<Record<string, number>> => {
-    const lessons = await ctx.db.query("lessons").collect();
+    const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
     const counts: Record<string, number> = {};
-    for (const lesson of lessons) {
-      const key = lesson.courseId as unknown as string;
-      counts[key] = (counts[key] ?? 0) + 1;
+    for (const course of courses) {
+      const lessons = await ctx.db
+        .query("lessons")
+        .withIndex("by_courseId", (q) => q.eq("courseId", course._id))
+        .collect();
+      counts[course._id as unknown as string] = lessons.length;
     }
     return counts;
   },

@@ -7,8 +7,9 @@ test.describe("Admin console", () => {
     await page.waitForURL(/\/(admin|courses|sign-in)/, { timeout: 10000 });
   });
 
+  // SKIP: requires a non-admin Clerk account in E2E fixtures and the
+  // dev-auth bypass disabled so AdminGuard can actually redirect the user.
   test.skip("non-admin is redirected away from /admin", async ({ page }) => {
-    // Cannot test without a non-admin user; keep skipped
     await page.goto("/admin");
     await page.waitForURL(/\/(courses|sign-in)/, { timeout: 10000 });
     expect(page.url()).not.toContain("/admin");

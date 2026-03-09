@@ -49,7 +49,7 @@ type WebRGlobal = {
 };
 
 /* Pin CDN to same major version as package.json (webr@^0.5.8) */
-const WEBR_CDN = "https://webr.r-wasm.org/v0.5.0/";
+const WEBR_CDN = "https://webr.r-wasm.org/v0.5.8/";
 const WEBR_SCRIPT_URL = `${WEBR_CDN}webr.mjs`;
 
 const WEBR_LOAD_TIMEOUT_MS = 60_000;

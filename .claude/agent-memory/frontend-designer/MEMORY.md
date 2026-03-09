@@ -50,7 +50,7 @@
 - Location: `src/ui/shell/TopNav.tsx`
 - Standard circle class: `rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface hover:text-foreground`
 - Icon size: `size={16} weight="regular"` (Phosphor icons)
-- Computed size: 16px icon + 8px*2 padding = 32px (h-8)
+- Computed size: 16px icon + 8px\*2 padding = 32px (h-8)
 - NiotepadPill uses `h-8 w-8` instead of `p-2` (letter "N" not an icon, needs explicit dims)
 - Buttons (L to R): Share, Feedback, NiotepadPill, LayoutPresetToggle, ControlCenter
 - Share/Feedback are shortcuts that open ControlCenterDrawer to settings > share/feedback card

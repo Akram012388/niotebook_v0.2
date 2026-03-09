@@ -173,9 +173,17 @@ const validateNioChatRequest = (payload: unknown): ValidationResult => {
     return { ok: false, error: "userMessage is required." };
   }
 
+  if (userMessage.length > 4000) {
+    return { ok: false, error: "userMessage exceeds maximum length." };
+  }
+
   const parsedMessages = parseRecentMessages(recentMessages);
   if (!parsedMessages) {
     return { ok: false, error: "recentMessages must be a valid array." };
+  }
+
+  if (parsedMessages.length > 50) {
+    return { ok: false, error: "recentMessages exceeds maximum count." };
   }
 
   const parsedTranscript = parseTranscript(transcript);
@@ -183,9 +191,17 @@ const validateNioChatRequest = (payload: unknown): ValidationResult => {
     return { ok: false, error: "transcript must be provided." };
   }
 
+  if (parsedTranscript.lines.length > 500) {
+    return { ok: false, error: "transcript.lines exceeds maximum count." };
+  }
+
   const parsedCode = parseCodePayload(code);
   if (!parsedCode) {
     return { ok: false, error: "code payload must be provided." };
+  }
+
+  if (parsedCode.code !== undefined && parsedCode.code.length > 50000) {
+    return { ok: false, error: "code.code exceeds maximum length." };
   }
 
   const parsedLesson = parseLessonMeta(lesson);

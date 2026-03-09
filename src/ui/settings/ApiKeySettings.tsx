@@ -83,7 +83,11 @@ const ProviderRow = ({
                   ? "border-accent bg-accent"
                   : "border-border bg-transparent hover:border-accent/60"
               }`}
-              aria-label={isActive ? "Active provider" : `Switch to ${PROVIDER_LABELS[provider]}`}
+              aria-label={
+                isActive
+                  ? "Active provider"
+                  : `Switch to ${PROVIDER_LABELS[provider]}`
+              }
             />
           )}
           <span className="text-sm font-medium text-foreground">
@@ -159,9 +163,7 @@ const ProviderRow = ({
               Cancel
             </button>
           </div>
-          {error && (
-            <p className="text-xs text-red-500">{error}</p>
-          )}
+          {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
       )}
     </div>
@@ -175,10 +177,13 @@ const ApiKeySettings = (): ReactElement => {
   const providers: Provider[] = ["gemini", "openai", "anthropic"];
 
   const getHint = (provider: Provider): string | null =>
-    hints?.find((h: { provider: string }) => h.provider === provider)?.keyHint ?? null;
+    hints?.find((h: { provider: string }) => h.provider === provider)
+      ?.keyHint ?? null;
 
   const isActive = (provider: Provider): boolean =>
-    hints?.find((h: { provider: string; isActive: boolean }) => h.provider === provider)?.isActive ?? false;
+    hints?.find(
+      (h: { provider: string; isActive: boolean }) => h.provider === provider,
+    )?.isActive ?? false;
 
   return (
     <div className="flex flex-col gap-2">
@@ -199,7 +204,8 @@ const ApiKeySettings = (): ReactElement => {
         ))}
       </div>
       <p className="text-xs text-text-subtle leading-relaxed">
-        Keys are encrypted and stored securely. Your key is never shown after saving.
+        Keys are encrypted and stored securely. Your key is never shown after
+        saving.
         <br />
         Get a free Gemini key at{" "}
         <a

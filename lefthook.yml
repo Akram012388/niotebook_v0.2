@@ -5,3 +5,5 @@ pre-commit:
       run: bun run lint
     typecheck:
       run: bun run typecheck
+    format:
+      run: bun run format:check

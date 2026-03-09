@@ -16,13 +16,13 @@ Built by someone six months into learning to program. The git history is the sto
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
-| Backend | Convex (serverless, real-time) |
-| Auth | Clerk (email OTP, free tier) |
-| Runtime | Bun |
-| Code execution | Pyodide (Python), Wasmer (C), native JS |
+| Layer          | Technology                                        |
+| -------------- | ------------------------------------------------- |
+| Frontend       | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
+| Backend        | Convex (serverless, real-time)                    |
+| Auth           | Clerk (email OTP, free tier)                      |
+| Runtime        | Bun                                               |
+| Code execution | Pyodide (Python), Wasmer (C), native JS           |
 
 ## Local Setup
 
@@ -55,14 +55,14 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment Variables
 
-| Variable | Required | Where to get it |
-|---|---|---|
-| `NEXT_PUBLIC_CONVEX_URL` | Yes | Convex dashboard |
-| `CONVEX_URL` | Yes | Same as above |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes | Clerk dashboard |
-| `CLERK_SECRET_KEY` | Yes | Clerk dashboard |
-| `NIOTEBOOK_ADMIN_EMAILS` | Yes | Comma-separated list |
-| `NIOTEBOOK_KEY_ENCRYPTION_SECRET` | Yes | `openssl rand -base64 32` |
+| Variable                            | Required | Where to get it           |
+| ----------------------------------- | -------- | ------------------------- |
+| `NEXT_PUBLIC_CONVEX_URL`            | Yes      | Convex dashboard          |
+| `CONVEX_URL`                        | Yes      | Same as above             |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes      | Clerk dashboard           |
+| `CLERK_SECRET_KEY`                  | Yes      | Clerk dashboard           |
+| `NIOTEBOOK_ADMIN_EMAILS`            | Yes      | Comma-separated list      |
+| `NIOTEBOOK_KEY_ENCRYPTION_SECRET`   | Yes      | `openssl rand -base64 32` |
 
 See `.env.example` for the full list with descriptions.
 

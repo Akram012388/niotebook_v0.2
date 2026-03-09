@@ -84,8 +84,7 @@ const schema = defineSchema({
     activeAiProvider: v.optional(
       v.union(v.literal("gemini"), v.literal("openai"), v.literal("anthropic")),
     ),
-  })
-    .index("by_tokenIdentifier", ["tokenIdentifier"]),
+  }).index("by_tokenIdentifier", ["tokenIdentifier"]),
   userApiKeys: defineTable({
     userId: v.id("users"),
     provider: v.union(
@@ -184,7 +183,9 @@ const schema = defineSchema({
     createdAt: v.number(),
   })
     .index("by_userId", ["userId"])
-    .index("by_type_createdAt", ["type", "createdAt"]),
+    .index("by_type_createdAt", ["type", "createdAt"])
+    .index("by_userId_createdAt", ["userId", "createdAt"])
+    .index("by_lessonId_createdAt", ["lessonId", "createdAt"]),
   feedback: defineTable({
     userId: v.id("users"),
     category: v.string(),

@@ -493,7 +493,13 @@ const CodePane = ({
       setBookmarkConfirm(false);
       bookmarkTimerRef.current = null;
     }, 1500);
-  }, [getMainFileContent, activeLanguage, lessonId, videoTimeSec, mainFilePath]);
+  }, [
+    getMainFileContent,
+    activeLanguage,
+    lessonId,
+    videoTimeSec,
+    mainFilePath,
+  ]);
 
   useEffect(() => {
     return () => {

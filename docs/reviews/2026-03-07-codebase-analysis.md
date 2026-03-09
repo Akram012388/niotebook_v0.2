@@ -10,13 +10,13 @@
 
 ## Team Composition
 
-| Agent | Verticals | Analysis Time | Output |
-|-------|-----------|--------------|--------|
-| `arch-quality-analyst` | Architecture + Code Quality | 6m 11s | 17K tokens |
-| `security-analyst` | Security | 5m 13s | 15.2K tokens |
-| `testing-analyst` | Testing | 3m 32s | 12.9K tokens |
-| `perf-devops-analyst` | Performance + DevOps/Infrastructure | 5m 08s | 14.5K tokens |
-| `data-state-analyst` | Data Management + API Design | 6m 59s | 20.7K tokens |
+| Agent                  | Verticals                           | Analysis Time | Output       |
+| ---------------------- | ----------------------------------- | ------------- | ------------ |
+| `arch-quality-analyst` | Architecture + Code Quality         | 6m 11s        | 17K tokens   |
+| `security-analyst`     | Security                            | 5m 13s        | 15.2K tokens |
+| `testing-analyst`      | Testing                             | 3m 32s        | 12.9K tokens |
+| `perf-devops-analyst`  | Performance + DevOps/Infrastructure | 5m 08s        | 14.5K tokens |
+| `data-state-analyst`   | Data Management + API Design        | 6m 59s        | 20.7K tokens |
 
 ---
 
@@ -31,7 +31,6 @@
 7. [Data Management](#7-data-management)
 8. [API Design](#8-api-design)
 9. [Consolidated Priority Matrix](#9-consolidated-priority-matrix)
-
 
 ---
 
@@ -58,6 +57,7 @@
 **C-1 — `convex/ops.ts` is a 649-line god file with an import in the middle of the file.**
 
 `convex/ops.ts` mixes three completely unrelated concerns:
+
 - Ingest verification (`verifyTranscriptWindows`, L71–194)
 - E2E seed data (`seedE2E`, L196–290)
 - Admin analytics (11 queries, L292–649)
@@ -171,7 +171,6 @@ The default case in `loadExecutor`'s switch (L71–73) returns `initJsExecutor()
 9. Delete `requireQueryWorkspaceUser` or differentiate it if needed.
 10. Decompose `CodePane` — extract `RuntimeWarmup` hook, `NiotepadBookmark` hook, and the R-plot iframe renderer into a proper React ref-based component.
 
-
 ---
 
 ## 2. CODE QUALITY
@@ -201,6 +200,7 @@ The default case in `loadExecutor`'s switch (L71–73) returns `initJsExecutor()
 **Q-C2 — Bookmark logic is copy-pasted between `CodePane.tsx` and `AiPane.tsx`.**
 
 Both components independently implement:
+
 - `bookmarkConfirm` state + `bookmarkTimerRef` ref
 - `handleBookmark` callback calling `useNiotepadStore.getState().addEntry()`
 - Cleanup effect on unmount
@@ -273,7 +273,6 @@ Inside a keyboard event handler defined in a `useEffect` (L505–556). While val
 7. Create `convex/lib/mutationCtx.ts` with the repeated `MutationCtx` type alias pattern.
 8. Fix `CodePane.tsx:475` to use the proper lecture label (same as `AiPane`), not raw `lessonId`.
 
-
 ---
 
 ## 3. TESTING
@@ -281,6 +280,7 @@ Inside a keyboard event handler defined in a `useEffect` (L505–556). While val
 ### Coverage Map — What IS Tested
 
 **Well covered (domain layer):**
+
 - `src/domain/nioContextBuilder.ts` — budget overflow, message trimming priority, determinism
 - `src/domain/nioPrompt.ts` — prompt construction
 - `src/domain/rate-limits.ts` — exact boundary (passes on limit, fails on limit+1), stateful across iterations
@@ -297,12 +297,14 @@ Inside a keyboard event handler defined in a `useEffect` (L505–556). While val
 - Crypto (`crypto.test.ts`)
 
 **Partially tested:**
+
 - `src/app/api/nio/route.ts` — **stub preview path only**, real provider paths untested
 - `nioSse.ts` — SSE client parsing
 
 ### Coverage Map — What Is NOT Tested (Major Gaps)
 
 **Infrastructure — AI (all zero):**
+
 - `src/infra/ai/promptInjection.ts` — security-critical, 10 regex injection patterns, zero tests
 - `src/infra/ai/validateNioChatRequest.ts` — primary API input sanitization layer, zero tests
 - `src/infra/ai/geminiStream.ts`, `openaiStream.ts`, `anthropicStream.ts`, `groqStream.ts` — all four AI provider streams, zero tests
@@ -310,6 +312,7 @@ Inside a keyboard event handler defined in a `useEffect` (L505–556). While val
 - `src/infra/ai/youtubeTranscriptFallback.ts` — YouTube transcript fallback, zero tests
 
 **Infrastructure — Runtime (all zero):**
+
 - `src/infra/runtime/runtimeManager.ts` — executor registry, sandbox routing, deduplication logic
 - `src/infra/runtime/jsExecutor.ts` — JS execution via dynamic code evaluation
 - `src/infra/runtime/pythonExecutor.ts` — Pyodide executor
@@ -319,21 +322,25 @@ Inside a keyboard event handler defined in a `useEffect` (L505–556). While val
 - `src/infra/runtime/imports/jsModules.ts`, `pythonImports.ts`
 
 **Infrastructure — VFS Store & Persistence (all zero):**
+
 - `src/infra/vfs/useFileSystemStore.ts` — Zustand store with auto-persist debounce, IndexedDB integration, template init
 - `src/infra/vfs/indexedDbBackend.ts`
 
 **Infrastructure — Niotepad (all zero):**
+
 - `src/infra/niotepad/niotepadSelectors.ts` — `selectFilteredEntries` (multi-term AND search, page filtering). Pure function, trivially testable.
 - `src/infra/niotepad/useNiotepadStore.ts`
 - `src/infra/niotepad/indexedDbNiotepad.ts`
 
 **Infrastructure — Misc (all zero):**
+
 - `src/infra/hash.ts`
 - `src/infra/localCache.ts`, `chatLocalCache.ts`, `storageAdapter.ts`
 - `src/infra/email/gmailClient.ts`, `gmailService.ts`
 - `src/app/api/gmail/callback/route.ts`
 
 **Convex backend (12 files, effectively 0% behavioral coverage):**
+
 - `convex/chat.ts` — all chat mutations/queries
 - `convex/userApiKeys.ts` — BYOK save/resolve/remove/setActive logic
 - `convex/rateLimits.ts` — actual Convex mutation
@@ -341,6 +348,7 @@ Inside a keyboard event handler defined in a `useEffect` (L505–556). While val
 - `convex/ingest.ts`, `lessonCompletions.ts`, `feedback.ts`, `crons.ts`, `maintenance.ts`
 
 **UI Components (~80 files, ~3% tested):**
+
 - All `src/ui/chat/` components except `mockMessages.ts`
 - All `src/ui/niotepad/` — 9 components
 - All `src/ui/panes/` — `AiPane`, `CodePane`, `VideoPane`
@@ -353,9 +361,11 @@ Inside a keyboard event handler defined in a `useEffect` (L505–556). While val
 **Problems found:**
 
 `tests/e2e/auth.e2e.ts:18` — **Tautological assertion:**
+
 ```typescript
 expect(hasBoot || hasClerk || true).toBe(true);
 ```
+
 The `|| true` makes this always pass regardless of page state. This test cannot fail under any condition and is meaningless.
 
 ---
@@ -383,6 +393,7 @@ The `|| true` makes this always pass regardless of page state. This test cannot 
 `tests/unit/nio-route-sse.test.ts` — **Stub path only:** only exercises the stub preview path (`NIOTEBOOK_E2E_PREVIEW=true`). The real provider paths (BYOK with Gemini/OpenAI/Anthropic), the rate limiting branch, the auth required branch, the context building failure branch — none are tested.
 
 **Positive quality observations:**
+
 - `tests/unit/infra/vfs/VirtualFS.test.ts` — Excellent. 15 cases, circular rename, event subscription, snapshot/restore, glob, path resolution. Behaviorally focused, well-isolated.
 - `tests/unit/nio-context-builder.test.ts` — Good. Tests budget overflow, message trimming priority, determinism.
 - `tests/unit/rate-limit.test.ts` — Good. Tests exact boundary (passes on limit, fails on limit+1). Stateful across iterations.
@@ -392,6 +403,7 @@ The `|| true` makes this always pass regardless of page state. This test cannot 
 ### Infrastructure Assessment
 
 **`vitest.config.ts`:**
+
 - No path alias — `@/*` → `src/*` is not configured. Tests must use relative paths. Inconsistent with production code conventions.
 - No coverage configuration — no thresholds, no reporters. Zero enforcement or visibility into actual coverage numbers.
 - No setup file — no global mocks, no test environment setup.
@@ -399,6 +411,7 @@ The `|| true` makes this always pass regardless of page state. This test cannot 
 - No typecheck — `bun run typecheck` is separate. Tests can silently have type errors that only show up in CI.
 
 **`playwright.config.ts`:**
+
 - Auth bypass architecture is solid — `NIOTEBOOK_DEV_AUTH_BYPASS`, `NIOTEBOOK_E2E_PREVIEW` env vars, seed script. Well thought out.
 - Retry strategy appropriate — `retries: isCi ? 2 : 0`. Prevents local noise without masking CI flakiness.
 - Debugging artifacts — trace/screenshot/video on failure. Good.
@@ -466,7 +479,6 @@ Tautological assertions in E2E (`|| true`) and file-grep unit tests reduce the s
 11. Add `runtimeManager.test.ts` — test the deduplication logic (concurrent `loadExecutor` calls for same language), language routing, and sandbox-first fallback path with mock executors.
 12. Establish a Convex test harness — Convex provides `convex-test` for unit testing mutations and queries in isolation. All 12 backend files are currently untested.
 
-
 ---
 
 ## 4. SECURITY
@@ -477,6 +489,7 @@ Tautological assertions in E2E (`|| true`) and file-grep unit tests reduce the s
 `src/app/api/gmail/callback/route.ts:5-37`
 
 The callback endpoint accepts any `?code=` parameter and exchanges it for OAuth tokens with zero checks:
+
 - No state parameter generated, stored, or validated (CSRF attack vector per OAuth 2.0 RFC 6749 §10.12)
 - No authentication or authorization check — any public internet user can hit `GET /api/gmail/callback?code=xxx` and exchange a code for tokens
 - Tokens are persisted with write access (`gmail.modify`, `gmail.send`) to `niotebook@gmail.com`
@@ -488,6 +501,7 @@ An attacker can initiate their own Google OAuth flow for a crafted app, then tri
 **CRIT-02: No Next.js Server-Side Middleware for Route Protection**
 
 There is no `middleware.ts` file in the project. Route protection for `/workspace`, `/admin`, and other protected paths is entirely client-side via React components (`AuthGate`, `AdminGuard`). This means:
+
 - All protected pages' HTML, JavaScript, and data fetching code is served to unauthenticated requests
 - Bots, scrapers, and unauthenticated API clients receive full page payloads
 - The admin dashboard is accessible at the HTTP layer without authentication
@@ -509,6 +523,7 @@ When a request is processed, `lessonMeta` is initially populated from client-sup
 `src/app/api/nio/route.ts:58,63,77` · `src/infra/devAuth.ts:23-24` · `src/infra/convexClient.ts:26`
 
 `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS` and `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW` are used in server-side auth decisions in the API route handler. `NEXT_PUBLIC_` variables are baked into the client bundle:
+
 - Any user can inspect the client JS to learn whether auth bypass is active on a deployment
 - The security posture of the deployment is publicly disclosed to attackers
 - Server-side auth guards should not rely on variables that are also shipped to the client
@@ -519,6 +534,7 @@ When a request is processed, `lessonMeta` is initially populated from client-sup
 `next.config.ts:1-25`
 
 `next.config.ts` defines `headers()` only for the `/editor-sandbox` route (COOP/COEP). No global security headers are configured for any other route:
+
 - No `Content-Security-Policy` — XSS attacks can load arbitrary external scripts
 - No `X-Frame-Options` or `frame-ancestors` CSP directive — the app can be iframed (clickjacking)
 - No `X-Content-Type-Options: nosniff` — MIME sniffing attacks possible
@@ -624,19 +640,18 @@ Admin role is determined by checking `identity.email` against `NIOTEBOOK_ADMIN_E
 
 ### Recommendations (Priority Order)
 
-| # | Finding | Action |
-|---|---------|--------|
-| 1 | CRIT-01 | Add OAuth state parameter to Gmail auth flow; validate on callback; require admin session |
-| 2 | CRIT-02 | Add `middleware.ts` using Clerk's `clerkMiddleware` to protect `/workspace` and `/admin` at the edge |
-| 3 | HIGH-01 | Validate `subtitlesUrl` against an allowlist of trusted hostnames before server-side fetch; never use client-supplied URL as fallback |
-| 4 | HIGH-02 | Rename `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS` → `NIOTEBOOK_DEV_AUTH_BYPASS` (no public prefix); remove from client bundle |
-| 5 | HIGH-03 | Add global security headers in `next.config.ts`: CSP, `X-Frame-Options`, `X-Content-Type-Options`, HSTS, `Referrer-Policy` |
-| 6 | HIGH-04 | Add request body size check in `route.ts` and per-field max-length validation in `validateNioChatRequest` |
-| 7 | MED-01 | Ensure `isConvexAuthRequired()` is enforced for all non-development environments including E2E preview |
-| 8 | MED-05 | Extend prompt injection neutralization to `code.code` payload; consider structured delimiter approach rather than keyword blacklist |
-| 9 | LOW-01 | Move Clerk domain to an env var in `auth.config.ts` |
-| 10 | LOW-07 | Remove `identity.email` from the auth failure log line to prevent PII logging |
-
+| #   | Finding | Action                                                                                                                                |
+| --- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | CRIT-01 | Add OAuth state parameter to Gmail auth flow; validate on callback; require admin session                                             |
+| 2   | CRIT-02 | Add `middleware.ts` using Clerk's `clerkMiddleware` to protect `/workspace` and `/admin` at the edge                                  |
+| 3   | HIGH-01 | Validate `subtitlesUrl` against an allowlist of trusted hostnames before server-side fetch; never use client-supplied URL as fallback |
+| 4   | HIGH-02 | Rename `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS` → `NIOTEBOOK_DEV_AUTH_BYPASS` (no public prefix); remove from client bundle            |
+| 5   | HIGH-03 | Add global security headers in `next.config.ts`: CSP, `X-Frame-Options`, `X-Content-Type-Options`, HSTS, `Referrer-Policy`            |
+| 6   | HIGH-04 | Add request body size check in `route.ts` and per-field max-length validation in `validateNioChatRequest`                             |
+| 7   | MED-01  | Ensure `isConvexAuthRequired()` is enforced for all non-development environments including E2E preview                                |
+| 8   | MED-05  | Extend prompt injection neutralization to `code.code` payload; consider structured delimiter approach rather than keyword blacklist   |
+| 9   | LOW-01  | Move Clerk domain to an env var in `auth.config.ts`                                                                                   |
+| 10  | LOW-07  | Remove `identity.email` from the auth failure log line to prevent PII logging                                                         |
 
 ---
 
@@ -735,7 +750,6 @@ The `handleKeyDown` function is defined inside a `useEffect` without `useCallbac
 5. **`framer-motion` in template:** Move the animation wrapper into a lazy-loaded client component using `next/dynamic`.
 6. **SQL executor:** Add a `clearRuntime("sql")` call on lesson change, and reset the `seeded` flag by keying it to the lesson ID.
 
-
 ---
 
 ## 6. DEVOPS / INFRASTRUCTURE
@@ -797,7 +811,7 @@ Current indexes: `by_userId`, `by_type_createdAt`. Admin analytics querying "eve
 
 **M4 — `engines.bun` constraint is loose.**
 
-`"bun": "1.1.x"` in `package.json:8` allows any 1.1.* patch, but `packageManager: bun@1.1.19` mandates exactly 1.1.19. The engine constraint should be `"1.1.19"` to match.
+`"bun": "1.1.x"` in `package.json:8` allows any 1.1.\* patch, but `packageManager: bun@1.1.19` mandates exactly 1.1.19. The engine constraint should be `"1.1.19"` to match.
 
 ---
 
@@ -839,7 +853,6 @@ No `/api/health` or `/api/ping` route exists. Needed for uptime monitoring servi
 6. **Health check endpoint:** Add `src/app/api/health/route.ts` that returns `{ status: "ok" }` with a 200.
 7. **Document all env vars:** Add a `.env.example` file listing all required and optional env vars, including `NIO_DEBUG`, `NIOTEBOOK_E2E_PREVIEW`, `NIOTEBOOK_DEV_AUTH_BYPASS`, `ENCRYPTION_SECRET`, and all Sentry/Clerk/Convex keys.
 
-
 ---
 
 ## 7. DATA MANAGEMENT
@@ -847,19 +860,20 @@ No `/api/health` or `/api/ping` route exists. Needed for uptime monitoring servi
 ### Schema Design Assessment
 
 **Strengths:**
+
 - Schema is well-normalized with appropriate use of `v.id()` relationships
 - `chatMessages` table has three indexes covering all query patterns (`by_threadId`, `by_threadId_createdAt`, `by_threadId_requestId`) — all actively used
 - `codeSnapshots` indexed by `(userId, lessonId, language)` — correct for the resume use case
 
 **Issues:**
 
-| # | Table | Issue | Severity |
-|---|-------|-------|----------|
-| 1 | `userApiKeys` | No `by_provider` index — looking up active key by provider requires filtering all user keys in JS | Medium |
-| 2 | `lessonCompletions` | Admin analytics across all completions requires a full table scan — no `by_lessonId` index | Low |
-| 3 | `feedback` | `category: v.string()` — no union type enforcement. Any string is accepted | Low |
-| 4 | `events.metadata` | `lessonId` and `userId` stored both as top-level table fields (lines 152–153) AND inside `metadata` (lines 163–164). Partial duplication | Low |
-| 5 | `rateLimits` | Records accumulate indefinitely. No cron or TTL cleanup for expired rate limit windows | Low |
+| #   | Table               | Issue                                                                                                                                    | Severity |
+| --- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 1   | `userApiKeys`       | No `by_provider` index — looking up active key by provider requires filtering all user keys in JS                                        | Medium   |
+| 2   | `lessonCompletions` | Admin analytics across all completions requires a full table scan — no `by_lessonId` index                                               | Low      |
+| 3   | `feedback`          | `category: v.string()` — no union type enforcement. Any string is accepted                                                               | Low      |
+| 4   | `events.metadata`   | `lessonId` and `userId` stored both as top-level table fields (lines 152–153) AND inside `metadata` (lines 163–164). Partial duplication | Low      |
+| 5   | `rateLimits`        | Records accumulate indefinitely. No cron or TTL cleanup for expired rate limit windows                                                   | Low      |
 
 ### Convex Functions Assessment
 
@@ -913,18 +927,18 @@ Only one cron: `preview-data-cleanup` at 2am daily. Correctly guarded by `NIOTEB
 
 **Issues Summary — Convex Functions:**
 
-| # | File | Location | Issue | Severity |
-|---|------|----------|-------|----------|
-| 1 | `resume.ts` | Line 257 | `getResumeData` full table scan of frames — should use `by_userId_lessonId` index | Critical |
-| 2 | `content.ts` | Line 178 | `getLessonCountsByCourse` full table scan of lessons | Critical |
-| 3 | `ingest.ts` | Lines 98, 398 | `ingestCs50x2026` ≈ duplicate of `ingestCourse` | Medium |
-| 4 | `ingest.ts` | Lines 521, 612 | One-time migration mutations never removed | Medium |
-| 5 | `ingest.ts` | Multi-step flow | Non-atomic transcript ingest — partial failure leaves DB in inconsistent state | Medium |
-| 6 | `chat.ts` | Line 176 | Clients can write `role: "assistant"` messages | Medium |
-| 7 | `resume.ts` | Lines 37–42 | Complex `as unknown as IndexRangeBuilder<>` casts — workaround symptom | Low |
-| 8 | `maintenance.ts` | Line 26 | `.filter()` full scan instead of index | Low |
-| 9 | `content.ts` | Line 102 | `listAll` users — full table scan, no pagination | Low |
-| 10 | `ingest.ts` | Line 174 | `finalizeTranscriptIngest` skips event logging for token-auth requests | Low |
+| #   | File             | Location        | Issue                                                                             | Severity |
+| --- | ---------------- | --------------- | --------------------------------------------------------------------------------- | -------- |
+| 1   | `resume.ts`      | Line 257        | `getResumeData` full table scan of frames — should use `by_userId_lessonId` index | Critical |
+| 2   | `content.ts`     | Line 178        | `getLessonCountsByCourse` full table scan of lessons                              | Critical |
+| 3   | `ingest.ts`      | Lines 98, 398   | `ingestCs50x2026` ≈ duplicate of `ingestCourse`                                   | Medium   |
+| 4   | `ingest.ts`      | Lines 521, 612  | One-time migration mutations never removed                                        | Medium   |
+| 5   | `ingest.ts`      | Multi-step flow | Non-atomic transcript ingest — partial failure leaves DB in inconsistent state    | Medium   |
+| 6   | `chat.ts`        | Line 176        | Clients can write `role: "assistant"` messages                                    | Medium   |
+| 7   | `resume.ts`      | Lines 37–42     | Complex `as unknown as IndexRangeBuilder<>` casts — workaround symptom            | Low      |
+| 8   | `maintenance.ts` | Line 26         | `.filter()` full scan instead of index                                            | Low      |
+| 9   | `content.ts`     | Line 102        | `listAll` users — full table scan, no pagination                                  | Low      |
+| 10  | `ingest.ts`      | Line 174        | `finalizeTranscriptIngest` skips event logging for token-auth requests            | Low      |
 
 ### Client State Management Assessment
 
@@ -933,6 +947,7 @@ Only one cron: `preview-data-cleanup` at 2am daily. Correctly guarded by `NIOTEB
 The architecture is correct: VFS is the single source of truth; the Zustand store derives `files` and `directories` from it after each mutation; IndexedDB is a durable mirror.
 
 Issues:
+
 - `currentLessonId` (line 77) and `autoPersistTimer` (line 74) are module-level mutable variables, not store state. Navigation between lessons without resetting the store could leave the wrong `currentLessonId` in effect, causing auto-persist to save to the wrong key.
 - No validation on `JSON.parse(data)` in `indexedDbBackend.ts:57` — a corrupted snapshot silently loads as any shape.
 - `DB_VERSION = 1` with no migration logic in the upgrade handler — if the VFS snapshot format ever changes, old IndexedDB data will be loaded without schema migration.
@@ -948,6 +963,7 @@ Minor: `restore()` at line 248 emits `{ type: "create", path: "/", node: this.ro
 Clean design. `schedulePersist()` reads from `getState()` at timeout time (correct — avoids stale closure). Geometry persisted to localStorage synchronously on change.
 
 Issues:
+
 - Niotepad data is purely client-local. Clearing browser data or switching devices loses all notes. (Acknowledged as deferred.)
 - `NiotepadSnapshot.version` is hardcoded `1` — no migration handler for future schema changes.
 - `JSON.parse(data) as NiotepadSnapshot` at `indexedDbNiotepad.ts:55` — no validation.
@@ -956,6 +972,7 @@ Issues:
 **Convex ↔ Zustand sync:**
 
 The boundary is clean-by-design:
+
 - VFS (Zustand + IndexedDB): live editing, multi-file state
 - `codeSnapshots` (Convex): persisted single-file snapshots per language, used for resume
 
@@ -983,24 +1000,23 @@ The gap: VFS can hold a multi-file project, but `codeSnapshots` saves only one s
 
 ### Issues Summary — Data Management
 
-| Priority | Location | Issue |
-|----------|----------|-------|
-| Critical | `convex/resume.ts:257` | `getResumeData` full table scan (all users' frames, filtered in JS) |
-| Critical | `convex/content.ts:178` | `getLessonCountsByCourse` full table scan |
-| Medium | `route.ts:606` | Rate limiting fails open on Convex error |
-| Medium | `route.ts:471,484` | `persistAssistantMessage` fire-and-forget; silent data loss risk |
-| Medium | `convex/chat.ts:176` | Any authenticated user can write `role: "assistant"` messages |
-| Medium | `convex/ingest.ts:521,612` | One-time migration mutations never removed |
-| Medium | `convex/ingest.ts:98,398` | `ingestCs50x2026` ≈ duplicate of `ingestCourse`; dead legacy path |
-| Medium | Multi-step ingest | Non-atomic — no recovery from partial failure |
-| Medium | `schema.ts:136` vs `chat.ts:32` | `videoTimeSec` optional in schema, non-optional in type mapping |
-| Low | `useFileSystemStore.ts` | `currentLessonId` module-level variable could persist stale value |
-| Low | All tables | No production data retention policy (frames, codeSnapshots, rateLimits grow unbounded) |
-| Low | IndexedDB backends | No VFS/Niotepad IndexedDB migration strategy |
-| Low | IndexedDB backends | `JSON.parse()` as Type without validation in both IndexedDB backends |
-| Low | `schema.ts` | `feedback.category` accepts any string — no union validation |
-| Low | `schema.ts` | `events.metadata` partially duplicates top-level `lessonId/userId` fields |
-
+| Priority | Location                        | Issue                                                                                  |
+| -------- | ------------------------------- | -------------------------------------------------------------------------------------- |
+| Critical | `convex/resume.ts:257`          | `getResumeData` full table scan (all users' frames, filtered in JS)                    |
+| Critical | `convex/content.ts:178`         | `getLessonCountsByCourse` full table scan                                              |
+| Medium   | `route.ts:606`                  | Rate limiting fails open on Convex error                                               |
+| Medium   | `route.ts:471,484`              | `persistAssistantMessage` fire-and-forget; silent data loss risk                       |
+| Medium   | `convex/chat.ts:176`            | Any authenticated user can write `role: "assistant"` messages                          |
+| Medium   | `convex/ingest.ts:521,612`      | One-time migration mutations never removed                                             |
+| Medium   | `convex/ingest.ts:98,398`       | `ingestCs50x2026` ≈ duplicate of `ingestCourse`; dead legacy path                      |
+| Medium   | Multi-step ingest               | Non-atomic — no recovery from partial failure                                          |
+| Medium   | `schema.ts:136` vs `chat.ts:32` | `videoTimeSec` optional in schema, non-optional in type mapping                        |
+| Low      | `useFileSystemStore.ts`         | `currentLessonId` module-level variable could persist stale value                      |
+| Low      | All tables                      | No production data retention policy (frames, codeSnapshots, rateLimits grow unbounded) |
+| Low      | IndexedDB backends              | No VFS/Niotepad IndexedDB migration strategy                                           |
+| Low      | IndexedDB backends              | `JSON.parse()` as Type without validation in both IndexedDB backends                   |
+| Low      | `schema.ts`                     | `feedback.category` accepts any string — no union validation                           |
+| Low      | `schema.ts`                     | `events.metadata` partially duplicates top-level `lessonId/userId` fields              |
 
 ---
 
@@ -1035,21 +1051,25 @@ Three security gaps:
 ### Convex API Assessment
 
 **Function naming — mostly consistent:**
+
 - `ensureChatThread` — clearly signals upsert semantics ✓
 - `upsertFrame`, `upsertCodeSnapshot` ✓
 - `ingestCs50x2026` — couples function name to course content; will mislead future developers ✗
 - `completeAssistantMessage` — not obviously an insert; `saveAssistantMessage` would be clearer ✗
 
 **Validators:**
+
 - `getChatMessages:limit` — `v.number()` with no min/max. Client can pass `limit: 0` (returns empty) or `limit: 1000000` (returns a huge page). Should be clamped or validated.
 - `ingestToken: v.optional(v.string())` — correct: optional allows admin-auth fallback.
 - All mutation args have proper `v.*` validators.
 
 **Return types:**
+
 - `getLessonCountsByCourse` returns `Record<string, number>` where keys are raw Convex document IDs. This leaks the internal ID format to callers. (`content.ts:180: const key = lesson.courseId as unknown as string`)
 - All other query/mutation return types are consistent.
 
 **Authorization model:**
+
 - Standard pattern: `requireQueryUser / requireMutationUser / requireMutationAdmin` — all correctly placed.
 - Dev bypass (`NIOTEBOOK_DEV_AUTH_BYPASS`) is guarded by either preview flag or explicit dev override — no accidental prod exposure.
 - `userApiKeys` public mutations (`remove`, `setActiveProvider`) skip the shared `requireMutationUser` helper and query the identity directly — slight inconsistency but equivalent in effect.
@@ -1108,46 +1128,37 @@ Each provider's `streamX` function sets a 60s `AbortController` on the fetch req
 
 ### Issues Summary — API Design
 
-| Priority | Location | Issue |
-|----------|----------|-------|
-| Critical | — | None |
-| Medium | `route.ts:471,484` | `persistAssistantMessage` fire-and-forget; assistant messages silently lost on Convex failure |
-| Medium | `route.ts:606–611` | Rate limit check fails open on any error — all requests permitted under Convex outage |
-| Medium | `gmail/callback/route.ts:5` | No OAuth state/nonce validation (CSRF risk) and no authentication gate |
-| Medium | `route.ts` | No body size limit before JSON.parse() and validateNioChatRequest |
-| Medium | `groqStream.ts + fallbackGate.ts` | Dead code; `groq` is in `NioProviderId` but unreachable in `streamWithByok` |
-| Medium | Stream iteration | No timeout — fetch timeout cancelled on response headers, not stream completion |
-| Low | `route.ts:104` | `"undefined"`/`"null"` string check in auth header compensates for a client bug |
-| Low | `route.ts:55-60` | `NEXT_PUBLIC_*` env var read server-side for stub mode; observable by clients |
-| Low | `content.ts:180` | `getLessonCountsByCourse` leaks raw Convex IDs as Record keys |
-| Low | `chat.ts:134` | `limit: v.number()` without min/max bounds on pagination size |
-| Low | `events.ts:226` | Event metadata validators use truthy checks, not type-specific validation |
-| Low | `subtitleFallback.ts:12`, `youtubeTranscriptFallback.ts:12` | Module-level caches unreliable in serverless |
-| Low | `/api/nio/chat` | No API versioning |
-| Low | `gmail/callback/route.ts:31` | Raw exception message leaked in error response |
+| Priority | Location                                                    | Issue                                                                                         |
+| -------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Critical | —                                                           | None                                                                                          |
+| Medium   | `route.ts:471,484`                                          | `persistAssistantMessage` fire-and-forget; assistant messages silently lost on Convex failure |
+| Medium   | `route.ts:606–611`                                          | Rate limit check fails open on any error — all requests permitted under Convex outage         |
+| Medium   | `gmail/callback/route.ts:5`                                 | No OAuth state/nonce validation (CSRF risk) and no authentication gate                        |
+| Medium   | `route.ts`                                                  | No body size limit before JSON.parse() and validateNioChatRequest                             |
+| Medium   | `groqStream.ts + fallbackGate.ts`                           | Dead code; `groq` is in `NioProviderId` but unreachable in `streamWithByok`                   |
+| Medium   | Stream iteration                                            | No timeout — fetch timeout cancelled on response headers, not stream completion               |
+| Low      | `route.ts:104`                                              | `"undefined"`/`"null"` string check in auth header compensates for a client bug               |
+| Low      | `route.ts:55-60`                                            | `NEXT_PUBLIC_*` env var read server-side for stub mode; observable by clients                 |
+| Low      | `content.ts:180`                                            | `getLessonCountsByCourse` leaks raw Convex IDs as Record keys                                 |
+| Low      | `chat.ts:134`                                               | `limit: v.number()` without min/max bounds on pagination size                                 |
+| Low      | `events.ts:226`                                             | Event metadata validators use truthy checks, not type-specific validation                     |
+| Low      | `subtitleFallback.ts:12`, `youtubeTranscriptFallback.ts:12` | Module-level caches unreliable in serverless                                                  |
+| Low      | `/api/nio/chat`                                             | No API versioning                                                                             |
+| Low      | `gmail/callback/route.ts:31`                                | Raw exception message leaked in error response                                                |
 
 ### Recommendations
 
 **Immediate (correctness/data integrity):**
+
 1. Fix `getResumeData` — replace full `frames` table scan with index query: `.withIndex("by_userId_lessonId", q => q.eq("userId", ...))` at `convex/resume.ts:257`.
 2. Fix `getLessonCountsByCourse` — load only lessons for a given `courseId`, or replace with a Convex aggregate.
 3. Make rate limiting fail closed — if `consumeAiRateLimit` throws, return a 503 or treat as rate-limited, not as a pass (`route.ts:606–611`).
 4. Retry or queue `persistAssistantMessage` — at minimum, log a structured error with enough context to replay the write, or move persistence before stream close.
 5. Restrict `createChatMessage` to `role: "user"` only — server-side; `completeAssistantMessage` is the correct path for assistant role.
 
-**Security:**
-6. Add OAuth state/nonce to Gmail callback — validate state param against a server-side nonce stored in session, add admin auth check.
-7. Add request body size limit to `/api/nio/chat` (e.g., `Content-Length` check or request body reader with byte limit before JSON parsing).
-8. Fix client auth bug causing `"undefined"` in Authorization header rather than compensating server-side.
+**Security:** 6. Add OAuth state/nonce to Gmail callback — validate state param against a server-side nonce stored in session, add admin auth check. 7. Add request body size limit to `/api/nio/chat` (e.g., `Content-Length` check or request body reader with byte limit before JSON parsing). 8. Fix client auth bug causing `"undefined"` in Authorization header rather than compensating server-side.
 
-**Housekeeping:**
-9. Remove one-time migrations (`migrateCs50SqlPlaylistId`, `migrateCs50VideoFixes`) from `ingest.ts`.
-10. Delete `groqStream.ts` and `fallbackGate.ts` or re-integrate Groq into `streamWithByok` if still desired.
-11. Add stream iteration timeout — use a `Promise.race()` between the async generator and a timeout rejection in each provider stream function.
-12. Add `limit` validation bounds to `getChatMessages` (e.g., clamp to 1–100).
-13. Add `by_createdAt` or compound index on `chatMessages` for the maintenance cleanup query, or accept the full scan given its infrequency.
-14. Add validation on IndexedDB JSON parse — use a version-aware schema check on `loadProject`/`loadNotebook` to handle format migrations gracefully.
-
+**Housekeeping:** 9. Remove one-time migrations (`migrateCs50SqlPlaylistId`, `migrateCs50VideoFixes`) from `ingest.ts`. 10. Delete `groqStream.ts` and `fallbackGate.ts` or re-integrate Groq into `streamWithByok` if still desired. 11. Add stream iteration timeout — use a `Promise.race()` between the async generator and a timeout rejection in each provider stream function. 12. Add `limit` validation bounds to `getChatMessages` (e.g., clamp to 1–100). 13. Add `by_createdAt` or compound index on `chatMessages` for the maintenance cleanup query, or accept the full scan given its infrequency. 14. Add validation on IndexedDB JSON parse — use a version-aware schema check on `loadProject`/`loadNotebook` to handle format migrations gracefully.
 
 ---
 
@@ -1157,90 +1168,90 @@ All findings from all 8 verticals, deduplicated and ranked by priority. Total: 5
 
 ### Priority Definitions
 
-| Priority | Label | Action |
-|----------|-------|--------|
-| P0 | Critical | Fix before next deploy. Security, data-loss, or correctness breaking |
-| P1 | High | Fix this sprint. Significant risk or technical debt compounding |
-| P2 | Medium | Fix next sprint. Quality, reliability, or observability gaps |
-| P3 | Low | Backlog. Minor issues, polish, future-proofing |
+| Priority | Label    | Action                                                               |
+| -------- | -------- | -------------------------------------------------------------------- |
+| P0       | Critical | Fix before next deploy. Security, data-loss, or correctness breaking |
+| P1       | High     | Fix this sprint. Significant risk or technical debt compounding      |
+| P2       | Medium   | Fix next sprint. Quality, reliability, or observability gaps         |
+| P3       | Low      | Backlog. Minor issues, polish, future-proofing                       |
 
 ---
 
 ### P0 — Critical (Fix Before Next Deploy)
 
-| # | Vertical | Location | Finding |
-|---|----------|----------|---------|
-| 1 | Security | `convex/auth.ts:43–46` | PII logged on auth failure: `email` + `tokenIdentifier` written to Convex logs |
-| 2 | Security | `gmail/callback/route.ts:5` | No OAuth CSRF state validation and no authentication gate on Gmail OAuth callback |
-| 3 | Security | `api/nio/route.ts:668` | SSRF: user-supplied `subtitlesUrl` passed directly to `fetch()` with no domain allowlist |
-| 4 | Security/API | `api/nio/route.ts:606–611` | Rate limiter fails open: any Convex error passes all requests through unchecked |
-| 5 | Data | `convex/resume.ts:257` | `getResumeData` performs a full table scan across ALL users' `frames` — no index filter on userId |
+| #   | Vertical     | Location                    | Finding                                                                                           |
+| --- | ------------ | --------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1   | Security     | `convex/auth.ts:43–46`      | PII logged on auth failure: `email` + `tokenIdentifier` written to Convex logs                    |
+| 2   | Security     | `gmail/callback/route.ts:5` | No OAuth CSRF state validation and no authentication gate on Gmail OAuth callback                 |
+| 3   | Security     | `api/nio/route.ts:668`      | SSRF: user-supplied `subtitlesUrl` passed directly to `fetch()` with no domain allowlist          |
+| 4   | Security/API | `api/nio/route.ts:606–611`  | Rate limiter fails open: any Convex error passes all requests through unchecked                   |
+| 5   | Data         | `convex/resume.ts:257`      | `getResumeData` performs a full table scan across ALL users' `frames` — no index filter on userId |
 
 ---
 
 ### P1 — High (Fix This Sprint)
 
-| # | Vertical | Location | Finding |
-|---|----------|----------|---------|
-| 6 | Architecture | `convex/ops.ts` (649 lines) | God file: auth, enrollments, events, code-run tracking, rate-limiting in one module |
-| 7 | Architecture | `api/nio/route.ts` (943 lines) | God route: orchestrates auth, rate-limiting, context-building, streaming, persistence |
-| 8 | Architecture | `src/ui/panes/CodePane.tsx` (648 lines) | God component: editor, terminal, file-tree, bookmark, execution logic combined |
-| 9 | Code Quality | `convex/ops.ts:getCodeExecutionCount` | Bug: queries `"code_executed"` event; correct type is `"code_run"` — always returns 0 |
-| 10 | Code Quality | `api/nio/route.ts:471,484` | `persistAssistantMessage` called fire-and-forget — silent data loss on Convex failure |
-| 11 | Security | `src/infra/ai/promptInjection.ts` | Zero tests — critical security module with no test coverage whatsoever |
-| 12 | Security | Implicit in BYOK flow | User API keys stored in `localStorage` — no sessionStorage or memory-only alternative |
-| 13 | Testing | `tests/e2e/auth.e2e.ts:18` | Tautological assertion: `expect(hasBoot \|\| hasClerk \|\| true).toBe(true)` — always passes |
-| 14 | Performance | `src/infra/runtime/cExecutor.ts:61,95` | JSCPP `run()` blocks the main thread; `stop()` is a no-op — runaway C programs freeze the UI |
-| 15 | Performance | `src/infra/runtime/rExecutor.ts:52` | WebR CDN URL pinned to `v0.5.0` but `package.json` requires `^0.5.8` — version mismatch |
-| 16 | DevOps | `sentry.*.config.ts:8` | `tracesSampleRate: 1.0` in all three Sentry configs — 100% tracing in production; extreme cost |
-| 17 | DevOps | `next.config.ts` | No global security headers: missing `X-Frame-Options`, `X-Content-Type-Options`, `HSTS`, `CSP` |
-| 18 | DevOps | `next.config.ts:21–25` | No Sentry source map upload configured — production errors unresolvable to source lines |
+| #   | Vertical     | Location                                | Finding                                                                                        |
+| --- | ------------ | --------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 6   | Architecture | `convex/ops.ts` (649 lines)             | God file: auth, enrollments, events, code-run tracking, rate-limiting in one module            |
+| 7   | Architecture | `api/nio/route.ts` (943 lines)          | God route: orchestrates auth, rate-limiting, context-building, streaming, persistence          |
+| 8   | Architecture | `src/ui/panes/CodePane.tsx` (648 lines) | God component: editor, terminal, file-tree, bookmark, execution logic combined                 |
+| 9   | Code Quality | `convex/ops.ts:getCodeExecutionCount`   | Bug: queries `"code_executed"` event; correct type is `"code_run"` — always returns 0          |
+| 10  | Code Quality | `api/nio/route.ts:471,484`              | `persistAssistantMessage` called fire-and-forget — silent data loss on Convex failure          |
+| 11  | Security     | `src/infra/ai/promptInjection.ts`       | Zero tests — critical security module with no test coverage whatsoever                         |
+| 12  | Security     | Implicit in BYOK flow                   | User API keys stored in `localStorage` — no sessionStorage or memory-only alternative          |
+| 13  | Testing      | `tests/e2e/auth.e2e.ts:18`              | Tautological assertion: `expect(hasBoot \|\| hasClerk \|\| true).toBe(true)` — always passes   |
+| 14  | Performance  | `src/infra/runtime/cExecutor.ts:61,95`  | JSCPP `run()` blocks the main thread; `stop()` is a no-op — runaway C programs freeze the UI   |
+| 15  | Performance  | `src/infra/runtime/rExecutor.ts:52`     | WebR CDN URL pinned to `v0.5.0` but `package.json` requires `^0.5.8` — version mismatch        |
+| 16  | DevOps       | `sentry.*.config.ts:8`                  | `tracesSampleRate: 1.0` in all three Sentry configs — 100% tracing in production; extreme cost |
+| 17  | DevOps       | `next.config.ts`                        | No global security headers: missing `X-Frame-Options`, `X-Content-Type-Options`, `HSTS`, `CSP` |
+| 18  | DevOps       | `next.config.ts:21–25`                  | No Sentry source map upload configured — production errors unresolvable to source lines        |
 
 ---
 
 ### P2 — Medium (Fix Next Sprint)
 
-| # | Vertical | Location | Finding |
-|---|----------|----------|---------|
-| 19 | Code Quality | `CodePane.tsx` + `AiPane.tsx` | Bookmark logic duplicated across two components — should be extracted to a shared hook |
-| 20 | Code Quality | `CodePane.tsx` | DOM mutation via `getElementById("niotebook-runtime-frame")` bypasses React data flow |
-| 21 | Code Quality | `promptInjection.ts:6–17` | Module-level `/gi` regex with shared `lastIndex` — hazardous pattern for concurrent calls |
-| 22 | Code Quality | `groqStream.ts`, `fallbackGate.ts` | Dead code: Groq unreachable in `streamWithByok`; modules exist but are never called |
-| 23 | Code Quality | `convex/ingest.ts` | One-time migration functions (`migrateCs50SqlPlaylistId`, `migrateCs50VideoFixes`) still present |
-| 24 | Security/API | `api/nio/route.ts` | No request body size limit before `JSON.parse()` + `validateNioChatRequest` |
-| 25 | API | `api/nio/route.ts:104` | Server-side `"undefined"` string check compensates for a client-side auth header bug |
-| 26 | API/Performance | All stream routes | No per-stream timeout after headers received — malformed streams block indefinitely |
-| 27 | API | `/api/nio/chat` | No API versioning scheme — breaking changes require coordinated client/server deploys |
-| 28 | API/Data | `content.ts:180` | `getLessonCountsByCourse` leaks raw Convex internal IDs as Record keys to clients |
-| 29 | API | `chat.ts:134` | `limit: v.number()` pagination has no min/max bounds — clients can request unbounded pages |
-| 30 | API | `gmail/callback/route.ts:31` | Raw exception message leaked in JSON error response to client |
-| 31 | Performance | `src/infra/runtime/` | No Pyodide/WebR preloading — first Python/R execution incurs full WASM download each session |
-| 32 | Performance | CodeMirror setup | Language support imported dynamically per-keystroke context — no preload or bundled modules |
-| 33 | Performance | Module-level caches | `subtitleFallback.ts:12`, `youtubeTranscriptFallback.ts:12` caches unreliable in serverless/cold-start |
-| 34 | Testing | `tests/e2e/` | No mobile viewport coverage in E2E suite — responsive layouts untested |
-| 35 | Testing | `tests/` | No Convex mutation/query unit tests — backend correctness untested |
-| 36 | Testing | `tests/` | No integration tests for rate limiter behavior at boundary conditions |
-| 37 | Architecture | `src/infra/vfs/` | No depth limit or node count cap on VFS — large projects could OOM the tab |
-| 38 | Data | `convex/schema.ts` | `chatMessages` lacks `by_createdAt` index — cleanup maintenance query does full table scan |
-| 39 | Data | `convex/` | No DB migration framework — schema changes require manual data fixes or ad hoc scripts |
+| #   | Vertical        | Location                           | Finding                                                                                                |
+| --- | --------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 19  | Code Quality    | `CodePane.tsx` + `AiPane.tsx`      | Bookmark logic duplicated across two components — should be extracted to a shared hook                 |
+| 20  | Code Quality    | `CodePane.tsx`                     | DOM mutation via `getElementById("niotebook-runtime-frame")` bypasses React data flow                  |
+| 21  | Code Quality    | `promptInjection.ts:6–17`          | Module-level `/gi` regex with shared `lastIndex` — hazardous pattern for concurrent calls              |
+| 22  | Code Quality    | `groqStream.ts`, `fallbackGate.ts` | Dead code: Groq unreachable in `streamWithByok`; modules exist but are never called                    |
+| 23  | Code Quality    | `convex/ingest.ts`                 | One-time migration functions (`migrateCs50SqlPlaylistId`, `migrateCs50VideoFixes`) still present       |
+| 24  | Security/API    | `api/nio/route.ts`                 | No request body size limit before `JSON.parse()` + `validateNioChatRequest`                            |
+| 25  | API             | `api/nio/route.ts:104`             | Server-side `"undefined"` string check compensates for a client-side auth header bug                   |
+| 26  | API/Performance | All stream routes                  | No per-stream timeout after headers received — malformed streams block indefinitely                    |
+| 27  | API             | `/api/nio/chat`                    | No API versioning scheme — breaking changes require coordinated client/server deploys                  |
+| 28  | API/Data        | `content.ts:180`                   | `getLessonCountsByCourse` leaks raw Convex internal IDs as Record keys to clients                      |
+| 29  | API             | `chat.ts:134`                      | `limit: v.number()` pagination has no min/max bounds — clients can request unbounded pages             |
+| 30  | API             | `gmail/callback/route.ts:31`       | Raw exception message leaked in JSON error response to client                                          |
+| 31  | Performance     | `src/infra/runtime/`               | No Pyodide/WebR preloading — first Python/R execution incurs full WASM download each session           |
+| 32  | Performance     | CodeMirror setup                   | Language support imported dynamically per-keystroke context — no preload or bundled modules            |
+| 33  | Performance     | Module-level caches                | `subtitleFallback.ts:12`, `youtubeTranscriptFallback.ts:12` caches unreliable in serverless/cold-start |
+| 34  | Testing         | `tests/e2e/`                       | No mobile viewport coverage in E2E suite — responsive layouts untested                                 |
+| 35  | Testing         | `tests/`                           | No Convex mutation/query unit tests — backend correctness untested                                     |
+| 36  | Testing         | `tests/`                           | No integration tests for rate limiter behavior at boundary conditions                                  |
+| 37  | Architecture    | `src/infra/vfs/`                   | No depth limit or node count cap on VFS — large projects could OOM the tab                             |
+| 38  | Data            | `convex/schema.ts`                 | `chatMessages` lacks `by_createdAt` index — cleanup maintenance query does full table scan             |
+| 39  | Data            | `convex/`                          | No DB migration framework — schema changes require manual data fixes or ad hoc scripts                 |
 
 ---
 
 ### P3 — Low (Backlog / Polish)
 
-| # | Vertical | Location | Finding |
-|---|----------|----------|---------|
-| 40 | API | `convex/chat.ts:createChatMessage` | Mutation accepts any `role` value — should restrict to `"user"` only (server-side) |
-| 41 | API | `convex/events.ts:226` | Event metadata validators use truthy checks not type-specific guards |
-| 42 | API | `gmail/callback/route.ts` | Raw exception message leaked in error response |
-| 43 | API | `api/nio/route.ts:55–60` | `NEXT_PUBLIC_*` env vars read server-side for stub mode — observable by clients |
-| 44 | Data | `convex/` | Row-level isolation on `chatMessages` not enforced at read layer — relies on client to pass own userId |
-| 45 | Data | `src/infra/vfs/` | `loadProject` / `loadNotebook` perform no version-aware schema validation on IndexedDB JSON |
-| 46 | Data | `convex/resume.ts` | `frames` table has no TTL or cleanup policy — grows unboundedly |
-| 47 | Performance | `src/infra/runtime/` | Stale Pyodide version — newer releases offer faster startup and smaller bundle |
-| 48 | DevOps | `package.json` | `check:any` and `check:unknown` only enforced on `convex/` + `tests/` + `src/domain/` — not all source |
-| 49 | DevOps | CI | No automated bundle size tracking — regressions undetectable until Lighthouse audit |
-| 50 | Architecture | `src/infra/runtime/` | No formal contract (interface/type) for runtime executor outputs — each executor has ad hoc shapes |
+| #   | Vertical     | Location                           | Finding                                                                                                |
+| --- | ------------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| 40  | API          | `convex/chat.ts:createChatMessage` | Mutation accepts any `role` value — should restrict to `"user"` only (server-side)                     |
+| 41  | API          | `convex/events.ts:226`             | Event metadata validators use truthy checks not type-specific guards                                   |
+| 42  | API          | `gmail/callback/route.ts`          | Raw exception message leaked in error response                                                         |
+| 43  | API          | `api/nio/route.ts:55–60`           | `NEXT_PUBLIC_*` env vars read server-side for stub mode — observable by clients                        |
+| 44  | Data         | `convex/`                          | Row-level isolation on `chatMessages` not enforced at read layer — relies on client to pass own userId |
+| 45  | Data         | `src/infra/vfs/`                   | `loadProject` / `loadNotebook` perform no version-aware schema validation on IndexedDB JSON            |
+| 46  | Data         | `convex/resume.ts`                 | `frames` table has no TTL or cleanup policy — grows unboundedly                                        |
+| 47  | Performance  | `src/infra/runtime/`               | Stale Pyodide version — newer releases offer faster startup and smaller bundle                         |
+| 48  | DevOps       | `package.json`                     | `check:any` and `check:unknown` only enforced on `convex/` + `tests/` + `src/domain/` — not all source |
+| 49  | DevOps       | CI                                 | No automated bundle size tracking — regressions undetectable until Lighthouse audit                    |
+| 50  | Architecture | `src/infra/runtime/`               | No formal contract (interface/type) for runtime executor outputs — each executor has ad hoc shapes     |
 
 ---
 
@@ -1252,4 +1263,3 @@ All findings from all 8 verticals, deduplicated and ranked by priority. Total: 5
 **Scope:** Read-only review — no code was modified during this analysis  
 **Total findings:** 50 (5 P0 · 13 P1 · 21 P2 · 11 P3)  
 **Recommended next action:** Address all P0 findings before the next production deployment. Schedule P1 items for the current sprint.
-

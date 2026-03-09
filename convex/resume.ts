@@ -254,15 +254,17 @@ const getResumeData = query({
       return [];
     }
 
-    const frames = (await ctx.db.query("frames").collect()) as Array<
-      FrameRecord & { _id: GenericId<"frames"> }
-    >;
-
-    const userFrames = frames.filter(
-      (f) =>
-        (f.userId as unknown as string) ===
-        (toGenericId(user.id) as unknown as string),
-    );
+    const userFrames = (await ctx.db
+      .query("frames")
+      .withIndex("by_userId_lessonId", (query) => {
+        const typedQuery =
+          query as unknown as import("convex/server").IndexRangeBuilder<
+            FrameRecord,
+            FrameIndexFields
+          >;
+        return typedQuery.eq("userId", toGenericId(user.id));
+      })
+      .collect()) as Array<FrameRecord & { _id: GenericId<"frames"> }>;
 
     const latestByLesson = new Map<string, (typeof userFrames)[number]>();
     for (const frame of userFrames) {

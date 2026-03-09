@@ -245,37 +245,37 @@ For browsing OpenHands source code during development (not committed to repo):
 
 ### UI Layer: Bolt.diy Fork
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Source repo | `stackblitz-labs/bolt.diy` (19k stars) | Most complete browser-based vibe coding UI. MIT source. |
-| What we keep | Chat (36 comps), Workbench (14 comps), Editor (CodeMirror 6), Terminal (xterm.js), FileTree, UI library (42 comps), Nanostores (20 stores), Vercel AI SDK, XML action parser | All runtime-agnostic. Zero WebContainer coupling. |
-| What we remove | `@webcontainer/api`, WebContainer singleton, StackBlitz deploy UIs, Expo QR, starter templates, Electron wrapper | Proprietary runtime + StackBlitz-specific features |
-| What we replace | `action-runner.ts` (~300 LOC), `files.ts` (~100 LOC), `webcontainer/index.ts`, `constants.ts`, system prompts | Swap WebContainer calls for Agent Interface calls |
-| What we add | Clerk auth, Niotebook branding, Nio context bridge, deploy-to-Cloudflare pipeline | Integration with existing Niotebook infrastructure |
+| Decision        | Choice                                                                                                                                                                       | Rationale                                               |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Source repo     | `stackblitz-labs/bolt.diy` (19k stars)                                                                                                                                       | Most complete browser-based vibe coding UI. MIT source. |
+| What we keep    | Chat (36 comps), Workbench (14 comps), Editor (CodeMirror 6), Terminal (xterm.js), FileTree, UI library (42 comps), Nanostores (20 stores), Vercel AI SDK, XML action parser | All runtime-agnostic. Zero WebContainer coupling.       |
+| What we remove  | `@webcontainer/api`, WebContainer singleton, StackBlitz deploy UIs, Expo QR, starter templates, Electron wrapper                                                             | Proprietary runtime + StackBlitz-specific features      |
+| What we replace | `action-runner.ts` (~300 LOC), `files.ts` (~100 LOC), `webcontainer/index.ts`, `constants.ts`, system prompts                                                                | Swap WebContainer calls for Agent Interface calls       |
+| What we add     | Clerk auth, Niotebook branding, Nio context bridge, deploy-to-Cloudflare pipeline                                                                                            | Integration with existing Niotebook infrastructure      |
 
 **Stack difference (acceptable — "different personality, same brand"):**
 
-| | Focus Mode (apps/focus) | Build Mode (apps/build) |
-|---|---|---|
-| Framework | Next.js 16 (App Router) | Remix 2.15 + Vite |
-| Styling | Tailwind CSS 4 | UnoCSS + SCSS modules |
-| State | Zustand + Convex hooks | Nanostores |
-| Editor | CodeMirror (existing) | CodeMirror 6 |
-| Terminal | xterm (existing) | xterm.js |
-| Auth | Clerk (existing) | Clerk (shared) |
-| AI SDK | Custom SSE (`/api/nio/chat`) | Vercel AI SDK |
+|           | Focus Mode (apps/focus)      | Build Mode (apps/build) |
+| --------- | ---------------------------- | ----------------------- |
+| Framework | Next.js 16 (App Router)      | Remix 2.15 + Vite       |
+| Styling   | Tailwind CSS 4               | UnoCSS + SCSS modules   |
+| State     | Zustand + Convex hooks       | Nanostores              |
+| Editor    | CodeMirror (existing)        | CodeMirror 6            |
+| Terminal  | xterm (existing)             | xterm.js                |
+| Auth      | Clerk (existing)             | Clerk (shared)          |
+| AI SDK    | Custom SSE (`/api/nio/chat`) | Vercel AI SDK           |
 
 ### Agent Layer: OpenHands
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Agent framework | OpenHands V1 SDK (67.6k stars, MIT) | Most capable autonomous agent. Devin-class reasoning. |
-| Deployment | OpenHands Agent Server (self-hosted) | REST + WebSocket API. Per-user workspace isolation. |
+| Decision           | Choice                                                           | Rationale                                                         |
+| ------------------ | ---------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Agent framework    | OpenHands V1 SDK (67.6k stars, MIT)                              | Most capable autonomous agent. Devin-class reasoning.             |
+| Deployment         | OpenHands Agent Server (self-hosted)                             | REST + WebSocket API. Per-user workspace isolation.               |
 | Agent capabilities | Terminal, FileEditor, Browser (Chromium), MCP tools, TaskTracker | Full autonomous engineering: debug, plan, browse docs, fix errors |
-| LLM routing | RouterLLM (built into OpenHands) | Claude for complex reasoning, faster model for simple edits |
-| Context management | LLMSummarizingCondenser | Handles long sessions without context overflow |
-| Customization | AgentContext + Skill objects | Niotebook-specific system prompts, Nio awareness |
-| Security | ConfirmationPolicy + LLMSecurityAnalyzer | Risk-level gating on destructive actions |
+| LLM routing        | RouterLLM (built into OpenHands)                                 | Claude for complex reasoning, faster model for simple edits       |
+| Context management | LLMSummarizingCondenser                                          | Handles long sessions without context overflow                    |
+| Customization      | AgentContext + Skill objects                                     | Niotebook-specific system prompts, Nio awareness                  |
+| Security           | ConfirmationPolicy + LLMSecurityAnalyzer                         | Risk-level gating on destructive actions                          |
 
 **OpenHands Agent Server API surface used:**
 
@@ -290,59 +290,65 @@ GET    /health                        # Monitoring
 
 ### Runtime Layer: E2B
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Sandbox technology | E2B Firecracker microVMs | 150ms startup, hardware isolation, built-in preview URLs |
-| SDK | `@e2b/sdk` (TypeScript, MIT) | Native TS, matches UI stack |
-| Base template | Custom (Node.js 22 + Python 3.12 + common tools) | Pre-baked environment for fast startup |
-| Preview URLs | Built-in (`https://{port}-{id}.e2b.app`) | Zero infrastructure, works immediately |
-| File operations | gRPC streaming (real-time file watching) | First-class, bidirectional |
-| Terminal | PTY streaming via gRPC | First-class, bidirectional |
-| Session limits | 24hr max (Pro tier) | Sufficient for build sessions |
-| Cost | ~$0.05/hr per sandbox | $150/mo base + usage |
+| Decision           | Choice                                           | Rationale                                                |
+| ------------------ | ------------------------------------------------ | -------------------------------------------------------- |
+| Sandbox technology | E2B Firecracker microVMs                         | 150ms startup, hardware isolation, built-in preview URLs |
+| SDK                | `@e2b/sdk` (TypeScript, MIT)                     | Native TS, matches UI stack                              |
+| Base template      | Custom (Node.js 22 + Python 3.12 + common tools) | Pre-baked environment for fast startup                   |
+| Preview URLs       | Built-in (`https://{port}-{id}.e2b.app`)         | Zero infrastructure, works immediately                   |
+| File operations    | gRPC streaming (real-time file watching)         | First-class, bidirectional                               |
+| Terminal           | PTY streaming via gRPC                           | First-class, bidirectional                               |
+| Session limits     | 24hr max (Pro tier)                              | Sufficient for build sessions                            |
+| Cost               | ~$0.05/hr per sandbox                            | $150/mo base + usage                                     |
 
 **E2B SDK surface used (TypeScript):**
 
 ```typescript
-import { Sandbox } from '@e2b/sdk';
+import { Sandbox } from "@e2b/sdk";
 
 // Lifecycle
-const sandbox = await Sandbox.create('niotebook-template');  // ~150ms
+const sandbox = await Sandbox.create("niotebook-template"); // ~150ms
 await sandbox.kill();
 
 // File operations
-await sandbox.filesystem.write('/app/src/App.tsx', code);
-const content = await sandbox.filesystem.read('/app/src/App.tsx');
-const files = await sandbox.filesystem.list('/app/src/');
-sandbox.filesystem.watch('/app/', (event) => { /* notify UI */ });
+await sandbox.filesystem.write("/app/src/App.tsx", code);
+const content = await sandbox.filesystem.read("/app/src/App.tsx");
+const files = await sandbox.filesystem.list("/app/src/");
+sandbox.filesystem.watch("/app/", (event) => {
+  /* notify UI */
+});
 
 // Commands
-const result = await sandbox.commands.run('npm install && npm run dev', { background: true });
+const result = await sandbox.commands.run("npm install && npm run dev", {
+  background: true,
+});
 
 // Preview
-const previewUrl = sandbox.getHost(3000);  // → https://3000-{id}.e2b.app
+const previewUrl = sandbox.getHost(3000); // → https://3000-{id}.e2b.app
 
 // Terminal (PTY)
 const pty = await sandbox.pty.start({ cols: 80, rows: 24 });
-pty.onData((data) => { /* stream to xterm.js */ });
+pty.onData((data) => {
+  /* stream to xterm.js */
+});
 ```
 
 ### Integration Layer: Shared Packages
 
-| Package | Purpose | Consumed By |
-|---------|---------|-------------|
+| Package                 | Purpose                                     | Consumed By                  |
+| ----------------------- | ------------------------------------------- | ---------------------------- |
 | `@niotebook/nio-shared` | Nio types, API contracts, embeddings schema | Both apps + Convex functions |
-| `@niotebook/brand` | Colors, fonts, logos, shared design tokens | Both apps |
-| `@niotebook/auth` | Clerk config, auth middleware helpers | Both apps |
+| `@niotebook/brand`      | Colors, fonts, logos, shared design tokens  | Both apps                    |
+| `@niotebook/auth`       | Clerk config, auth middleware helpers       | Both apps                    |
 
 ### Backend: Convex (Single Deployment)
 
-| Service | How It's Shared |
-|---------|----------------|
-| **Existing functions** | Courses, users, admin — consumed by Focus mode (unchanged) |
-| **New Nio bridge** | `convex/nio/` — Focus mode writes learning state, Build mode reads it; Build mode writes project state, Focus mode reads it |
-| **Clerk Auth** | Both apps authenticate via the same Clerk instance → same Convex identity |
-| **Billing** | Subscription state stored in Convex, gated in both apps |
+| Service                | How It's Shared                                                                                                             |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Existing functions** | Courses, users, admin — consumed by Focus mode (unchanged)                                                                  |
+| **New Nio bridge**     | `convex/nio/` — Focus mode writes learning state, Build mode reads it; Build mode writes project state, Focus mode reads it |
+| **Clerk Auth**         | Both apps authenticate via the same Clerk instance → same Convex identity                                                   |
+| **Billing**            | Subscription state stored in Convex, gated in both apps                                                                     |
 
 ---
 
@@ -426,6 +432,7 @@ niotebook.com                    build.niotebook.com
 **UX Transition:** Focus → Build feels like switching from "study desk" to "workshop." Different layout, different color accent, different tools. Unified by the Nio AI presence (persistent across both) and Niotebook brand identity.
 
 **Navigation:** Toggle in the main navbar: `[ Focus | Build ]`
+
 - On niotebook.com: clicking "Build" navigates to build.niotebook.com (preserves auth)
 - On build.niotebook.com: clicking "Focus" navigates back to niotebook.com
 
@@ -445,11 +452,11 @@ niotebook.com                    build.niotebook.com
 
 ## Revenue Model
 
-| Tier | Price | What's Included |
-|------|-------|----------------|
-| **Free** | $0 | Focus mode (all courses, workspace, Nio chat with limits) |
-| **Build** | $25-39/mo | Full Build mode access (prompt → build → deploy) |
-| **Pro** | $49-69/mo | Focus + Build + priority Nio + extended sessions + more deploys |
+| Tier      | Price     | What's Included                                                 |
+| --------- | --------- | --------------------------------------------------------------- |
+| **Free**  | $0        | Focus mode (all courses, workspace, Nio chat with limits)       |
+| **Build** | $25-39/mo | Full Build mode access (prompt → build → deploy)                |
+| **Pro**   | $49-69/mo | Focus + Build + priority Nio + extended sessions + more deploys |
 
 **Benchmark context:** Cursor $20/mo, Replit $20/mo, Bolt $18/mo, Lovable $25-39/mo. Niotebook's combo (learn + build + Nio bridge) justifies premium pricing.
 
@@ -550,16 +557,16 @@ BUILDS WITH AI ◄─────────┼──────────�
 
 ## Key Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| E2B pricing at scale | Cost overrun | Monitor per-user costs. E2B SDK is MIT — self-host Firecracker if needed at scale. |
-| OpenHands V1 SDK instability | Integration breaks | Pin to specific release. Contribute upstream fixes. Maintain thin abstraction layer. |
-| Agent quality (hallucinations, bad code) | Poor UX | Custom system prompts. ConfirmationPolicy for destructive actions. User feedback loop. |
-| Two-app UX feels disjointed | User confusion | Shared packages (@niotebook/brand, @niotebook/auth), shared Nio thread, consistent nav. |
-| Bolt.diy upstream divergence | Fork maintenance | Cherry-pick valuable upstream changes. Keep fork diff minimal and well-documented. |
-| E2B session limits (24hr max) | Power users blocked | Auto-save project state. Resume sessions seamlessly. Lobby E2B for extended limits. |
-| Monorepo complexity | Slower CI, tooling friction | Turborepo caching. Scoped commands (`--filter`). Clean package boundaries. |
-| v0.2 → v0.3 cutover | User disruption | Run both in parallel. Cutover only when v0.3 Focus mode is verified identical. |
+| Risk                                     | Impact                      | Mitigation                                                                              |
+| ---------------------------------------- | --------------------------- | --------------------------------------------------------------------------------------- |
+| E2B pricing at scale                     | Cost overrun                | Monitor per-user costs. E2B SDK is MIT — self-host Firecracker if needed at scale.      |
+| OpenHands V1 SDK instability             | Integration breaks          | Pin to specific release. Contribute upstream fixes. Maintain thin abstraction layer.    |
+| Agent quality (hallucinations, bad code) | Poor UX                     | Custom system prompts. ConfirmationPolicy for destructive actions. User feedback loop.  |
+| Two-app UX feels disjointed              | User confusion              | Shared packages (@niotebook/brand, @niotebook/auth), shared Nio thread, consistent nav. |
+| Bolt.diy upstream divergence             | Fork maintenance            | Cherry-pick valuable upstream changes. Keep fork diff minimal and well-documented.      |
+| E2B session limits (24hr max)            | Power users blocked         | Auto-save project state. Resume sessions seamlessly. Lobby E2B for extended limits.     |
+| Monorepo complexity                      | Slower CI, tooling friction | Turborepo caching. Scoped commands (`--filter`). Clean package boundaries.              |
+| v0.2 → v0.3 cutover                      | User disruption             | Run both in parallel. Cutover only when v0.3 Focus mode is verified identical.          |
 
 ---
 
@@ -608,12 +615,14 @@ package.json   → apps/focus/package.json (app-specific deps only, remove turbo
 ```
 
 Move to monorepo root:
+
 ```text
 convex/        → convex/         (root level — shared by both apps)
 .env.local     → .env.local      (root level — shared env vars)
 ```
 
 Do NOT copy:
+
 ```text
 .git/          (fresh history for v0.3)
 node_modules/  (pnpm will install)
@@ -669,19 +678,19 @@ This plan is informed by deep research conducted on February 9, 2026:
 
 ### Key upstream repositories
 
-| Project | Repo | Stars | License |
-|---------|------|-------|---------|
-| Bolt.diy | `stackblitz-labs/bolt.diy` | ~19k | MIT (source), WebContainer API proprietary |
-| OpenHands | `OpenHands/OpenHands` | ~67.6k | MIT |
-| E2B | `e2b-dev/E2B` | varies | MIT (SDK) |
+| Project   | Repo                       | Stars  | License                                    |
+| --------- | -------------------------- | ------ | ------------------------------------------ |
+| Bolt.diy  | `stackblitz-labs/bolt.diy` | ~19k   | MIT (source), WebContainer API proprietary |
+| OpenHands | `OpenHands/OpenHands`      | ~67.6k | MIT                                        |
+| E2B       | `e2b-dev/E2B`              | varies | MIT (SDK)                                  |
 
 ### Bolt.diy files that touch WebContainer (surgery targets)
 
-| File | Lines to change | Action |
-|------|----------------|--------|
-| `app/lib/webcontainer/index.ts` | All | DELETE → replace with Agent Interface |
-| `app/lib/webcontainer/auth.client.ts` | All | DELETE |
-| `app/lib/runtime/action-runner.ts` | ~300 LOC | REWRITE WebContainer calls |
-| `app/lib/stores/files.ts` | ~100 LOC | MODIFY fs calls |
-| `app/utils/constants.ts` | 1 line | UPDATE WORK_DIR |
-| `app/lib/common/prompts/prompts.ts` | ~50 LOC | REWRITE for Docker/E2B environment |
+| File                                  | Lines to change | Action                                |
+| ------------------------------------- | --------------- | ------------------------------------- |
+| `app/lib/webcontainer/index.ts`       | All             | DELETE → replace with Agent Interface |
+| `app/lib/webcontainer/auth.client.ts` | All             | DELETE                                |
+| `app/lib/runtime/action-runner.ts`    | ~300 LOC        | REWRITE WebContainer calls            |
+| `app/lib/stores/files.ts`             | ~100 LOC        | MODIFY fs calls                       |
+| `app/utils/constants.ts`              | 1 line          | UPDATE WORK_DIR                       |
+| `app/lib/common/prompts/prompts.ts`   | ~50 LOC         | REWRITE for Docker/E2B environment    |

@@ -251,50 +251,48 @@ const NiotepadPanel = (): ReactElement => {
     : { type: "spring" as const, stiffness: 400, damping: 28, mass: 0.8 };
 
   return (
-      <motion.aside
-        ref={panelRef}
-        role="dialog"
-        aria-modal="false"
-        aria-label="Niotepad -- personal notes"
-        aria-describedby="niotepad-description"
-        tabIndex={-1}
-        onKeyDown={handlePanelKeyDown}
-        className="fixed z-50 flex flex-col overflow-hidden rounded-2xl outline-none"
-        style={{
-          width: PANEL_WIDTH,
-          height: PANEL_HEIGHT,
-          left: mountPosition.x,
-          top: mountPosition.y,
-          background: "var(--niotepad-panel-bg)",
-          border: "1px solid var(--niotepad-panel-border)",
-          boxShadow: PANEL_SHADOW,
-        }}
-        // Spring open animation (instant when reduced motion preferred)
-        initial={
-          prefersReducedMotion
-            ? { opacity: 1 }
-            : { scale: 0.92, opacity: 0, y: 12 }
-        }
-        animate={
-          prefersReducedMotion
-            ? { opacity: 1 }
-            : { scale: 1, opacity: 1, y: 0 }
-        }
-        exit={
-          prefersReducedMotion
-            ? { opacity: 0 }
-            : { scale: 0.95, opacity: 0, y: 8 }
-        }
-        transition={panelTransition}
-        // X-axis only drag via handle — Y is locked
-        drag="x"
-        dragControls={dragControls}
-        dragListener={false}
-        dragMomentum={false}
-        dragElastic={0.04}
-        dragConstraints={dragConstraints}
-        onDragEnd={handleDragEnd}
-      >
+    <motion.aside
+      ref={panelRef}
+      role="dialog"
+      aria-modal="false"
+      aria-label="Niotepad -- personal notes"
+      aria-describedby="niotepad-description"
+      tabIndex={-1}
+      onKeyDown={handlePanelKeyDown}
+      className="fixed z-50 flex flex-col overflow-hidden rounded-2xl outline-none"
+      style={{
+        width: PANEL_WIDTH,
+        height: PANEL_HEIGHT,
+        left: mountPosition.x,
+        top: mountPosition.y,
+        background: "var(--niotepad-panel-bg)",
+        border: "1px solid var(--niotepad-panel-border)",
+        boxShadow: PANEL_SHADOW,
+      }}
+      // Spring open animation (instant when reduced motion preferred)
+      initial={
+        prefersReducedMotion
+          ? { opacity: 1 }
+          : { scale: 0.92, opacity: 0, y: 12 }
+      }
+      animate={
+        prefersReducedMotion ? { opacity: 1 } : { scale: 1, opacity: 1, y: 0 }
+      }
+      exit={
+        prefersReducedMotion
+          ? { opacity: 0 }
+          : { scale: 0.95, opacity: 0, y: 8 }
+      }
+      transition={panelTransition}
+      // X-axis only drag via handle — Y is locked
+      drag="x"
+      dragControls={dragControls}
+      dragListener={false}
+      dragMomentum={false}
+      dragElastic={0.04}
+      dragConstraints={dragConstraints}
+      onDragEnd={handleDragEnd}
+    >
       {/* Screen reader description */}
       <p id="niotepad-description" className="sr-only">
         A floating notebook for capturing notes from video lectures, code

@@ -28,9 +28,9 @@ type ChatMessageRecord = {
   threadId: GenericId<"chatThreads">;
   role: ChatMessageRole;
   content: string;
-  videoTimeSec: number;
-  timeWindowStartSec: number;
-  timeWindowEndSec: number;
+  videoTimeSec?: number;
+  timeWindowStartSec?: number;
+  timeWindowEndSec?: number;
   codeHash?: string;
   requestId?: string;
   provider?: string;
@@ -53,8 +53,8 @@ const toChatMessageSummary = (
   message: ChatMessageRecord,
 ): ChatMessageSummary => {
   const timeWindow: ChatTimeWindow = {
-    startSec: message.timeWindowStartSec,
-    endSec: message.timeWindowEndSec,
+    startSec: message.timeWindowStartSec ?? 0,
+    endSec: message.timeWindowEndSec ?? 0,
   };
 
   return {
@@ -62,7 +62,7 @@ const toChatMessageSummary = (
     threadId: toDomainId(message.threadId as GenericId<"chatThreads">),
     role: message.role,
     content: message.content,
-    videoTimeSec: message.videoTimeSec,
+    videoTimeSec: message.videoTimeSec ?? 0,
     timeWindow,
     codeHash: message.codeHash,
     requestId: message.requestId,
@@ -146,6 +146,8 @@ const getChatMessages = query({
       throw new Error("Chat thread not accessible.");
     }
 
+    const limit = Math.min(args.limit, 100);
+
     const page = await ctx.db
       .query("chatMessages")
       .withIndex("by_threadId_createdAt", (query) =>
@@ -154,7 +156,7 @@ const getChatMessages = query({
       .order("desc")
       .paginate({
         cursor: args.cursor ?? null,
-        numItems: args.limit,
+        numItems: limit,
       });
 
     const messages = orderChatMessages(
@@ -164,7 +166,7 @@ const getChatMessages = query({
     );
 
     return {
-      messages: applyChatMessageLimit(messages, args.limit),
+      messages: applyChatMessageLimit(messages, limit),
       nextCursor: page.continueCursor,
     };
   },
@@ -173,7 +175,7 @@ const getChatMessages = query({
 const createChatMessage = mutation({
   args: {
     threadId: v.id("chatThreads"),
-    role: v.union(v.literal("user"), v.literal("assistant")),
+    role: v.literal("user"),
     content: v.string(),
     videoTimeSec: v.number(),
     timeWindow: v.object({

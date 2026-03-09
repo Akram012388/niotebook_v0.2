@@ -44,9 +44,7 @@ export const sendEmail = async (params: SendEmailParams): Promise<string> => {
     headers.push(`References: ${params.replyToMessageId}`);
   }
 
-  const raw = encodeBase64Url(
-    `${headers.join("\r\n")}\r\n\r\n${params.body}`,
-  );
+  const raw = encodeBase64Url(`${headers.join("\r\n")}\r\n\r\n${params.body}`);
 
   const res = await gmailFetch("/messages/send", {
     method: "POST",

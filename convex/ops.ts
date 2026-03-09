@@ -410,7 +410,7 @@ const getCodeExecutionCount = query({
     const events = (await ctx.db
       .query("events")
       .withIndex("by_type_createdAt", (q) =>
-        q.eq("type", "code_executed").gte("createdAt", cutoff),
+        q.eq("type", "code_run").gte("createdAt", cutoff),
       )
       .collect()) as unknown as EventRow[];
 

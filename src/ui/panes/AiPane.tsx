@@ -237,7 +237,9 @@ const AiPane = ({
   const bookmarkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleBookmark = useCallback((): void => {
-    const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+    const lastAssistant = [...messages]
+      .reverse()
+      .find((m) => m.role === "assistant");
     if (!lastAssistant?.content) return;
 
     const store = useNiotepadStore.getState();
@@ -400,7 +402,9 @@ const AiPane = ({
               <button
                 type="button"
                 onClick={() => {
-                  window.dispatchEvent(new CustomEvent("niotebook:open-settings"));
+                  window.dispatchEvent(
+                    new CustomEvent("niotebook:open-settings"),
+                  );
                 }}
                 className="text-accent underline-offset-2 hover:underline"
               >

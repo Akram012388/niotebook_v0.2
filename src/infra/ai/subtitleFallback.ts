@@ -12,6 +12,27 @@ type SubtitleCacheEntry = {
 const subtitleCache = new Map<string, SubtitleCacheEntry>();
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
+const ALLOWED_SUBTITLE_HOSTNAMES = new Set(["cdn.cs50.net"]);
+
+const validateSubtitleUrl = (url: string): void => {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(`Invalid subtitle URL`);
+  }
+
+  if (parsed.protocol !== "https:") {
+    throw new Error(`Subtitle URL must use HTTPS`);
+  }
+
+  if (!ALLOWED_SUBTITLE_HOSTNAMES.has(parsed.hostname)) {
+    throw new Error(
+      `Subtitle URL hostname not in allowlist: ${parsed.hostname}`,
+    );
+  }
+};
+
 const cleanText = (value: string): string => {
   return value.replace(/\s+/g, " ").trim();
 };
@@ -93,6 +114,8 @@ const fetchSubtitleSegments = async (
   if (cached) {
     return cached;
   }
+
+  validateSubtitleUrl(url);
 
   const response = await fetch(url);
   if (!response.ok) {

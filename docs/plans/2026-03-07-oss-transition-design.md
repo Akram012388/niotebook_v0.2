@@ -23,16 +23,16 @@ The transition is structured as two sequential tracks:
 
 ## Decisions
 
-| Topic | Decision |
-|---|---|
-| License | MIT |
-| Auth provider | Keep Clerk (remove invite gate, enable public sign-up) |
-| Backend | Keep Convex (no migration) |
-| AI cost model | Bring Your Own Key — no hosted AI, no cost borne by the project |
-| Supported AI providers | Gemini, OpenAI, Anthropic |
-| Key storage | Encrypted in Convex (AES-256-GCM), never returned to client after save |
-| Repository history | Kept as-is — authentic learning journey, no rewriting |
-| Admin console | Retire invites panel, keep analytics + users + feedback |
+| Topic                  | Decision                                                               |
+| ---------------------- | ---------------------------------------------------------------------- |
+| License                | MIT                                                                    |
+| Auth provider          | Keep Clerk (remove invite gate, enable public sign-up)                 |
+| Backend                | Keep Convex (no migration)                                             |
+| AI cost model          | Bring Your Own Key — no hosted AI, no cost borne by the project        |
+| Supported AI providers | Gemini, OpenAI, Anthropic                                              |
+| Key storage            | Encrypted in Convex (AES-256-GCM), never returned to client after save |
+| Repository history     | Kept as-is — authentic learning journey, no rewriting                  |
+| Admin console          | Retire invites panel, keep analytics + users + feedback                |
 
 ---
 
@@ -47,6 +47,7 @@ MIT License, dated 2026, Akram.
 
 **`README.md`** (root-level, replaces or supplements `docs/README.md`)
 Sections:
+
 - What Niotebook is (one paragraph)
 - Screenshots or demo link
 - Tech stack (Next.js 16, Convex, Clerk, Tailwind 4, Bun)
@@ -58,6 +59,7 @@ Sections:
 - Contributing pointer
 
 **`CONTRIBUTING.md`**
+
 - Branch strategy: feature branches, never push to main directly
 - Test command: `bun run test`
 - Build command: `bun run build`
@@ -90,10 +92,12 @@ A single feature branch. All changes ship together.
 ### 2.1 Auth — Remove Clerk Invite Gate
 
 **Clerk dashboard change (manual):**
+
 - Re-enable public sign-up in the Clerk dashboard
 - Remove any invite-only restrictions
 
 **Code removals:**
+
 - `convex/schema.ts` — drop `invites` table; drop `inviteBatchId` from `users` table
 - `convex/invites.ts` (or equivalent) — delete invite mutation file(s)
 - `src/app/admin/` — remove the Invites panel and all invite-related UI
@@ -101,11 +105,13 @@ A single feature branch. All changes ship together.
 - `inviteBatchId`-based cohort analytics from admin dashboard
 
 **Schema change to `users` table:**
+
 - Remove `inviteBatchId` field
 - Remove `inviteBatchId` index
 - Add `activeAiProvider: v.optional(v.union(v.literal("gemini"), v.literal("openai"), v.literal("anthropic")))` — tracks which provider Nio uses for this user
 
 **User roles:**
+
 - `admin` and `user` remain unchanged
 - `guest` role retired — no longer meaningful without an invite gate
 - `NIOTEBOOK_ADMIN_EMAILS` allowlist unchanged
@@ -120,12 +126,16 @@ the app. No invite required. The sign-in page and boot sequence animation are un
 ```ts
 userApiKeys: defineTable({
   userId: v.id("users"),
-  provider: v.union(v.literal("gemini"), v.literal("openai"), v.literal("anthropic")),
-  encryptedKey: v.string(),   // AES-256-GCM encrypted, base64-encoded
-  iv: v.string(),             // random IV per write, base64-encoded
-  keyHint: v.string(),        // last 4 chars of raw key, shown in settings UI
+  provider: v.union(
+    v.literal("gemini"),
+    v.literal("openai"),
+    v.literal("anthropic"),
+  ),
+  encryptedKey: v.string(), // AES-256-GCM encrypted, base64-encoded
+  iv: v.string(), // random IV per write, base64-encoded
+  keyHint: v.string(), // last 4 chars of raw key, shown in settings UI
   updatedAt: v.number(),
-}).index("by_userId_provider", ["userId", "provider"])
+}).index("by_userId_provider", ["userId", "provider"]);
 ```
 
 One row per provider per user. Saving a key for an existing provider overwrites it.
@@ -174,12 +184,14 @@ One row per provider per user. Saving a key for an existing provider overwrites 
 #### New AI streamers
 
 **`src/infra/ai/openaiStream.ts`**
+
 - Uses OpenAI Chat Completions streaming API
 - Model: `gpt-4o-mini` (default, cost-effective for learners)
 - Same `AsyncIterable<string>` interface as `geminiStream.ts`
 - Returns `{ stream, provider: "openai", model }` matching `NioProviderStreamResult`
 
 **`src/infra/ai/anthropicStream.ts`**
+
 - Uses Anthropic Messages API streaming
 - Model: `claude-haiku-4-5` (default, fast and cost-effective)
 - Same interface as above
@@ -190,8 +202,9 @@ is passed through, never logged.
 #### Nio chat gate
 
 When the user has no `activeAiProvider` (no key configured):
+
 - The chat input area is replaced with an inline prompt:
-  *"Add an API key in Settings to chat with Nio"* with an arrow link to the settings panel
+  _"Add an API key in Settings to chat with Nio"_ with an arrow link to the settings panel
 - No modal, no blocking screen — contextual, non-intrusive
 - All other workspace features (editor, video, niotepad) remain fully functional
 
@@ -203,6 +216,7 @@ layout pickers). New "Nio" section added above or below existing controls.
 **Component:** `src/ui/settings/ApiKeySettings.tsx`
 
 **Layout:**
+
 ```
 Nio AI Provider
 ───────────────────────────────────────
@@ -219,6 +233,7 @@ Anthropic API Key
 ```
 
 **Behaviour:**
+
 - Provider selector shows only; clicking a configured provider sets it as active
   (calls `userApiKeys.setActiveProvider`)
 - Unconfigured providers are shown but not selectable in the active selector
@@ -231,6 +246,7 @@ Anthropic API Key
 - First key saved for any provider is automatically set as active
 
 **Data flow:**
+
 - Settings UI reads `userApiKeys.listHints()` and `users.activeAiProvider` via Convex
   React hooks (real-time, no stale state)
 - Mutations go directly to Convex; the key never transits through the Next.js API route
@@ -238,11 +254,13 @@ Anthropic API Key
 ### 2.4 Admin Console — Retire Invite Management
 
 **Remove:**
+
 - Invites panel (generate, track, revoke, batch management)
 - `inviteBatchId` cohort analytics in the analytics panel
 - Any invite-related event log entries in the UI
 
 **Keep unchanged:**
+
 - User management panel (view users, roles, email, join date, promote/demote admin)
 - Feedback dashboard (category, rating, notes, lesson context)
 - Analytics panel (AI usage, provider breakdown, lesson engagement, code runs, active users)
@@ -254,16 +272,16 @@ Anthropic API Key
 
 ### Track 1 additions (documented, not yet in code)
 
-| Variable | Purpose |
-|---|---|
+| Variable                          | Purpose                                              |
+| --------------------------------- | ---------------------------------------------------- |
 | `NIOTEBOOK_KEY_ENCRYPTION_SECRET` | 32-byte random secret for AES-256-GCM key encryption |
 
 ### Track 2 removals (from operational requirements)
 
-| Variable | Status |
-|---|---|
+| Variable         | Status                                         |
+| ---------------- | ---------------------------------------------- |
 | `GEMINI_API_KEY` | No longer required; remove from production env |
-| `GROQ_API_KEY` | No longer required; remove from production env |
+| `GROQ_API_KEY`   | No longer required; remove from production env |
 
 ---
 
@@ -282,11 +300,13 @@ This notice must appear in the README and as a comment in the ingest scripts.
 ## Success Criteria
 
 **Track 1:**
+
 - Repository is public on GitHub
 - LICENSE, README, CONTRIBUTING, `.env.example` all present
 - Secrets scan returns no live credentials in git history
 
 **Track 2:**
+
 - A new user can sign up without an invite and reach the workspace
 - A user can add, edit, switch, and remove API keys for Gemini, OpenAI, and Anthropic
 - Nio chat works end-to-end for each of the three providers using the user's own key

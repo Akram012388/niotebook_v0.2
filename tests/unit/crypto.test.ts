@@ -24,7 +24,10 @@ describe("encryptApiKey / decryptApiKey", () => {
   });
 
   it("fails to decrypt with wrong secret", async () => {
-    const { encryptedKey, iv } = await encryptApiKey("my-key", "correct-secret");
+    const { encryptedKey, iv } = await encryptApiKey(
+      "my-key",
+      "correct-secret",
+    );
 
     await expect(
       decryptApiKey(encryptedKey, iv, "wrong-secret"),

@@ -384,10 +384,7 @@ const NiotepadEntry = memo(
                   {entry.content}
                 </div>
               ) : (
-                <div
-                  className="nio-markdown"
-                  style={{ lineHeight: "24px" }}
-                >
+                <div className="nio-markdown" style={{ lineHeight: "24px" }}>
                   <ReactMarkdown>{entry.content}</ReactMarkdown>
                 </div>
               )}
