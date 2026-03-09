@@ -19,9 +19,9 @@ Three collaborating pieces form the VFS:
 
 **`VirtualFS` class (`src/infra/vfs/VirtualFS.ts`)** — An in-memory tree whose nodes are `VFSFile` or `VFSDirectory` objects stored in nested `Map` structures. All reads (`readFile`, `readDir`, `stat`, `glob`) are synchronous. Writes (`writeFile`, `mkdir`, `rename`, `delete`) mutate the tree and emit typed `VFSEvent` objects to registered listeners. Size limits are enforced at write time: 1 MB per file, 50 MB total. The class also exposes `snapshot()` / `restore()` for serialization, converting the internal `Map`-based tree to plain arrays for JSON compatibility.
 
-**`useFileSystemStore` Zustand store (`src/infra/vfs/useFileSystemStore.ts`)** — Wraps a `VirtualFS` instance and re-derives a flat `files[]` + `directories[]` array after every mutation so React components receive standard referential updates. Every write action calls `scheduleAutoPersist()`, which debounces IndexedDB writes at 500 ms using a module-level timer. The active lesson ID is tracked in a module-level variable (`currentLessonId`) set during `loadFromIndexedDB`. `initializeFromEnvironment` consumes a `LessonEnvironment` domain type to populate per-language starter files on first load.
+**`useFileSystemStore` Zustand store (`src/infra/vfs/useFileSystemStore.ts`)** — Wraps a `VirtualFS` instance and re-derives a fully recursive `files[]` + `directories[]` array after every mutation so React components receive standard referential updates. Every write action calls `scheduleAutoPersist()`, which debounces IndexedDB writes at 500 ms; the `scheduleAutoPersist()` function, the `autoPersistTimer` handle, and the `AUTO_PERSIST_DEBOUNCE_MS = 500` constant are all defined in `useFileSystemStore.ts` itself — not in any editor store. The active lesson ID is tracked in a module-level variable (`currentLessonId`) set during `loadFromIndexedDB`. `initializeFromEnvironment` consumes a `LessonEnvironment` domain type to populate per-language starter files on first load.
 
-**`indexedDbBackend` (`src/infra/vfs/indexedDbBackend.ts`)** — Thin wrapper around the `idb` library. Opens a single database (`niotebook-vfs`, `DB_VERSION = 1`) with one object store (`projects`). Keys are lesson IDs; values are JSON-serialized `VFSSnapshotNode` strings. Write failures log `console.warn` and resolve silently; read failures return `null` so the store falls through to seeding starter files. IndexedDB errors never crash the editor.
+**`indexedDbBackend` (`src/infra/vfs/indexedDbBackend.ts`)** — Thin wrapper around the `idb` library. Opens a single database (`niotebook-vfs`, `DB_VERSION = 1`) with one object store (`projects`). Keys are lesson IDs; values are JSON-serialized `VFSSnapshotNode` strings. Exports four functions: `saveProject` (persist a snapshot), `loadProject` (retrieve a snapshot), `deleteProject` (remove a lesson's snapshot), and `listProjects` (enumerate stored lesson IDs). `deleteProject` and `listProjects` are not currently called by the store. Write failures log `console.warn` and resolve silently; read failures return `null` so the store falls through to seeding starter files. IndexedDB errors never crash the editor.
 
 **No server-side VFS** — The Convex schema has no table for file trees. Files are browser-local only. `codeSnapshots` in Convex stores a single active code string + hash per lesson per language for AI context, but that is separate from the full multi-file VFS.
 
@@ -33,7 +33,7 @@ Three collaborating pieces form the VFS:
 
 - Zero server latency for file reads — the editor opens instantly.
 - Works fully offline once the page has loaded.
-- Simple, auditable implementation — the entire VFS is ~415 lines of TypeScript with no external runtime dependencies.
+- Simple, auditable implementation — the entire VFS is under 420 lines of TypeScript with no external runtime dependencies.
 - Lesson isolation is enforced by key: one IndexedDB entry per lesson ID.
 
 **Negative / risks**
