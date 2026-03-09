@@ -50,6 +50,7 @@ class VirtualFS {
   private listeners: Set<(event: VFSEvent) => void> = new Set();
   private mainFilePath: string | null = null;
   private totalSize = 0;
+  private readonly globCache = new Map<string, RegExp>();
 
   constructor() {
     this.root = this.createDirectory("/", "/");
@@ -352,13 +353,17 @@ class VirtualFS {
   }
 
   private globToRegex(pattern: string): RegExp {
+    const cached = this.globCache.get(pattern);
+    if (cached) return cached;
     const escaped = pattern
       .replace(/[.+^${}()|[\]\\]/g, "\\$&")
       .replace(/\*\*/g, "{{GLOBSTAR}}")
       .replace(/\*/g, "[^/]*")
       .replace(/\?/g, "[^/]")
       .replace(/\{\{GLOBSTAR\}\}/g, ".*");
-    return new RegExp(`^${escaped}$`);
+    const regex = new RegExp(`^${escaped}$`);
+    this.globCache.set(pattern, regex);
+    return regex;
   }
 
   private updateChildPaths(dir: VFSDirectory, newBasePath: string): void {
