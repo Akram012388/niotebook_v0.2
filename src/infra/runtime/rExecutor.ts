@@ -100,6 +100,7 @@ function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
             document.dispatchEvent(new Event("webr-loaded"));
           `;
           script.onerror = (event) => {
+            document.removeEventListener("webr-loaded", onLoaded);
             console.error("[rExecutor] WebR CDN load failed:", event);
             reject(
               new Error(
@@ -137,7 +138,8 @@ function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
     "WebR load",
   );
 
-  webrPromise.catch(() => {
+  webrPromise.catch((err: unknown) => {
+    console.error("[rExecutor] WebR load failed, clearing cached promise:", err);
     webrPromise = null;
   });
   return webrPromise;
