@@ -9,6 +9,14 @@ type SubtitleCacheEntry = {
   fetchedAtMs: number;
 };
 
+/**
+ * In-memory cache for fetched and parsed SRT subtitle segments, keyed by subtitle URL.
+ * Entries expire after CACHE_TTL_MS (15 minutes) to avoid serving stale content.
+ *
+ * NOTE: This is a module-level cache. In serverless/edge environments (e.g. Next.js
+ * API routes) it resets on cold starts and is not shared across function instances.
+ * It provides best-effort deduplication within a single server instance's lifetime.
+ */
 const subtitleCache = new Map<string, SubtitleCacheEntry>();
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
@@ -154,4 +162,9 @@ const fetchSubtitleWindow = async (args: {
   return buildSubtitleWindow(segments, args.startSec, args.endSec);
 };
 
-export { fetchSubtitleWindow };
+/** Clears the subtitle cache. Intended for test isolation only. Do not call in production code. */
+const clearSubtitleCache = (): void => {
+  subtitleCache.clear();
+};
+
+export { fetchSubtitleWindow, clearSubtitleCache };

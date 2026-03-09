@@ -9,6 +9,15 @@ type InnertubeTrack = {
   kind?: string;
 };
 
+/**
+ * In-memory cache for fetched YouTube caption segments, keyed by video ID.
+ * Entries expire after CACHE_TTL_MS (15 minutes) to avoid redundant innertube
+ * API calls for the same video within a short window.
+ *
+ * NOTE: This is a module-level cache. In serverless/edge environments (e.g. Next.js
+ * API routes) it resets on cold starts and is not shared across function instances.
+ * It provides best-effort deduplication within a single server instance's lifetime.
+ */
 const ytCache = new Map<string, YtCacheEntry>();
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
@@ -148,4 +157,9 @@ const fetchYoutubeTranscriptWindow = async (args: {
     .filter((line) => line.length > 0);
 };
 
-export { fetchYoutubeTranscriptWindow };
+/** Clears the YouTube transcript cache. Intended for test isolation only. Do not call in production code. */
+const clearYtCache = (): void => {
+  ytCache.clear();
+};
+
+export { fetchYoutubeTranscriptWindow, clearYtCache };
