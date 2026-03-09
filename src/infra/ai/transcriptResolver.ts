@@ -8,7 +8,7 @@ const isConvexEnabled = (): boolean => {
 };
 
 const fetchTranscriptWindow = async (args: {
-  lessonId: string;
+  lessonId: Id<"lessons">;
   startSec: number;
   endSec: number;
   client: ConvexHttpClient;
@@ -20,7 +20,7 @@ const fetchTranscriptWindow = async (args: {
   const segments = await args.client.query(
     api.transcripts.getTranscriptWindow,
     {
-      lessonId: args.lessonId as Id<"lessons">,
+      lessonId: args.lessonId,
       startSec: args.startSec,
       endSec: args.endSec,
     },
@@ -30,7 +30,7 @@ const fetchTranscriptWindow = async (args: {
 };
 
 const fetchLessonMeta = async (args: {
-  lessonId: string;
+  lessonId: Id<"lessons">;
   client: ConvexHttpClient;
 }): Promise<{
   title?: string;
@@ -45,7 +45,7 @@ const fetchLessonMeta = async (args: {
   }
 
   const lesson = await args.client.query(api.content.getLesson, {
-    lessonId: args.lessonId as Id<"lessons">,
+    lessonId: args.lessonId,
   });
 
   if (!lesson) {
