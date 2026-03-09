@@ -7,8 +7,12 @@ const isConvexEnabled = (): boolean => {
   return process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
 };
 
+function toLessonId(id: string): Id<"lessons"> {
+  return id as Id<"lessons">;
+}
+
 const fetchTranscriptWindow = async (args: {
-  lessonId: Id<"lessons">;
+  lessonId: string;
   startSec: number;
   endSec: number;
   client: ConvexHttpClient;
@@ -20,7 +24,7 @@ const fetchTranscriptWindow = async (args: {
   const segments = await args.client.query(
     api.transcripts.getTranscriptWindow,
     {
-      lessonId: args.lessonId,
+      lessonId: toLessonId(args.lessonId),
       startSec: args.startSec,
       endSec: args.endSec,
     },
@@ -30,7 +34,7 @@ const fetchTranscriptWindow = async (args: {
 };
 
 const fetchLessonMeta = async (args: {
-  lessonId: Id<"lessons">;
+  lessonId: string;
   client: ConvexHttpClient;
 }): Promise<{
   title?: string;
@@ -45,7 +49,7 @@ const fetchLessonMeta = async (args: {
   }
 
   const lesson = await args.client.query(api.content.getLesson, {
-    lessonId: args.lessonId,
+    lessonId: toLessonId(args.lessonId),
   });
 
   if (!lesson) {

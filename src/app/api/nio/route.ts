@@ -1,6 +1,5 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../convex/_generated/api";
-import type { Id } from "../../../../convex/_generated/dataModel";
 import type { RateLimitDecision } from "../../../domain/rate-limits";
 import type { NioSseEvent } from "../../../domain/ai/types";
 import { buildNioContext } from "../../../domain/nioContextBuilder";
@@ -286,7 +285,7 @@ export const POST = async (request: Request): Promise<Response> => {
     const [transcriptResult, lessonMetaResult] = await Promise.allSettled([
       needsTranscript
         ? fetchTranscriptWindow({
-            lessonId: validation.data.lessonId as Id<"lessons">,
+            lessonId: validation.data.lessonId,
             startSec: transcriptPayload.startSec,
             endSec: transcriptPayload.endSec,
             client: convexClient,
@@ -294,7 +293,7 @@ export const POST = async (request: Request): Promise<Response> => {
         : Promise.resolve(null),
       needsLessonMeta
         ? fetchLessonMeta({
-            lessonId: validation.data.lessonId as Id<"lessons">,
+            lessonId: validation.data.lessonId,
             client: convexClient,
           })
         : Promise.resolve(null),
