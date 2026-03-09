@@ -6,7 +6,7 @@ import type { VFSSnapshotNode } from "./VirtualFS";
 const DB_NAME = "niotebook-vfs";
 /**
  * IndexedDB schema version for the VFS store.
- * Current schema: { projects: { keyPath: "id", value: serialized VFSSnapshotNode } }
+ * Current schema: { projects: IDBObjectStore (out-of-line keys, string key = project ID, value: serialized VFSSnapshotNode) }
  * To bump: increment this constant and add a migration branch in onupgradeneeded.
  */
 const DB_VERSION = 1;
@@ -20,9 +20,13 @@ type VFSDatabase = IDBPDatabase<{
 }>;
 
 function isVFSSnapshotNode(v: unknown): v is VFSSnapshotNode {
-  if (typeof v !== "object" || v === null) return false;
   const r = v as Record<string, unknown>;
-  return (r.kind === "file" || r.kind === "directory") && typeof r.path === "string";
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    r.kind === "directory" &&
+    typeof r.path === "string"
+  );
 }
 
 let dbPromise: Promise<VFSDatabase> | null = null;

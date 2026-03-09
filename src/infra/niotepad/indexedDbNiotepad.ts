@@ -6,7 +6,7 @@ import type { NiotepadSnapshot } from "../../domain/niotepad";
 const DB_NAME = "niotebook-niotepad";
 /**
  * IndexedDB schema version for the Niotepad store.
- * Current schema: { notebooks: { keyPath: "id", value: NiotepadSnapshot } }
+ * Current schema: { notebooks: IDBObjectStore (out-of-line keys, string key = notebook ID, value: serialized NiotepadSnapshot) }
  * To bump: increment this constant and add a migration branch in onupgradeneeded.
  */
 const DB_VERSION = 1;
