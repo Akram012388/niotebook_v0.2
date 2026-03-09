@@ -1,5 +1,7 @@
 # Niotebook
 
+[![CI](https://github.com/Akram012388/niotebook_v0.2/actions/workflows/ci.yml/badge.svg)](https://github.com/Akram012388/niotebook_v0.2/actions/workflows/ci.yml)
+
 A free, open-source learning companion for CS50 students. Watch lectures, write
 and run code, and chat with Nio — an AI tutor that knows exactly where you are
 in the course.
@@ -93,7 +95,21 @@ responsible for compliance — specifically the **non-commercial restriction**.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+```bash
+# 1. Fork and clone
+git clone https://github.com/<your-username>/niotebook
+cd niotebook
+bun install
+
+# 2. Set up environment
+cp .env.example .env.local
+# Fill in Convex + Clerk credentials
+
+# 3. Run the full check suite before opening a PR
+bun run typecheck && bun run lint && bun run test
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## License
 
