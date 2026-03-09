@@ -42,7 +42,11 @@ function useCodeExecution({
     status: "idle",
   });
 
-  useRuntimeWarmup(activeLanguage, lessonId, setRuntimeState);
+  const onRuntimeStateChange = useCallback(
+    (state: RuntimeState) => setRuntimeState(state),
+    [],
+  );
+  useRuntimeWarmup(activeLanguage, lessonId, onRuntimeStateChange);
 
   const terminalIsRunning = useTerminalStore((s) => s.isRunning);
   const isRunning = runtimeState.status === "running" || terminalIsRunning;
