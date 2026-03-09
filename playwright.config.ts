@@ -54,12 +54,16 @@ export default defineConfig({
   projects: [
     {
       name: "desktop",
+      // Exclude mobile-specific test files so they don't run on desktop
+      testMatch: /^(?!.*\.mobile\.e2e\.ts$).*\.e2e\.ts$/,
       use: {
         viewport: { width: 1280, height: 800 },
       },
     },
     {
       name: "mobile",
+      // Only run mobile-specific test files on the mobile project
+      testMatch: "**/*.mobile.e2e.ts",
       use: {
         viewport: { width: 375, height: 667 },
         isMobile: true,

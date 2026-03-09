@@ -5,10 +5,8 @@ test.describe("responsive layout", () => {
     page,
     viewport,
   }) => {
-    if (!viewport || viewport.width >= 768) {
-      test.skip();
-      return;
-    }
+    // Skip if somehow run on a desktop viewport (>= lg breakpoint 1024px)
+    test.skip(viewport!.width >= 1024, "desktop viewport");
     // /courses uses MobileGate and is accessible without a lesson ID
     await page.goto("/courses");
     // MobileGate renders a full-screen message below the lg breakpoint (1024px)
@@ -18,10 +16,7 @@ test.describe("responsive layout", () => {
   });
 
   test("workspace loads on desktop viewport", async ({ page, viewport }) => {
-    if (!viewport || viewport.width < 768) {
-      test.skip();
-      return;
-    }
+    test.skip(viewport!.width < 1024, "mobile viewport");
     await page.goto("/");
     await expect(page).toHaveTitle(/Niotebook/i);
   });
