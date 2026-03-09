@@ -19,7 +19,6 @@ import { getPresetOrDefault } from "../../infra/runtime/envPresets";
 import { storageAdapter } from "../../infra/storageAdapter";
 import { useNiotepadStore } from "../../infra/niotepad/useNiotepadStore";
 import { useVideoDisplayTime } from "../layout/WorkspaceGrid";
-import { useRuntimeWarmup } from "./useRuntimeWarmup";
 import { useCodeExecution } from "./useCodeExecution";
 import { useBookmarkConfirm } from "./useBookmarkConfirm";
 
@@ -199,10 +198,12 @@ const CodePane = ({
 
   // ── Runtime warmup + execution hooks ─────────────────────
 
-  const { setRuntimeState, isRunning, handleRun, handleStop, handleClear } =
-    useCodeExecution({ activeLanguage, environment, terminalActionsDisabled });
-
-  useRuntimeWarmup(activeLanguage, lessonId, setRuntimeState);
+  const { isRunning, handleRun, handleStop, handleClear } = useCodeExecution({
+    lessonId,
+    activeLanguage,
+    environment,
+    terminalActionsDisabled,
+  });
 
   // ── Snapshot callback — reactive to VFS main file changes ──
 
