@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  memo,
   useCallback,
   useMemo,
   useEffect,
@@ -410,4 +411,5 @@ const AiPane = ({
   );
 };
 
-export { AiPane };
+const MemoizedAiPane = memo(AiPane);
+export { MemoizedAiPane as AiPane };

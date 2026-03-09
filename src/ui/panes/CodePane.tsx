@@ -1,4 +1,5 @@
 import {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -276,8 +277,8 @@ const CodePane = ({
   ]);
 
   // ── Push-to-niotepad shortcut (Cmd/Ctrl+Shift+N) ────────
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent): void => {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent): void => {
       if (
         e.key.toLowerCase() !== "n" ||
         !e.shiftKey ||
@@ -312,10 +313,14 @@ const CodePane = ({
           language: activeFile.language ?? activeLanguage,
         },
       });
-    };
+    },
+    [activeLanguage, lessonId, lectureLabel, videoTimeSec],
+  );
+
+  useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeLanguage, lessonId, lectureLabel, videoTimeSec]);
+  }, [handleKeyDown]);
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">
@@ -405,4 +410,5 @@ const CodePane = ({
   );
 };
 
-export { CodePane };
+const MemoizedCodePane = memo(CodePane);
+export { MemoizedCodePane as CodePane };
