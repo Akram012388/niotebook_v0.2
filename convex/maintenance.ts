@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { internalMutation, mutation } from "./_generated/server";
 
 type CleanupResult = {
   skipped: boolean;
@@ -43,6 +43,38 @@ const cleanupPreviewData = mutation({
       deletedMessages: staleMessages.length,
       deletedEvents: staleEvents.length,
     };
+  },
+});
+
+// Removes rateLimits records with stale windowStartMs (older than 24 hours)
+export const cleanupStaleRateLimits = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cutoffMs = Date.now() - 24 * 60 * 60 * 1000;
+    const stale = await ctx.db
+      .query("rateLimits")
+      .withIndex("by_windowStartMs", (q) => q.lt("windowStartMs", cutoffMs))
+      .collect();
+    for (const record of stale) {
+      await ctx.db.delete(record._id);
+    }
+    return { deleted: stale.length };
+  },
+});
+
+// Removes frames records not updated in 30 days
+export const cleanupStaleFrames = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cutoffMs = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const stale = await ctx.db
+      .query("frames")
+      .withIndex("by_updatedAt", (q) => q.lt("updatedAt", cutoffMs))
+      .collect();
+    for (const record of stale) {
+      await ctx.db.delete(record._id);
+    }
+    return { deleted: stale.length };
   },
 });
 

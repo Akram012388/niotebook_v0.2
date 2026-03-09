@@ -104,7 +104,9 @@ const schema = defineSchema({
     threadId: v.optional(v.id("chatThreads")),
     codeHash: v.optional(v.string()),
     updatedAt: v.number(),
-  }).index("by_userId_lessonId", ["userId", "lessonId"]),
+  })
+    .index("by_userId_lessonId", ["userId", "lessonId"])
+    .index("by_updatedAt", ["updatedAt"]),
   lessonCompletions: defineTable({
     userId: v.id("users"),
     lessonId: v.id("lessons"),
@@ -203,7 +205,9 @@ const schema = defineSchema({
     subject: v.string(),
     windowStartMs: v.number(),
     count: v.number(),
-  }).index("by_scope_subject", ["scope", "subject"]),
+  })
+    .index("by_scope_subject", ["scope", "subject"])
+    .index("by_windowStartMs", ["windowStartMs"]),
 });
 
 export default schema;
