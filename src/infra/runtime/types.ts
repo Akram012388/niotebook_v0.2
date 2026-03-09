@@ -18,6 +18,8 @@ type RuntimeRunInput = {
   onStdout?: (chunk: string) => void;
   /** Streaming stderr callback. Called as errors are produced. */
   onStderr?: (chunk: string) => void;
+  /** Active lesson identifier. Used by stateful executors (e.g. SQL) to detect lesson changes and reset per-lesson state. */
+  lessonId?: string;
 };
 
 type RuntimeRunResult = {
