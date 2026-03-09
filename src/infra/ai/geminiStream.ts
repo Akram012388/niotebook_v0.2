@@ -4,6 +4,8 @@ import {
   createProviderStreamError,
   NioProviderStreamError,
 } from "./providerTypes";
+import { readSseStream } from "./sseStream";
+import { isRecord } from "./typeGuards";
 
 type GeminiStreamInput = {
   messages: NioContextMessage[];
@@ -14,10 +16,6 @@ type GeminiStreamInput = {
 const GEMINI_MODEL = "gemini-3-flash-preview";
 const GEMINI_API_BASE =
   "https://generativelanguage.googleapis.com/v1beta/models";
-
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-};
 
 const parseGeminiToken = (payload: unknown): string | null => {
   if (!isRecord(payload)) {
@@ -157,52 +155,18 @@ const streamGemini = async (
   const responseBody = response.body;
 
   const stream = (async function* () {
-    const reader = responseBody.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
     let sawToken = false;
 
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) {
-        break;
+    for await (const token of readSseStream(
+      responseBody,
+      parseGeminiToken,
+      true,
+    )) {
+      if (!sawToken) {
+        sawToken = true;
+        debugLog("first token", { length: token.length });
       }
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
-
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) {
-          continue;
-        }
-
-        const payloadText = trimmed.startsWith("data:")
-          ? trimmed.slice("data:".length).trim()
-          : trimmed;
-
-        if (!payloadText || payloadText === "[DONE]") {
-          continue;
-        }
-
-        let parsed: unknown = null;
-
-        try {
-          parsed = JSON.parse(payloadText);
-        } catch {
-          continue;
-        }
-
-        const token = parseGeminiToken(parsed);
-        if (token) {
-          if (!sawToken) {
-            sawToken = true;
-            debugLog("first token", { length: token.length });
-          }
-          yield token;
-        }
-      }
+      yield token;
     }
   })();
 
