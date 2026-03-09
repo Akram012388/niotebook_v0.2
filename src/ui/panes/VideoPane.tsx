@@ -1,4 +1,5 @@
 import {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -10,7 +11,7 @@ import { useQuery } from "convex/react";
 import { VideoPlayer } from "../video/VideoPlayer";
 import { useAutoCompletion } from "../video/useAutoCompletion";
 import { useVideoFrame } from "../video/useVideoFrame";
-import { getCoursesRef, getLessonRef } from "../content/convexContent";
+import { getCourseByCourseIdRef, getLessonRef } from "../content/convexContent";
 import { resolveLectureNumber } from "../../domain/lectureNumber";
 import { useNiotepadStore } from "../../infra/niotepad/useNiotepadStore";
 
@@ -41,20 +42,17 @@ const VideoPane = ({
   showInfoStrip = false,
 }: VideoPaneProps): ReactElement => {
   const lesson = useQuery(getLessonRef, { lessonId });
-  const courses = useQuery(getCoursesRef, {});
+  // course is undefined while loading or if the Convex query errors (indistinguishable);
+  // null means the course record was not found in the database.
+  const course = useQuery(
+    getCourseByCourseIdRef,
+    lesson?.courseId ? { courseId: lesson.courseId } : "skip",
+  );
   const { frame, remoteFrame, updateFrame } = useVideoFrame({
     lessonId,
     codeHash,
     threadId,
   });
-
-  const course = useMemo(() => {
-    if (!lesson || !courses) {
-      return null;
-    }
-
-    return courses.find((item) => item.id === lesson.courseId) ?? null;
-  }, [courses, lesson]);
 
   const lectureNumber = useMemo(() => {
     return resolveLectureNumber({
@@ -369,4 +367,5 @@ const VideoPane = ({
   );
 };
 
-export { VideoPane };
+const MemoizedVideoPane = memo(VideoPane);
+export { MemoizedVideoPane as VideoPane };

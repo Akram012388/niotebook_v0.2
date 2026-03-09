@@ -172,6 +172,15 @@ const seedLesson = mutation({
   },
 });
 
+const getCourseByCourseId = query({
+  args: { courseId: v.id("courses") },
+  handler: async (ctx, args): Promise<CourseSummary | null> => {
+    const course = await ctx.db.get(args.courseId);
+    if (!course) return null;
+    return toCourseSummary(course as CourseRecord);
+  },
+});
+
 const getLessonCountsByCourse = query({
   args: {},
   handler: async (ctx): Promise<Record<string, number>> => {
@@ -182,7 +191,7 @@ const getLessonCountsByCourse = query({
         .query("lessons")
         .withIndex("by_courseId", (q) => q.eq("courseId", course._id))
         .collect();
-      counts[course._id as unknown as string] = lessons.length;
+      counts[String(course._id)] = lessons.length;
     }
     return counts;
   },
@@ -190,6 +199,7 @@ const getLessonCountsByCourse = query({
 
 export {
   getCourses,
+  getCourseByCourseId,
   getLesson,
   getLessonCountsByCourse,
   getLessonsByCourse,
