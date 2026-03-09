@@ -191,7 +191,13 @@ async function initSqlExecutor(): Promise<RuntimeExecutor> {
           input.lessonId !== undefined &&
           input.lessonId !== currentLessonId
         ) {
-          db?.close();
+          if (db) {
+            try {
+              db.close();
+            } catch (closeErr) {
+              console.error("[sqlExecutor] db.close() failed during lesson reset:", closeErr);
+            }
+          }
           db = null;
           seeded = false;
           currentLessonId = input.lessonId;
