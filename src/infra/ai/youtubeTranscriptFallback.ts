@@ -157,7 +157,7 @@ const fetchYoutubeTranscriptWindow = async (args: {
     .filter((line) => line.length > 0);
 };
 
-/** Clears the YouTube transcript cache. Primarily useful for test isolation. */
+/** Clears the YouTube transcript cache. Intended for test isolation only. Do not call in production code. */
 const clearYtCache = (): void => {
   ytCache.clear();
 };

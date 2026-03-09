@@ -162,7 +162,7 @@ const fetchSubtitleWindow = async (args: {
   return buildSubtitleWindow(segments, args.startSec, args.endSec);
 };
 
-/** Clears the subtitle cache. Primarily useful for test isolation. */
+/** Clears the subtitle cache. Intended for test isolation only. Do not call in production code. */
 const clearSubtitleCache = (): void => {
   subtitleCache.clear();
 };
