@@ -84,30 +84,41 @@ function loadWebRScript(scriptUrl: string, cdnBase: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
     script.type = "module";
+    // Inline module scripts never fire onerror on import failures. Wrap the
+    // dynamic import in try/catch and dispatch a custom event so the caller
+    // can detect CDN failures reliably.
     script.textContent = `
-      import { WebR, ChannelType } from "${scriptUrl}";
-      globalThis.WebR = WebR;
-      globalThis.ChannelType = ChannelType;
-      globalThis.__webr_loaded__ = true;
-      document.dispatchEvent(new Event("webr-loaded"));
+      try {
+        const { WebR, ChannelType } = await import("${scriptUrl}");
+        globalThis.WebR = WebR;
+        globalThis.ChannelType = ChannelType;
+        globalThis.__webr_loaded__ = true;
+        document.dispatchEvent(new Event("webr-loaded"));
+      } catch (err) {
+        document.dispatchEvent(new CustomEvent("webr-load-error", { detail: String(err) }));
+      }
     `;
 
     const onLoaded = () => {
       document.removeEventListener("webr-loaded", onLoaded);
+      document.removeEventListener("webr-load-error", onError);
       resolve();
     };
 
-    script.onerror = (event) => {
+    const onError = (event: Event) => {
       document.removeEventListener("webr-loaded", onLoaded);
-      console.error("[rExecutor] WebR script load failed from", cdnBase, event);
+      document.removeEventListener("webr-load-error", onError);
+      const detail = (event as CustomEvent<string>).detail ?? "unknown error";
+      console.error("[rExecutor] WebR script load failed from", cdnBase, detail);
       reject(
         new Error(
-          `WebR failed to load from CDN (${cdnBase}). Check your network connection.`,
+          `WebR failed to load from CDN (${cdnBase}): ${detail}`,
         ),
       );
     };
 
     document.addEventListener("webr-loaded", onLoaded);
+    document.addEventListener("webr-load-error", onError);
     document.head.appendChild(script);
   });
 }
@@ -137,8 +148,6 @@ function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
           console.warn(
             "[rExecutor] WebR primary CDN failed, retrying with fallback…",
           );
-          // Clear the cached promise so a future retry call works cleanly
-          webrPromise = null;
           await loadWebRScript(WEBR_SCRIPT_URL_FALLBACK, WEBR_CDN_FALLBACK);
           resolvedCdn = WEBR_CDN_FALLBACK;
         }
