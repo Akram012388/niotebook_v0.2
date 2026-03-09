@@ -7,36 +7,39 @@ import type {
   UserId,
 } from "./ids";
 
-type EventType =
-  | "invite_issued"
-  | "invite_redeemed"
-  | "magic_link_sent"
-  | "magic_link_verified"
-  | "course_selected"
-  | "lesson_started"
-  | "video_play"
-  | "video_pause"
-  | "video_seek"
-  | "code_edit"
-  | "code_run"
-  | "nio_message_sent"
-  | "nio_message_received"
-  | "ai_fallback_triggered"
-  | "lesson_completed"
-  | "session_start"
-  | "session_end"
-  | "runtime_warmup_start"
-  | "runtime_warmup_end"
-  | "transcript_ingest_started"
-  | "transcript_ingest_succeeded"
-  | "transcript_ingest_failed"
-  | "transcript_duration_warn"
-  | "share_opened"
-  | "share_copy"
-  | "share_social"
-  | "feedback_opened"
-  | "feedback_submitted"
-  | "feedback_dismissed";
+const EVENT_TYPES = [
+  "invite_issued",
+  "invite_redeemed",
+  "magic_link_sent",
+  "magic_link_verified",
+  "course_selected",
+  "lesson_started",
+  "video_play",
+  "video_pause",
+  "video_seek",
+  "code_edit",
+  "code_run",
+  "nio_message_sent",
+  "nio_message_received",
+  "ai_fallback_triggered",
+  "lesson_completed",
+  "session_start",
+  "session_end",
+  "runtime_warmup_start",
+  "runtime_warmup_end",
+  "transcript_ingest_started",
+  "transcript_ingest_succeeded",
+  "transcript_ingest_failed",
+  "transcript_duration_warn",
+  "share_opened",
+  "share_copy",
+  "share_social",
+  "feedback_opened",
+  "feedback_submitted",
+  "feedback_dismissed",
+] as const;
+
+type EventType = (typeof EVENT_TYPES)[number];
 
 type InviteIssuedMetadata = {
   inviteId: InviteId;
@@ -390,8 +393,6 @@ const validateEventUserId = (userId?: UserId): EventValidationResult => {
 
   return { ok: true };
 };
-
-const EVENT_TYPES = Object.keys(EVENT_METADATA_VALIDATORS) as EventType[];
 
 const isEventType = (value: string): value is EventType => {
   return EVENT_TYPES.includes(value as EventType);
