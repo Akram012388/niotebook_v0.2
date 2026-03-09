@@ -16,7 +16,7 @@ The client fetches a Clerk JWT using `getToken({ template: "convex" })` and send
 Authorization: Bearer <clerk-jwt>
 ```
 
-Authentication is enforced in production. In development (`NODE_ENV !== "production"`), in E2E preview mode (`NIOTEBOOK_E2E_PREVIEW=true`), or when `NIOTEBOOK_DEV_AUTH_BYPASS=true`, the auth check is skipped.
+Authentication is enforced in production. In development (`NODE_ENV !== "production"`), in E2E preview mode (`NIOTEBOOK_E2E_PREVIEW=true` or `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=true`), or when `NIOTEBOOK_DEV_AUTH_BYPASS=true` (or its `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS` variant), the auth check is skipped.
 
 If the header is absent or malformed in production, the server returns `401 AUTH_REQUIRED`.
 
