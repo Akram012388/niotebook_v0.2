@@ -27,8 +27,15 @@ const sectionVariants = {
 
 function CoursesPage(): ReactElement {
   const courses = useQuery(getCoursesRef);
-  const lessonCounts = useQuery(getLessonCountsByCourseRef);
+  const lessonCountsRaw = useQuery(getLessonCountsByCourseRef);
   const resumeData = useQuery(getResumeDataRef);
+
+  const lessonCounts = useMemo(() => {
+    if (!lessonCountsRaw) return undefined;
+    return Object.fromEntries(
+      lessonCountsRaw.map(({ courseId, count }) => [courseId, count]),
+    );
+  }, [lessonCountsRaw]);
 
   const [searchQuery, setSearchQuery] = useState("");
 
