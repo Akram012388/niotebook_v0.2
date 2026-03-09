@@ -4,7 +4,7 @@ import type { TranscriptWindowSegment } from "../../domain/transcript";
 import {
   cacheTranscriptWindowMemory,
   getCachedTranscriptWindowMemory,
-} from "../../infra/transcriptWindowCache";
+} from "../../infra/cache/transcriptWindowCache";
 import { getTranscriptWindowRef } from "./convexTranscript";
 
 const WINDOW_PRE_SEC = 60;

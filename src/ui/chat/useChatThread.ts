@@ -19,7 +19,10 @@ import { parseSseEvent } from "../../infra/ai/nioSse";
 import { formatTimestamp } from "../formatTimestamp";
 import type { ChatMessage, ChatStreamState } from "./chatTypes";
 import type { EventLogResult } from "../../domain/events";
-import { readChatCache, writeChatCache } from "../../infra/chatLocalCache";
+import {
+  readChatCache,
+  writeChatCache,
+} from "../../infra/cache/chatLocalCache";
 import {
   createChatMessageRef,
   ensureChatThreadRef,

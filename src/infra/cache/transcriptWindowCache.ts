@@ -1,4 +1,4 @@
-import type { TranscriptWindowSegment } from "../domain/transcript";
+import type { TranscriptWindowSegment } from "../../domain/transcript";
 
 const transcriptWindowCache = new Map<string, TranscriptWindowSegment[]>();
 const transcriptWindowRangeCache = new Map<
