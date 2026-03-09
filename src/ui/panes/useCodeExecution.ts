@@ -86,6 +86,7 @@ function useCodeExecution({
         timeoutMs: environment.runtimeSettings.timeoutMs,
         filesystem: vfs,
         packages: environment.packages,
+        lessonId,
         onStdout: (chunk: string) => termStore.write(chunk),
         onStderr: (chunk: string) => termStore.write(formatErrorChunk(chunk)),
       });

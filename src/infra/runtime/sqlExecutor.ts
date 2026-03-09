@@ -29,6 +29,7 @@ const SQL_JS_CDN = "https://sql.js.org/dist";
 let sqlJsPromise: Promise<SqlJsStatic> | null = null;
 let db: SqlJsDatabase | null = null;
 let seeded = false;
+let currentLessonId: string | null = null;
 
 function loadSqlJs(): Promise<SqlJsStatic> {
   if (sqlJsPromise) return sqlJsPromise;
@@ -185,6 +186,23 @@ async function initSqlExecutor(): Promise<RuntimeExecutor> {
       let stderr = "";
 
       try {
+        // Reset per-lesson state when the lesson changes
+        if (
+          input.lessonId !== undefined &&
+          input.lessonId !== currentLessonId
+        ) {
+          if (db) {
+            try {
+              db.close();
+            } catch (closeErr) {
+              console.error("[sqlExecutor] db.close() failed during lesson reset:", closeErr);
+            }
+          }
+          db = null;
+          seeded = false;
+          currentLessonId = input.lessonId;
+        }
+
         if (!db) {
           const SQL = await loadSqlJs();
           db = new SQL.Database();
