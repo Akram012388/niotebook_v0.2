@@ -453,7 +453,11 @@ const parseWeekLesson = async (
       transcriptStatus,
       durationSec,
     };
-  } catch {
+  } catch (err) {
+    console.error(
+      `[ingest] transcript fetch/parse failed for ${slug} (order ${order}):`,
+      err instanceof Error ? err.message : err,
+    );
     return {
       order,
       slug,
@@ -528,7 +532,7 @@ const runIngest = async (): Promise<void> => {
       .map((l) => `${l.slug} (order ${l.order})`)
       .join(", ");
     throw new Error(
-      `${failedLessons.length} lesson(s) failed transcript fetch — aborting to prevent partial ingest: ${names}`,
+      `${failedLessons.length} lesson(s) failed transcript fetch or quality check — aborting to prevent partial ingest: ${names}`,
     );
   }
 

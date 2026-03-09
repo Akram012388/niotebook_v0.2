@@ -154,7 +154,11 @@ const verifyTranscriptWindows = query({
         if (candidate) {
           lectureTen = candidate;
         }
-      } catch {
+      } catch (err) {
+        console.warn(
+          "[verifyTranscriptWindows] failed to load defaultLessonId:",
+          err instanceof Error ? err.message : err,
+        );
         lectureTen = null;
       }
     }
@@ -229,9 +233,7 @@ const verifyTranscriptWindows = query({
     }
 
     const errorLessons = lessons.filter((l) => l.transcriptStatus === "error");
-    const errorSlugs = errorLessons
-      .map((l) => l.subtitlesUrl ?? `order:${l.order}`)
-      .filter(Boolean);
+    const errorSlugs = errorLessons.map((l) => l.title ?? `order:${l.order}`);
 
     return {
       lectureTenCount,
