@@ -45,7 +45,7 @@ cp .env.example .env.local
 
 Fill in `.env.local` with your Convex and Clerk credentials (see table below).
 
-**Tip:** To run the app locally without Clerk auth (useful during development), add `NIOTEBOOK_DEV_AUTH_BYPASS=true` to `.env.local`. This bypasses the Clerk sign-in gate entirely.
+**Tip:** To run the app locally without Clerk credentials, enable the dev auth bypass — see `.env.example` for the full setup instructions and safety warnings.
 
 ```bash
 # Terminal 1 — Convex backend (required)

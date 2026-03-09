@@ -43,7 +43,7 @@ Run a single E2E test: `bunx playwright test path/to/test.ts`
 ### Key Patterns
 
 - **State:** Zustand stores for client state (filesystem, terminal, layout). Convex React hooks (`useQuery`/`useMutation`) for remote state.
-- **Code execution:** `runtimeManager.ts` routes to per-language executors. Python runs via Pyodide WASM, C via JSCPP in a Web Worker, JS via dynamic eval in a sandboxed scope, HTML/CSS via sandboxed iframe.
+- **Code execution:** `runtimeManager.ts` routes to per-language executors. Python runs via Pyodide WASM, C via JSCPP in a Web Worker, JS via a disposable sandboxed iframe (blob URL, postMessage I/O), HTML/CSS via sandboxed iframe.
 - **AI chat:** SSE streaming via `/api/nio/chat`. Gemini primary, Groq fallback. Context assembled from transcript segments + current code + video time.
 - **Auth:** Clerk → JWT → Convex identity. Invite-only alpha. `useBootstrapUser.ts` initializes on load.
 - **VFS:** In-memory tree serialized to IndexedDB. Powers multi-file editing with tabs and file tree sidebar.
