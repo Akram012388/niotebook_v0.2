@@ -33,7 +33,7 @@ type LessonCountsByCourseReference = import("convex/server").FunctionReference<
   "query",
   "public",
   Record<string, never>,
-  Record<string, number>
+  { courseId: string; count: number }[]
 >;
 
 const getCoursesRef = makeFunctionReference<"query">(

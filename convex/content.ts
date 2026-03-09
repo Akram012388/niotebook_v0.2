@@ -183,17 +183,17 @@ const getCourseByCourseId = query({
 
 const getLessonCountsByCourse = query({
   args: {},
-  handler: async (ctx): Promise<Record<string, number>> => {
+  handler: async (ctx): Promise<{ courseId: string; count: number }[]> => {
     const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
-    const counts: Record<string, number> = {};
-    for (const course of courses) {
-      const lessons = await ctx.db
-        .query("lessons")
-        .withIndex("by_courseId", (q) => q.eq("courseId", course._id))
-        .collect();
-      counts[String(course._id)] = lessons.length;
-    }
-    return counts;
+    return Promise.all(
+      courses.map(async (course) => {
+        const lessons = await ctx.db
+          .query("lessons")
+          .withIndex("by_courseId", (q) => q.eq("courseId", course._id))
+          .collect();
+        return { courseId: toDomainId(course._id), count: lessons.length };
+      }),
+    );
   },
 });
 
