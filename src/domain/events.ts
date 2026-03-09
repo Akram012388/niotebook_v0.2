@@ -221,120 +221,123 @@ type EventMetadataValidator = (
   metadata: EventMetadataInput,
 ) => EventValidationResult;
 
+const isStr = (v: unknown): v is string =>
+  typeof v === "string" && v.length > 0;
+
 const EVENT_METADATA_VALIDATORS: Record<EventType, EventMetadataValidator> = {
   invite_issued: (metadata) =>
-    metadata.inviteId && metadata.createdBy
+    isStr(metadata.inviteId) && isStr(metadata.createdBy)
       ? { ok: true }
       : invalidEventMetadata(),
   invite_redeemed: (metadata) =>
-    metadata.inviteId && metadata.redeemedBy
+    isStr(metadata.inviteId) && isStr(metadata.redeemedBy)
       ? { ok: true }
       : invalidEventMetadata(),
   magic_link_sent: (metadata) =>
-    metadata.emailHash ? { ok: true } : invalidEventMetadata(),
+    isStr(metadata.emailHash) ? { ok: true } : invalidEventMetadata(),
   magic_link_verified: (metadata) =>
-    metadata.userId ? { ok: true } : invalidEventMetadata(),
+    isStr(metadata.userId) ? { ok: true } : invalidEventMetadata(),
   course_selected: (metadata) =>
-    metadata.courseId ? { ok: true } : invalidEventMetadata(),
+    isStr(metadata.courseId) ? { ok: true } : invalidEventMetadata(),
   lesson_started: (metadata) =>
-    metadata.courseId && metadata.lessonId
+    isStr(metadata.courseId) && isStr(metadata.lessonId)
       ? { ok: true }
       : invalidEventMetadata(),
   video_play: (metadata) =>
-    metadata.lessonId && typeof metadata.videoTimeSec === "number"
+    isStr(metadata.lessonId) && typeof metadata.videoTimeSec === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   video_pause: (metadata) =>
-    metadata.lessonId && typeof metadata.videoTimeSec === "number"
+    isStr(metadata.lessonId) && typeof metadata.videoTimeSec === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   video_seek: (metadata) =>
-    metadata.lessonId && typeof metadata.videoTimeSec === "number"
+    isStr(metadata.lessonId) && typeof metadata.videoTimeSec === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   code_edit: (metadata) =>
-    metadata.lessonId && metadata.language
+    isStr(metadata.lessonId) && isStr(metadata.language)
       ? { ok: true }
       : invalidEventMetadata(),
   code_run: (metadata) =>
-    metadata.lessonId &&
-    metadata.language &&
+    isStr(metadata.lessonId) &&
+    isStr(metadata.language) &&
     typeof metadata.success === "boolean" &&
     typeof metadata.runtimeMs === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   nio_message_sent: (metadata) =>
-    metadata.lessonId && metadata.threadId
+    isStr(metadata.lessonId) && isStr(metadata.threadId)
       ? { ok: true }
       : invalidEventMetadata(),
   nio_message_received: (metadata) =>
-    metadata.lessonId &&
-    metadata.threadId &&
+    isStr(metadata.lessonId) &&
+    isStr(metadata.threadId) &&
     typeof metadata.latencyMs === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   ai_fallback_triggered: (metadata) =>
-    metadata.lessonId &&
-    metadata.threadId &&
-    metadata.fromProvider &&
-    metadata.toProvider &&
-    metadata.reason
+    isStr(metadata.lessonId) &&
+    isStr(metadata.threadId) &&
+    isStr(metadata.fromProvider) &&
+    isStr(metadata.toProvider) &&
+    isStr(metadata.reason)
       ? { ok: true }
       : invalidEventMetadata(),
   lesson_completed: (metadata) =>
-    metadata.lessonId ? { ok: true } : invalidEventMetadata(),
+    isStr(metadata.lessonId) ? { ok: true } : invalidEventMetadata(),
   session_start: (metadata) =>
-    metadata.sessionId && typeof metadata.durationMs === "number"
+    isStr(metadata.sessionId) && typeof metadata.durationMs === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   session_end: (metadata) =>
-    metadata.sessionId && typeof metadata.durationMs === "number"
+    isStr(metadata.sessionId) && typeof metadata.durationMs === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   runtime_warmup_start: (metadata) =>
-    metadata.language && typeof metadata.durationMs === "number"
+    isStr(metadata.language) && typeof metadata.durationMs === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   runtime_warmup_end: (metadata) =>
-    metadata.language && typeof metadata.durationMs === "number"
+    isStr(metadata.language) && typeof metadata.durationMs === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   transcript_ingest_started: (metadata) =>
-    metadata.lessonId ? { ok: true } : invalidEventMetadata(),
+    isStr(metadata.lessonId) ? { ok: true } : invalidEventMetadata(),
   transcript_ingest_succeeded: (metadata) =>
-    metadata.lessonId &&
+    isStr(metadata.lessonId) &&
     typeof metadata.segmentCount === "number" &&
     typeof metadata.transcriptDurationSec === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   transcript_ingest_failed: (metadata) =>
-    metadata.lessonId && metadata.reason
+    isStr(metadata.lessonId) && isStr(metadata.reason)
       ? { ok: true }
       : invalidEventMetadata(),
   transcript_duration_warn: (metadata) =>
-    metadata.lessonId &&
+    isStr(metadata.lessonId) &&
     typeof metadata.lessonDurationSec === "number" &&
     typeof metadata.transcriptDurationSec === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   share_opened: (metadata) =>
-    metadata.surface ? { ok: true } : invalidEventMetadata(),
+    isStr(metadata.surface) ? { ok: true } : invalidEventMetadata(),
   share_copy: (metadata) =>
-    metadata.surface ? { ok: true } : invalidEventMetadata(),
+    isStr(metadata.surface) ? { ok: true } : invalidEventMetadata(),
   share_social: (metadata) =>
-    metadata.surface && metadata.network
+    isStr(metadata.surface) && isStr(metadata.network)
       ? { ok: true }
       : invalidEventMetadata(),
   feedback_opened: (metadata) =>
-    metadata.surface ? { ok: true } : invalidEventMetadata(),
+    isStr(metadata.surface) ? { ok: true } : invalidEventMetadata(),
   feedback_submitted: (metadata) =>
-    metadata.surface &&
+    isStr(metadata.surface) &&
     typeof metadata.rating === "number" &&
     typeof metadata.textLength === "number"
       ? { ok: true }
       : invalidEventMetadata(),
   feedback_dismissed: (metadata) =>
-    metadata.surface ? { ok: true } : invalidEventMetadata(),
+    isStr(metadata.surface) ? { ok: true } : invalidEventMetadata(),
 };
 
 const buildEventLogError = (code: EventLogErrorCode): EventLogError => {
