@@ -23,7 +23,7 @@ type CourseInfo = {
 };
 
 const contentOverviewRef = makeFunctionReference<"query">(
-  "ops:getContentOverview",
+  "analytics:getContentOverview",
 ) as FunctionReference<"query", "public", Record<string, never>, CourseInfo[]>;
 
 const formatDuration = (sec: number): string => {

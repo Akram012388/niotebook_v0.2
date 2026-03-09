@@ -26,43 +26,43 @@ const DAYS: Record<TimeRange, number> = { "1d": 1, "7d": 7, "30d": 30 };
 type TopLesson = { title: string; eventCount: number };
 
 const activeUsersRef = makeFunctionReference<"query">(
-  "ops:getActiveUsers",
+  "analytics:getActiveUsers",
 ) as FunctionReference<"query", "public", { timeWindowMs: number }, number>;
 
 const sessionCountRef = makeFunctionReference<"query">(
-  "ops:getSessionCount",
+  "analytics:getSessionCount",
 ) as FunctionReference<"query", "public", { timeWindowMs: number }, number>;
 
 const aiRequestCountRef = makeFunctionReference<"query">(
-  "ops:getAiRequestCount",
+  "analytics:getAiRequestCount",
 ) as FunctionReference<"query", "public", { timeWindowMs: number }, number>;
 
 const codeExecCountRef = makeFunctionReference<"query">(
-  "ops:getCodeExecutionCount",
+  "analytics:getCodeExecutionCount",
 ) as FunctionReference<"query", "public", { timeWindowMs: number }, number>;
 
 const totalLessonsRef = makeFunctionReference<"query">(
-  "ops:getTotalLessons",
+  "analytics:getTotalLessons",
 ) as FunctionReference<"query", "public", Record<string, never>, number>;
 
 const dauSeriesRef = makeFunctionReference<"query">(
-  "ops:getDailyActiveUsersSeries",
+  "analytics:getDailyActiveUsersSeries",
 ) as FunctionReference<"query", "public", { days: number }, DauPoint[]>;
 
 const aiSeriesRef = makeFunctionReference<"query">(
-  "ops:getAiUsageSeries",
+  "analytics:getAiUsageSeries",
 ) as FunctionReference<"query", "public", { days: number }, DauPoint[]>;
 
 const userGrowthRef = makeFunctionReference<"query">(
-  "ops:getUserGrowth",
+  "analytics:getUserGrowth",
 ) as FunctionReference<"query", "public", { days: number }, DauPoint[]>;
 
 const topLessonsRef = makeFunctionReference<"query">(
-  "ops:getTopLessons",
+  "analytics:getTopLessons",
 ) as FunctionReference<"query", "public", { limit: number }, TopLesson[]>;
 
 const eventLogRef = makeFunctionReference<"query">(
-  "ops:getEventLog",
+  "analytics:getEventLog",
 ) as FunctionReference<"query", "public", { limit: number }, EventEntry[]>;
 
 const AdminDashboard = (): ReactElement => {

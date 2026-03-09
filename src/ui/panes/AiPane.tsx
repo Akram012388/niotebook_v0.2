@@ -21,7 +21,7 @@ import { getLessonRef } from "../content/convexContent";
 import { resolveLectureNumber } from "../../domain/lectureNumber";
 import { useVideoDisplayTime } from "../layout/WorkspaceGrid";
 import { useTerminalStore } from "../code/terminal/useTerminalStore";
-import { useNiotepadStore } from "../../infra/niotepad/useNiotepadStore";
+import { useBookmarkConfirm } from "./useBookmarkConfirm";
 
 // ── Selection push tooltip ────────────────────────────────────
 type SelectionTooltipProps = {
@@ -233,41 +233,27 @@ const AiPane = ({
   }, [videoTimeSec]);
 
   // ── Bookmark to niotepad ────────────────────────────────
-  const [bookmarkConfirm, setBookmarkConfirm] = useState(false);
-  const bookmarkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const { bookmarkSaved, handleBookmark: doBookmark } = useBookmarkConfirm(
+    lessonId,
+    lectureLabel,
+  );
 
   const handleBookmark = useCallback((): void => {
     const lastAssistant = [...messages]
       .reverse()
       .find((m) => m.role === "assistant");
     if (!lastAssistant?.content) return;
-
-    const store = useNiotepadStore.getState();
-    const pageId = store.getOrCreatePage(lessonId, lectureLabel);
-    store.addEntry({
+    doBookmark({
       source: "chat",
       content: lastAssistant.content,
-      pageId,
       videoTimeSec,
       metadata: {
         chatMessageId: lastAssistant.id,
         lectureTitle: lectureLabel,
       },
     });
-
-    setBookmarkConfirm(true);
-    if (bookmarkTimerRef.current) clearTimeout(bookmarkTimerRef.current);
-    bookmarkTimerRef.current = setTimeout(() => {
-      setBookmarkConfirm(false);
-      bookmarkTimerRef.current = null;
-    }, 1500);
-  }, [messages, lessonId, lectureLabel, videoTimeSec]);
-
-  useEffect(() => {
-    return () => {
-      if (bookmarkTimerRef.current) clearTimeout(bookmarkTimerRef.current);
-    };
-  }, []);
+  }, [doBookmark, messages, videoTimeSec, lectureLabel]);
 
   const contextStripLabel = useMemo(() => {
     const parts: string[] = [];
@@ -298,7 +284,7 @@ const AiPane = ({
             className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
             aria-label="Bookmark last response to niotepad"
           >
-            {bookmarkConfirm ? (
+            {bookmarkSaved ? (
               <svg
                 width="14"
                 height="14"

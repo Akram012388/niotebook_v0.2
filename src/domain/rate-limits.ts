@@ -1,4 +1,4 @@
-type RateLimitScope = "invite_redeem" | "ai_request";
+type RateLimitScope = "invite_redeem" | "ai_request" | "event_log";
 
 type RateLimitRecord = {
   scope: RateLimitScope;
@@ -23,6 +23,8 @@ const INVITE_REDEEM_WINDOW_MS = 60 * 60 * 1000;
 const INVITE_REDEEM_LIMIT = 5;
 const AI_REQUEST_WINDOW_MS = 10 * 60 * 1000;
 const AI_REQUEST_LIMIT = 20;
+const EVENT_LOG_WINDOW_MS = 60 * 1000; // 1 minute
+const EVENT_LOG_LIMIT = 100;
 
 const evaluateRateLimit = (
   scope: RateLimitScope,
@@ -64,6 +66,8 @@ export type {
 export {
   AI_REQUEST_LIMIT,
   AI_REQUEST_WINDOW_MS,
+  EVENT_LOG_LIMIT,
+  EVENT_LOG_WINDOW_MS,
   INVITE_REDEEM_LIMIT,
   INVITE_REDEEM_WINDOW_MS,
   evaluateRateLimit,
