@@ -24,7 +24,7 @@ function walkTs(dir: string): string[] {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) {
       files.push(...walkTs(full));
-    } else if (entry.endsWith(".ts")) {
+    } else if (entry.endsWith(".ts") || entry.endsWith(".tsx")) {
       files.push(full);
     }
   }
@@ -36,8 +36,18 @@ for (const dir of dirs) {
     if (fullPath.includes("_generated")) continue;
     const content = readFileSync(fullPath, "utf8");
     const lines = content.split("\n");
+    let inBlockComment = false;
     lines.forEach((line: string, i: number) => {
       const trimmed = line.trim();
+      // Track block comment boundaries
+      if (inBlockComment) {
+        if (trimmed.includes("*/")) inBlockComment = false;
+        return;
+      }
+      if (trimmed.includes("/*")) {
+        if (!trimmed.includes("*/")) inBlockComment = true;
+        return;
+      }
       // Skip single-line comment lines and JSDoc/block comment lines
       if (trimmed.startsWith("//") || trimmed.startsWith("*")) return;
       if (regex.test(line)) {
