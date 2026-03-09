@@ -2,12 +2,26 @@ import withBundleAnalyzer from "@next/bundle-analyzer";
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
+if (process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true") {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "[build] NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS must not be set in production builds. " +
+        "This variable is deprecated — use NIOTEBOOK_DEV_AUTH_BYPASS (server-only) instead.",
+    );
+  }
+  console.warn(
+    "[build] NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS is deprecated. " +
+      "Rename it to NIOTEBOOK_DEV_AUTH_BYPASS in your .env.local. " +
+      "The server-only variable will not be exposed to the client bundle.",
+  );
+}
+
 if (
-  process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true" &&
+  process.env.NIOTEBOOK_DEV_AUTH_BYPASS === "true" &&
   process.env.NODE_ENV === "production"
 ) {
   throw new Error(
-    "[build] NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS must not be set in production builds. " +
+    "[build] NIOTEBOOK_DEV_AUTH_BYPASS must not be set in production builds. " +
       "Remove it from your environment before building.",
   );
 }

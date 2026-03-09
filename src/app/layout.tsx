@@ -3,6 +3,7 @@ import type { ReactElement, ReactNode } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono, Orbitron } from "next/font/google";
 import { Providers } from "./providers";
+import { DevAuthBypassProvider } from "./DevAuthBypassProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -82,7 +83,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} antialiased bg-background text-foreground nio-pattern`}
       >
         <ClerkProvider>
-          <Providers>{children}</Providers>
+          <DevAuthBypassProvider>
+            <Providers>{children}</Providers>
+          </DevAuthBypassProvider>
         </ClerkProvider>
       </body>
     </html>

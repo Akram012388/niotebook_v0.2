@@ -30,6 +30,7 @@ import { ControlCenterDrawer } from "./ControlCenterDrawer";
 import type { SettingsRoute } from "./ControlCenterDrawer";
 import { NiotepadPill } from "../niotepad/NiotepadPill";
 import { useNiotepadStore } from "@/infra/niotepad/useNiotepadStore";
+import { useDevAuthBypass } from "@/infra/devAuthBypassContext";
 
 const LESSON_STORAGE_KEY = "niotebook.lesson";
 
@@ -50,6 +51,7 @@ const TopNav = (): ReactElement => {
   const drawerWasOpenRef = useRef(false);
 
   const courses = useQuery(getCoursesRef);
+  const devAuthBypass = useDevAuthBypass();
 
   const lessonId = useMemo((): string | null => {
     return searchParams.get("lessonId");
@@ -84,10 +86,9 @@ const TopNav = (): ReactElement => {
   );
   const shouldAutoSelectDefault = useMemo((): boolean => {
     return (
-      process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true" ||
-      process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true"
+      process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true" || devAuthBypass
     );
-  }, []);
+  }, [devAuthBypass]);
 
   const updateLesson = useCallback(
     (nextLessonId: string | null): void => {
