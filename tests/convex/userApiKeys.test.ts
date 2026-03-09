@@ -1,13 +1,18 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { makeTestEnv, api } from "./setup";
 
 // A stable token that convex-test's withIdentity will use.
 const TOKEN_IDENTIFIER = "https://convex.test|user-apikeys-test";
 
 // A dummy encryption secret for tests (32+ chars → safe for AES-256-GCM).
-// Set once at module level so it is always present for all tests.
-process.env.NIOTEBOOK_KEY_ENCRYPTION_SECRET =
-  "test-secret-key-for-vitest-only-12345";
+// Set in beforeEach and cleaned up in afterEach to avoid cross-test pollution.
+beforeEach(() => {
+  process.env.NIOTEBOOK_KEY_ENCRYPTION_SECRET =
+    "test-secret-key-for-vitest-only-12345";
+});
+afterEach(() => {
+  delete process.env.NIOTEBOOK_KEY_ENCRYPTION_SECRET;
+});
 
 type Provider = "gemini" | "openai" | "anthropic";
 
