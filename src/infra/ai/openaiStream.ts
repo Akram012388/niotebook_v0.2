@@ -4,6 +4,7 @@ import {
   createProviderStreamError,
   NioProviderStreamError,
 } from "./providerTypes";
+import { readSseStream } from "./sseStream";
 
 type OpenAIStreamInput = {
   messages: NioContextMessage[];
@@ -13,6 +14,20 @@ type OpenAIStreamInput = {
 
 const OPENAI_MODEL = "gpt-4o-mini";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+
+const parseOpenAIToken = (parsed: unknown): string | null => {
+  if (
+    typeof parsed === "object" &&
+    parsed !== null &&
+    "choices" in parsed &&
+    Array.isArray((parsed as { choices: unknown[] }).choices)
+  ) {
+    const token = (parsed as { choices: { delta?: { content?: string } }[] })
+      .choices[0]?.delta?.content;
+    if (typeof token === "string" && token) return token;
+  }
+  return null;
+};
 
 const toOpenAIRole = (role: string): "system" | "user" | "assistant" => {
   if (role === "system") return "system";
@@ -79,47 +94,7 @@ const streamOpenAI = async (
 
   const responseBody = response.body;
 
-  const stream = (async function* () {
-    const reader = responseBody.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
-
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed || !trimmed.startsWith("data:")) continue;
-
-        const payload = trimmed.slice("data:".length).trim();
-        if (payload === "[DONE]") return;
-
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(payload);
-        } catch {
-          continue;
-        }
-
-        const token =
-          typeof parsed === "object" &&
-          parsed !== null &&
-          "choices" in parsed &&
-          Array.isArray((parsed as { choices: unknown[] }).choices) &&
-          (parsed as { choices: { delta?: { content?: string } }[] }).choices[0]
-            ?.delta?.content;
-
-        if (typeof token === "string" && token) {
-          yield token;
-        }
-      }
-    }
-  })();
+  const stream = readSseStream(responseBody, parseOpenAIToken);
 
   return {
     provider: "openai",

@@ -4,6 +4,7 @@ import {
   createProviderStreamError,
   NioProviderStreamError,
 } from "./providerTypes";
+import { readSseStream } from "./sseStream";
 
 type AnthropicStreamInput = {
   messages: NioContextMessage[];
@@ -14,6 +15,19 @@ type AnthropicStreamInput = {
 const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_API_VERSION = "2023-06-01";
+
+const parseAnthropicToken = (parsed: unknown): string | null => {
+  if (
+    typeof parsed === "object" &&
+    parsed !== null &&
+    (parsed as { type?: string }).type === "content_block_delta" &&
+    typeof (parsed as { delta?: { text?: string } }).delta?.text === "string"
+  ) {
+    const text = (parsed as { delta: { text: string } }).delta.text;
+    return text || null;
+  }
+  return null;
+};
 
 const streamAnthropic = async (
   input: AnthropicStreamInput,
@@ -85,46 +99,7 @@ const streamAnthropic = async (
 
   const responseBody = response.body;
 
-  const stream = (async function* () {
-    const reader = responseBody.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
-
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed.startsWith("data:")) continue;
-
-        const payload = trimmed.slice("data:".length).trim();
-
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(payload);
-        } catch {
-          continue;
-        }
-
-        // Anthropic streams content_block_delta events
-        if (
-          typeof parsed === "object" &&
-          parsed !== null &&
-          (parsed as { type?: string }).type === "content_block_delta" &&
-          typeof (parsed as { delta?: { text?: string } }).delta?.text ===
-            "string"
-        ) {
-          const text = (parsed as { delta: { text: string } }).delta.text;
-          if (text) yield text;
-        }
-      }
-    }
-  })();
+  const stream = readSseStream(responseBody, parseAnthropicToken);
 
   return {
     provider: "anthropic",
