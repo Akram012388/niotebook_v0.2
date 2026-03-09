@@ -1,6 +1,6 @@
 // Server Component — reads server-only env var and injects via context
 import type { ReactNode } from "react";
-import { DevAuthBypassContext } from "@/infra/devAuthBypassContext";
+import { DevAuthBypassContext } from "@/infra/dev/devAuthBypassContext";
 import { DevAuthBypassEffect } from "./DevAuthBypassEffect";
 
 type DevAuthBypassProviderProps = {
