@@ -5,7 +5,7 @@
  *
  * @param body        - The raw ReadableStream from the fetch response body.
  * @param parseToken  - Provider-specific function that receives a parsed JSON
- *                      value and returns a token string, or null to skip.
+ *                      value and returns a non-empty token string, or null/empty string to skip.
  * @param allowRawJson - When true, lines without a `data:` prefix are also
  *                      attempted as raw JSON (needed for Gemini alt=sse mode).
  */
@@ -47,6 +47,9 @@ export async function* readSseStream(
         try {
           parsed = JSON.parse(payloadText);
         } catch {
+          if (process.env.NIO_DEBUG === "1") {
+            console.warn("[sseStream] Failed to parse SSE payload:", payloadText.slice(0, 100));
+          }
           continue;
         }
 
