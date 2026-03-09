@@ -1,5 +1,11 @@
+import withBundleAnalyzer from "@next/bundle-analyzer";
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+
+const bundleAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+  openAnalyzer: false,
+});
 
 const nextConfig: NextConfig = {
   async headers() {
@@ -60,4 +66,4 @@ const sentryBuildOptions = {
   },
 };
 
-export default withSentryConfig(nextConfig, sentryBuildOptions);
+export default bundleAnalyzer(withSentryConfig(nextConfig, sentryBuildOptions));
