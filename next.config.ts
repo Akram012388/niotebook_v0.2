@@ -2,6 +2,16 @@ import withBundleAnalyzer from "@next/bundle-analyzer";
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
+if (
+  process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true" &&
+  process.env.NODE_ENV === "production"
+) {
+  throw new Error(
+    "[build] NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS must not be set in production builds. " +
+      "Remove it from your environment before building.",
+  );
+}
+
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
   openAnalyzer: false,
