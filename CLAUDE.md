@@ -43,7 +43,7 @@ Run a single E2E test: `bunx playwright test path/to/test.ts`
 ### Key Patterns
 
 - **State:** Zustand stores for client state (filesystem, terminal, layout). Convex React hooks (`useQuery`/`useMutation`) for remote state.
-- **Code execution:** `runtimeManager.ts` routes to per-language executors. Python runs via Pyodide, C via Wasmer (in sandboxed iframe), JS via `new Function()`.
+- **Code execution:** `runtimeManager.ts` routes to per-language executors. Python runs via Pyodide WASM, C via JSCPP in a Web Worker, JS via dynamic eval in a sandboxed scope, HTML/CSS via sandboxed iframe.
 - **AI chat:** SSE streaming via `/api/nio/chat`. Gemini primary, Groq fallback. Context assembled from transcript segments + current code + video time.
 - **Auth:** Clerk → JWT → Convex identity. Invite-only alpha. `useBootstrapUser.ts` initializes on load.
 - **VFS:** In-memory tree serialized to IndexedDB. Powers multi-file editing with tabs and file tree sidebar.
@@ -65,6 +65,5 @@ Run a single E2E test: `bunx playwright test path/to/test.ts`
 
 ## Remediation Work
 
-Active remediation plan: docs/REMEDIATION*PLAN.md
-Current wave: Wave 1 (parallel fixes - security, devops, data, tests)
-Branch naming: fix/SEC-01-*, refactor/ARCH-_, test/TEST-_, docs/oss-\_
+All 50 remediation findings resolved across Waves 0–6 + Unit B (C executor Web Worker).
+Historical plan archived at: docs/archive/REMEDIATION_PLAN.md
