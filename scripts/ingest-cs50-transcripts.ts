@@ -1,3 +1,12 @@
+/**
+ * Ingest pipeline — Step 2b: Other CS50 courses
+ *
+ * Re-ingests SRT transcripts for CS50P, CS50AI, CS50SQL, and CS50W.
+ * Requires those courses to already exist in Convex (run Step 1 first).
+ * Calls patchLessonUrls + ingestTranscriptSegmentsBatch on Convex.
+ *
+ * Usage: CONVEX_URL=<url> bun ./scripts/ingest-cs50-transcripts.ts
+ */
 import { ConvexHttpClient } from "convex/browser";
 import type { FunctionReference } from "convex/server";
 

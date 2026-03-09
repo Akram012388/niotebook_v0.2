@@ -53,4 +53,4 @@ jobs:
         run: bun run ingest:cs50x
       - name: Verify transcript windows
         timeout-minutes: 5
-        run: bun ./scripts/verifyTranscriptWindows.ts
+        run: bun ./scripts/verify-transcript-windows.ts

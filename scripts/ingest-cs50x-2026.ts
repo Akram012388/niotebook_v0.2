@@ -1,3 +1,13 @@
+/**
+ * Ingest pipeline — Step 2a: CS50x 2026
+ *
+ * Dynamically scrapes cs50.harvard.edu/x/ to rebuild lesson metadata and
+ * transcripts for CS50x 2026. Calls ingest:ingestCs50x2026 on Convex.
+ *
+ * Run after Step 1 (ingest-cs50-courses.ts) to refresh CS50x content.
+ *
+ * Usage: CONVEX_URL=<url> bun ./scripts/ingest-cs50x-2026.ts
+ */
 import { ConvexHttpClient } from "convex/browser";
 import type { FunctionReference } from "convex/server";
 

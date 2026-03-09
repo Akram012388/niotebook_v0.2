@@ -1,15 +1,13 @@
 /**
- * Ingest script for all 5 CS50 courses.
+ * Ingest pipeline — Step 1: Bootstrap
  *
- * Usage: npx convex run ingest:ingestCourse -- --json < scripts/data/cs50x.json
- * Or call `ingestCourse` via the dashboard/admin for each course payload below.
+ * Creates all 5 CS50 course + lesson records in Convex with static metadata.
+ * Run this ONCE when setting up a new Convex deployment before running
+ * the individual transcript ingest scripts.
  *
- * This file defines the payloads for:
- *  - CS50x 2026
- *  - CS50P (Introduction to Programming with Python)
- *  - CS50AI (Introduction to Artificial Intelligence with Python)
- *  - CS50W (Web Programming with Python and JavaScript)
- *  - CS50SQL (Introduction to Databases with SQL)
+ * Usage: bun ./scripts/ingest-cs50-courses.ts
+ *
+ * Courses: CS50x 2026, CS50P, CS50AI, CS50W, CS50SQL
  */
 
 type EnvironmentConfig = {
