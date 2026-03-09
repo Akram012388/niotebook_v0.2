@@ -51,6 +51,8 @@ type WebRGlobal = {
 /* Pin CDN to same major version as package.json (webr@^0.5.8) */
 const WEBR_CDN = "https://webr.r-wasm.org/v0.5.8/";
 const WEBR_SCRIPT_URL = `${WEBR_CDN}webr.mjs`;
+// Fallback CDN option: https://cdn.jsdelivr.net/npm/webr@0.5.8/dist/
+// Currently unused — if primary CDN fails, consider implementing CDN fallback
 
 const WEBR_LOAD_TIMEOUT_MS = 60_000;
 const WEBR_EVAL_TIMEOUT_MS = 30_000;
@@ -97,8 +99,15 @@ function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
             globalThis.__webr_loaded__ = true;
             document.dispatchEvent(new Event("webr-loaded"));
           `;
-          script.onerror = () =>
-            reject(new Error("Failed to load WebR script"));
+          script.onerror = (event) => {
+            document.removeEventListener("webr-loaded", onLoaded);
+            console.error("[rExecutor] WebR CDN load failed:", event);
+            reject(
+              new Error(
+                `WebR failed to load from CDN (${WEBR_CDN}). Check your network connection.`,
+              ),
+            );
+          };
 
           const onLoaded = () => {
             document.removeEventListener("webr-loaded", onLoaded);
@@ -129,7 +138,8 @@ function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
     "WebR load",
   );
 
-  webrPromise.catch(() => {
+  webrPromise.catch((err: unknown) => {
+    console.error("[rExecutor] WebR load failed, clearing cached promise:", err);
     webrPromise = null;
   });
   return webrPromise;
