@@ -24,11 +24,13 @@ jobs:
   # Lightweight preflight job: verify the deployment is an e2e-ready preview.
   # The e2e job only runs if this job sets outputs.ready=true.
   preflight:
+    # Filter to Vercel deployments only — other GitHub Apps also fire deployment_status.
     if: |
       (github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'deployment_status' &&
        github.event.deployment_status.state == 'success' &&
-       github.event.deployment.environment != 'Production')
+       github.event.deployment.environment != 'Production' &&
+       contains(github.event.deployment_status.target_url, '.vercel.app'))
     runs-on: ubuntu-latest
     outputs:
       ready: ${{ steps.check.outputs.ready }}
@@ -47,17 +49,29 @@ jobs:
           BASE_URL="${DS_URL:-$WD_URL}"
           CHECKOUT_REF="${DS_REF:-$WD_REF}"
 
-          echo "base_url=${BASE_URL}" >> "$GITHUB_OUTPUT"
-          echo "checkout_ref=${CHECKOUT_REF}" >> "$GITHUB_OUTPUT"
-
           if [ -z "${BASE_URL}" ]; then
             echo "BASE_URL is empty — aborting."
+            exit 1
+          fi
+
+          if [ -z "${CHECKOUT_REF}" ]; then
+            echo "CHECKOUT_REF is empty — aborting."
             exit 1
           fi
 
           echo "Trigger: $GITHUB_EVENT_NAME"
           echo "Base URL: ${BASE_URL}"
           echo "Checkout ref: ${CHECKOUT_REF}"
+
+          # Use multiline delimiter syntax to prevent newline injection in GITHUB_OUTPUT
+          {
+            echo "base_url<<_EOL_"
+            echo "${BASE_URL}"
+            echo "_EOL_"
+            echo "checkout_ref<<_EOL_"
+            echo "${CHECKOUT_REF}"
+            echo "_EOL_"
+          } >> "$GITHUB_OUTPUT"
 
           if curl -sf --max-time 15 "${BASE_URL}" 2>/dev/null | grep -q 'name="niotebook-e2e" content="ready"'; then
             echo "E2E marker present — proceeding."
@@ -91,11 +105,14 @@ jobs:
           key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
           restore-keys: bun-${{ runner.os }}-
       - uses: actions/cache@v4
+        id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
       - run: bun install --frozen-lockfile
-      - run: bunx playwright install --with-deps
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: bunx playwright install --with-deps
       - run: bun run e2e:seed
       - run: bun ./scripts/e2eEnv.ts --github
       - run: bun run test:e2e

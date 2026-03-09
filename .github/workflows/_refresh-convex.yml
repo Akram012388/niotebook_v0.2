@@ -34,7 +34,6 @@ jobs:
       NIOTEBOOK_INGEST_TOKEN: ${{ secrets.NIOTEBOOK_INGEST_TOKEN }}
       NIOTEBOOK_ALLOW_PROD_INGEST: ${{ inputs.allow_prod_ingest && 'true' || 'false' }}
       NODE_ENV: ${{ inputs.node_env }}
-      NEXT_PUBLIC_DEFAULT_LESSON_ID: k170tmrc8zxxqtabctyddvhhqx7zkgae
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
