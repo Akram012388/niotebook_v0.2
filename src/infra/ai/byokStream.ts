@@ -1,7 +1,7 @@
 import { ConvexHttpClient } from "convex/browser";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { api } from "../../../convex/_generated/api";
-import type { NioErrorCode, NioSseEvent } from "../../domain/ai/types";
+import type { NioErrorCode, NioSseEvent } from "../../domain/nio";
 import type { NioContextMessage } from "../../domain/nioContextBuilder";
 import { streamGemini } from "./geminiStream";
 import { streamOpenAI } from "./openaiStream";

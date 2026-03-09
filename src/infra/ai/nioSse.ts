@@ -1,4 +1,4 @@
-import type { NioErrorCode, NioSseEvent } from "../../domain/ai/types";
+import type { NioErrorCode, NioSseEvent } from "../../domain/nio";
 import { isRecord, isString, isNumber } from "./typeGuards";
 
 const NIO_SSE_HEADERS: Record<string, string> = {

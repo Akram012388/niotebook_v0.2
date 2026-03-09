@@ -1,7 +1,7 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../convex/_generated/api";
 import type { RateLimitDecision } from "../../../domain/rate-limits";
-import type { NioSseEvent } from "../../../domain/ai/types";
+import type { NioSseEvent } from "../../../domain/nio";
 import { buildNioContext } from "../../../domain/nioContextBuilder";
 import { NIO_SYSTEM_PROMPT } from "../../../domain/nioPrompt";
 import { encodeSseEvent, NIO_SSE_HEADERS } from "../../../infra/ai/nioSse";

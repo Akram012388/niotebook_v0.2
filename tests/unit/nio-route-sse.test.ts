@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { NioChatRequest } from "../../src/domain/ai/types";
+import type { NioChatRequest } from "../../src/domain/nio";
 import { parseSseEvent } from "../../src/infra/ai/nioSse";
 import { POST } from "../../src/app/api/nio/route";
 

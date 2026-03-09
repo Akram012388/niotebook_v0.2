@@ -4,7 +4,7 @@ import type {
   NioCodePayload,
   NioLessonMetaPayload,
   NioTranscriptPayload,
-} from "../../domain/ai/types";
+} from "../../domain/nio";
 
 type ValidationSuccess = { ok: true; data: NioChatRequest };
 type ValidationFailure = { ok: false; error: string };

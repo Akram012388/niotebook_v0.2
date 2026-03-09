@@ -1,4 +1,4 @@
-import type { NioErrorCode } from "../../domain/ai/types";
+import type { NioErrorCode } from "../../domain/nio";
 
 type NioProviderId = "gemini" | "groq" | "openai" | "anthropic";
 
