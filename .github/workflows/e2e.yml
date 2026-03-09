@@ -1,267 +1,106 @@
 name: e2e
 
+# Triggers:
+#   1. deployment_status — fires when Vercel updates a GitHub deployment status.
+#      Runs only on successful preview deployments (not production).
+#      Provides BASE_URL and commit SHA automatically — no payload parsing needed.
+#   2. workflow_dispatch — manual runs with explicit base_url and ref inputs.
 on:
-  repository_dispatch:
-    types:
-      - vercel.deployment.success
+  deployment_status:
   workflow_dispatch:
     inputs:
       base_url:
-        description: "Vercel preview URL"
+        description: "Vercel preview URL (e.g. https://niotebook-xyz.vercel.app)"
         required: true
       ref:
-        description: "Git ref to test"
-        required: false
+        description: "Git ref to checkout (commit SHA or branch)"
+        required: true
+
+env:
+  BUN_VERSION: "1.1.19"
+  NEXT_PUBLIC_DEFAULT_LESSON_ID: k170tmrc8zxxqtabctyddvhhqx7zkgae
 
 jobs:
-  e2e:
+  # Lightweight preflight job: verify the deployment is an e2e-ready preview.
+  # The e2e job only runs if this job sets outputs.ready=true.
+  preflight:
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'deployment_status' &&
+       github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment != 'Production')
     runs-on: ubuntu-latest
-    env:
-      BASE_URL: ${{ github.event.inputs.base_url || github.event.client_payload.deployment_url || github.event.client_payload.url || github.event.client_payload.deploymentUrl || github.event.client_payload.target_url }}
-      CHECKOUT_REF: main
-      CONVEX_URL: ${{ secrets.PREVIEW_DATA_CONVEX_URL }}
-      NEXT_PUBLIC_DEFAULT_LESSON_ID: k170tmrc8zxxqtabctyddvhhqx7zkgae
-      NIOTEBOOK_INGEST_TOKEN: ${{ secrets.NIOTEBOOK_INGEST_TOKEN_PREVIEW_DATA }}
-      NIOTEBOOK_E2E_VIDEO_ID: ${{ secrets.NIOTEBOOK_E2E_VIDEO_ID }}
-      E2E_USE_WEBSERVER: "false"
-      NIOTEBOOK_E2E_SEED_PATH: .e2e-seed.json
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+      base_url: ${{ steps.check.outputs.base_url }}
+      checkout_ref: ${{ steps.check.outputs.checkout_ref }}
     steps:
-      - name: Resolve checkout ref
+      - name: Resolve inputs and check e2e marker
+        id: check
+        env:
+          # deployment_status provides URL and SHA directly — no payload parsing
+          DS_URL: ${{ github.event.deployment_status.target_url }}
+          DS_REF: ${{ github.event.deployment.sha }}
+          WD_URL: ${{ github.event.inputs.base_url }}
+          WD_REF: ${{ github.event.inputs.ref }}
         run: |
-          python - <<'PY'
-          import json
-          import os
-          import urllib.request
+          BASE_URL="${DS_URL:-$WD_URL}"
+          CHECKOUT_REF="${DS_REF:-$WD_REF}"
 
-          event_path = os.environ.get("GITHUB_EVENT_PATH")
-          with open(event_path, "r", encoding="utf-8") as handle:
-              event = json.load(handle)
+          echo "base_url=${BASE_URL}" >> "$GITHUB_OUTPUT"
+          echo "checkout_ref=${CHECKOUT_REF}" >> "$GITHUB_OUTPUT"
 
-          inputs = event.get("inputs", {}) or {}
-          client_payload = event.get("client_payload", {}) or {}
-          deployment = client_payload.get("deployment", {}) or {}
-
-          def pick(*values):
-              for value in values:
-                  if value:
-                      return value
-              return None
-
-          meta = deployment.get("meta", {}) or {}
-          git_source = deployment.get("gitSource", {}) or {}
-
-          def resolve_ref(source):
-              if not isinstance(source, dict):
-                  return None
-              meta = source.get("meta", {}) or {}
-              git_source = source.get("gitSource", {}) or {}
-              return pick(
-                meta.get("githubCommitSha"),
-                meta.get("githubCommitRef"),
-                meta.get("gitSha"),
-                meta.get("gitRef"),
-                source.get("sha"),
-                git_source.get("sha"),
-                git_source.get("ref"),
-              )
-
-          ref = pick(
-            inputs.get("ref"),
-            meta.get("githubCommitSha"),
-            meta.get("githubCommitRef"),
-            meta.get("gitSha"),
-            meta.get("gitRef"),
-            deployment.get("sha"),
-            git_source.get("sha"),
-            git_source.get("ref"),
-            client_payload.get("ref"),
-          )
-
-          base_url = pick(
-              inputs.get("base_url"),
-              deployment.get("url"),
-              client_payload.get("deployment_url"),
-              client_payload.get("deploymentUrl"),
-              client_payload.get("target_url"),
-              client_payload.get("url"),
-          )
-
-          def normalize_url(value):
-              if not value:
-                  return None
-              normalized = value.strip()
-              if normalized.startswith("http"):
-                  normalized = normalized.split("//", 1)[1]
-              normalized = normalized.strip("/")
-              return normalized or None
-
-          def normalize_ref(value):
-              if not value:
-                  return None
-              normalized = value.strip()
-              if normalized.startswith("refs/heads/"):
-                  normalized = normalized.split("refs/heads/", 1)[1]
-              return normalized or None
-
-          normalized = normalize_url(base_url)
-          deployment_id = pick(
-              deployment.get("id"),
-              client_payload.get("deploymentId"),
-              client_payload.get("deployment_id"),
-          )
-          deployment_target = pick(
-              deployment.get("target"),
-              client_payload.get("target"),
-          )
-          event_name = os.environ.get("GITHUB_EVENT_NAME")
-          branch_ref = normalize_ref(
-              pick(
-                  meta.get("githubCommitRef"),
-                  meta.get("gitRef"),
-                  git_source.get("ref"),
-                  client_payload.get("ref"),
-              )
-          )
-
-          event_name = os.environ.get("GITHUB_EVENT_NAME")
-
-          if not ref and event_name == "workflow_dispatch":
-              print("Manual e2e runs must supply inputs.ref. Skipping run.")
-              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
-                  handle.write("SKIP_E2E=true\n")
-                  handle.write("SKIP_E2E_REASON=manual run missing ref input\n")
-              ref = None
-
-          if not ref and event_name == "repository_dispatch":
-              print("Unable to resolve git ref from payload; skipping e2e.")
-              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
-                  handle.write("SKIP_E2E=true\n")
-                  handle.write("SKIP_E2E_REASON=payload missing git ref\n")
-              ref = None
-
-          if not ref:
-              ref = os.environ.get("CHECKOUT_REF") or "main"
-              print(
-                  "Falling back to default ref for logging only: "
-                  f"{ref}."
-              )
-
-          skip_reason = None
-          if deployment_target == "production":
-              skip_reason = "deployment target is production"
-          if normalized == "niotebook-v0-2.vercel.app":
-              skip_reason = (
-                  "base URL is production (niotebook-v0-2.vercel.app)"
-              )
-
-          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
-              handle.write(f"CHECKOUT_REF={ref}\n")
-              if normalized:
-                  handle.write(f"BASE_URL=https://{normalized}\n")
-                  handle.write(f"BASE_URL_CLEAN={normalized}\n")
-              if deployment_id:
-                  handle.write(f"VERCEL_DEPLOYMENT_ID={deployment_id}\n")
-              if skip_reason:
-                  handle.write("SKIP_E2E=true\n")
-                  handle.write(f"SKIP_E2E_REASON={skip_reason}\n")
-
-          print(f"Payload inputs.ref: {inputs.get('ref')}")
-          print(f"Payload inputs.base_url: {inputs.get('base_url')}")
-          print(f"Payload client_payload.ref: {client_payload.get('ref')}")
-          print(f"Payload client_payload.deployment_url: {client_payload.get('deployment_url')}")
-          print(f"Payload client_payload.deploymentUrl: {client_payload.get('deploymentUrl')}")
-          print(f"Payload client_payload.target_url: {client_payload.get('target_url')}")
-          print(f"Payload client_payload.url: {client_payload.get('url')}")
-          print(f"Payload deployment.url: {deployment.get('url')}")
-          print(f"Payload deployment.id: {deployment_id}")
-          print(f"Payload deployment.target: {deployment_target}")
-          print(f"Payload branch ref: {branch_ref}")
-          print(f"Payload meta.githubCommitSha: {meta.get('githubCommitSha')}")
-          print(f"Payload meta.githubCommitRef: {meta.get('githubCommitRef')}")
-          print(f"Payload meta.gitSha: {meta.get('gitSha')}")
-          print(f"Payload meta.gitRef: {meta.get('gitRef')}")
-          print(f"Payload gitSource.sha: {git_source.get('sha')}")
-          print(f"Payload gitSource.ref: {git_source.get('ref')}")
-          print(f"Resolved checkout ref: {ref}")
-          if base_url:
-              print(f"Resolved base URL: {base_url}")
-          if normalized:
-              print(f"Resolved base URL clean: {normalized}")
-          if deployment_id:
-              print(f"Payload deployment.id: {deployment_id}")
-          if skip_reason:
-              print(f"Skipping e2e: {skip_reason}")
-          PY
-      - name: Skip e2e on production deployments
-        if: env.SKIP_E2E == 'true'
-        run: |
-          echo "Skipping e2e: ${SKIP_E2E_REASON}"
-      - uses: actions/checkout@v4
-        if: env.SKIP_E2E != 'true'
-        with:
-          ref: ${{ env.CHECKOUT_REF }}
-      - uses: oven-sh/setup-bun@v2
-        if: env.SKIP_E2E != 'true'
-        with:
-          bun-version: "1.1.19"
-      - run: bun install --frozen-lockfile
-        if: env.SKIP_E2E != 'true'
-      - run: bunx playwright install --with-deps
-        if: env.SKIP_E2E != 'true'
-      - name: E2E diagnostics
-        if: env.SKIP_E2E != 'true'
-        run: |
-          echo "Trigger: ${{ github.event_name }}"
-          echo "Resolved CHECKOUT_REF: ${{ env.CHECKOUT_REF }}"
-          echo "Resolved BASE_URL: ${{ env.BASE_URL }}"
-          echo "Resolved BASE_URL_CLEAN: ${{ env.BASE_URL_CLEAN }}"
-      - name: Validate BASE_URL
-        if: env.SKIP_E2E != 'true'
-        run: |
           if [ -z "${BASE_URL}" ]; then
-            echo "BASE_URL is empty. Provide base_url or ensure repository_dispatch payload includes a deployment URL."
+            echo "BASE_URL is empty — aborting."
             exit 1
           fi
-      - name: Preflight e2e readiness
-        if: env.SKIP_E2E != 'true'
-        run: |
-          python - <<'PY'
-          import os
-          import urllib.request
 
-          base_url = os.environ.get("BASE_URL")
-          if not base_url:
-              raise SystemExit("BASE_URL is required for preflight.")
+          echo "Trigger: $GITHUB_EVENT_NAME"
+          echo "Base URL: ${BASE_URL}"
+          echo "Checkout ref: ${CHECKOUT_REF}"
 
-          marker = 'name="niotebook-e2e" content="ready"'
+          if curl -sf --max-time 15 "${BASE_URL}" 2>/dev/null | grep -q 'name="niotebook-e2e" content="ready"'; then
+            echo "E2E marker present — proceeding."
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "E2E marker missing or preflight fetch failed — skipping."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
 
-          try:
-              with urllib.request.urlopen(base_url, timeout=10) as response:
-                  body = response.read().decode("utf-8", errors="ignore")
-          except Exception as exc:
-              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
-                  handle.write("SKIP_E2E=true\n")
-                  handle.write("SKIP_E2E_REASON=preflight fetch failed\n")
-              print(f"Preflight fetch failed: {exc}")
-              raise SystemExit(0)
-
-          if marker not in body:
-              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as handle:
-                  handle.write("SKIP_E2E=true\n")
-                  handle.write("SKIP_E2E_REASON=preview not e2e-ready (marker missing)\n")
-              print("E2E marker missing; skipping run.")
-              raise SystemExit(0)
-
-          print("E2E marker present; continuing.")
-          PY
+  e2e:
+    needs: preflight
+    if: needs.preflight.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ needs.preflight.outputs.base_url }}
+      CONVEX_URL: ${{ secrets.PREVIEW_DATA_CONVEX_URL }}
+      NIOTEBOOK_INGEST_TOKEN: ${{ secrets.NIOTEBOOK_INGEST_TOKEN_PREVIEW_DATA }}
+      NIOTEBOOK_E2E_VIDEO_ID: ${{ secrets.NIOTEBOOK_E2E_VIDEO_ID }}
+      NIOTEBOOK_E2E_SEED_PATH: .e2e-seed.json
+      E2E_USE_WEBSERVER: "false"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.preflight.outputs.checkout_ref }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          restore-keys: bun-${{ runner.os }}-
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps
       - run: bun run e2e:seed
-        if: env.SKIP_E2E != 'true'
       - run: bun ./scripts/e2eEnv.ts --github
-        if: env.SKIP_E2E != 'true'
       - run: bun run test:e2e
-        if: env.SKIP_E2E != 'true'
       - uses: actions/upload-artifact@v4
-        if: ${{ always() && env.SKIP_E2E != 'true' }}
+        if: always()
         with:
           name: playwright-results
           path: |
