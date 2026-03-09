@@ -14,8 +14,10 @@ import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
 import { useEditorStore } from "../code/useEditorStore";
 import { useTerminalStore } from "../code/terminal/useTerminalStore";
 import { renderRPlot } from "./RPlotFrame";
+import { useRuntimeWarmup } from "./useRuntimeWarmup";
 
 type UseCodeExecutionArgs = {
+  lessonId: string;
   activeLanguage: RuntimeLanguage;
   environment: LessonEnvironment;
   terminalActionsDisabled: boolean;
@@ -23,7 +25,6 @@ type UseCodeExecutionArgs = {
 
 type UseCodeExecutionResult = {
   runtimeState: RuntimeState;
-  setRuntimeState: (state: RuntimeState) => void;
   isRunning: boolean;
   handleRun: () => Promise<void>;
   handleStop: () => void;
@@ -31,6 +32,7 @@ type UseCodeExecutionResult = {
 };
 
 function useCodeExecution({
+  lessonId,
   activeLanguage,
   environment,
   terminalActionsDisabled,
@@ -39,6 +41,8 @@ function useCodeExecution({
     language: "js",
     status: "idle",
   });
+
+  useRuntimeWarmup(activeLanguage, lessonId, setRuntimeState);
 
   const terminalIsRunning = useTerminalStore((s) => s.isRunning);
   const isRunning = runtimeState.status === "running" || terminalIsRunning;
@@ -159,7 +163,6 @@ function useCodeExecution({
 
   return {
     runtimeState,
-    setRuntimeState,
     isRunning,
     handleRun,
     handleStop,

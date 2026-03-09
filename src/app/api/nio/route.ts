@@ -1,5 +1,6 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../convex/_generated/api";
+import type { Id } from "../../../../convex/_generated/dataModel";
 import type { RateLimitDecision } from "../../../domain/rate-limits";
 import type { NioSseEvent } from "../../../domain/ai/types";
 import { buildNioContext } from "../../../domain/nioContextBuilder";
@@ -288,7 +289,7 @@ export const POST = async (request: Request): Promise<Response> => {
     const [transcriptResult, lessonMetaResult] = await Promise.allSettled([
       needsTranscript
         ? fetchTranscriptWindow({
-            lessonId: validation.data.lessonId,
+            lessonId: validation.data.lessonId as Id<"lessons">,
             startSec: transcriptPayload.startSec,
             endSec: transcriptPayload.endSec,
             client: convexClient,
@@ -296,7 +297,7 @@ export const POST = async (request: Request): Promise<Response> => {
         : Promise.resolve(null),
       needsLessonMeta
         ? fetchLessonMeta({
-            lessonId: validation.data.lessonId,
+            lessonId: validation.data.lessonId as Id<"lessons">,
             client: convexClient,
           })
         : Promise.resolve(null),
@@ -312,7 +313,7 @@ export const POST = async (request: Request): Promise<Response> => {
         transcriptPayload = { ...transcriptPayload, lines };
       }
     } else if (transcriptResult.status === "rejected") {
-      debugLog("transcript: convex fetch failed", {
+      console.error("[nio] transcript fetch failed", {
         requestId: validation.data.requestId,
         error:
           transcriptResult.reason instanceof Error
