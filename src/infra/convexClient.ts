@@ -26,8 +26,13 @@ const convexClient = convexUrl
  * Called by DevAuthBypassProvider after the server-only NIOTEBOOK_DEV_AUTH_BYPASS
  * env var has been injected into the client via React context. This defers the
  * bypass setup until after the RSC renders and provides the flag.
+ * Guard ensures setAdminAuth is only called once even in React Strict Mode
+ * (which mounts effects twice in development).
  */
+let bypassApplied = false;
 const applyDevAuthBypass = (bypassEnabled: boolean): void => {
+  if (bypassApplied) return;
+  bypassApplied = true;
   enableDevAuthBypass(convexClient as ConvexClientWithAdminAuth, bypassEnabled);
 };
 

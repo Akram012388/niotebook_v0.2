@@ -17,6 +17,10 @@ const enableDevAuthBypass = (
   client: ConvexClientWithAdminAuth,
   bypassEnabled: boolean,
 ): void => {
+  // Note: VERCEL_ENV and NIOTEBOOK_E2E_PREVIEW are non-NEXT_PUBLIC_ vars and
+  // are not inlined into the client bundle — they will be undefined here at
+  // runtime in the browser. The isPreviewHost and NEXT_PUBLIC_ checks below
+  // cover the client-side path; these server-side vars guard the SSR path.
   const isVercelPreview = process.env.VERCEL_ENV === "preview";
   const isPreviewHost =
     typeof window !== "undefined" &&
