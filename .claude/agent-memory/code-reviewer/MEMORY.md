@@ -42,7 +42,7 @@ See `chat-stream-review.md` for client-side findings. See `chat-backend-review.m
 - No unit tests for `neutralizePromptInjection`
 - `ReadableStream.cancel()` callback is a no-op (should propagate abort)
 
-## Niotepad Panel (reviewed 2026-02-08)
+## Niotepad Panel (reviewed 2026-02-08, updated 2026-02-09 for PR #98)
 
 ### Key patterns
 
@@ -50,9 +50,18 @@ See `chat-stream-review.md` for client-side findings. See `chat-backend-review.m
 - **Position persistence**: `mountPosition` via `useState` lazy initializer. `handleDragEnd` persists `getBoundingClientRect().left`. Remounts on each open/close.
 - **Constraint math**: `left: VIEWPORT_PADDING - mountPosition.x`, `right: vw - PANEL_WIDTH - VIEWPORT_PADDING - mountPosition.x`.
 - **Elasticity**: `dragElastic={0.04}`, `dragMomentum={false}`.
-- **Portal structure**: `NiotepadPortal` > Fragment > `NiotepadBackdrop` + `NiotepadPanel` (single `<motion.aside>`).
+- **Portal structure**: `NiotepadPortal` > Fragment > `NiotepadPanel` (single `<motion.aside>`).
 - **Focus trap**: Tab wrapping + ESC 3-tier cascade (editing > search > close).
 - **Minor**: resize listener fires on vertical resize too (harmless, constraints width-only).
+
+### PR #98 findings (2026-02-09)
+
+- **CRITICAL: Gmail API routes have NO authentication** -- any HTTP client can send emails, read messages, trash mail
+- **WARNING: Gmail tokens stored in filesystem** (.gmail-tokens.json) -- unsafe for Vercel serverless (ephemeral FS)
+- **WARNING: NiotepadBackdrop and NiotepadResizeHandle are dead code** -- exported but never imported
+- **WARNING: ytCache unbounded Map** (pre-existing from subtitleFallback, also in new youtubeTranscriptFallback.ts)
+- **WARNING: Bookmark handler button pattern duplicated 3x** (AiPane, CodePane, VideoPane) -- should be extracted
+- Good: domain types are pure, no `any`/`unknown` violations, proper useEffect cleanup, memo usage
 
 ## Review Findings (Phase 8, 2026-02-07)
 
