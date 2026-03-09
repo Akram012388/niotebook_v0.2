@@ -24,10 +24,15 @@ function useBookmarkConfirm(
 
   const handleBookmark = useCallback(
     (entry: BookmarkEntry): void => {
-      const store = useNiotepadStore.getState();
-      const pageId = store.getOrCreatePage(lessonId, lectureLabel);
-      const params: AddEntryParams = { ...entry, pageId };
-      store.addEntry(params);
+      try {
+        const store = useNiotepadStore.getState();
+        const pageId = store.getOrCreatePage(lessonId, lectureLabel);
+        const params: AddEntryParams = { ...entry, pageId };
+        store.addEntry(params);
+      } catch (err) {
+        console.error("[niotepad] bookmark failed", err);
+        return;
+      }
 
       setBookmarkSaved(true);
       if (timerRef.current) clearTimeout(timerRef.current);

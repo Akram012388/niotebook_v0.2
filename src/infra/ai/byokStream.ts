@@ -248,6 +248,9 @@ const streamWithByok = async (args: {
       return;
     }
   } catch (error) {
+    if (!isProviderStreamError(error)) {
+      console.error("[nio] provider stream error", error);
+    }
     const providerError = normalizeProviderError(error, provider);
     args.enqueue({
       type: "error",
@@ -298,6 +301,9 @@ const streamWithByok = async (args: {
       seq += 1;
     }
   } catch (error) {
+    if (!isProviderStreamError(error)) {
+      console.error("[nio] stream iteration error", error);
+    }
     const providerError = normalizeProviderError(
       error,
       providerResult.provider,

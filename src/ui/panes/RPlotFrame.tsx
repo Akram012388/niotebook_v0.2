@@ -9,7 +9,12 @@
  */
 function renderRPlot(svgData: string): void {
   const container = document.getElementById("niotebook-runtime-frame");
-  if (!container) return;
+  if (!container) {
+    console.error(
+      "[runtime] R plot container #niotebook-runtime-frame not found",
+    );
+    return;
+  }
 
   const frame = document.createElement("iframe");
   frame.style.width = "100%";

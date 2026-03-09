@@ -51,11 +51,11 @@ function useRuntimeWarmup(
     }, 0);
 
     if (process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true") {
-      void logEvent({
+      logEvent({
         eventType: "runtime_warmup_start",
         lessonId,
         metadata: { language, durationMs: 0 },
-      });
+      }).catch((err) => console.error("[runtime] logEvent failed", err));
     }
 
     loadExecutor(language)
@@ -65,11 +65,11 @@ function useRuntimeWarmup(
         const warmupDuration = Math.round(performance.now() - warmupStartedAt);
 
         if (process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true") {
-          void logEvent({
+          logEvent({
             eventType: "runtime_warmup_end",
             lessonId,
             metadata: { language, durationMs: warmupDuration },
-          });
+          }).catch((err) => console.error("[runtime] logEvent failed", err));
         }
 
         setRuntimeState({
@@ -78,8 +78,9 @@ function useRuntimeWarmup(
           message: `${language.toUpperCase()} runtime ready`,
         });
       })
-      .catch(() => {
+      .catch((err) => {
         if (cancelled) return;
+        console.error("[runtime] executor load failed", err);
         setRuntimeState({
           language,
           status: "error",

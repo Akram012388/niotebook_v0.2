@@ -324,8 +324,12 @@ export const POST = async (request: Request): Promise<Response> => {
     if (lessonMetaResult.status === "fulfilled" && lessonMetaResult.value) {
       lessonMeta = lessonMetaResult.value;
     } else if (lessonMetaResult.status === "rejected") {
-      debugLog("lesson meta fetch failed", {
+      console.error("[nio] lesson meta fetch failed", {
         requestId: validation.data.requestId,
+        error:
+          lessonMetaResult.reason instanceof Error
+            ? lessonMetaResult.reason.message
+            : String(lessonMetaResult.reason),
       });
     }
   }

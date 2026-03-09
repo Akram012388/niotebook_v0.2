@@ -4,6 +4,10 @@ import {
   runRuntime,
   stopRuntime,
 } from "../../infra/runtime/runtimeManager";
+import {
+  PLOT_SVG_SENTINEL,
+  STREAMED_SENTINEL,
+} from "../../infra/runtime/runtimeConstants";
 import type { RuntimeLanguage, RuntimeState } from "../../infra/runtime/types";
 import type { LessonEnvironment } from "../../domain/lessonEnvironment";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
@@ -83,22 +87,21 @@ function useCodeExecution({
       });
 
       // Write remaining buffered output not already streamed
-      if (result.stdout && !result.stdout.includes("\x00__streamed__")) {
-        const cleanStdout = result.stdout.replace(
-          /\x00__plot_svg__[\s\S]*$/,
-          "",
-        );
+      if (result.stdout && !result.stdout.includes(STREAMED_SENTINEL)) {
+        const plotIdx = result.stdout.indexOf(PLOT_SVG_SENTINEL);
+        const cleanStdout =
+          plotIdx >= 0 ? result.stdout.slice(0, plotIdx) : result.stdout;
         if (cleanStdout) {
           termStore.write(cleanStdout);
         }
       }
-      if (result.stderr && !result.stderr.includes("\x00__streamed__")) {
+      if (result.stderr && !result.stderr.includes(STREAMED_SENTINEL)) {
         termStore.write(formatErrorChunk(result.stderr));
       }
 
       // Render R plot SVG in the HTML preview pane if present
-      if (result.stdout?.includes("\x00__plot_svg__")) {
-        const svgData = result.stdout.split("\x00__plot_svg__")[1];
+      if (result.stdout?.includes(PLOT_SVG_SENTINEL)) {
+        const svgData = result.stdout.split(PLOT_SVG_SENTINEL)[1];
         if (svgData) {
           renderRPlot(svgData);
         }
@@ -137,7 +140,9 @@ function useCodeExecution({
 
   const handleStop = useCallback((): void => {
     if (terminalActionsDisabled) return;
-    stopRuntime(activeLanguage).catch(() => undefined);
+    stopRuntime(activeLanguage).catch((err) =>
+      console.error("[runtime] stop failed", err),
+    );
     clearRuntime(activeLanguage);
     useTerminalStore.getState().kill();
     setRuntimeState({
