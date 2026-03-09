@@ -2,7 +2,7 @@
 
 **Source audit:** `docs/reviews/2026-03-07-codebase-analysis.md`
 **Total findings:** 50 (5 P0 · 13 P1 · 21 P2 · 11 P3)
-**Status:** Wave 0 + Wave 1 + Wave 1b + Wave 2 complete (2026-03-09)
+**Status:** Wave 0 + Wave 1 + Wave 1b + Wave 2 + Wave 3 complete (2026-03-09)
 
 This document is the canonical tracker for all remediation work derived from the deep codebase analysis.
 Contributors: pick any open item from the current wave, create a branch, and open a PR referencing the finding ID.
@@ -36,7 +36,7 @@ OSS artifacts can be worked in parallel to any wave.
 | W0-6 | Write GitHub PR template (`.github/PULL_REQUEST_TEMPLATE.md`)                               | ✅ Done |
 | W0-7 | Write `ADR-006-architecture-layers.md` (layer boundaries, domain/infra/ui contract)         | ✅ Done |
 | W0-8 | Update `CLAUDE.md` — add remediation workflow, agent team guidance, current branch strategy | ✅ Done |
-| W0-9 | Update root `README.md` — add contributor quickstart, badge for CI status                   | [ ]     |
+| W0-9 | Update root `README.md` — add contributor quickstart, badge for CI status                   | ✅ Done |
 
 ---
 
@@ -52,7 +52,7 @@ These can all be executed simultaneously across independent branches.
 | P1-17 (CRIT-02) | `src/middleware.ts` _(new file)_                    | Add Clerk `clerkMiddleware` protecting `/workspace` and `/admin` at the edge                                                    | ✅ Done                                                            |
 | P1-17 (HIGH-03) | `next.config.ts`                                    | Add global security headers: `X-Frame-Options`, `X-Content-Type-Options`, `HSTS`, `Referrer-Policy`, `Permissions-Policy`       | ✅ Done                                                            |
 | LOW-01          | `convex/auth.config.ts:6`                           | Move Clerk dev domain to env var (currently hardcoded)                                                                          | ✅ Done                                                            |
-| HIGH-02         | `src/infra/devAuth.ts`, `src/infra/convexClient.ts` | Rename `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS` → `NIOTEBOOK_DEV_AUTH_BYPASS` (remove from client bundle); update all references | ⏳ Deferred to Wave 2 — affects 6+ client-side files, needs design |
+| HIGH-02         | `src/infra/devAuth.ts`, `src/infra/convexClient.ts` | Rename `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS` → `NIOTEBOOK_DEV_AUTH_BYPASS` (remove from client bundle); update all references | ⏳ Deferred to Wave 4 — affects 6+ client-side files, needs design |
 | CRIT-01         | `src/app/api/gmail/callback/route.ts`               | Add OAuth CSRF state param generation + validation; add admin session check; fix raw exception leak at line 31                  | ✅ Done                                                            |
 
 ### 1B — DevOps: Config Files
@@ -80,7 +80,7 @@ These can all be executed simultaneously across independent branches.
 | Ingest          | `convex/ingest.ts:521, 612` | Remove one-time migration mutations (`migrateCs50SqlPlaylistId`, `migrateCs50VideoFixes`)                                     | ✅ Done                                                                                                    |
 | Data            | `convex/chat.ts:176`        | Restrict `createChatMessage` to `role: "user"` only — reject `role: "assistant"` at the mutation level                        | ✅ Done                                                                                                    |
 | API             | `convex/chat.ts:134`        | Add `min(1)` / `max(100)` bounds to `limit: v.number()` pagination parameter                                                  | ✅ Done                                                                                                    |
-| API             | `convex/events.ts:226`      | Replace truthy checks in event metadata validators with type-specific guards                                                  | [ ]                                                                                                        |
+| API             | `src/domain/events.ts`      | Replace truthy checks in event metadata validators with type-specific guards (`isStr()` helper)                               | ✅ Done                                                                                                    |
 
 ### 1D — Testing: Cleanup (No Production Code Touched)
 
@@ -95,15 +95,15 @@ These can all be executed simultaneously across independent branches.
 
 ### 1E — Quick Bug Fixes (One-Liners)
 
-| Finding    | Location                                | Description                                                                      | Status            |
-| ---------- | --------------------------------------- | -------------------------------------------------------------------------------- | ----------------- |
-| P1-9 (C-2) | `convex/ops.ts:413`                     | Fix `getCodeExecutionCount` — change `"code_executed"` → `"code_run"`            | ✅ Done           |
-| P1-15 (C2) | `src/infra/runtime/rExecutor.ts:52`     | Fix WebR CDN URL — change `v0.5.0` → `v0.5.8` to match `package.json`            | ✅ Done           |
-| L-2        | `src/infra/runtime/runtimeConstants.ts` | Remove or use `RUNTIME_WARMUP_DELAY_MS` (currently exported but unused)          | ✅ Done — removed |
-| M-4        | `convex/auth.ts:182`                    | Delete `requireQueryWorkspaceUser` (exact duplicate of `requireQueryUser`)       | ✅ Done           |
-| L-3        | `convex/ops.ts:11`                      | Move `COURSE_SOURCE_PLAYLIST_ID` to a named constant or config file              | [ ]               |
-| LOW-06     | `convex/userApiKeys.ts:187`             | Throw (not silently return null) when `NIOTEBOOK_KEY_ENCRYPTION_SECRET` is unset | ✅ Done           |
-| LOW-08     | `convex/events.ts`                      | Add rate limit to `logEvent` (authenticated but currently uncapped)              | [ ]               |
+| Finding    | Location                                | Description                                                                      | Status                                                              |
+| ---------- | --------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| P1-9 (C-2) | `convex/ops.ts:413`                     | Fix `getCodeExecutionCount` — change `"code_executed"` → `"code_run"`            | ✅ Done                                                             |
+| P1-15 (C2) | `src/infra/runtime/rExecutor.ts:52`     | Fix WebR CDN URL — change `v0.5.0` → `v0.5.8` to match `package.json`            | ✅ Done                                                             |
+| L-2        | `src/infra/runtime/runtimeConstants.ts` | Remove or use `RUNTIME_WARMUP_DELAY_MS` (currently exported but unused)          | ✅ Done — removed                                                   |
+| M-4        | `convex/auth.ts:182`                    | Delete `requireQueryWorkspaceUser` (exact duplicate of `requireQueryUser`)       | ✅ Done                                                             |
+| L-3        | `convex/ops.ts:11`                      | Move `COURSE_SOURCE_PLAYLIST_ID` to a named constant or config file              | ⏳ Deferred — constant already named; full fix is ops.ts split (2A) |
+| LOW-06     | `convex/userApiKeys.ts:187`             | Throw (not silently return null) when `NIOTEBOOK_KEY_ENCRYPTION_SECRET` is unset | ✅ Done                                                             |
+| LOW-08     | `convex/events.ts`                      | Add rate limit to `logEvent` (authenticated but currently uncapped)              | ✅ Done — `consumeEventLogRateLimit` implemented                    |
 
 ---
 
@@ -129,61 +129,61 @@ Do these after Wave 1 and 1b are merged. Each is a standalone PR.
 
 ### 2A — Split `convex/ops.ts` (649 lines → 3 files)
 
-| Task | Description                                                                                  | Status |
-| ---- | -------------------------------------------------------------------------------------------- | ------ |
-| 2A-1 | Move `verifyTranscriptWindows` (L71–194) → `convex/ingest.ts` (already exists — merge logic) | [ ]    |
-| 2A-2 | Move `seedE2E` (L196–290) → `convex/seed.ts` (new file)                                      | [ ]    |
-| 2A-3 | Move all 11 admin analytics queries (L292–649) → `convex/analytics.ts` (new file)            | [ ]    |
-| 2A-4 | Fix mid-file import at L292 — all imports to top of file                                     | [ ]    |
-| 2A-5 | Merge `ingestCs50x2026` duplicate logic into `ingestCourse` (90% overlap — see Data finding) | [ ]    |
+| Task | Description                                                                                  | Status                                |
+| ---- | -------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 2A-1 | Move `verifyTranscriptWindows` (L71–194) → `convex/ingest.ts` (already exists — merge logic) | [ ] Remaining                         |
+| 2A-2 | Move `seedE2E` (L196–290) → `convex/seed.ts` (new file)                                      | ✅ Done                               |
+| 2A-3 | Move all 11 admin analytics queries (L292–649) → `convex/analytics.ts` (new file)            | ✅ Done                               |
+| 2A-4 | Fix mid-file import at L292 — all imports to top of file                                     | ✅ Done (ops.ts now 183 lines, clean) |
+| 2A-5 | Merge `ingestCs50x2026` duplicate logic into `ingestCourse` (90% overlap — see Data finding) | [ ] Remaining                         |
 
 ### 2B — Decompose `src/app/api/nio/route.ts` (943 lines)
 
-| Task | Description                                                                                                           | Status |
-| ---- | --------------------------------------------------------------------------------------------------------------------- | ------ |
-| 2B-1 | Extract transcript resolution into `src/infra/ai/transcriptResolver.ts` (Convex → SRT → YouTube chain)                | [ ]    |
-| 2B-2 | Extract `streamWithByok` (172 lines) into `src/infra/ai/byokStream.ts`                                                | [ ]    |
-| 2B-3 | Extract SSE read-loop shared by all 4 provider files into `src/infra/ai/sseStream.ts` (eliminates 4× duplication)     | [ ]    |
-| 2B-4 | Extract `isRecord`, `isString`, `isNumber` type guards into `src/infra/ai/typeGuards.ts` (eliminates 4× duplication)  | [ ]    |
-| 2B-5 | Slim `route.ts` to: request validation → auth check → rate limit → transcript resolve → stream dispatch → persistence | [ ]    |
+| Task | Description                                                                                                           | Status                                                     |
+| ---- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 2B-1 | Extract transcript resolution into `src/infra/ai/transcriptResolver.ts` (Convex → SRT → YouTube chain)                | ✅ Done                                                    |
+| 2B-2 | Extract `streamWithByok` (172 lines) into `src/infra/ai/byokStream.ts`                                                | ✅ Done                                                    |
+| 2B-3 | Extract SSE read-loop shared by all 4 provider files into `src/infra/ai/sseStream.ts` (eliminates 4× duplication)     | ⏳ Deferred to Wave 4 — blocked on further route.ts slim   |
+| 2B-4 | Extract `isRecord`, `isString`, `isNumber` type guards into `src/infra/ai/typeGuards.ts` (eliminates 4× duplication)  | ✅ Done                                                    |
+| 2B-5 | Slim `route.ts` to: request validation → auth check → rate limit → transcript resolve → stream dispatch → persistence | ✅ Done (partially — route.ts slimmed; 2B-3 still pending) |
 
 ### 2C — Decompose `src/ui/panes/CodePane.tsx` (648 lines)
 
-| Task | Description                                                                                                                                             | Status |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 2C-1 | Extract `useRuntimeWarmup(language, lessonId)` hook                                                                                                     | [ ]    |
-| 2C-2 | Extract `useCodeExecution(language, environment)` hook                                                                                                  | [ ]    |
-| 2C-3 | Extract `useBookmarkConfirm(lessonId, lectureLabel)` hook — shared between `CodePane` and `AiPane` (eliminates duplicate state + timer + handler + SVG) | [ ]    |
-| 2C-4 | Extract `RPlotFrame` as a proper React component using `useRef` (eliminates `document.getElementById("niotebook-runtime-frame")` DOM mutation)          | [ ]    |
-| 2C-5 | Move `autoPersistTimer` and `currentLessonId` from module-level variables into Zustand store state                                                      | [ ]    |
-| 2C-6 | Fix `CodePane.tsx:475` — use resolved `lectureLabel` (not raw `lessonId`) for bookmark, matching `AiPane` behavior                                      | [ ]    |
-| 2C-7 | Fix `shouldResetSplits = true` (dead constant, L108) — make it conditional or remove it                                                                 | [ ]    |
+| Task | Description                                                                                                                                             | Status  |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 2C-1 | Extract `useRuntimeWarmup(language, lessonId)` hook                                                                                                     | ✅ Done |
+| 2C-2 | Extract `useCodeExecution(language, environment)` hook                                                                                                  | ✅ Done |
+| 2C-3 | Extract `useBookmarkConfirm(lessonId, lectureLabel)` hook — shared between `CodePane` and `AiPane` (eliminates duplicate state + timer + handler + SVG) | ✅ Done |
+| 2C-4 | Extract `RPlotFrame` as a proper React component using `useRef` (eliminates `document.getElementById("niotebook-runtime-frame")` DOM mutation)          | ✅ Done |
+| 2C-5 | Move `autoPersistTimer` and `currentLessonId` from module-level variables into Zustand store state                                                      | ✅ Done |
+| 2C-6 | Fix `CodePane.tsx:475` — use resolved `lectureLabel` (not raw `lessonId`) for bookmark, matching `AiPane` behavior                                      | ✅ Done |
+| 2C-7 | Fix `shouldResetSplits = true` (dead constant, L108) — make it conditional or remove it                                                                 | ✅ Done |
 
 ### 2D — Shared Infra Modules
 
-| Task | Description                                                                                                                           | Status |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 2D-1 | Create `convex/lib/mutationCtx.ts` — move repeated `MutationCtx` / `MutationConfig` type aliases from `events.ts` and `rateLimits.ts` | [ ]    |
-| 2D-2 | Move `RuntimeLanguage` from `src/infra/runtime/types.ts` → `src/domain/runtime.ts`; fix dependency direction violation                | [ ]    |
-| 2D-3 | Add named constants `STREAMED_SENTINEL` and `PLOT_SVG_SENTINEL` to `runtimeConstants.ts` (replace `"\x00__streamed__"` magic strings) | [ ]    |
-| 2D-4 | Fix `M-9`: Make `groqStream.ts` accept `apiKey` as parameter (align with Gemini/OpenAI/Anthropic) OR delete it as dead code (see 2E)  | [ ]    |
-| 2D-5 | Replace `window.dispatchEvent(new CustomEvent("niotebook:open-settings"))` in `AiPane.tsx` with a typed Zustand store action          | [ ]    |
+| Task | Description                                                                                                                           | Status                     |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| 2D-1 | Create `convex/lib/mutationCtx.ts` — move repeated `MutationCtx` / `MutationConfig` type aliases from `events.ts` and `rateLimits.ts` | ✅ Done                    |
+| 2D-2 | Move `RuntimeLanguage` from `src/infra/runtime/types.ts` → `src/domain/runtime.ts`; fix dependency direction violation                | ✅ Done                    |
+| 2D-3 | Add named constants `STREAMED_SENTINEL` and `PLOT_SVG_SENTINEL` to `runtimeConstants.ts` (replace `"\x00__streamed__"` magic strings) | ✅ Done                    |
+| 2D-4 | Fix `M-9`: Make `groqStream.ts` accept `apiKey` as parameter (align with Gemini/OpenAI/Anthropic) OR delete it as dead code (see 2E)  | ✅ Done — deleted via 2E-1 |
+| 2D-5 | Replace `window.dispatchEvent(new CustomEvent("niotebook:open-settings"))` in `AiPane.tsx` with a typed Zustand store action          | ✅ Done                    |
 
 ### 2E — Dead Code Removal
 
-| Task | Description                                                                                                                                                             | Status |
-| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 2E-1 | Delete `groqStream.ts` and `fallbackGate.ts` — Groq is unreachable in `streamWithByok`; or re-integrate if desired                                                      | [ ]    |
-| 2E-2 | Remove `"groq"` from `NioProviderId` union if Groq is deleted, or implement the routing                                                                                 | [ ]    |
-| 2E-3 | Move `_getUserByToken`, `_upsertKey`, `_getActiveKey`, `_getKeysByUser` in `userApiKeys.ts` to `internalQuery/internalMutation` (already correct — verify and document) | [ ]    |
+| Task | Description                                                                                                                                                             | Status  |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 2E-1 | Delete `groqStream.ts` and `fallbackGate.ts` — Groq is unreachable in `streamWithByok`; or re-integrate if desired                                                      | ✅ Done |
+| 2E-2 | Remove `"groq"` from `NioProviderId` union if Groq is deleted, or implement the routing                                                                                 | ✅ Done |
+| 2E-3 | Move `_getUserByToken`, `_upsertKey`, `_getActiveKey`, `_getKeysByUser` in `userApiKeys.ts` to `internalQuery/internalMutation` (already correct — verify and document) | ✅ Done |
 
 ### 2F — C Executor: Main Thread Safety
 
-| Task | Description                                           | Status |
-| ---- | ----------------------------------------------------- | ------ |
-| 2F-1 | Run JSCPP in a Web Worker with `MessageChannel`       | [ ]    |
-| 2F-2 | Add timeout (`Promise.race` against worker + timeout) | [ ]    |
-| 2F-3 | Implement real `stop()` that terminates the worker    | [ ]    |
+| Task | Description                                           | Status                                           |
+| ---- | ----------------------------------------------------- | ------------------------------------------------ |
+| 2F-1 | Run JSCPP in a Web Worker with `MessageChannel`       | ⏳ Deferred to Wave 4 — significant feature work |
+| 2F-2 | Add timeout (`Promise.race` against worker + timeout) | ⏳ Deferred to Wave 4 — depends on 2F-1          |
+| 2F-3 | Implement real `stop()` that terminates the worker    | ⏳ Deferred to Wave 4 — depends on 2F-1          |
 
 ---
 
@@ -193,51 +193,65 @@ After architecture refactors land. Target: meaningful behavioral tests, not file
 
 ### P0 Security Tests (Highest Priority)
 
-| Test File                                            | What to Cover                                                                                                                    | Status |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| `tests/unit/infra/ai/promptInjection.test.ts`        | Each of the 10 regex patterns, multiple calls on same input (verify `/g` flag `lastIndex` behavior), Unicode/encoding edge cases | [ ]    |
-| `tests/unit/infra/ai/validateNioChatRequest.test.ts` | All rejection branches: missing fields, wrong types, malformed transcript, invalid message role                                  | [ ]    |
-| `tests/unit/domain/lectureNumber.test.ts`            | All 5 URL patterns, priority chain, null fallbacks                                                                               | [ ]    |
+| Test File                                            | What to Cover                                                                                                                    | Status  |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `tests/unit/infra/ai/promptInjection.test.ts`        | Each of the 10 regex patterns, multiple calls on same input (verify `/g` flag `lastIndex` behavior), Unicode/encoding edge cases | ✅ Done |
+| `tests/unit/infra/ai/validateNioChatRequest.test.ts` | All rejection branches: missing fields, wrong types, malformed transcript, invalid message role                                  | ✅ Done |
+| `tests/unit/domain/lectureNumber.test.ts`            | All 5 URL patterns, priority chain, null fallbacks                                                                               | ✅ Done |
 
 ### P1 Core Feature Coverage
 
-| Test File                                             | What to Cover                                                                                | Status |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------ |
-| `tests/unit/infra/runtime/runtimeManager.test.ts`     | Language routing, deduplication (`pendingInit`), sandbox fallback, unknown-language handling | [ ]    |
-| `tests/unit/infra/runtime/jsExecutor.test.ts`         | Basic execution, import resolution, error output                                             | [ ]    |
-| `tests/unit/infra/niotepad/niotepadSelectors.test.ts` | `selectFilteredEntries`: multi-term AND search, page filtering, source filtering             | [ ]    |
-| `tests/unit/infra/ai/subtitleFallback.test.ts`        | SRT fetch, window slicing, error handling                                                    | [ ]    |
-| `tests/e2e/byok.e2e.ts`                               | No API key → `NO_API_KEY` error event → settings prompt shown                                | [ ]    |
+| Test File                                             | What to Cover                                                                                | Status                                     |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| `tests/unit/infra/runtime/runtimeManager.test.ts`     | Language routing, deduplication (`pendingInit`), sandbox fallback, unknown-language handling | ✅ Done                                    |
+| `tests/unit/infra/runtime/jsExecutor.test.ts`         | Basic execution, import resolution, error output                                             | ✅ Done                                    |
+| `tests/unit/infra/niotepad/niotepadSelectors.test.ts` | `selectFilteredEntries`: multi-term AND search, page filtering, source filtering             | ✅ Done                                    |
+| `tests/unit/infra/ai/subtitleFallback.test.ts`        | SRT fetch, window slicing, error handling                                                    | ✅ Done                                    |
+| `tests/e2e/byok.e2e.ts`                               | No API key → `NO_API_KEY` error event → settings prompt shown                                | ⏳ Deferred to Wave 4 — needs full E2E env |
 
 ### P2 Infrastructure Reliability
 
-| Test File                                         | What to Cover                                                                                                              | Status |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------ |
-| `tests/unit/infra/ai/geminiStream.test.ts`        | Token aggregation, error normalization (no real API needed — mock the fetch)                                               | [ ]    |
-| `tests/unit/infra/vfs/useFileSystemStore.test.ts` | Auto-persist debounce, `initializeFromEnvironment`, lesson-switch isolation                                                | [ ]    |
-| `tests/unit/infra/ai/sseStream.test.ts`           | Shared SSE read loop (after Wave 2 extraction)                                                                             | [ ]    |
-| `tests/unit/infra/ai/typeGuards.test.ts`          | `isRecord`, `isString`, `isNumber`, `isBoolean` (after Wave 2 extraction)                                                  | [ ]    |
-| `tests/unit/infra/ai/byokStream.test.ts`          | `NO_API_KEY` SSE event when no key configured; `STREAM_ERROR` SSE event on provider failure (deferred from PR #103 review) | [ ]    |
+| Test File                                         | What to Cover                                                                                                                   | Status                                                          |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `tests/unit/infra/ai/geminiStream.test.ts`        | Token aggregation, error normalization (no real API needed — mock the fetch)                                                    | ✅ Done                                                         |
+| `tests/unit/infra/vfs/useFileSystemStore.test.ts` | Auto-persist debounce, `initializeFromEnvironment`, lesson-switch isolation                                                     | ⏳ Deferred to Wave 4 — needs jsdom IndexedDB setup             |
+| `tests/unit/infra/ai/sseStream.test.ts`           | Shared SSE read loop (after Wave 2 extraction)                                                                                  | ⏳ Deferred to Wave 4 — blocked on 2B-3 sseStream.ts extraction |
+| `tests/unit/infra/ai/typeGuards.test.ts`          | `isRecord`, `isString`, `isNumber`, `isBoolean` (after Wave 2 extraction)                                                       | ✅ Done                                                         |
+| `tests/unit/infra/ai/byokStream.test.ts`          | `NO_API_KEY` SSE event when no key configured; `STREAM_ERROR` SSE event on provider failure; abort mid-stream; unknown provider | ✅ Done                                                         |
 
 ### P3 Backend (Convex Test Harness)
 
-| Task                               | Description                                                                                                      | Status |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------ |
-| Setup                              | Install `convex-test`; add `tests/convex/` directory                                                             | [ ]    |
-| `tests/convex/chat.test.ts`        | `createThread`, `addUserMessage`, `completeAssistantMessage` mutations                                           | [ ]    |
-| `tests/convex/rateLimits.test.ts`  | `consumeAiRateLimit` and `consumeEventLogRateLimit` at boundary conditions (allow path, deny path, reset timing) | [ ]    |
-| `tests/convex/userApiKeys.test.ts` | Save, resolve, remove, setActiveProvider                                                                         | [ ]    |
+| Task                               | Description                                                                                                      | Status                                                    |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Setup                              | Install `convex-test`; add `tests/convex/` directory                                                             | ⏳ Deferred to Wave 4 — needs `convex-test` harness setup |
+| `tests/convex/chat.test.ts`        | `createThread`, `addUserMessage`, `completeAssistantMessage` mutations                                           | ⏳ Deferred to Wave 4                                     |
+| `tests/convex/rateLimits.test.ts`  | `consumeAiRateLimit` and `consumeEventLogRateLimit` at boundary conditions (allow path, deny path, reset timing) | ⏳ Deferred to Wave 4                                     |
+| `tests/convex/userApiKeys.test.ts` | Save, resolve, remove, setActiveProvider                                                                         | ⏳ Deferred to Wave 4                                     |
 
 ### Follow-up Design Fixes (deferred from Wave 2 / PR #103 review)
 
-| Task  | Location                             | Description                                                                                                                                                                                              | Status |
-| ----- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| W3-D1 | `src/ui/panes/useCodeExecution.ts`   | Remove `setRuntimeState` from `UseCodeExecutionResult` public return type — it leaks internal state shape to callers. Requires restructuring warmup state ownership (merge hooks or use shared atom).    | [ ]    |
-| W3-D2 | `src/infra/ai/transcriptResolver.ts` | Change `lessonId: string` param to `Id<"lessons">` in `fetchTranscriptWindow` and `fetchLessonMeta`; push the `as Id<"lessons">` cast to callers at the HTTP boundary. Removes the internal double-cast. | [ ]    |
+| Task  | Location                             | Description                                                                                                                                                                                              | Status                |
+| ----- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| W3-D1 | `src/ui/panes/useCodeExecution.ts`   | Remove `setRuntimeState` from `UseCodeExecutionResult` public return type — it leaks internal state shape to callers. Requires restructuring warmup state ownership (merge hooks or use shared atom).    | ⏳ Deferred to Wave 4 |
+| W3-D2 | `src/infra/ai/transcriptResolver.ts` | Change `lessonId: string` param to `Id<"lessons">` in `fetchTranscriptWindow` and `fetchLessonMeta`; push the `as Id<"lessons">` cast to callers at the HTTP boundary. Removes the internal double-cast. | ⏳ Deferred to Wave 4 |
 
 ---
 
 ## Wave 4 — P2/P3 Polish
+
+### Deferred from Previous Waves
+
+| Item                       | Origin | Description                                                                                                                      |
+| -------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| HIGH-02                    | Wave 1 | Rename `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS` → `NIOTEBOOK_DEV_AUTH_BYPASS` (move to server-only env); requires 6+ file changes |
+| 2B-3                       | Wave 2 | Extract shared SSE read-loop into `src/infra/ai/sseStream.ts` (eliminates 4× duplication across provider streams)                |
+| 2F-1/2/3                   | Wave 2 | Run JSCPP C executor in a Web Worker with real timeout + stop() support                                                          |
+| byok.e2e.ts                | Wave 3 | E2E test: no API key → `NO_API_KEY` error → settings prompt (needs full E2E env with Clerk + Convex)                             |
+| useFileSystemStore.test.ts | Wave 3 | Unit tests for VFS Zustand store auto-persist debounce, lesson-switch isolation (needs jsdom IndexedDB)                          |
+| sseStream.test.ts          | Wave 3 | Unit tests for shared SSE read-loop (blocked on 2B-3 extraction)                                                                 |
+| Convex test harness        | Wave 3 | Install `convex-test`; write chat, rateLimits, userApiKeys mutation tests                                                        |
+| W3-D1                      | Wave 3 | Remove `setRuntimeState` from `UseCodeExecutionResult` public API (state shape leak)                                             |
+| W3-D2                      | Wave 3 | Type `lessonId` as `Id<"lessons">` in `transcriptResolver.ts` instead of `string`                                                |
 
 ### Performance
 
@@ -287,18 +301,18 @@ After architecture refactors land. Target: meaningful behavioral tests, not file
 
 These can be worked in parallel to any wave.
 
-| Artifact                                     | Description                                                                                         | Status |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------ |
-| `CONTRIBUTING.md`                            | Contributor guide: repo layout, PR process, test requirements, branch naming, agent team guidelines | [ ]    |
-| `.env.example`                               | All env vars with descriptions, required/optional flag, example values                              | [ ]    |
-| `CODE_OF_CONDUCT.md`                         | Standard Contributor Covenant or custom                                                             | [ ]    |
-| `.github/ISSUE_TEMPLATE/bug_report.yml`      | Structured bug report template                                                                      | [ ]    |
-| `.github/ISSUE_TEMPLATE/feature_request.yml` | Feature request template                                                                            | [ ]    |
-| `.github/PULL_REQUEST_TEMPLATE.md`           | PR checklist: tests, docs, type-check, lint                                                         | [ ]    |
-| `ADR-006`                                    | Architecture decision: domain/infra/ui layer contract, `RuntimeLanguage` in domain                  | [ ]    |
-| `ADR-007`                                    | Architecture decision: VFS design and IndexedDB persistence strategy                                | [ ]    |
-| `CLAUDE.md`                                  | Update: remediation workflow, current wave status, agent team guidance                              | [ ]    |
-| `README.md`                                  | Update: contributor quickstart, CI badge, architecture overview link                                | [ ]    |
+| Artifact                                     | Description                                                                                         | Status  |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------- |
+| `CONTRIBUTING.md`                            | Contributor guide: repo layout, PR process, test requirements, branch naming, agent team guidelines | ✅ Done |
+| `.env.example`                               | All env vars with descriptions, required/optional flag, example values                              | ✅ Done |
+| `CODE_OF_CONDUCT.md`                         | Standard Contributor Covenant or custom                                                             | ✅ Done |
+| `.github/ISSUE_TEMPLATE/bug_report.yml`      | Structured bug report template                                                                      | ✅ Done |
+| `.github/ISSUE_TEMPLATE/feature_request.yml` | Feature request template                                                                            | ✅ Done |
+| `.github/PULL_REQUEST_TEMPLATE.md`           | PR checklist: tests, docs, type-check, lint                                                         | ✅ Done |
+| `ADR-006`                                    | Architecture decision: domain/infra/ui layer contract, `RuntimeLanguage` in domain                  | ✅ Done |
+| `ADR-007`                                    | Architecture decision: VFS design and IndexedDB persistence strategy                                | [ ]     |
+| `CLAUDE.md`                                  | Update: remediation workflow, current wave status, agent team guidance                              | ✅ Done |
+| `README.md`                                  | Update: contributor quickstart, CI badge, architecture overview link                                | ✅ Done |
 
 ---
 
@@ -323,4 +337,4 @@ docs/oss-contributing            # Documentation
 
 ---
 
-_Last updated: 2026-03-09 · Wave 2 complete · Source analysis: `docs/reviews/2026-03-07-codebase-analysis.md`_
+_Last updated: 2026-03-09 · Wave 3 complete · Source analysis: `docs/reviews/2026-03-07-codebase-analysis.md`_
