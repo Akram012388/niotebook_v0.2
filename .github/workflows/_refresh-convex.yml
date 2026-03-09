@@ -48,6 +48,8 @@ jobs:
       - name: Deploy Convex
         run: npx convex deploy --yes
       - name: Ingest CS50x data
+        timeout-minutes: 15
         run: bun run ingest:cs50x
       - name: Verify transcript windows
+        timeout-minutes: 5
         run: bun ./scripts/verifyTranscriptWindows.ts

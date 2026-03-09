@@ -9,8 +9,21 @@ on:
         default: "NO"
 
 jobs:
+  # Gate job: fail loudly if confirmation is wrong instead of silently skipping.
+  # This also avoids the if: + uses: pattern on the refresh job.
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "YES" ]; then
+            echo "Production refresh requires confirm='YES' (case-sensitive)."
+            echo "Got: '${{ github.event.inputs.confirm }}'"
+            exit 1
+          fi
+
   refresh:
-    if: ${{ github.event.inputs.confirm == 'YES' }}
+    needs: gate
     uses: ./.github/workflows/_refresh-convex.yml
     with:
       allow_prod_ingest: true

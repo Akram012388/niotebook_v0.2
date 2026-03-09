@@ -49,6 +49,7 @@ jobs:
           BASE_URL="${DS_URL:-$WD_URL}"
           CHECKOUT_REF="${DS_REF:-$WD_REF}"
 
+          # Validate required values before writing any outputs
           if [ -z "${BASE_URL}" ]; then
             echo "BASE_URL is empty — aborting."
             exit 1
@@ -73,11 +74,22 @@ jobs:
             echo "_EOL_"
           } >> "$GITHUB_OUTPUT"
 
-          if curl -sf --max-time 15 "${BASE_URL}" 2>/dev/null | grep -q 'name="niotebook-e2e" content="ready"'; then
+          # Distinguish infra errors (hard fail) from marker-missing (soft skip).
+          # Capture curl separately so a DNS failure / timeout / 4xx fails the job
+          # rather than silently producing ready=false.
+          HTTP_BODY=$(curl -sf --max-time 15 "${BASE_URL}" 2>/tmp/curl_err)
+          CURL_EXIT=$?
+          if [ $CURL_EXIT -ne 0 ]; then
+            echo "Preflight fetch failed (curl exit ${CURL_EXIT}): $(cat /tmp/curl_err)"
+            echo "This is an infrastructure error — failing hard to surface the problem."
+            exit 1
+          fi
+
+          if echo "${HTTP_BODY}" | grep -q 'name="niotebook-e2e" content="ready"'; then
             echo "E2E marker present — proceeding."
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
-            echo "E2E marker missing or preflight fetch failed — skipping."
+            echo "E2E marker missing — deployment not ready for e2e."
             echo "ready=false" >> "$GITHUB_OUTPUT"
           fi
 
