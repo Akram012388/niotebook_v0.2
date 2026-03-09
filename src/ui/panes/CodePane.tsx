@@ -3,6 +3,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactElement,
 } from "react";
@@ -249,6 +250,10 @@ const CodePane = ({
   // ── Bookmark to niotepad ────────────────────────────────
 
   const videoTimeSec = useVideoDisplayTime();
+  const videoTimeSecRef = useRef(videoTimeSec);
+  useEffect(() => {
+    videoTimeSecRef.current = videoTimeSec;
+  }, [videoTimeSec]);
   // Use a human-readable label so niotepad pages show "Lecture N" not a raw ID
   const lectureLabel = `Lesson ${lessonId}`;
   const { bookmarkSaved, handleBookmark: doBookmark } = useBookmarkConfirm(
@@ -307,14 +312,14 @@ const CodePane = ({
         source: "code",
         content: selectedCode,
         pageId,
-        videoTimeSec,
+        videoTimeSec: videoTimeSecRef.current,
         metadata: {
           filePath: activeFile.path,
           language: activeFile.language ?? activeLanguage,
         },
       });
     },
-    [activeLanguage, lessonId, lectureLabel, videoTimeSec],
+    [activeLanguage, lessonId, lectureLabel],
   );
 
   useEffect(() => {
