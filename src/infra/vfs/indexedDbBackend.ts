@@ -4,6 +4,11 @@ import { openDB } from "idb";
 import type { VFSSnapshotNode } from "./VirtualFS";
 
 const DB_NAME = "niotebook-vfs";
+/**
+ * IndexedDB schema version for the VFS store.
+ * Current schema: { projects: IDBObjectStore (out-of-line keys, string key = project ID, value: serialized VFSSnapshotNode) }
+ * To bump: increment this constant and add a migration branch in onupgradeneeded.
+ */
 const DB_VERSION = 1;
 const STORE_NAME = "projects";
 
@@ -13,6 +18,16 @@ type VFSDatabase = IDBPDatabase<{
     value: string;
   };
 }>;
+
+function isVFSSnapshotNode(v: unknown): v is VFSSnapshotNode {
+  const r = v as Record<string, unknown>;
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    r.kind === "directory" &&
+    typeof r.path === "string"
+  );
+}
 
 let dbPromise: Promise<VFSDatabase> | null = null;
 
@@ -54,7 +69,14 @@ async function loadProject(key: string): Promise<VFSSnapshotNode | null> {
     const db = await getDb();
     const data = await db.get(STORE_NAME, key);
     if (!data) return null;
-    return JSON.parse(data) as VFSSnapshotNode;
+    const parsed: unknown = JSON.parse(data);
+    if (!isVFSSnapshotNode(parsed)) {
+      console.warn(
+        `[VFS] IndexedDB corrupted data for key "${key}", discarding.`,
+      );
+      return null;
+    }
+    return parsed;
   } catch (error) {
     console.warn("[VFS] IndexedDB read failed:", error);
     return null;

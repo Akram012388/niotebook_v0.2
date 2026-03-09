@@ -4,6 +4,11 @@ import { openDB } from "idb";
 import type { NiotepadSnapshot } from "../../domain/niotepad";
 
 const DB_NAME = "niotebook-niotepad";
+/**
+ * IndexedDB schema version for the Niotepad store.
+ * Current schema: { notebooks: IDBObjectStore (out-of-line keys, string key = notebook ID, value: serialized NiotepadSnapshot) }
+ * To bump: increment this constant and add a migration branch in onupgradeneeded.
+ */
 const DB_VERSION = 1;
 const STORE_NAME = "notebooks";
 const NOTEBOOK_KEY = "notebook-v1";
@@ -14,6 +19,12 @@ type NiotepadDatabase = IDBPDatabase<{
     value: string;
   };
 }>;
+
+function isNiotepadSnapshot(v: unknown): v is NiotepadSnapshot {
+  if (typeof v !== "object" || v === null) return false;
+  const r = v as Record<string, unknown>;
+  return r.version === 1 && Array.isArray(r.pages);
+}
 
 let dbPromise: Promise<NiotepadDatabase> | null = null;
 
@@ -52,7 +63,12 @@ async function loadNotebook(): Promise<NiotepadSnapshot | null> {
     const db = await getDb();
     const data = await db.get(STORE_NAME, NOTEBOOK_KEY);
     if (!data) return null;
-    return JSON.parse(data) as NiotepadSnapshot;
+    const parsed: unknown = JSON.parse(data);
+    if (!isNiotepadSnapshot(parsed)) {
+      console.warn("[Niotepad] IndexedDB corrupted data, discarding.");
+      return null;
+    }
+    return parsed;
   } catch (error) {
     console.warn("[Niotepad] IndexedDB read failed:", error);
     return null;
