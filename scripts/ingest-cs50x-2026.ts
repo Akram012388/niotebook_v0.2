@@ -2,7 +2,11 @@
  * Ingest pipeline — Step 2a: CS50x 2026
  *
  * Dynamically scrapes cs50.harvard.edu/x/ to rebuild lesson metadata and
- * transcripts for CS50x 2026. Calls ingest:ingestCs50x2026 on Convex.
+ * transcripts for CS50x 2026. Calls four Convex mutations in sequence:
+ * ingest:ingestCs50x2026 (upsert), ingest:clearTranscriptSegmentsBatch,
+ * ingest:ingestTranscriptSegmentsBatch, and ingest:finalizeTranscriptIngest.
+ * Aborts without writing to Convex if any lesson fails transcript fetch
+ * or quality check (prevents partial ingest).
  *
  * Run after Step 1 (ingest-cs50-courses.ts) to refresh CS50x content.
  *

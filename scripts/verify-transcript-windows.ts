@@ -1,3 +1,10 @@
+/**
+ * CI verification utility — calls ingest:verifyTranscriptWindows and exits
+ * non-zero if any lesson has transcriptStatus="error". Used as a post-ingest
+ * gate in the _refresh-convex.yml and e2e.yml workflows.
+ *
+ * Usage: CONVEX_URL=<url> NIOTEBOOK_INGEST_TOKEN=<token> bun ./scripts/verify-transcript-windows.ts
+ */
 import { ConvexHttpClient } from "convex/browser";
 import type { FunctionReference } from "convex/server";
 

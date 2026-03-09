@@ -1,13 +1,13 @@
 /**
- * Ingest pipeline — Step 1: Bootstrap
+ * Ingest pipeline — Step 1: Bootstrap data
  *
- * Creates all 5 CS50 course + lesson records in Convex with static metadata.
- * Run this ONCE when setting up a new Convex deployment before running
- * the individual transcript ingest scripts.
+ * Static course + lesson payloads for all 6 CS50 courses.
+ * This is a data module, not a runnable script — it has no entry point.
+ * Import ALL_COURSES and pass each entry to the ingest:ingestCourse
+ * Convex mutation (or use the Convex dashboard) to bootstrap a new deployment.
+ * Run this ONCE before running any Step 2 transcript ingest scripts.
  *
- * Usage: bun ./scripts/ingest-cs50-courses.ts
- *
- * Courses: CS50x 2026, CS50P, CS50AI, CS50W, CS50SQL
+ * Courses: CS50x 2026, CS50P, CS50AI, CS50W, CS50SQL, CS50R
  */
 
 type EnvironmentConfig = {
