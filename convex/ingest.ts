@@ -311,17 +311,28 @@ const finalizeTranscriptIngest = mutation({
 
     const lessonDomainId = toDomainId(args.lessonId as GenericId<"lessons">);
 
-    await logEventInternal(ctx, {
-      eventType: "transcript_ingest_started",
-      lessonId: args.lessonId,
-      metadata: {
-        lessonId: lessonDomainId,
-      },
-      userId: toGenericId(admin.id),
-    });
+    {
+      const result = await logEventInternal(ctx, {
+        eventType: "transcript_ingest_started",
+        lessonId: args.lessonId,
+        metadata: {
+          lessonId: lessonDomainId,
+        },
+        userId: toGenericId(admin.id),
+      });
+
+      if (!result.ok) {
+        console.error(
+          "[events] logEventInternal failed",
+          result.error.code,
+          result.error.message,
+          { eventType: "transcript_ingest_started" },
+        );
+      }
+    }
 
     if (shouldEmitSuccess) {
-      await logEventInternal(ctx, {
+      const result = await logEventInternal(ctx, {
         eventType: "transcript_ingest_succeeded",
         lessonId: args.lessonId,
         metadata: {
@@ -331,8 +342,17 @@ const finalizeTranscriptIngest = mutation({
         },
         userId: toGenericId(admin.id),
       });
+
+      if (!result.ok) {
+        console.error(
+          "[events] logEventInternal failed",
+          result.error.code,
+          result.error.message,
+          { eventType: "transcript_ingest_succeeded" },
+        );
+      }
     } else {
-      await logEventInternal(ctx, {
+      const result = await logEventInternal(ctx, {
         eventType: "transcript_ingest_failed",
         lessonId: args.lessonId,
         metadata: {
@@ -341,13 +361,22 @@ const finalizeTranscriptIngest = mutation({
         },
         userId: toGenericId(admin.id),
       });
+
+      if (!result.ok) {
+        console.error(
+          "[events] logEventInternal failed",
+          result.error.code,
+          result.error.message,
+          { eventType: "transcript_ingest_failed" },
+        );
+      }
     }
 
     if (
       args.transcriptStatus === "warn" &&
       typeof args.transcriptDurationSec === "number"
     ) {
-      await logEventInternal(ctx, {
+      const result = await logEventInternal(ctx, {
         eventType: "transcript_duration_warn",
         lessonId: args.lessonId,
         metadata: {
@@ -357,6 +386,15 @@ const finalizeTranscriptIngest = mutation({
         },
         userId: toGenericId(admin.id),
       });
+
+      if (!result.ok) {
+        console.error(
+          "[events] logEventInternal failed",
+          result.error.code,
+          result.error.message,
+          { eventType: "transcript_duration_warn" },
+        );
+      }
     }
   },
 });

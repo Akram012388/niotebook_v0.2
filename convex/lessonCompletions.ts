@@ -79,15 +79,26 @@ const setLessonCompleted = mutation({
         completedAt,
       );
 
-      await logEventInternal(ctx, {
-        eventType: "lesson_completed",
-        lessonId: args.lessonId,
-        metadata: {
+      {
+        const result = await logEventInternal(ctx, {
+          eventType: "lesson_completed",
           lessonId: args.lessonId,
-          completionPct: args.completionPct,
-        },
-        userId: toGenericId(user.id),
-      });
+          metadata: {
+            lessonId: args.lessonId,
+            completionPct: args.completionPct,
+          },
+          userId: toGenericId(user.id),
+        });
+
+        if (!result.ok) {
+          console.error(
+            "[events] logEventInternal failed",
+            result.error.code,
+            result.error.message,
+            { eventType: "lesson_completed" },
+          );
+        }
+      }
 
       return summary;
     }
@@ -106,15 +117,26 @@ const setLessonCompleted = mutation({
       completedAt,
     );
 
-    await logEventInternal(ctx, {
-      eventType: "lesson_completed",
-      lessonId: args.lessonId,
-      metadata: {
+    {
+      const result = await logEventInternal(ctx, {
+        eventType: "lesson_completed",
         lessonId: args.lessonId,
-        completionPct: args.completionPct,
-      },
-      userId: toGenericId(user.id),
-    });
+        metadata: {
+          lessonId: args.lessonId,
+          completionPct: args.completionPct,
+        },
+        userId: toGenericId(user.id),
+      });
+
+      if (!result.ok) {
+        console.error(
+          "[events] logEventInternal failed",
+          result.error.code,
+          result.error.message,
+          { eventType: "lesson_completed" },
+        );
+      }
+    }
 
     return summary;
   },
@@ -216,15 +238,26 @@ const markComplete = mutation({
       completedAt,
     });
 
-    await logEventInternal(ctx, {
-      eventType: "lesson_completed",
-      lessonId: args.lessonId,
-      metadata: {
+    {
+      const result = await logEventInternal(ctx, {
+        eventType: "lesson_completed",
         lessonId: args.lessonId,
-        completionPct: 100,
-      },
-      userId: toGenericId(user.id),
-    });
+        metadata: {
+          lessonId: args.lessonId,
+          completionPct: 100,
+        },
+        userId: toGenericId(user.id),
+      });
+
+      if (!result.ok) {
+        console.error(
+          "[events] logEventInternal failed",
+          result.error.code,
+          result.error.message,
+          { eventType: "lesson_completed" },
+        );
+      }
+    }
 
     return resolveLessonCompletionSummary(
       toDomainId(completionId as GenericId<"lessonCompletions">),

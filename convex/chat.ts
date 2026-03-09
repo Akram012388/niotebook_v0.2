@@ -275,16 +275,27 @@ const completeAssistantMessage = mutation({
       createdAt,
     });
 
-    await logEventInternal(ctx, {
-      eventType: "nio_message_received",
-      lessonId: thread.lessonId,
-      metadata: {
-        lessonId: toDomainId(thread.lessonId as GenericId<"lessons">),
-        threadId: toDomainId(args.threadId as GenericId<"chatThreads">),
-        latencyMs: args.latencyMs,
-      },
-      userId: toGenericId(user.id),
-    });
+    {
+      const result = await logEventInternal(ctx, {
+        eventType: "nio_message_received",
+        lessonId: thread.lessonId,
+        metadata: {
+          lessonId: toDomainId(thread.lessonId as GenericId<"lessons">),
+          threadId: toDomainId(args.threadId as GenericId<"chatThreads">),
+          latencyMs: args.latencyMs,
+        },
+        userId: toGenericId(user.id),
+      });
+
+      if (!result.ok) {
+        console.error(
+          "[events] logEventInternal failed",
+          result.error.code,
+          result.error.message,
+          { eventType: "nio_message_received" },
+        );
+      }
+    }
 
     return {
       id: toDomainId(messageId as GenericId<"chatMessages">),
