@@ -2,6 +2,7 @@ import { mutation } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import type { GenericId } from "convex/values";
 import {
+  EVENT_TYPES,
   validateEventMetadata,
   validateEventUserId,
   type EventLogResult,
@@ -22,39 +23,13 @@ type LogEventInternalArgs = {
   metadata: EventMetadataInput;
 };
 
+// Event type source of truth: src/domain/events.ts EVENT_TYPES
+const [first, second, ...rest] = EVENT_TYPES.map((t) => v.literal(t));
+const eventTypeValidator = v.union(first, second, ...rest);
+
 const logEvent = mutation({
   args: {
-    eventType: v.union(
-      v.literal("invite_issued"),
-      v.literal("invite_redeemed"),
-      v.literal("magic_link_sent"),
-      v.literal("magic_link_verified"),
-      v.literal("course_selected"),
-      v.literal("lesson_started"),
-      v.literal("video_play"),
-      v.literal("video_pause"),
-      v.literal("video_seek"),
-      v.literal("code_edit"),
-      v.literal("code_run"),
-      v.literal("nio_message_sent"),
-      v.literal("nio_message_received"),
-      v.literal("ai_fallback_triggered"),
-      v.literal("lesson_completed"),
-      v.literal("session_start"),
-      v.literal("session_end"),
-      v.literal("runtime_warmup_start"),
-      v.literal("runtime_warmup_end"),
-      v.literal("transcript_ingest_started"),
-      v.literal("transcript_ingest_succeeded"),
-      v.literal("transcript_ingest_failed"),
-      v.literal("transcript_duration_warn"),
-      v.literal("share_opened"),
-      v.literal("share_copy"),
-      v.literal("share_social"),
-      v.literal("feedback_opened"),
-      v.literal("feedback_submitted"),
-      v.literal("feedback_dismissed"),
-    ),
+    eventType: eventTypeValidator,
     lessonId: v.optional(v.id("lessons")),
     sessionId: v.optional(v.string()),
     metadata: v.object({
