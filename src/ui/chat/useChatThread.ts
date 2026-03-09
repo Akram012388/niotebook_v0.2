@@ -353,10 +353,13 @@ const useChatThread = (
                   lessonId,
                   threadId: resolvedThreadId,
                 },
-              }).catch(() => undefined),
+              }).catch((err: unknown) => {
+                console.error("[chat] logEvent failed:", err);
+              }),
             ]);
-          } catch {
-            // Convex calls failed — continue with local-only thread
+          } catch (err) {
+            console.error("[chat] Convex calls failed:", err);
+            // continue with local-only thread
             if (!activeThreadId) {
               setLocalThreadId(fallbackThreadId);
             }

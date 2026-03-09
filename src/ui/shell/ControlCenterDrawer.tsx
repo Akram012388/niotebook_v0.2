@@ -238,8 +238,8 @@ const ControlCenterDrawer = ({
       });
       handleResetFeedback();
       setActiveSettingsCard(null);
-    } catch {
-      // mutation failed
+    } catch (err) {
+      console.error("[feedback] submitFeedbackMutation failed:", err);
     }
   }, [
     isFeedbackDirty,

@@ -221,8 +221,8 @@ type EventMetadataValidator = (
   metadata: EventMetadataInput,
 ) => EventValidationResult;
 
-const isStr = (v: unknown): v is string =>
-  typeof v === "string" && v.length > 0;
+const isStr = (val: string | number | boolean | undefined): val is string =>
+  typeof val === "string" && val.length > 0;
 
 const EVENT_METADATA_VALIDATORS: Record<EventType, EventMetadataValidator> = {
   invite_issued: (metadata) =>
@@ -340,16 +340,18 @@ const EVENT_METADATA_VALIDATORS: Record<EventType, EventMetadataValidator> = {
     isStr(metadata.surface) ? { ok: true } : invalidEventMetadata(),
 };
 
-const buildEventLogError = (code: EventLogErrorCode): EventLogError => {
-  const message =
+const buildEventLogError = (
+  code: EventLogErrorCode,
+  detail?: string,
+): EventLogError => {
+  const baseMessage =
     code === "MISSING_USER_ID"
       ? "User id is required."
       : "Invalid event metadata.";
 
-  return {
-    code,
-    message,
-  };
+  const message = detail ? `${baseMessage} (${detail})` : baseMessage;
+
+  return { code, message };
 };
 
 const invalidEventMetadata = (): EventValidationResult => {
@@ -363,10 +365,22 @@ const validateEventMetadata = (
   const validator = EVENT_METADATA_VALIDATORS[eventType];
 
   if (!validator) {
-    return invalidEventMetadata();
+    return {
+      ok: false,
+      error: buildEventLogError("INVALID_EVENT_METADATA", eventType),
+    };
   }
 
-  return validator(metadata);
+  const result = validator(metadata);
+
+  if (!result.ok) {
+    return {
+      ok: false,
+      error: buildEventLogError("INVALID_EVENT_METADATA", eventType),
+    };
+  }
+
+  return result;
 };
 
 const validateEventUserId = (userId?: UserId): EventValidationResult => {
