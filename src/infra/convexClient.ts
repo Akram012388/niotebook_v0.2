@@ -13,23 +13,6 @@ type ConvexClientWithAdminAuth = ConvexReactClient & {
 };
 
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-const isProd = process.env.NODE_ENV === "production";
-const allowPreviewBypass =
-  process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true" ||
-  process.env.NIOTEBOOK_E2E_PREVIEW === "true" ||
-  process.env.VERCEL_ENV === "preview" ||
-  (typeof window !== "undefined" &&
-    window.location.hostname.endsWith(".vercel.app"));
-
-if (
-  isProd &&
-  process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true" &&
-  !allowPreviewBypass
-) {
-  throw new Error(
-    "NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS is not allowed in production.",
-  );
-}
 
 if (!convexUrl && process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true") {
   throw new Error("NEXT_PUBLIC_CONVEX_URL is required.");
@@ -39,8 +22,13 @@ const convexClient = convexUrl
   ? new ConvexReactClient(convexUrl, { expectAuth: false })
   : new ConvexReactClient("http://localhost:3210", { expectAuth: false });
 
-if (convexClient) {
-  enableDevAuthBypass(convexClient as ConvexClientWithAdminAuth);
-}
+/**
+ * Called by DevAuthBypassProvider after the server-only NIOTEBOOK_DEV_AUTH_BYPASS
+ * env var has been injected into the client via React context. This defers the
+ * bypass setup until after the RSC renders and provides the flag.
+ */
+const applyDevAuthBypass = (bypassEnabled: boolean): void => {
+  enableDevAuthBypass(convexClient as ConvexClientWithAdminAuth, bypassEnabled);
+};
 
-export { convexClient };
+export { convexClient, applyDevAuthBypass };
