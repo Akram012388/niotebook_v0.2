@@ -2,7 +2,7 @@
 
 **Source audit:** `docs/reviews/2026-03-07-codebase-analysis.md`
 **Total findings:** 50 (5 P0 · 13 P1 · 21 P2 · 11 P3)
-**Status:** Wave 0 + Wave 1 + Wave 1b + Wave 2 + Wave 3 + Wave 4 + Wave 5 complete (2026-03-09)
+**Status:** Wave 0 + Wave 1 + Wave 1b + Wave 2 + Wave 3 + Wave 4 + Wave 5 + Wave 6 complete (2026-03-09)
 
 This document is the canonical tracker for all remediation work derived from the deep codebase analysis.
 Contributors: pick any open item from the current wave, create a branch, and open a PR referencing the finding ID.
@@ -352,4 +352,23 @@ docs/oss-contributing            # Documentation
 
 ---
 
-_Last updated: 2026-03-09 · Waves 0–5 complete · Open items deferred to Wave 6: 2F-1/2/3 (C executor Web Worker), W3-D1, W3-D2, HIGH-02 full rename, C2, C3, M1, M3, M6, M7, L2, byok.e2e.ts · Source analysis: `docs/reviews/2026-03-07-codebase-analysis.md`_
+---
+
+## Wave 6 — Final Open Items (6 Parallel PRs)
+
+Executed after Wave 5. All 6 PRs merged 2026-03-09.
+
+| Item | PR | Description | Status |
+| ---- | -- | ----------- | ------ |
+| HIGH-02 full rename + M1 | #133 | Move `NIOTEBOOK_DEV_AUTH_BYPASS` to server-only env var via RSC `DevAuthBypassProvider`; client reads from React context (`useDevAuthBypass()`); idempotency guard added to `applyDevAuthBypass`. | ✅ Done |
+| W3-D1 + W3-D2 type safety | #131 | `useRuntimeWarmup` accepts `onStateChange` callback (not raw setter); `toLessonId()` helper centralizes `Id<"lessons">` cast inside `transcriptResolver.ts`; call sites in `route.ts` pass plain strings. | ✅ Done |
+| C2 WebR fallback + M3 Pyodide preload | #130 | WebR CDN fallback via `webr-load-error` custom event (fixes dead `script.onerror` on inline modules); `webrPromise` race condition removed; `<link rel="preload" as="script">` for Pyodide in layout. | ✅ Done |
+| getLessonCountsByCourse ID leak | #129 | Returns `{ courseId: DomainId; count: number }[]` (was `Record<string, number>` keyed by raw `GenericId`); uses `toDomainId()` consistent with all other handlers; `Promise.all` for concurrent queries. | ✅ Done |
+| M7 CodePane useCallback deps | #132 | `videoTimeSecRef` pattern applied to both `handleKeyDown` and `handleBookmark` — volatile video-frame value no longer forces callback recreation every frame. | ✅ Done |
+| byok E2E test | #134 | New `tests/e2e/byok.e2e.ts`: exercises NO_API_KEY SSE → UI banner flow; diagnostics capture on failure; event listener registered before message submission to eliminate timing ambiguity. | ✅ Done |
+
+**Deferred (Unit B):** 2F-1/2/3 C executor Web Worker — held for design discussion.
+
+---
+
+_Last updated: 2026-03-09 · Waves 0–6 complete · One item deferred: 2F-1/2/3 (C executor Web Worker — pending design discussion) · Source analysis: `docs/reviews/2026-03-07-codebase-analysis.md`_
