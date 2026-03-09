@@ -24,6 +24,8 @@ Stores behavioral events such as code runs, video seeks, AI requests, and invite
 - **Preview / staging environments** (where `NIOTEBOOK_PREVIEW_DATA=true`): rows older than **7 days** are deleted nightly by the `preview-data-cleanup` cron (runs at 02:00 UTC).
 - **Production:** no automated cleanup is currently configured. Events accumulate indefinitely. A production retention window should be defined — suggested value is **90 days** for operational analytics. (Review needed before production launch.)
 
+The same cron pass also deletes stale `chatMessages` rows (see the Chat Messages section).
+
 Note: the `metadata` object may contain `emailHash` (hashed, not plaintext) but never raw email addresses.
 
 ---
@@ -33,6 +35,8 @@ Note: the `metadata` object may contain `emailHash` (hashed, not plaintext) but 
 Stores individual AI chat turns tied to a thread. Each row has a `createdAt` timestamp.
 
 **Retention window:** same as event logs (section 2) — 7 days in preview environments; no production cleanup configured today. A 90-day window is a reasonable starting point and should be confirmed before launch.
+
+Cleanup is performed by the same `preview-data-cleanup` cron described in the Events section, in the same database transaction pass.
 
 ---
 
