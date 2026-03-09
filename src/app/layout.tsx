@@ -73,6 +73,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {isE2ePreview ? <meta name="niotebook-e2e" content="ready" /> : null}
+        {/* Preload Pyodide — must match PYODIDE_SCRIPT_URL in pythonExecutor.ts.
+            Use rel="preload" (not modulepreload) because pyodide.js is a classic
+            script loaded via script.src, not an ES module. */}
+        <link
+          rel="preload"
+          as="script"
+          href="https://cdn.jsdelivr.net/pyodide/v0.27.0/full/pyodide.js"
+          crossOrigin="anonymous"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem("niotebook.theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t)}else if(window.matchMedia("(prefers-color-scheme:dark)").matches){document.documentElement.setAttribute("data-theme","dark")}else{document.documentElement.setAttribute("data-theme","light")}}catch(e){document.documentElement.setAttribute("data-theme","light")}})()`,
