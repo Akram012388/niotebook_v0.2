@@ -283,6 +283,71 @@ describe("scheduleAutoPersist debounce", () => {
 });
 
 // ---------------------------------------------------------------------------
+// renameNode
+// ---------------------------------------------------------------------------
+
+describe("renameNode", () => {
+  it("renames a non-main file without changing mainFilePath", () => {
+    const { createFile, setMainFile, renameNode } =
+      useFileSystemStore.getState();
+    createFile("/project/file1.py", "main content");
+    createFile("/project/file2.py", "other content");
+    setMainFile("/project/file1.py");
+
+    renameNode("/project/file2.py", "/project/file2_renamed.py");
+
+    expect(useFileSystemStore.getState().mainFilePath).toBe(
+      "/project/file1.py",
+    );
+  });
+
+  it("renames the main file and updates mainFilePath", () => {
+    const { createFile, setMainFile, renameNode } =
+      useFileSystemStore.getState();
+    createFile("/project/main.py", "code");
+    setMainFile("/project/main.py");
+
+    renameNode("/project/main.py", "/project/main_renamed.py");
+
+    expect(useFileSystemStore.getState().mainFilePath).toBe(
+      "/project/main_renamed.py",
+    );
+  });
+
+  it("renamed file appears under new path in files list", () => {
+    const { createFile, renameNode } = useFileSystemStore.getState();
+    createFile("/project/old.py", "content");
+
+    renameNode("/project/old.py", "/project/new.py");
+
+    const { files } = useFileSystemStore.getState();
+    expect(files.find((f) => f.path === "/project/old.py")).toBeUndefined();
+    expect(files.find((f) => f.path === "/project/new.py")).toBeDefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getMainFileContent
+// ---------------------------------------------------------------------------
+
+describe("getMainFileContent", () => {
+  it("returns file content when mainFilePath is set and file exists", () => {
+    const { createFile, setMainFile, getMainFileContent } =
+      useFileSystemStore.getState();
+    createFile("/project/main.py", 'print("hello")');
+    setMainFile("/project/main.py");
+
+    expect(getMainFileContent()).toBe('print("hello")');
+  });
+
+  it("returns empty string when mainFilePath is null", () => {
+    const { getMainFileContent } = useFileSystemStore.getState();
+
+    expect(getMainFileContent()).toBe("");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Lesson-switch isolation
 // ---------------------------------------------------------------------------
 
