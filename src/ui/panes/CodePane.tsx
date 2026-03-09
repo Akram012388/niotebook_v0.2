@@ -267,19 +267,13 @@ const CodePane = ({
     doBookmark({
       source: "code",
       content: mainContent,
-      videoTimeSec,
+      videoTimeSec: videoTimeSecRef.current,
       metadata: {
         filePath: mainFilePath ?? undefined,
         language: activeLanguage,
       },
     });
-  }, [
-    doBookmark,
-    getMainFileContent,
-    videoTimeSec,
-    mainFilePath,
-    activeLanguage,
-  ]);
+  }, [doBookmark, getMainFileContent, mainFilePath, activeLanguage]);
 
   // ── Push-to-niotepad shortcut (Cmd/Ctrl+Shift+N) ────────
   const handleKeyDown = useCallback(
