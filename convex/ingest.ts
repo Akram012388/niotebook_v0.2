@@ -337,7 +337,7 @@ const _performCourseIngest = async (
       segmentCount: existingLesson?.segmentCount,
       ingestVersion: existingLesson?.ingestVersion,
       environmentConfig: lesson.environmentConfig,
-    };
+    } satisfies Omit<LessonRecord, "_id">;
 
     const lessonId = existingLesson
       ? existingLesson._id
@@ -348,8 +348,7 @@ const _performCourseIngest = async (
     }
 
     let shouldReplaceSegments =
-      !existingLesson ||
-      existingLesson.ingestVersion !== lesson.ingestVersion;
+      !existingLesson || existingLesson.ingestVersion !== lesson.ingestVersion;
 
     if (!shouldReplaceSegments && existingLesson) {
       const expectedCount = lesson.segmentCount ?? 0;
