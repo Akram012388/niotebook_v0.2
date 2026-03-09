@@ -6,8 +6,31 @@ on:
     branches:
       - main
 
+env:
+  BUN_VERSION: "1.1.19"
+
 jobs:
-  checks:
+  quality:
+    name: Lint, format & custom checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          restore-keys: bun-${{ runner.os }}-
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run format:check
+      - run: bun run check:any
+      - run: bun run check:unknown
+
+  build:
+    name: Typecheck, test & build
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_CONVEX_URL: ${{ secrets.DEV_CONVEX_URL }}
@@ -16,13 +39,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.1.19"
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
-      - run: bun run lint
-      - name: Check formatting
-        run: bun run format:check
-      - run: bun run check:any
-      - run: bun run check:unknown
       - run: bun run typecheck
       - run: bun run test
       - run: bun run build
