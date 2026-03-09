@@ -6,7 +6,7 @@ vi.mock("../../../../src/infra/runtime/jsSandbox", () => ({
   runInSandboxedIframe: vi.fn(),
 }));
 
-// Also mock jsModules to avoid any ESM/CDN side-effects in the shim builder
+// Also mock jsModules to avoid ESM/CDN side-effects in the shim builder
 vi.mock("../../../../src/infra/runtime/imports/jsModules", () => ({
   makeRequireShim: vi.fn().mockReturnValue(null),
 }));
