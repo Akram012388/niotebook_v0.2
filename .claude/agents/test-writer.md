@@ -15,7 +15,7 @@ You are working in a Next.js 16 + TypeScript strict + Convex project that uses:
 - **Playwright** for E2E tests (`bun run test:e2e` or `bunx playwright test path/to/test.ts`)
 - **Bun** as the package manager and runtime
 - **Path alias:** `@/*` → `./src/*`
-- **No `any`** in `src/convex/tests` — use proper types
+- **No `any`** in `convex/` and `tests/` — use proper types
 - **No `unknown`** in `src/domain` — use proper types
 - **Pure domain logic** lives in `src/domain/` (no React, no side effects)
 - **Infrastructure** lives in `src/infra/` (VFS, runtime executors, AI providers)

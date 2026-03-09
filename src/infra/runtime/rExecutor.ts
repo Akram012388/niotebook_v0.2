@@ -109,12 +109,12 @@ function loadWebRScript(scriptUrl: string, cdnBase: string): Promise<void> {
       document.removeEventListener("webr-loaded", onLoaded);
       document.removeEventListener("webr-load-error", onError);
       const detail = (event as CustomEvent<string>).detail ?? "unknown error";
-      console.error("[rExecutor] WebR script load failed from", cdnBase, detail);
-      reject(
-        new Error(
-          `WebR failed to load from CDN (${cdnBase}): ${detail}`,
-        ),
+      console.error(
+        "[rExecutor] WebR script load failed from",
+        cdnBase,
+        detail,
       );
+      reject(new Error(`WebR failed to load from CDN (${cdnBase}): ${detail}`));
     };
 
     document.addEventListener("webr-loaded", onLoaded);
@@ -174,7 +174,10 @@ function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
   );
 
   webrPromise.catch((err: unknown) => {
-    console.error("[rExecutor] WebR load failed, clearing cached promise:", err);
+    console.error(
+      "[rExecutor] WebR load failed, clearing cached promise:",
+      err,
+    );
     webrPromise = null;
   });
   return webrPromise;

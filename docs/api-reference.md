@@ -24,8 +24,8 @@ If the header is absent or malformed in production, the server returns `401 AUTH
 
 ## Rate Limits
 
-| Scope        | Limit | Window    |
-|--------------|-------|-----------|
+| Scope        | Limit | Window     |
+| ------------ | ----- | ---------- |
 | `ai_request` | 20    | 10 minutes |
 
 Rate limits are tracked per authenticated user via Convex (`rateLimits.consumeAiRateLimit`). When the limit is exceeded the server returns `429 RATE_LIMITED` with:
@@ -43,52 +43,52 @@ Rate limits are tracked per authenticated user via Convex (`rateLimits.consumeAi
 
 ### Body: `NioChatRequest`
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `requestId` | `string` | Yes | Client-generated UUID for the request. Echoed back in all SSE events. |
-| `assistantTempId` | `string` | Yes | Client-generated UUID for the pending assistant message. Used to match SSE events to the local optimistic message. |
-| `lessonId` | `string` | Yes | Convex document ID of the current lesson. |
-| `threadId` | `string` | Yes | Convex document ID of the chat thread (or `"local-thread"` when Convex is unavailable). |
-| `videoTimeSec` | `number` | Yes | Current video playback position in seconds. |
-| `userMessage` | `string` | Yes | The user's message text. |
-| `recentMessages` | `NioChatMessage[]` | Yes | Up to 20 most recent messages for conversation context. See below. |
-| `transcript` | `NioTranscriptPayload` | Yes | Transcript window around the current video position. See below. |
-| `code` | `NioCodePayload` | Yes | Current editor state. See below. |
-| `lesson` | `NioLessonMetaPayload` | No | Lesson metadata. The server also fetches this from Convex; the client value may be stale. |
-| `lastError` | `string` | No | Last runtime error from the code executor, if any. Included in the AI context. |
+| Field             | Type                   | Required | Description                                                                                                        |
+| ----------------- | ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| `requestId`       | `string`               | Yes      | Client-generated UUID for the request. Echoed back in all SSE events.                                              |
+| `assistantTempId` | `string`               | Yes      | Client-generated UUID for the pending assistant message. Used to match SSE events to the local optimistic message. |
+| `lessonId`        | `string`               | Yes      | Convex document ID of the current lesson.                                                                          |
+| `threadId`        | `string`               | Yes      | Convex document ID of the chat thread (or `"local-thread"` when Convex is unavailable).                            |
+| `videoTimeSec`    | `number`               | Yes      | Current video playback position in seconds.                                                                        |
+| `userMessage`     | `string`               | Yes      | The user's message text.                                                                                           |
+| `recentMessages`  | `NioChatMessage[]`     | Yes      | Up to 20 most recent messages for conversation context. See below.                                                 |
+| `transcript`      | `NioTranscriptPayload` | Yes      | Transcript window around the current video position. See below.                                                    |
+| `code`            | `NioCodePayload`       | Yes      | Current editor state. See below.                                                                                   |
+| `lesson`          | `NioLessonMetaPayload` | No       | Lesson metadata. The server also fetches this from Convex; the client value may be stale.                          |
+| `lastError`       | `string`               | No       | Last runtime error from the code executor, if any. Included in the AI context.                                     |
 
 ### `NioChatMessage`
 
-| Field | Type | Description |
-|---|---|---|
-| `role` | `"user" \| "assistant"` | Message author. |
-| `content` | `string` | Message text. |
+| Field     | Type                    | Description     |
+| --------- | ----------------------- | --------------- |
+| `role`    | `"user" \| "assistant"` | Message author. |
+| `content` | `string`                | Message text.   |
 
 ### `NioTranscriptPayload`
 
-| Field | Type | Description |
-|---|---|---|
-| `startSec` | `number` | Start of the transcript window (seconds). |
-| `endSec` | `number` | End of the transcript window (seconds). |
-| `lines` | `string[]` | Transcript lines within the window. May be empty; the server attempts fallback resolution via Convex, SRT files, and YouTube captions. |
+| Field      | Type       | Description                                                                                                                            |
+| ---------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `startSec` | `number`   | Start of the transcript window (seconds).                                                                                              |
+| `endSec`   | `number`   | End of the transcript window (seconds).                                                                                                |
+| `lines`    | `string[]` | Transcript lines within the window. May be empty; the server attempts fallback resolution via Convex, SRT files, and YouTube captions. |
 
 ### `NioCodePayload`
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `language` | `string` | Yes | Programming language identifier (e.g. `"python"`, `"c"`, `"javascript"`). |
-| `codeHash` | `string` | No | Hash of the current code, used for deduplication in Convex. |
-| `code` | `string` | No | Current editor content. Included in the AI context when present. |
-| `fileName` | `string` | No | Active file name, e.g. `"main.py"`. |
+| Field      | Type     | Required | Description                                                               |
+| ---------- | -------- | -------- | ------------------------------------------------------------------------- |
+| `language` | `string` | Yes      | Programming language identifier (e.g. `"python"`, `"c"`, `"javascript"`). |
+| `codeHash` | `string` | No       | Hash of the current code, used for deduplication in Convex.               |
+| `code`     | `string` | No       | Current editor content. Included in the AI context when present.          |
+| `fileName` | `string` | No       | Active file name, e.g. `"main.py"`.                                       |
 
 ### `NioLessonMetaPayload`
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `title` | `string` | No | Lesson title. |
-| `lectureNumber` | `number` | No | Lecture number within the course. |
-| `subtitlesUrl` | `string` | No | URL of an SRT subtitle file (used as transcript fallback). |
-| `transcriptUrl` | `string` | No | URL of a plain-text transcript (used as transcript fallback). |
+| Field           | Type     | Required | Description                                                   |
+| --------------- | -------- | -------- | ------------------------------------------------------------- |
+| `title`         | `string` | No       | Lesson title.                                                 |
+| `lectureNumber` | `number` | No       | Lecture number within the course.                             |
+| `subtitlesUrl`  | `string` | No       | URL of an SRT subtitle file (used as transcript fallback).    |
+| `transcriptUrl` | `string` | No       | URL of a plain-text transcript (used as transcript fallback). |
 
 ---
 
@@ -122,64 +122,64 @@ Events are delimited by a blank line (`\n\n`). The client splits on `\n\n` and p
 
 Sent once at the beginning of the stream before any tokens. Contains context metadata for diagnostics.
 
-| Field | Type | Description |
-|---|---|---|
-| `type` | `"meta"` | Event discriminator. |
-| `requestId` | `string` | Echoed from the request. |
-| `assistantTempId` | `string` | Echoed from the request. |
-| `provider` | `string` | AI provider name (e.g. `"gemini"`, `"groq"`). |
-| `model` | `string` | Model identifier used for this request. |
-| `startedAtMs` | `number` | Unix timestamp (ms) when streaming began. |
-| `contextHash` | `string` | Hash of the assembled prompt context. |
-| `budget.maxOutputTokens` | `number` | Maximum output tokens allowed. |
-| `budget.maxContextTokens` | `number` | Maximum context tokens allowed. |
+| Field                     | Type     | Description                                   |
+| ------------------------- | -------- | --------------------------------------------- |
+| `type`                    | `"meta"` | Event discriminator.                          |
+| `requestId`               | `string` | Echoed from the request.                      |
+| `assistantTempId`         | `string` | Echoed from the request.                      |
+| `provider`                | `string` | AI provider name (e.g. `"gemini"`, `"groq"`). |
+| `model`                   | `string` | Model identifier used for this request.       |
+| `startedAtMs`             | `number` | Unix timestamp (ms) when streaming began.     |
+| `contextHash`             | `string` | Hash of the assembled prompt context.         |
+| `budget.maxOutputTokens`  | `number` | Maximum output tokens allowed.                |
+| `budget.maxContextTokens` | `number` | Maximum context tokens allowed.               |
 | `budget.approxCharBudget` | `number` | Approximate character budget for the context. |
-| `seq` | `number` | Sequence number (always `0` for `meta`). |
+| `seq`                     | `number` | Sequence number (always `0` for `meta`).      |
 
 #### `token` — Partial response chunk
 
 Sent for each token or chunk of the assistant response as it streams.
 
-| Field | Type | Description |
-|---|---|---|
-| `type` | `"token"` | Event discriminator. |
-| `requestId` | `string` | Echoed from the request. |
-| `assistantTempId` | `string` | Echoed from the request. |
-| `seq` | `number` | Monotonically increasing sequence number starting at `1`. |
-| `token` | `string` | The text chunk. Concatenating all tokens in order reconstructs the full response. |
+| Field             | Type      | Description                                                                       |
+| ----------------- | --------- | --------------------------------------------------------------------------------- |
+| `type`            | `"token"` | Event discriminator.                                                              |
+| `requestId`       | `string`  | Echoed from the request.                                                          |
+| `assistantTempId` | `string`  | Echoed from the request.                                                          |
+| `seq`             | `number`  | Monotonically increasing sequence number starting at `1`.                         |
+| `token`           | `string`  | The text chunk. Concatenating all tokens in order reconstructs the full response. |
 
 #### `done` — Stream complete
 
 Sent once when the AI provider signals completion. The client should use `finalText` as the canonical response.
 
-| Field | Type | Description |
-|---|---|---|
-| `type` | `"done"` | Event discriminator. |
-| `requestId` | `string` | Echoed from the request. |
-| `assistantTempId` | `string` | Echoed from the request. |
-| `seq` | `number` | Sequence number of the final event. |
-| `provider` | `string` | Provider that served the response. |
-| `model` | `string` | Model that served the response. |
-| `usedFallback` | `boolean` | `true` if Groq fallback was used instead of Gemini primary. |
-| `latencyMs` | `number` | Total time from request start to stream complete (ms). |
-| `timeToFirstTokenMs` | `number` | Time from request start to first token (ms). |
-| `usageApprox.inputChars` | `number` | Approximate input character count (proxy for input tokens). |
-| `usageApprox.outputChars` | `number` | Approximate output character count (proxy for output tokens). |
-| `finalText` | `string` | The complete assistant response. Use this rather than the concatenated tokens. |
+| Field                     | Type      | Description                                                                    |
+| ------------------------- | --------- | ------------------------------------------------------------------------------ |
+| `type`                    | `"done"`  | Event discriminator.                                                           |
+| `requestId`               | `string`  | Echoed from the request.                                                       |
+| `assistantTempId`         | `string`  | Echoed from the request.                                                       |
+| `seq`                     | `number`  | Sequence number of the final event.                                            |
+| `provider`                | `string`  | Provider that served the response.                                             |
+| `model`                   | `string`  | Model that served the response.                                                |
+| `usedFallback`            | `boolean` | `true` if Groq fallback was used instead of Gemini primary.                    |
+| `latencyMs`               | `number`  | Total time from request start to stream complete (ms).                         |
+| `timeToFirstTokenMs`      | `number`  | Time from request start to first token (ms).                                   |
+| `usageApprox.inputChars`  | `number`  | Approximate input character count (proxy for input tokens).                    |
+| `usageApprox.outputChars` | `number`  | Approximate output character count (proxy for output tokens).                  |
+| `finalText`               | `string`  | The complete assistant response. Use this rather than the concatenated tokens. |
 
 #### `error` — Terminal error
 
 Sent when the stream cannot proceed. No `done` event follows.
 
-| Field | Type | Description |
-|---|---|---|
-| `type` | `"error"` | Event discriminator. |
-| `requestId` | `string` | Echoed from the request. |
-| `assistantTempId` | `string` | Echoed from the request. |
-| `seq` | `number` | Current sequence number at time of error. |
-| `code` | `NioErrorCode` | Machine-readable error code. See Error Codes below. |
-| `message` | `string` | Human-readable description of the error. |
-| `provider` | `string \| undefined` | Provider involved, if applicable. |
+| Field             | Type                  | Description                                         |
+| ----------------- | --------------------- | --------------------------------------------------- |
+| `type`            | `"error"`             | Event discriminator.                                |
+| `requestId`       | `string`              | Echoed from the request.                            |
+| `assistantTempId` | `string`              | Echoed from the request.                            |
+| `seq`             | `number`              | Current sequence number at time of error.           |
+| `code`            | `NioErrorCode`        | Machine-readable error code. See Error Codes below. |
+| `message`         | `string`              | Human-readable description of the error.            |
+| `provider`        | `string \| undefined` | Provider involved, if applicable.                   |
 
 ---
 
@@ -189,27 +189,27 @@ Sent when the stream cannot proceed. No `done` event follows.
 
 These are returned as JSON before the SSE stream is opened.
 
-| HTTP Status | `error.code` | Description |
-|---|---|---|
-| `400` | `VALIDATION_ERROR` | Request body is malformed or missing required fields. |
-| `401` | `AUTH_REQUIRED` | No valid Clerk JWT in production. |
-| `429` | `RATE_LIMITED` | Per-user rate limit exceeded (20 requests per 10 minutes). |
-| `503` | `SERVICE_UNAVAILABLE` | Convex rate-limit check failed (transient). |
+| HTTP Status | `error.code`          | Description                                                |
+| ----------- | --------------------- | ---------------------------------------------------------- |
+| `400`       | `VALIDATION_ERROR`    | Request body is malformed or missing required fields.      |
+| `401`       | `AUTH_REQUIRED`       | No valid Clerk JWT in production.                          |
+| `429`       | `RATE_LIMITED`        | Per-user rate limit exceeded (20 requests per 10 minutes). |
+| `503`       | `SERVICE_UNAVAILABLE` | Convex rate-limit check failed (transient).                |
 
 ### SSE-level errors (`NioErrorCode`)
 
 These arrive as `error` events inside the SSE stream.
 
-| Code | Description |
-|---|---|
-| `NO_API_KEY` | No AI provider API key is configured. The client displays a "bring your own key" prompt. |
-| `AUTH_REQUIRED` | Authentication required but not present (can also appear in stream context). |
-| `RATE_LIMITED` | Per-user rate limit exceeded. |
-| `VALIDATION_ERROR` | Request payload did not pass server-side validation. |
-| `PROVIDER_429` | Upstream AI provider returned 429 (rate limited by provider). |
-| `PROVIDER_5XX` | Upstream AI provider returned a 5xx error. |
-| `TIMEOUT_FIRST_TOKEN` | No first token received within the timeout window. |
-| `STREAM_ERROR` | Unexpected failure during streaming (catch-all). Also emitted if the 120-second stream body timeout is reached. |
+| Code                  | Description                                                                                                     |
+| --------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `NO_API_KEY`          | No AI provider API key is configured. The client displays a "bring your own key" prompt.                        |
+| `AUTH_REQUIRED`       | Authentication required but not present (can also appear in stream context).                                    |
+| `RATE_LIMITED`        | Per-user rate limit exceeded.                                                                                   |
+| `VALIDATION_ERROR`    | Request payload did not pass server-side validation.                                                            |
+| `PROVIDER_429`        | Upstream AI provider returned 429 (rate limited by provider).                                                   |
+| `PROVIDER_5XX`        | Upstream AI provider returned a 5xx error.                                                                      |
+| `TIMEOUT_FIRST_TOKEN` | No first token received within the timeout window.                                                              |
+| `STREAM_ERROR`        | Unexpected failure during streaming (catch-all). Also emitted if the 120-second stream body timeout is reached. |
 
 ---
 

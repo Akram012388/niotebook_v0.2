@@ -22,8 +22,8 @@ You are a senior frontend engineer and design system architect, specializing in 
 
 ### Typography System
 
-- **Orbitron** (Google Fonts): Display/brand font — wordmark, page titles, major headings, section headers
-- **Geist Sans** (`next/font`): UI/body font — body text, labels, buttons, nav items, form inputs, chat messages
+- **Orbitron** (Google Fonts): **Wordmark-only** — used in the `<Wordmark>` component and its loading fallback in `AppShell.tsx` (`font-display` / `--font-logo` utilities both map to Orbitron). Do NOT apply to general headings, page titles, or body UI. New Orbitron usages outside the wordmark context require explicit sign-off.
+- **Geist Sans** (`next/font`): UI/body font — body text, labels, buttons, nav items, form inputs, chat messages, page headings
 - **Geist Mono** (`next/font`): Code font — editor, terminal, inline code, file names
 - Font loading uses Next.js `next/font` for Geist family and Google Fonts for Orbitron
 - Apply fonts via CSS custom properties: `--nio-font-display`, `--nio-font-body`, `--nio-font-mono`

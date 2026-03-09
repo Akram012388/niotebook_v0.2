@@ -14,7 +14,7 @@ It is the execution contract for the upcoming Clerk-based auth gate.
 
 ## Required Inputs
 
-- Admin emails (allowlist): `akram012388@gmail.com, niotebook@gmail.com`
+- Admin emails (allowlist): `admin@niotebook.com, niotebook@niotebook.com`
 - Cohort tag format: `inviteBatchId` (example: `alpha-2026-01`)
 
 ## Phase 0 — Clerk Dashboard Setup ✅
@@ -83,7 +83,7 @@ Add to `.env.example`:
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=`
 - `CLERK_SECRET_KEY=`
 - `CLERK_JWT_ISSUER_DOMAIN=`
-- `NIOTEBOOK_ADMIN_EMAILS=akram012388@gmail.com,niotebook@gmail.com`
+- `NIOTEBOOK_ADMIN_EMAILS=admin@niotebook.com,niotebook@niotebook.com`
 
 Update docs:
 

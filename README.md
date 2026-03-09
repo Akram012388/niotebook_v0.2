@@ -37,19 +37,21 @@ Built by someone six months into learning to program. The git history is the sto
 ### Steps
 
 ```bash
-git clone https://github.com/your-username/niotebook
-cd niotebook
+git clone https://github.com/Akram012388/niotebook_v0.2
+cd niotebook_v0.2
 bun install
 cp .env.example .env.local
 ```
 
 Fill in `.env.local` with your Convex and Clerk credentials (see table below).
 
+**Tip:** To run the app locally without Clerk credentials, enable the dev auth bypass — see `.env.example` for the full setup instructions and safety warnings.
+
 ```bash
-# Terminal 1
+# Terminal 1 — Convex backend (required)
 bun run dev:convex
 
-# Terminal 2
+# Terminal 2 — Next.js frontend
 bun run dev
 ```
 
@@ -97,13 +99,13 @@ responsible for compliance — specifically the **non-commercial restriction**.
 
 ```bash
 # 1. Fork and clone
-git clone https://github.com/<your-username>/niotebook
-cd niotebook
+git clone https://github.com/<your-username>/niotebook_v0.2
+cd niotebook_v0.2
 bun install
 
 # 2. Set up environment
 cp .env.example .env.local
-# Fill in Convex + Clerk credentials
+# Fill in Convex + Clerk credentials (or add NIOTEBOOK_DEV_AUTH_BYPASS=true to skip auth)
 
 # 3. Run the full check suite before opening a PR
 bun run typecheck && bun run lint && bun run test

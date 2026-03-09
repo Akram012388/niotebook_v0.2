@@ -2,56 +2,38 @@
 
 Quick entry points for Niotebook v0.2 documentation.
 
-## Core
+## Living References (always current)
 
-- `docs/PRD.md` — Product requirements (ACTIVE)
-- `docs/specs.md` — Technical specification (FROZEN, with alpha addenda)
-- `docs/plan.md` — Implementation phases + alpha launch roadmap (ACTIVE)
+- `docs/guidelines.md` — Code style, TypeScript strict, naming conventions
+- `docs/api-reference.md` — Internal API surface reference
+- `docs/ui-ux-contract.md` — UI/UX behavior contract
+- `docs/ui-reference.md` — UI reference patterns
 - `docs/env-requirements.md` — Environment variables reference
 - `docs/dev-workflow.md` — Local development, CI/CD, environments
-- `docs/clerk-auth-alpha.md` — Authentication plan (Clerk invite-only)
-- `docs/code-editor-tier2-plan.md` — IDE-like editor implementation
-- `docs/editor-support-r-sql.md` — R & SQL language support plan
-- `docs/ui-ux-contract.md` — UI/UX behavior contract (ACTIVE)
-- `docs/ui-reference.md` — Mobbin-first UI reference
-- `docs/guidelines.md` — Code guidelines (FP, TypeScript strict, naming)
-- `docs/landing-page.md` — Landing page specifications
-- `docs/HANDOFF.md` — Session handoff context (Phases 1–4 + Redesign v2)
-- `docs/ALPHA_LAUNCH_RECOMMENDATIONS.md` — Alpha launch readiness review
-
-## Features
-
-- `docs/niotepad-feature.md` — Niotepad experimental feature plan
-
-## Planning & Reviews
-
-- `docs/inspection.md` — Codebase inspection report
-- `docs/P0_BACKLOG_REVIEW.md` — Priority backlog review
-- `docs/polish-workspace.md` — Workspace polish plan (COMPLETE)
-
-## Architecture
-
-- `docs/architecture/COURSES_LAYOUT_REFACTOR.md` — Courses layout refactor plan
-- `docs/architecture/SITENAV_ROUTE_AUDIT.md` — SiteNav route audit and refactor
+- `docs/data-retention-policy.md` — Data retention and privacy policy
+- `docs/CHANGELOG.md` — Release history
 
 ## Architecture Decision Records
 
-- `docs/ADR-001-prd-scope.md` — PRD stays product-level
 - `docs/ADR-002-schema.md` — Convex schema baseline
 - `docs/ADR-003-error-security.md` — Error handling + security
-- `docs/ADR-004-cicd.md` — CI/CD + scripts
 - `docs/ADR-005-nio-prompt.md` — Nio system prompt (locked)
+- `docs/ADR-006-architecture-layers.md` — Architecture layer boundaries
+- `docs/ADR-007-vfs-design.md` — Virtual filesystem design
 
-## Redesign v2
+## Architecture & Design
 
-- `docs/redesign/REDESIGN_BRIEF.md` — Redesign brief (warm Claude palette)
+- `docs/redesign/REDESIGN_BRIEF.md` — Brand and visual direction
 - `docs/redesign/DESIGN_SYSTEM.md` — Design system specification
-- `docs/redesign/PHASE8_PLAN.md` — Phase 8 consolidated implementation plan
-- `docs/redesign/PHASE8_ARCHITECTURE.md` — Phase 8 architecture decisions
-- `docs/redesign/UX_SPEC_PHASE8.md` — Phase 8 UX specification
-- `docs/redesign/PROGRESS.md` — Redesign progress tracker
-- `docs/redesign/STATE.md` — Cross-session state persistence
+- `docs/architecture/SITENAV_ROUTE_AUDIT.md` — SiteNav route audit
+- `docs/NIOTEBOOK_BUILD_PLAN.md` — Build feature architecture (LEARN.BUILD.SHARE)
 
-## Changelog
+## OSS Transition Plans
 
-- `docs/CHANGELOG.md`
+- `docs/plans/2026-03-07-oss-transition-design.md` — OSS transition design
+- `docs/plans/2026-03-07-oss-transition-plan.md` — OSS transition execution plan
+
+## Archive
+
+Completed artifacts with historical reference value are in `docs/archive/`.
+These are kept for provenance but are not part of the active contributor workflow.

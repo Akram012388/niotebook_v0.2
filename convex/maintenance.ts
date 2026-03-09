@@ -58,7 +58,9 @@ export const cleanupStaleRateLimits = internalMutation({
     for (const record of stale) {
       await ctx.db.delete(record._id);
     }
-    console.log(`[maintenance] cleanupStaleRateLimits: deleted=${stale.length}, hasMore=${stale.length === 500}`);
+    console.log(
+      `[maintenance] cleanupStaleRateLimits: deleted=${stale.length}, hasMore=${stale.length === 500}`,
+    );
     return { deleted: stale.length, hasMore: stale.length === 500 };
   },
 });
@@ -75,7 +77,9 @@ export const cleanupStaleFrames = internalMutation({
     for (const record of stale) {
       await ctx.db.delete(record._id);
     }
-    console.log(`[maintenance] cleanupStaleFrames: deleted=${stale.length}, hasMore=${stale.length === 500}`);
+    console.log(
+      `[maintenance] cleanupStaleFrames: deleted=${stale.length}, hasMore=${stale.length === 500}`,
+    );
     return { deleted: stale.length, hasMore: stale.length === 500 };
   },
 });

@@ -4,14 +4,7 @@
  * The Worker is mocked so tests run in a plain Node/Vitest environment
  * without spawning a real Worker or loading JSCPP.
  */
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Mock Worker class — must be defined before any imports that use Worker
@@ -96,9 +89,7 @@ import { initCExecutor } from "../../../../src/infra/runtime/cExecutor";
 // Helpers
 // ---------------------------------------------------------------------------
 
-type RunInput = Parameters<
-  Awaited<ReturnType<typeof initCExecutor>>["run"]
->[0];
+type RunInput = Parameters<Awaited<ReturnType<typeof initCExecutor>>["run"]>[0];
 
 function makeRunInput(overrides: Partial<RunInput> = {}): RunInput {
   return {
@@ -116,7 +107,14 @@ function mockSuccessResponse(stdout: string, stderr = "", exitCode = 0): void {
     if (stdout) {
       worker.simulateMessage({ type: "stdout", id, chunk: stdout });
     }
-    worker.simulateMessage({ type: "result", id, stdout, stderr, exitCode, runtimeMs: 1 });
+    worker.simulateMessage({
+      type: "result",
+      id,
+      stdout,
+      stderr,
+      exitCode,
+      runtimeMs: 1,
+    });
   };
 }
 
@@ -278,7 +276,9 @@ describe("cExecutor — worker crash (onerror)", () => {
   it("rejects pending run when the worker fires onerror", async () => {
     MockWorker._activeHandler = (worker) => {
       // Simulate a crash via onerror
-      Promise.resolve().then(() => worker.simulateError("Worker out of memory")).catch(() => {});
+      Promise.resolve()
+        .then(() => worker.simulateError("Worker out of memory"))
+        .catch(() => {});
     };
 
     const executor = await initCExecutor();

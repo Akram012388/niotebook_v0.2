@@ -21,7 +21,14 @@ const C_TIMEOUT_MS = 5_000;
 type WorkerOutgoing =
   | { type: "stdout"; id: string; chunk: string }
   | { type: "stderr"; id: string; chunk: string }
-  | { type: "result"; id: string; stdout: string; stderr: string; exitCode: number; runtimeMs: number }
+  | {
+      type: "result";
+      id: string;
+      stdout: string;
+      stderr: string;
+      exitCode: number;
+      runtimeMs: number;
+    }
   | { type: "error"; id: string; message: string };
 
 type PendingRun = {
@@ -118,10 +125,7 @@ const initCExecutor = async (): Promise<RuntimeExecutor> => {
   const run = async (input: RuntimeRunInput): Promise<RuntimeRunResult> => {
     // Resolve includes on the main thread before sending to the worker —
     // the VirtualFS class instance cannot be cloned across the message boundary.
-    let code = input.code.replace(
-      /\bmain\s*\(\s*void\s*\)/g,
-      "main()",
-    );
+    let code = input.code.replace(/\bmain\s*\(\s*void\s*\)/g, "main()");
 
     if (input.filesystem) {
       const { resolveIncludes } = await import("./imports/cIncludes");
@@ -160,7 +164,12 @@ const initCExecutor = async (): Promise<RuntimeExecutor> => {
         timeoutHandle,
       });
 
-      getWorker().postMessage({ type: "run", id, code, stdin: input.stdin ?? "" });
+      getWorker().postMessage({
+        type: "run",
+        id,
+        code,
+        stdin: input.stdin ?? "",
+      });
     });
   };
 
