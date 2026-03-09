@@ -1,0 +1,54 @@
+# Reusable Convex data refresh workflow.
+# Called by preview-data-refresh.yml and prod-refresh.yml.
+name: Convex data refresh (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      allow_prod_ingest:
+        description: "Set to true for production ingest (enables NIOTEBOOK_ALLOW_PROD_INGEST)"
+        type: boolean
+        default: false
+      node_env:
+        description: "NODE_ENV override"
+        type: string
+        default: "development"
+    secrets:
+      CONVEX_DEPLOY_KEY:
+        required: true
+      CONVEX_URL:
+        required: true
+      NIOTEBOOK_INGEST_TOKEN:
+        required: true
+
+env:
+  BUN_VERSION: "1.1.19"
+  NEXT_PUBLIC_DEFAULT_LESSON_ID: k170tmrc8zxxqtabctyddvhhqx7zkgae
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    env:
+      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+      CONVEX_URL: ${{ secrets.CONVEX_URL }}
+      NIOTEBOOK_INGEST_TOKEN: ${{ secrets.NIOTEBOOK_INGEST_TOKEN }}
+      NIOTEBOOK_ALLOW_PROD_INGEST: ${{ inputs.allow_prod_ingest && 'true' || 'false' }}
+      NODE_ENV: ${{ inputs.node_env }}
+      NEXT_PUBLIC_DEFAULT_LESSON_ID: k170tmrc8zxxqtabctyddvhhqx7zkgae
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          restore-keys: bun-${{ runner.os }}-
+      - run: bun install --frozen-lockfile
+      - name: Deploy Convex
+        run: npx convex deploy --yes
+      - name: Ingest CS50x data
+        run: bun run ingest:cs50x
+      - name: Verify transcript windows
+        run: bun ./scripts/verifyTranscriptWindows.ts
