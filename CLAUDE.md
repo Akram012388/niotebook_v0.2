@@ -29,7 +29,7 @@ Run a single E2E test: `bunx playwright test path/to/test.ts`
 
 ### Source Layout
 
-- **`src/app/`** — Next.js routes. `(landing)/` is the public landing + info pages. `workspace/` is the main protected route. `courses/` is the course catalog. `admin/` is the admin dashboard. `sign-in/` + `sign-up/` are auth routes. `editor-sandbox/` is an isolated iframe with COOP/COEP headers for Wasmer WASM execution. `api/nio/` is the AI chat endpoint. `api/gmail/` is the Gmail automation callback.
+- **`src/app/`** — Next.js routes. `(landing)/` is the public landing + info pages. `workspace/` is the main protected route. `courses/` is the course catalog. `admin/` is the admin dashboard. `sign-in/` + `sign-up/` are auth routes. `editor-sandbox/` is an isolated iframe with COOP/COEP headers for Wasmer WASM execution. `api/nio/` is the AI chat endpoint. `api/health/` is the health check endpoint.
 - **`src/ui/`** — React components (all client-side). Organized by feature: `admin/` (dashboard), `auth/` (sign-in, boot sequence), `brand/` (wordmark, logos), `chat/` (AI chat), `code/` (editor, terminal, file tree), `content/` (lesson content), `courses/` (catalog, detail), `landing/` (hero, features), `layout/` (preset context, grid), `niotepad/` (floating notepad panel), `panes/` (workspace panes), `shared/` (ThemeToggle, NotebookFrame), `shell/` (SiteNav, TopNav), `transcript/`, `video/` (YouTube player).
 - **`src/domain/`** — Pure business logic and types. No React, no side effects. AI prompt building (`nioPrompt.ts`, `nioContextBuilder.ts`), lesson environment config, niotepad types, chat/transcript/video types.
 - **`src/infra/`** — Infrastructure layers:
@@ -37,14 +37,15 @@ Run a single E2E test: `bunx playwright test path/to/test.ts`
   - `runtime/` — Multi-language code execution: JS (`new Function`), Python (Pyodide WASM), C (Wasmer WASM), HTML/CSS (iframe). Each language has its own executor + import resolver.
   - `ai/` — AI provider interfaces
   - `niotepad/` — Niotepad Zustand store + IndexedDB persistence
-  - `email/` — Gmail API client for niotebook@gmail.com automation
+  - `cache/` — Local storage cache helpers (chat, transcript window)
+  - `dev/` — Dev auth bypass helpers (E2E only)
 - **`convex/`** — Convex backend functions. `schema.ts` defines the data model. Auth via Clerk JWT. Real-time queries/mutations consumed by React hooks.
 
 ### Key Patterns
 
 - **State:** Zustand stores for client state (filesystem, terminal, layout). Convex React hooks (`useQuery`/`useMutation`) for remote state.
 - **Code execution:** `runtimeManager.ts` routes to per-language executors. Python runs via Pyodide WASM, C via JSCPP in a Web Worker, JS via a disposable sandboxed iframe (blob URL, postMessage I/O), HTML/CSS via sandboxed iframe.
-- **AI chat:** SSE streaming via `/api/nio/chat`. Gemini primary, Groq fallback. Context assembled from transcript segments + current code + video time.
+- **AI chat:** SSE streaming via `/api/nio/chat`. BYOK model — users supply their own API key (Gemini, OpenAI, or Anthropic). Context assembled from transcript segments + current code + video time.
 - **Auth:** Clerk → JWT → Convex identity. Invite-only alpha. `useBootstrapUser.ts` initializes on load.
 - **VFS:** In-memory tree serialized to IndexedDB. Powers multi-file editing with tabs and file tree sidebar.
 
