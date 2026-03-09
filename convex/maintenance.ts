@@ -54,11 +54,12 @@ export const cleanupStaleRateLimits = internalMutation({
     const stale = await ctx.db
       .query("rateLimits")
       .withIndex("by_windowStartMs", (q) => q.lt("windowStartMs", cutoffMs))
-      .collect();
+      .take(500);
     for (const record of stale) {
       await ctx.db.delete(record._id);
     }
-    return { deleted: stale.length };
+    console.log(`[maintenance] cleanupStaleRateLimits: deleted=${stale.length}, hasMore=${stale.length === 500}`);
+    return { deleted: stale.length, hasMore: stale.length === 500 };
   },
 });
 
@@ -70,11 +71,12 @@ export const cleanupStaleFrames = internalMutation({
     const stale = await ctx.db
       .query("frames")
       .withIndex("by_updatedAt", (q) => q.lt("updatedAt", cutoffMs))
-      .collect();
+      .take(500);
     for (const record of stale) {
       await ctx.db.delete(record._id);
     }
-    return { deleted: stale.length };
+    console.log(`[maintenance] cleanupStaleFrames: deleted=${stale.length}, hasMore=${stale.length === 500}`);
+    return { deleted: stale.length, hasMore: stale.length === 500 };
   },
 });
 
