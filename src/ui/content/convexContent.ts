@@ -8,6 +8,13 @@ type CoursesReference = import("convex/server").FunctionReference<
   CourseSummary[]
 >;
 
+type CourseByCourseIdReference = import("convex/server").FunctionReference<
+  "query",
+  "public",
+  { courseId: string },
+  CourseSummary | null
+>;
+
 type LessonsByCourseReference = import("convex/server").FunctionReference<
   "query",
   "public",
@@ -33,6 +40,10 @@ const getCoursesRef = makeFunctionReference<"query">(
   "content:getCourses",
 ) as CoursesReference;
 
+const getCourseByCourseIdRef = makeFunctionReference<"query">(
+  "content:getCourseByCourseId",
+) as CourseByCourseIdReference;
+
 const getLessonCountsByCourseRef = makeFunctionReference<"query">(
   "content:getLessonCountsByCourse",
 ) as LessonCountsByCourseReference;
@@ -46,6 +57,7 @@ const getLessonRef = makeFunctionReference<"query">(
 ) as LessonReference;
 
 export {
+  getCourseByCourseIdRef,
   getCoursesRef,
   getLessonCountsByCourseRef,
   getLessonRef,
