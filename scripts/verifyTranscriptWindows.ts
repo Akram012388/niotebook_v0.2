@@ -31,6 +31,8 @@ const main = async (): Promise<void> => {
     lectureTenCount: number;
     lectureZeroCount: number;
     lectureZeroLabel?: string;
+    errorCount: number;
+    errorSlugs: string[];
   };
 
   console.log(
@@ -40,6 +42,12 @@ const main = async (): Promise<void> => {
   console.log(
     `Verified ${lectureZeroLabel}: ${result.lectureZeroCount} transcript segments (0-60).`,
   );
+
+  if (result.errorCount > 0) {
+    throw new Error(
+      `${result.errorCount} lesson(s) have transcriptStatus="error" in Convex: ${result.errorSlugs.join(", ")}`,
+    );
+  }
 };
 
 main().catch((error) => {

@@ -119,6 +119,8 @@ const verifyTranscriptWindows = query({
     lectureTenCount: number;
     lectureZeroCount: number;
     lectureZeroLabel?: string;
+    errorCount: number;
+    errorSlugs: string[];
   }> => {
     ensureIngestToken(args.ingestToken);
 
@@ -226,7 +228,18 @@ const verifyTranscriptWindows = query({
       }
     }
 
-    return { lectureTenCount, lectureZeroCount, lectureZeroLabel };
+    const errorLessons = lessons.filter((l) => l.transcriptStatus === "error");
+    const errorSlugs = errorLessons
+      .map((l) => l.subtitlesUrl ?? `order:${l.order}`)
+      .filter(Boolean);
+
+    return {
+      lectureTenCount,
+      lectureZeroCount,
+      lectureZeroLabel,
+      errorCount: errorLessons.length,
+      errorSlugs,
+    };
   },
 });
 

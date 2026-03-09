@@ -519,6 +519,19 @@ const runIngest = async (): Promise<void> => {
     lessons.push(buildLessonMetadata(lesson));
   }
 
+  // Fail before writing to Convex if any lesson failed transcript fetch.
+  // A partial ingest (some lessons with transcriptStatus: "error") is worse
+  // than no ingest — it silently degrades course quality.
+  const failedLessons = lessons.filter((l) => l.transcriptStatus === "error");
+  if (failedLessons.length > 0) {
+    const names = failedLessons
+      .map((l) => `${l.slug} (order ${l.order})`)
+      .join(", ");
+    throw new Error(
+      `${failedLessons.length} lesson(s) failed transcript fetch — aborting to prevent partial ingest: ${names}`,
+    );
+  }
+
   const coursePayload = {
     sourcePlaylistId: COURSE_SOURCE_PLAYLIST_ID,
     title: COURSE_TITLE,
