@@ -1,10 +1,15 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import type { GenericId } from "convex/values";
 import type { AuthenticatedUser } from "./auth";
 import { requireMutationAdmin } from "./auth";
 import { logEventInternal } from "./events";
 import { toDomainId, toGenericId } from "./idUtils";
+import {
+  TRANSCRIPT_START_PAD_SEC,
+  toTranscriptWindowSegments,
+  type TranscriptSegment,
+} from "../src/domain/transcript";
 
 const transcriptStatusValidator = v.union(
   v.literal("ok"),
@@ -23,6 +28,20 @@ type CourseRecord = {
   youtubePlaylistUrl?: string;
 };
 
+type EnvironmentConfig = {
+  presetId?: string;
+  primaryLanguage: string;
+  allowedLanguages: string[];
+  starterFiles?: { path: string; content: string; readonly: boolean }[];
+  packages?: { language: string; name: string; version?: string }[];
+  runtimeSettings?: {
+    timeoutMs?: number;
+    maxOutputBytes?: number;
+    stdinEnabled?: boolean;
+    compilerFlags?: string[];
+  };
+};
+
 type LessonRecord = {
   _id: GenericId<"lessons">;
   courseId: GenericId<"courses">;
@@ -36,6 +55,7 @@ type LessonRecord = {
   segmentCount?: number;
   ingestVersion?: number;
   transcriptStatus?: "ok" | "warn" | "missing" | "error";
+  environmentConfig?: EnvironmentConfig;
 };
 
 type TranscriptSegmentRecord = {
@@ -62,6 +82,153 @@ type MutationConfig = Extract<
 >;
 
 type MutationCtx = Parameters<MutationConfig["handler"]>[0];
+
+const COURSE_SOURCE_PLAYLIST_ID = "cs50x-2026";
+
+const ensureIngestToken = (ingestToken: string): void => {
+  const expected = process.env.NIOTEBOOK_INGEST_TOKEN;
+  if (!expected) {
+    throw new Error("NIOTEBOOK_INGEST_TOKEN is not configured.");
+  }
+  if (ingestToken !== expected) {
+    throw new Error("Invalid ingest token.");
+  }
+};
+
+const toTranscriptSegmentDomain = (
+  segment: TranscriptSegmentRecord,
+): TranscriptSegment => {
+  return {
+    lessonId: toDomainId(segment.lessonId as GenericId<"lessons">),
+    idx: segment.idx,
+    startSec: segment.startSec,
+    endSec: segment.endSec,
+    textNormalized: segment.textNormalized,
+  };
+};
+
+const verifyTranscriptWindows = query({
+  args: {
+    ingestToken: v.string(),
+    defaultLessonId: v.optional(v.string()),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{
+    lectureTenCount: number;
+    lectureZeroCount: number;
+    lectureZeroLabel?: string;
+  }> => {
+    ensureIngestToken(args.ingestToken);
+
+    const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
+    const course = courses.find(
+      (item) => item.sourcePlaylistId === COURSE_SOURCE_PLAYLIST_ID,
+    );
+    if (!course) {
+      throw new Error("CS50x course not found in Convex.");
+    }
+
+    const lessons = (await ctx.db
+      .query("lessons")
+      .withIndex("by_courseId", (q) => q.eq("courseId", course._id))
+      .collect()) as LessonRecord[];
+
+    const lectureZero =
+      lessons.find((lesson) => lesson.subtitlesUrl?.includes("/lectures/0/")) ??
+      lessons.find((lesson) => lesson.order === 1);
+
+    if (!lectureZero) {
+      throw new Error("Lecture 0 lesson not found in Convex.");
+    }
+
+    let lectureTen: LessonRecord | null = null;
+    if (args.defaultLessonId) {
+      try {
+        const candidate = (await ctx.db.get(
+          args.defaultLessonId as GenericId<"lessons">,
+        )) as LessonRecord | null;
+        if (candidate) {
+          lectureTen = candidate;
+        }
+      } catch {
+        lectureTen = null;
+      }
+    }
+
+    if (!lectureTen) {
+      lectureTen =
+        lessons.find((lesson) =>
+          lesson.subtitlesUrl?.includes("/lectures/10/"),
+        ) ??
+        lessons.find((lesson) =>
+          lesson.transcriptUrl?.includes("/lectures/10/"),
+        ) ??
+        lessons.find((lesson) => lesson.order === 11) ??
+        null;
+    }
+
+    if (!lectureTen) {
+      throw new Error("Lecture 10 lesson not found in Convex.");
+    }
+
+    const readWindow = async (
+      lessonId: GenericId<"lessons">,
+      startSec: number,
+      endSec: number,
+    ): Promise<number> => {
+      const lowerBound = Math.max(0, startSec - TRANSCRIPT_START_PAD_SEC);
+      const segments = (await ctx.db
+        .query("transcriptSegments")
+        .withIndex("by_lessonId_startSec", (q) =>
+          q
+            .eq("lessonId", lessonId)
+            .gte("startSec", lowerBound)
+            .lte("startSec", endSec),
+        )
+        .collect()) as TranscriptSegmentRecord[];
+
+      return toTranscriptWindowSegments(
+        segments.map(toTranscriptSegmentDomain),
+        startSec,
+        endSec,
+      ).length;
+    };
+
+    const lectureTenCount = await readWindow(lectureTen._id, 960, 1020);
+    if (lectureTenCount === 0) {
+      throw new Error("Transcript window empty for Lecture 10 (960-1020).");
+    }
+
+    let lectureZeroCount = await readWindow(lectureZero._id, 0, 60);
+    let lectureZeroLabel: string | undefined = "Lecture 0";
+
+    if (lectureZeroCount === 0) {
+      const fallbackLesson = lessons.find(
+        (lesson) =>
+          lesson._id !== lectureZero._id &&
+          (lesson.transcriptStatus === "ok" ||
+            lesson.transcriptStatus === "warn"),
+      );
+
+      if (!fallbackLesson) {
+        throw new Error("Transcript window empty for Lecture 0 (0-60).");
+      }
+
+      lectureZeroCount = await readWindow(fallbackLesson._id, 0, 60);
+      lectureZeroLabel = `Lesson order ${fallbackLesson.order}`;
+
+      if (lectureZeroCount === 0) {
+        throw new Error(
+          "Transcript window empty for Lecture 0 (0-60) and fallback lesson (0-60).",
+        );
+      }
+    }
+
+    return { lectureTenCount, lectureZeroCount, lectureZeroLabel };
+  },
+});
 
 const ensureIngestAllowed = async (
   ctx: MutationCtx,
@@ -95,6 +262,114 @@ const getTranscriptMaxIdx = async (
   return lastSegment ? lastSegment.idx : null;
 };
 
+type NormalizedLesson = {
+  order: number;
+  title: string;
+  videoId: string;
+  durationSec: number;
+  subtitlesUrl?: string;
+  transcriptUrl?: string;
+  transcriptDurationSec?: number;
+  segmentCount?: number;
+  ingestVersion: number;
+  transcriptStatus: "ok" | "warn" | "missing" | "error";
+  environmentConfig?: LessonRecord["environmentConfig"];
+};
+
+type NormalizedCourseArgs = {
+  course: Omit<CourseRecord, "_id">;
+  lessons: NormalizedLesson[];
+};
+
+const _performCourseIngest = async (
+  ctx: MutationCtx,
+  args: NormalizedCourseArgs,
+): Promise<LessonIngestMeta[]> => {
+  const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
+  const existingCourse = courses.find(
+    (course) => course.sourcePlaylistId === args.course.sourcePlaylistId,
+  );
+
+  const coursePayload = {
+    sourcePlaylistId: args.course.sourcePlaylistId,
+    title: args.course.title,
+    description: args.course.description,
+    license: args.course.license,
+    sourceUrl: args.course.sourceUrl,
+    youtubePlaylistUrl: args.course.youtubePlaylistUrl,
+  };
+
+  const courseId = existingCourse
+    ? existingCourse._id
+    : await ctx.db.insert("courses", coursePayload);
+
+  if (existingCourse) {
+    await ctx.db.patch(existingCourse._id, coursePayload);
+  }
+
+  const lessons = (await ctx.db
+    .query("lessons")
+    .withIndex("by_courseId", (query) => query.eq("courseId", courseId))
+    .collect()) as LessonRecord[];
+
+  const lessonByOrder = new Map<number, LessonRecord>();
+
+  for (const lesson of lessons) {
+    lessonByOrder.set(lesson.order, lesson);
+  }
+
+  const ingestMeta: LessonIngestMeta[] = [];
+
+  for (const lesson of args.lessons) {
+    const existingLesson = lessonByOrder.get(lesson.order) ?? null;
+
+    const lessonPayload = {
+      courseId,
+      videoId: lesson.videoId,
+      title: lesson.title,
+      durationSec: lesson.durationSec,
+      order: lesson.order,
+      subtitlesUrl: lesson.subtitlesUrl,
+      transcriptUrl: lesson.transcriptUrl,
+      transcriptStatus:
+        existingLesson?.transcriptStatus ?? lesson.transcriptStatus,
+      transcriptDurationSec: existingLesson?.transcriptDurationSec,
+      segmentCount: existingLesson?.segmentCount,
+      ingestVersion: existingLesson?.ingestVersion,
+      environmentConfig: lesson.environmentConfig,
+    } satisfies Omit<LessonRecord, "_id">;
+
+    const lessonId = existingLesson
+      ? existingLesson._id
+      : await ctx.db.insert("lessons", lessonPayload);
+
+    if (existingLesson) {
+      await ctx.db.patch(existingLesson._id, lessonPayload);
+    }
+
+    let shouldReplaceSegments =
+      !existingLesson || existingLesson.ingestVersion !== lesson.ingestVersion;
+
+    if (!shouldReplaceSegments && existingLesson) {
+      const expectedCount = lesson.segmentCount ?? 0;
+      const maxIdx = await getTranscriptMaxIdx(ctx, existingLesson._id);
+      if (expectedCount === 0) {
+        shouldReplaceSegments = maxIdx !== null;
+      } else if (maxIdx === null || maxIdx + 1 !== expectedCount) {
+        shouldReplaceSegments = true;
+      }
+    }
+
+    ingestMeta.push({
+      lessonId,
+      order: lesson.order,
+      shouldReplaceSegments,
+    });
+  }
+
+  return ingestMeta;
+};
+
 const ingestCs50x2026 = mutation({
   args: {
     course: v.object({
@@ -123,90 +398,10 @@ const ingestCs50x2026 = mutation({
   },
   handler: async (ctx, args): Promise<LessonIngestMeta[]> => {
     await ensureIngestAllowed(ctx, args.ingestToken);
-
-    const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
-    const existingCourse = courses.find(
-      (course) => course.sourcePlaylistId === args.course.sourcePlaylistId,
-    );
-
-    const coursePayload = {
-      sourcePlaylistId: args.course.sourcePlaylistId,
-      title: args.course.title,
-      description: args.course.description,
-      license: args.course.license,
-      sourceUrl: args.course.sourceUrl,
-      youtubePlaylistUrl: args.course.youtubePlaylistUrl,
-    };
-
-    const courseId = existingCourse
-      ? existingCourse._id
-      : await ctx.db.insert("courses", coursePayload);
-
-    if (existingCourse) {
-      await ctx.db.patch(existingCourse._id, coursePayload);
-    }
-
-    const lessons = (await ctx.db
-      .query("lessons")
-      .withIndex("by_courseId", (query) => query.eq("courseId", courseId))
-      .collect()) as LessonRecord[];
-
-    const lessonByOrder = new Map<number, LessonRecord>();
-
-    for (const lesson of lessons) {
-      lessonByOrder.set(lesson.order, lesson);
-    }
-
-    const ingestMeta: LessonIngestMeta[] = [];
-
-    for (const lesson of args.lessons) {
-      const existingLesson = lessonByOrder.get(lesson.order) ?? null;
-
-      const lessonPayload = {
-        courseId,
-        videoId: lesson.videoId,
-        title: lesson.title,
-        durationSec: lesson.durationSec,
-        order: lesson.order,
-        subtitlesUrl: lesson.subtitlesUrl,
-        transcriptUrl: lesson.transcriptUrl,
-        transcriptStatus:
-          existingLesson?.transcriptStatus ?? lesson.transcriptStatus,
-        transcriptDurationSec: existingLesson?.transcriptDurationSec,
-        segmentCount: existingLesson?.segmentCount,
-        ingestVersion: existingLesson?.ingestVersion,
-      } satisfies Omit<LessonRecord, "_id">;
-
-      const lessonId = existingLesson
-        ? existingLesson._id
-        : await ctx.db.insert("lessons", lessonPayload);
-
-      if (existingLesson) {
-        await ctx.db.patch(existingLesson._id, lessonPayload);
-      }
-
-      let shouldReplaceSegments =
-        !existingLesson ||
-        existingLesson.ingestVersion !== lesson.ingestVersion;
-
-      if (!shouldReplaceSegments && existingLesson) {
-        const expectedCount = lesson.segmentCount ?? 0;
-        const maxIdx = await getTranscriptMaxIdx(ctx, existingLesson._id);
-        if (expectedCount === 0) {
-          shouldReplaceSegments = maxIdx !== null;
-        } else if (maxIdx === null || maxIdx + 1 !== expectedCount) {
-          shouldReplaceSegments = true;
-        }
-      }
-
-      ingestMeta.push({
-        lessonId,
-        order: lesson.order,
-        shouldReplaceSegments,
-      });
-    }
-
-    return ingestMeta;
+    return _performCourseIngest(ctx, {
+      course: args.course,
+      lessons: args.lessons,
+    });
   },
 });
 
@@ -462,91 +657,10 @@ const ingestCourse = mutation({
   },
   handler: async (ctx, args): Promise<LessonIngestMeta[]> => {
     await ensureIngestAllowed(ctx, args.ingestToken);
-
-    const courses = (await ctx.db.query("courses").collect()) as CourseRecord[];
-    const existingCourse = courses.find(
-      (course) => course.sourcePlaylistId === args.course.sourcePlaylistId,
-    );
-
-    const coursePayload = {
-      sourcePlaylistId: args.course.sourcePlaylistId,
-      title: args.course.title,
-      description: args.course.description,
-      license: args.course.license,
-      sourceUrl: args.course.sourceUrl,
-      youtubePlaylistUrl: args.course.youtubePlaylistUrl,
-    };
-
-    const courseId = existingCourse
-      ? existingCourse._id
-      : await ctx.db.insert("courses", coursePayload);
-
-    if (existingCourse) {
-      await ctx.db.patch(existingCourse._id, coursePayload);
-    }
-
-    const lessons = (await ctx.db
-      .query("lessons")
-      .withIndex("by_courseId", (query) => query.eq("courseId", courseId))
-      .collect()) as LessonRecord[];
-
-    const lessonByOrder = new Map<number, LessonRecord>();
-
-    for (const lesson of lessons) {
-      lessonByOrder.set(lesson.order, lesson);
-    }
-
-    const ingestMeta: LessonIngestMeta[] = [];
-
-    for (const lesson of args.lessons) {
-      const existingLesson = lessonByOrder.get(lesson.order) ?? null;
-
-      const lessonPayload = {
-        courseId,
-        videoId: lesson.videoId,
-        title: lesson.title,
-        durationSec: lesson.durationSec,
-        order: lesson.order,
-        subtitlesUrl: lesson.subtitlesUrl,
-        transcriptUrl: lesson.transcriptUrl,
-        transcriptStatus:
-          existingLesson?.transcriptStatus ?? lesson.transcriptStatus,
-        transcriptDurationSec: existingLesson?.transcriptDurationSec,
-        segmentCount: existingLesson?.segmentCount,
-        ingestVersion: existingLesson?.ingestVersion,
-        environmentConfig: lesson.environmentConfig,
-      };
-
-      const lessonId = existingLesson
-        ? existingLesson._id
-        : await ctx.db.insert("lessons", lessonPayload);
-
-      if (existingLesson) {
-        await ctx.db.patch(existingLesson._id, lessonPayload);
-      }
-
-      let shouldReplaceSegments =
-        !existingLesson ||
-        existingLesson.ingestVersion !== lesson.ingestVersion;
-
-      if (!shouldReplaceSegments && existingLesson) {
-        const expectedCount = lesson.segmentCount ?? 0;
-        const maxIdx = await getTranscriptMaxIdx(ctx, existingLesson._id);
-        if (expectedCount === 0) {
-          shouldReplaceSegments = maxIdx !== null;
-        } else if (maxIdx === null || maxIdx + 1 !== expectedCount) {
-          shouldReplaceSegments = true;
-        }
-      }
-
-      ingestMeta.push({
-        lessonId,
-        order: lesson.order,
-        shouldReplaceSegments,
-      });
-    }
-
-    return ingestMeta;
+    return _performCourseIngest(ctx, {
+      course: args.course,
+      lessons: args.lessons,
+    });
   },
 });
 
@@ -603,4 +717,5 @@ export {
   ingestTranscriptSegmentsBatch,
   patchCourseMeta,
   patchLessonUrls,
+  verifyTranscriptWindows,
 };

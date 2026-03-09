@@ -2,7 +2,7 @@ import { ConvexHttpClient } from "convex/browser";
 import type { FunctionReference } from "convex/server";
 
 const verifyTranscriptQuery =
-  "ops:verifyTranscriptWindows" as unknown as FunctionReference<"query">;
+  "ingest:verifyTranscriptWindows" as unknown as FunctionReference<"query">;
 
 const ensureEnv = (key: string): string => {
   const value = process.env[key];
