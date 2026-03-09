@@ -51,8 +51,8 @@ type WebRGlobal = {
 /* Pin CDN to same major version as package.json (webr@^0.5.8) */
 const WEBR_CDN = "https://webr.r-wasm.org/v0.5.8/";
 const WEBR_SCRIPT_URL = `${WEBR_CDN}webr.mjs`;
-// Fallback CDN option: https://cdn.jsdelivr.net/npm/webr@0.5.8/dist/
-// Currently unused — if primary CDN fails, consider implementing CDN fallback
+const WEBR_CDN_FALLBACK = "https://cdn.jsdelivr.net/npm/webr@0.5.8/dist/";
+const WEBR_SCRIPT_URL_FALLBACK = `${WEBR_CDN_FALLBACK}webr.mjs`;
 
 const WEBR_LOAD_TIMEOUT_MS = 60_000;
 const WEBR_EVAL_TIMEOUT_MS = 30_000;
@@ -77,6 +77,42 @@ function withTimeout<T>(
 }
 
 /**
+ * Inject a module script that imports WebR from the given URL and assigns it
+ * to globalThis. Resolves when the "webr-loaded" event fires; rejects on error.
+ */
+function loadWebRScript(scriptUrl: string, cdnBase: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.type = "module";
+    script.textContent = `
+      import { WebR, ChannelType } from "${scriptUrl}";
+      globalThis.WebR = WebR;
+      globalThis.ChannelType = ChannelType;
+      globalThis.__webr_loaded__ = true;
+      document.dispatchEvent(new Event("webr-loaded"));
+    `;
+
+    const onLoaded = () => {
+      document.removeEventListener("webr-loaded", onLoaded);
+      resolve();
+    };
+
+    script.onerror = (event) => {
+      document.removeEventListener("webr-loaded", onLoaded);
+      console.error("[rExecutor] WebR script load failed from", cdnBase, event);
+      reject(
+        new Error(
+          `WebR failed to load from CDN (${cdnBase}). Check your network connection.`,
+        ),
+      );
+    };
+
+    document.addEventListener("webr-loaded", onLoaded);
+    document.head.appendChild(script);
+  });
+}
+
+/**
  * Load WebR from CDN via inline <script type="module">.
  * Cross-origin dynamic import() fails in many browsers, so we inject
  * a module script that assigns WebR to globalThis (same pattern as Pyodide).
@@ -88,34 +124,24 @@ function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
     (async () => {
       const g = globalThis as unknown as WebRGlobal;
 
+      let resolvedCdn = WEBR_CDN;
       if (!g.WebR) {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement("script");
-          script.type = "module";
-          script.textContent = `
-            import { WebR, ChannelType } from "${WEBR_SCRIPT_URL}";
-            globalThis.WebR = WebR;
-            globalThis.ChannelType = ChannelType;
-            globalThis.__webr_loaded__ = true;
-            document.dispatchEvent(new Event("webr-loaded"));
-          `;
-          script.onerror = (event) => {
-            document.removeEventListener("webr-loaded", onLoaded);
-            console.error("[rExecutor] WebR CDN load failed:", event);
-            reject(
-              new Error(
-                `WebR failed to load from CDN (${WEBR_CDN}). Check your network connection.`,
-              ),
-            );
-          };
-
-          const onLoaded = () => {
-            document.removeEventListener("webr-loaded", onLoaded);
-            resolve();
-          };
-          document.addEventListener("webr-loaded", onLoaded);
-          document.head.appendChild(script);
-        });
+        let primaryOk = false;
+        try {
+          await loadWebRScript(WEBR_SCRIPT_URL, WEBR_CDN);
+          primaryOk = true;
+        } catch {
+          /* fall through to fallback */
+        }
+        if (!primaryOk) {
+          console.warn(
+            "[rExecutor] WebR primary CDN failed, retrying with fallback…",
+          );
+          // Clear the cached promise so a future retry call works cleanly
+          webrPromise = null;
+          await loadWebRScript(WEBR_SCRIPT_URL_FALLBACK, WEBR_CDN_FALLBACK);
+          resolvedCdn = WEBR_CDN_FALLBACK;
+        }
       }
 
       const WebR = g.WebR;
@@ -123,7 +149,7 @@ function loadWebR(): Promise<{ webr: WebRInstance; shelter: Shelter }> {
 
       const channelType = g.ChannelType?.PostMessage ?? 3;
       const webr = new WebR({
-        baseUrl: WEBR_CDN,
+        baseUrl: resolvedCdn,
         interactive: false,
         channelType,
       });
