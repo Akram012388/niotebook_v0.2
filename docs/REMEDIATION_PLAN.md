@@ -2,7 +2,7 @@
 
 **Source audit:** `docs/reviews/2026-03-07-codebase-analysis.md`
 **Total findings:** 50 (5 P0 · 13 P1 · 21 P2 · 11 P3)
-**Status:** Wave 0 + Wave 1 + Wave 1b + Wave 2 + Wave 3 + Wave 4 + Wave 5 + Wave 6 complete (2026-03-09)
+**Status:** Waves 0–6 + Unit B (2F-1/2/3) complete — all 50 findings resolved (2026-03-09)
 
 This document is the canonical tracker for all remediation work derived from the deep codebase analysis.
 Contributors: pick any open item from the current wave, create a branch, and open a PR referencing the finding ID.
@@ -367,8 +367,8 @@ Executed after Wave 5. All 6 PRs merged 2026-03-09.
 | M7 CodePane useCallback deps | #132 | `videoTimeSecRef` pattern applied to both `handleKeyDown` and `handleBookmark` — volatile video-frame value no longer forces callback recreation every frame. | ✅ Done |
 | byok E2E test | #134 | New `tests/e2e/byok.e2e.ts`: exercises NO_API_KEY SSE → UI banner flow; diagnostics capture on failure; event listener registered before message submission to eliminate timing ambiguity. | ✅ Done |
 
-**Deferred (Unit B):** 2F-1/2/3 C executor Web Worker — held for design discussion.
+| 2F-1 + 2F-2 + 2F-3 | #135 | Move C executor (JSCPP) to Web Worker: infinite loops no longer hang the browser tab (2F-1); 5-second timeout via `setTimeout` + `worker.terminate()` kills the stuck worker (2F-2); `stop()` calls `worker.terminate()` for immediate OS-level kill with safe `pendingRuns` snapshot (2F-3). No COOP/COEP headers needed. `RuntimeExecutor` interface fully preserved. | ✅ Done |
 
 ---
 
-_Last updated: 2026-03-09 · Waves 0–6 complete · One item deferred: 2F-1/2/3 (C executor Web Worker — pending design discussion) · Source analysis: `docs/reviews/2026-03-07-codebase-analysis.md`_
+_Last updated: 2026-03-09 · Waves 0–6 complete + Unit B (2F-1/2/3) · All remediation items resolved · Source analysis: `docs/reviews/2026-03-07-codebase-analysis.md`_
