@@ -1,4 +1,5 @@
 import type { NioErrorCode, NioSseEvent } from "../../domain/ai/types";
+import { isRecord, isString, isNumber } from "./typeGuards";
 
 const NIO_SSE_HEADERS: Record<string, string> = {
   "Content-Type": "text/event-stream; charset=utf-8",
@@ -12,18 +13,6 @@ const encodeSseEvent = (event: NioSseEvent): string => {
   const dataLines = payload.split("\n");
   const data = dataLines.map((line) => `data: ${line}`).join("\n");
   return `event: ${event.type}\n${data}\n\n`;
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-};
-
-const isString = (value: unknown): value is string => {
-  return typeof value === "string";
-};
-
-const isNumber = (value: unknown): value is number => {
-  return typeof value === "number" && Number.isFinite(value);
 };
 
 const isBoolean = (value: unknown): value is boolean => {

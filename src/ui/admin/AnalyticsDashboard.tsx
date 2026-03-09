@@ -14,7 +14,7 @@ type EventLogEntry = {
 };
 
 const eventLogRef = makeFunctionReference<"query">(
-  "ops:getEventLog",
+  "analytics:getEventLog",
 ) as FunctionReference<"query", "public", { limit: number }, EventLogEntry[]>;
 
 const formatDate = (ms: number): string =>

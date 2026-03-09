@@ -195,7 +195,11 @@ const schema = defineSchema({
     createdAt: v.number(),
   }).index("by_userId", ["userId"]),
   rateLimits: defineTable({
-    scope: v.union(v.literal("invite_redeem"), v.literal("ai_request")),
+    scope: v.union(
+      v.literal("invite_redeem"),
+      v.literal("ai_request"),
+      v.literal("event_log"),
+    ),
     subject: v.string(),
     windowStartMs: v.number(),
     count: v.number(),

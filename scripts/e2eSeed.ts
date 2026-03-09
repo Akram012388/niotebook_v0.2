@@ -6,7 +6,7 @@ if (process.env.NODE_ENV === "production") {
   throw new Error("E2E seeding is not allowed in production.");
 }
 
-const seedE2E = "ops:seedE2E" as unknown as FunctionReference<"mutation">;
+const seedE2E = "seed:seedE2E" as unknown as FunctionReference<"mutation">;
 
 const ensureEnv = (key: string): string => {
   const value = process.env[key];

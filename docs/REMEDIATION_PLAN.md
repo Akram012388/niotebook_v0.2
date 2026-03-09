@@ -2,7 +2,7 @@
 
 **Source audit:** `docs/reviews/2026-03-07-codebase-analysis.md`
 **Total findings:** 50 (5 P0 · 13 P1 · 21 P2 · 11 P3)
-**Status:** Wave 0 + Wave 1 + Wave 1b complete (2026-03-09)
+**Status:** Wave 0 + Wave 1 + Wave 1b + Wave 2 complete (2026-03-09)
 
 This document is the canonical tracker for all remediation work derived from the deep codebase analysis.
 Contributors: pick any open item from the current wave, create a branch, and open a PR referencing the finding ID.
@@ -211,21 +211,29 @@ After architecture refactors land. Target: meaningful behavioral tests, not file
 
 ### P2 Infrastructure Reliability
 
-| Test File                                         | What to Cover                                                                | Status |
-| ------------------------------------------------- | ---------------------------------------------------------------------------- | ------ |
-| `tests/unit/infra/ai/geminiStream.test.ts`        | Token aggregation, error normalization (no real API needed — mock the fetch) | [ ]    |
-| `tests/unit/infra/vfs/useFileSystemStore.test.ts` | Auto-persist debounce, `initializeFromEnvironment`, lesson-switch isolation  | [ ]    |
-| `tests/unit/infra/ai/sseStream.test.ts`           | Shared SSE read loop (after Wave 2 extraction)                               | [ ]    |
-| `tests/unit/infra/ai/typeGuards.test.ts`          | `isRecord`, `isString`, `isNumber`, `isBoolean` (after Wave 2 extraction)    | [ ]    |
+| Test File                                         | What to Cover                                                                                                              | Status |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `tests/unit/infra/ai/geminiStream.test.ts`        | Token aggregation, error normalization (no real API needed — mock the fetch)                                               | [ ]    |
+| `tests/unit/infra/vfs/useFileSystemStore.test.ts` | Auto-persist debounce, `initializeFromEnvironment`, lesson-switch isolation                                                | [ ]    |
+| `tests/unit/infra/ai/sseStream.test.ts`           | Shared SSE read loop (after Wave 2 extraction)                                                                             | [ ]    |
+| `tests/unit/infra/ai/typeGuards.test.ts`          | `isRecord`, `isString`, `isNumber`, `isBoolean` (after Wave 2 extraction)                                                  | [ ]    |
+| `tests/unit/infra/ai/byokStream.test.ts`          | `NO_API_KEY` SSE event when no key configured; `STREAM_ERROR` SSE event on provider failure (deferred from PR #103 review) | [ ]    |
 
 ### P3 Backend (Convex Test Harness)
 
-| Task                               | Description                                                            | Status |
-| ---------------------------------- | ---------------------------------------------------------------------- | ------ |
-| Setup                              | Install `convex-test`; add `tests/convex/` directory                   | [ ]    |
-| `tests/convex/chat.test.ts`        | `createThread`, `addUserMessage`, `completeAssistantMessage` mutations | [ ]    |
-| `tests/convex/rateLimits.test.ts`  | `consumeAiRateLimit` at boundary conditions                            | [ ]    |
-| `tests/convex/userApiKeys.test.ts` | Save, resolve, remove, setActiveProvider                               | [ ]    |
+| Task                               | Description                                                                                                      | Status |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------ |
+| Setup                              | Install `convex-test`; add `tests/convex/` directory                                                             | [ ]    |
+| `tests/convex/chat.test.ts`        | `createThread`, `addUserMessage`, `completeAssistantMessage` mutations                                           | [ ]    |
+| `tests/convex/rateLimits.test.ts`  | `consumeAiRateLimit` and `consumeEventLogRateLimit` at boundary conditions (allow path, deny path, reset timing) | [ ]    |
+| `tests/convex/userApiKeys.test.ts` | Save, resolve, remove, setActiveProvider                                                                         | [ ]    |
+
+### Follow-up Design Fixes (deferred from Wave 2 / PR #103 review)
+
+| Task  | Location                             | Description                                                                                                                                                                                              | Status |
+| ----- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| W3-D1 | `src/ui/panes/useCodeExecution.ts`   | Remove `setRuntimeState` from `UseCodeExecutionResult` public return type — it leaks internal state shape to callers. Requires restructuring warmup state ownership (merge hooks or use shared atom).    | [ ]    |
+| W3-D2 | `src/infra/ai/transcriptResolver.ts` | Change `lessonId: string` param to `Id<"lessons">` in `fetchTranscriptWindow` and `fetchLessonMeta`; push the `as Id<"lessons">` cast to callers at the HTTP boundary. Removes the internal double-cast. | [ ]    |
 
 ---
 
@@ -315,4 +323,4 @@ docs/oss-contributing            # Documentation
 
 ---
 
-_Last updated: 2026-03-09 · Source analysis: `docs/reviews/2026-03-07-codebase-analysis.md`_
+_Last updated: 2026-03-09 · Wave 2 complete · Source analysis: `docs/reviews/2026-03-07-codebase-analysis.md`_

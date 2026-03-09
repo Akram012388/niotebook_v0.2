@@ -4,12 +4,15 @@ import type { GenericId } from "convex/values";
 import {
   AI_REQUEST_LIMIT,
   AI_REQUEST_WINDOW_MS,
+  EVENT_LOG_LIMIT,
+  EVENT_LOG_WINDOW_MS,
   evaluateRateLimit,
   type RateLimitDecision,
   type RateLimitRecord,
   type RateLimitScope,
 } from "../src/domain/rate-limits";
 import { requireMutationUser } from "./auth";
+import type { MutationCtx } from "./lib/mutationCtx";
 
 type RateLimitDocument = {
   _id: GenericId<"rateLimits">;
@@ -21,15 +24,6 @@ type RateLimitDocument = {
 };
 
 type RateLimitIndexFields = ["scope", "subject"];
-
-type MutationDefinition = Parameters<typeof mutation>[0];
-
-type MutationConfig = Extract<
-  MutationDefinition,
-  { handler: (...args: never[]) => unknown }
->;
-
-type MutationCtx = Parameters<MutationConfig["handler"]>[0];
 
 const toRateLimitRecord = (document: RateLimitDocument): RateLimitRecord => {
   return {
@@ -96,4 +90,17 @@ const consumeAiRateLimit = mutation({
   },
 });
 
-export { consumeAiRateLimit, consumeRateLimit };
+const consumeEventLogRateLimit = async (
+  ctx: MutationCtx,
+  userId: string,
+): Promise<RateLimitDecision> => {
+  return consumeRateLimit(
+    ctx,
+    "event_log",
+    userId,
+    EVENT_LOG_WINDOW_MS,
+    EVENT_LOG_LIMIT,
+  );
+};
+
+export { consumeAiRateLimit, consumeEventLogRateLimit, consumeRateLimit };

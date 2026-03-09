@@ -1,5 +1,5 @@
 import { mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import type { GenericId } from "convex/values";
 import {
   validateEventMetadata,
@@ -8,15 +8,8 @@ import {
 } from "../src/domain/events";
 import { requireMutationUser } from "./auth";
 import { toGenericId, toDomainId } from "./idUtils";
-
-type MutationDefinition = Parameters<typeof mutation>[0];
-
-type MutationConfig = Extract<
-  MutationDefinition,
-  { handler: (...args: never[]) => unknown }
->;
-
-type MutationCtx = Parameters<MutationConfig["handler"]>[0];
+import { consumeEventLogRateLimit } from "./rateLimits";
+import type { MutationCtx } from "./lib/mutationCtx";
 
 type EventMetadataInput = Parameters<typeof validateEventMetadata>[1];
 
@@ -95,6 +88,14 @@ const logEvent = mutation({
   },
   handler: async (ctx, args): Promise<EventLogResult> => {
     const user = await requireMutationUser(ctx);
+
+    const rateLimit = await consumeEventLogRateLimit(ctx, user.id);
+    if (!rateLimit.ok) {
+      throw new ConvexError({
+        code: "rate_limit_exceeded",
+        resetAtMs: rateLimit.resetAtMs,
+      });
+    }
 
     return logEventInternal(ctx, {
       eventType: args.eventType,

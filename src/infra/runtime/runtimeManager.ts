@@ -12,6 +12,7 @@ import type {
   RuntimeRunInput,
   RuntimeRunResult,
 } from "./types";
+import { STREAMED_SENTINEL } from "./runtimeConstants";
 
 const executorMap: Partial<Record<RuntimeLanguage, RuntimeExecutor>> = {};
 const pendingInit: Partial<Record<RuntimeLanguage, Promise<RuntimeExecutor>>> =
@@ -136,12 +137,8 @@ const runRuntime = async (
           };
           return {
             ...finalResult,
-            stdout: streamState.stdout
-              ? "\x00__streamed__"
-              : finalResult.stdout,
-            stderr: streamState.stderr
-              ? "\x00__streamed__"
-              : finalResult.stderr,
+            stdout: streamState.stdout ? STREAMED_SENTINEL : finalResult.stdout,
+            stderr: streamState.stderr ? STREAMED_SENTINEL : finalResult.stderr,
           };
         }
       } catch {
@@ -168,8 +165,8 @@ const runRuntime = async (
 
   return {
     ...result,
-    stdout: streamState.stdout ? "\x00__streamed__" : result.stdout,
-    stderr: streamState.stderr ? "\x00__streamed__" : result.stderr,
+    stdout: streamState.stdout ? STREAMED_SENTINEL : result.stdout,
+    stderr: streamState.stderr ? STREAMED_SENTINEL : result.stderr,
   };
 };
 

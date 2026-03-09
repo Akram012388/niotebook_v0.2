@@ -2,34 +2,26 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactElement,
 } from "react";
 import dynamic from "next/dynamic";
-import { useMutation } from "convex/react";
-import { makeFunctionReference } from "convex/server";
 import { EditorSkeleton } from "../code/EditorSkeleton";
 import { SplitPane } from "../code/SplitPane";
 import { useLayoutPreset } from "../layout/LayoutPresetContext";
 import { useEditorStore } from "../code/useEditorStore";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
-import { useTerminalStore } from "../code/terminal/useTerminalStore";
 import { LanguageSelect } from "../code/LanguageSelect";
-import type { EventLogResult } from "../../domain/events";
 import type { CodeSnapshotSummary } from "../../domain/resume";
-import {
-  clearRuntime,
-  loadExecutor,
-  runRuntime,
-  stopRuntime,
-} from "../../infra/runtime/runtimeManager";
-import type { RuntimeLanguage, RuntimeState } from "../../infra/runtime/types";
+import type { RuntimeLanguage } from "../../infra/runtime/types";
 import type { LessonEnvironment } from "../../domain/lessonEnvironment";
 import { getPresetOrDefault } from "../../infra/runtime/envPresets";
 import { storageAdapter } from "../../infra/storageAdapter";
 import { useNiotepadStore } from "../../infra/niotepad/useNiotepadStore";
 import { useVideoDisplayTime } from "../layout/WorkspaceGrid";
+import { useRuntimeWarmup } from "./useRuntimeWarmup";
+import { useCodeExecution } from "./useCodeExecution";
+import { useBookmarkConfirm } from "./useBookmarkConfirm";
 
 // ── SSR-safe dynamic import of EditorArea ─────────────────────
 
@@ -98,14 +90,9 @@ const CodePane = ({
     }
     return environment.primaryLanguage;
   });
-  const [runtimeState, setRuntimeState] = useState<RuntimeState>({
-    language: "js",
-    status: "idle",
-  });
 
   const { activePreset } = useLayoutPreset();
   const showFileTree = activePreset !== "triple";
-  const shouldResetSplits = true;
   const fileTreeLayoutKey = activePreset === "single" ? "single" : "split";
 
   const initializeFromTemplate = useFileSystemStore(
@@ -123,7 +110,6 @@ const CodePane = ({
   const mainFilePath = useFileSystemStore((s) => s.mainFilePath);
   const files = useFileSystemStore((s) => s.files);
   const openFile = useEditorStore((s) => s.openFile);
-  const terminalIsRunning = useTerminalStore((s) => s.isRunning);
 
   const allowedLanguages = useMemo(() => {
     const candidates =
@@ -211,87 +197,12 @@ const CodePane = ({
     vfs,
   ]);
 
-  // ── Convex snapshot integration (backward compat) ─────────
+  // ── Runtime warmup + execution hooks ─────────────────────
 
-  const logEventRef = useMemo(
-    () =>
-      makeFunctionReference<"mutation">(
-        "events:logEvent",
-      ) as import("convex/server").FunctionReference<
-        "mutation",
-        "public",
-        {
-          eventType: "runtime_warmup_start" | "runtime_warmup_end";
-          lessonId?: string;
-          sessionId?: string;
-          metadata: {
-            language?: string;
-            durationMs?: number;
-          };
-        },
-        EventLogResult
-      >,
-    [],
-  );
+  const { setRuntimeState, isRunning, handleRun, handleStop, handleClear } =
+    useCodeExecution({ activeLanguage, environment, terminalActionsDisabled });
 
-  const logEvent = useMutation(logEventRef);
-
-  // ── Runtime warmup ────────────────────────────────────────
-
-  useEffect(() => {
-    let cancelled = false;
-    const warmupStartedAt = performance.now();
-
-    const timeout = window.setTimeout(() => {
-      setRuntimeState({
-        language: activeLanguage,
-        status: "warming",
-        message: "Preparing runtime...",
-      });
-    }, 0);
-
-    if (process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true") {
-      void logEvent({
-        eventType: "runtime_warmup_start",
-        lessonId,
-        metadata: { language: activeLanguage, durationMs: 0 },
-      });
-    }
-
-    loadExecutor(activeLanguage)
-      .then(() => {
-        if (cancelled) return;
-
-        const warmupDuration = Math.round(performance.now() - warmupStartedAt);
-
-        if (process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true") {
-          void logEvent({
-            eventType: "runtime_warmup_end",
-            lessonId,
-            metadata: { language: activeLanguage, durationMs: warmupDuration },
-          });
-        }
-
-        setRuntimeState({
-          language: activeLanguage,
-          status: "ready",
-          message: `${activeLanguage.toUpperCase()} runtime ready`,
-        });
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setRuntimeState({
-          language: activeLanguage,
-          status: "error",
-          message: "Runtime failed to load",
-        });
-      });
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeout);
-    };
-  }, [activeLanguage, lessonId, logEvent]);
+  useRuntimeWarmup(activeLanguage, lessonId, setRuntimeState);
 
   // ── Snapshot callback — reactive to VFS main file changes ──
 
@@ -324,134 +235,6 @@ const CodePane = ({
 
   // ── Handlers ──────────────────────────────────────────────
 
-  const handleRun = async (): Promise<void> => {
-    if (terminalActionsDisabled) {
-      return;
-    }
-    // Flush dirty files to VFS before running
-    useEditorStore.getState().saveAll();
-
-    const code = getMainFileContent();
-    if (!code) return;
-
-    setRuntimeState({
-      language: activeLanguage,
-      status: "running",
-      message: "Running...",
-    });
-
-    // Stream output to terminal
-    const termStore = useTerminalStore.getState();
-    termStore.write("\x1b[2K\r");
-    termStore.writeLn(`\x1b[90m$ run ${activeLanguage}\x1b[0m`);
-
-    const vfs = useFileSystemStore.getState().vfs;
-    const formatErrorChunk = (chunk: string): string => {
-      const prefix = "\x1b[31m[err]\x1b[0m ";
-      const lines = chunk.split("\n");
-      return lines
-        .map((line, index) => {
-          if (line.length === 0 && index === lines.length - 1) {
-            return "";
-          }
-          return prefix + line;
-        })
-        .join("\n");
-    };
-
-    try {
-      const result = await runRuntime(activeLanguage, {
-        code,
-        timeoutMs: environment.runtimeSettings.timeoutMs,
-        filesystem: vfs,
-        packages: environment.packages,
-        onStdout: (chunk: string) => termStore.write(chunk),
-        onStderr: (chunk: string) => termStore.write(formatErrorChunk(chunk)),
-      });
-
-      // Write remaining buffered output not already streamed
-      if (result.stdout && !result.stdout.includes("\x00__streamed__")) {
-        // Strip SVG plot marker before writing to terminal
-        const cleanStdout = result.stdout.replace(
-          /\x00__plot_svg__[\s\S]*$/,
-          "",
-        );
-        if (cleanStdout) {
-          termStore.write(cleanStdout);
-        }
-      }
-      if (result.stderr && !result.stderr.includes("\x00__streamed__")) {
-        termStore.write(formatErrorChunk(result.stderr));
-      }
-
-      // Render R plot SVG in the HTML preview pane if present
-      if (result.stdout?.includes("\x00__plot_svg__")) {
-        const svgData = result.stdout.split("\x00__plot_svg__")[1];
-        if (svgData) {
-          const container = document.getElementById("niotebook-runtime-frame");
-          if (container) {
-            const frame = document.createElement("iframe");
-            frame.style.width = "100%";
-            frame.style.height = "100%";
-            frame.style.border = "none";
-            frame.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;display:flex;align-items:center;justify-content:center;background:#1C1917;min-height:100vh}svg{max-width:100%;max-height:100vh}</style></head><body>${svgData}</body></html>`;
-            container.replaceChildren(frame);
-          }
-        }
-      }
-
-      if (result.timedOut) {
-        useTerminalStore.getState().setLastRunError("Runtime timed out");
-      } else if (result.stderr) {
-        useTerminalStore
-          .getState()
-          .setLastRunError(result.stderr.slice(0, 500));
-      } else {
-        useTerminalStore.getState().setLastRunError(null);
-      }
-
-      setRuntimeState({
-        language: activeLanguage,
-        status: result.timedOut ? "error" : "ready",
-        message: result.timedOut
-          ? "Runtime timed out"
-          : `${activeLanguage.toUpperCase()} runtime ready`,
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Runtime failed";
-      termStore.write(formatErrorChunk(`${message}\n`));
-      useTerminalStore.getState().setLastRunError(message);
-      setRuntimeState({
-        language: activeLanguage,
-        status: "error",
-        message: "Runtime failed",
-      });
-    } finally {
-      termStore.writePrompt();
-    }
-  };
-
-  const handleStop = useCallback((): void => {
-    if (terminalActionsDisabled) {
-      return;
-    }
-    stopRuntime(activeLanguage).catch(() => undefined);
-    clearRuntime(activeLanguage);
-    useTerminalStore.getState().kill();
-    setRuntimeState({
-      language: activeLanguage,
-      status: "ready",
-      message: `${activeLanguage.toUpperCase()} runtime ready`,
-    });
-  }, [activeLanguage, terminalActionsDisabled]);
-
-  const handleClear = useCallback((): void => {
-    if (terminalActionsDisabled) {
-      return;
-    }
-    useTerminalStore.getState().clear({ withPrompt: true });
-  }, [terminalActionsDisabled]);
-
   const handleLanguageChange = useCallback(
     (nextLanguage: RuntimeLanguage): void => {
       if (!allowedLanguages.includes(nextLanguage)) return;
@@ -462,50 +245,34 @@ const CodePane = ({
   );
 
   // ── Bookmark to niotepad ────────────────────────────────
+
   const videoTimeSec = useVideoDisplayTime();
-  const [bookmarkConfirm, setBookmarkConfirm] = useState(false);
-  const bookmarkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Use a human-readable label so niotepad pages show "Lecture N" not a raw ID
+  const lectureLabel = `Lesson ${lessonId}`;
+  const { bookmarkSaved, handleBookmark: doBookmark } = useBookmarkConfirm(
+    lessonId,
+    lectureLabel,
+  );
 
   const handleBookmark = useCallback((): void => {
     const mainContent = getMainFileContent();
     if (!mainContent) return;
-
-    const lang = activeLanguage;
-    const content = mainContent;
-    const lectureTitle = `Lesson ${lessonId}`;
-
-    const store = useNiotepadStore.getState();
-    const pageId = store.getOrCreatePage(lessonId, lectureTitle);
-    store.addEntry({
+    doBookmark({
       source: "code",
-      content,
-      pageId,
+      content: mainContent,
       videoTimeSec,
       metadata: {
         filePath: mainFilePath ?? undefined,
-        language: lang,
+        language: activeLanguage,
       },
     });
-
-    setBookmarkConfirm(true);
-    if (bookmarkTimerRef.current) clearTimeout(bookmarkTimerRef.current);
-    bookmarkTimerRef.current = setTimeout(() => {
-      setBookmarkConfirm(false);
-      bookmarkTimerRef.current = null;
-    }, 1500);
   }, [
+    doBookmark,
     getMainFileContent,
-    activeLanguage,
-    lessonId,
     videoTimeSec,
     mainFilePath,
+    activeLanguage,
   ]);
-
-  useEffect(() => {
-    return () => {
-      if (bookmarkTimerRef.current) clearTimeout(bookmarkTimerRef.current);
-    };
-  }, []);
 
   // ── Push-to-niotepad shortcut (Cmd/Ctrl+Shift+N) ────────
   useEffect(() => {
@@ -514,19 +281,14 @@ const CodePane = ({
         e.key.toLowerCase() !== "n" ||
         !e.shiftKey ||
         !(e.metaKey || e.ctrlKey)
-      ) {
+      )
         return;
-      }
 
-      // Get active file's editor state for selection
-      const editorStore = useEditorStore.getState();
-      const activeFile = editorStore.openFiles.find(
-        (f) => f.id === editorStore.activeFileId,
-      );
+      const { openFiles, activeFileId } = useEditorStore.getState();
+      const activeFile = openFiles.find((f) => f.id === activeFileId);
       if (!activeFile) return;
 
-      const { selection } = activeFile.editorState;
-      const mainRange = selection.main;
+      const mainRange = activeFile.editorState.selection.main;
       if (mainRange.empty) return;
 
       const selectedCode = activeFile.editorState.doc.sliceString(
@@ -537,29 +299,22 @@ const CodePane = ({
 
       e.preventDefault();
 
-      const lang = activeFile.language ?? activeLanguage;
-      const content = selectedCode;
-      const lectureTitle = `Lesson ${lessonId}`;
-
       const store = useNiotepadStore.getState();
-      const pageId = store.getOrCreatePage(lessonId, lectureTitle);
+      const pageId = store.getOrCreatePage(lessonId, lectureLabel);
       store.addEntry({
         source: "code",
-        content,
+        content: selectedCode,
         pageId,
         videoTimeSec,
         metadata: {
           filePath: activeFile.path,
-          language: lang,
+          language: activeFile.language ?? activeLanguage,
         },
       });
     };
-
     window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [activeLanguage, lessonId, videoTimeSec]);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeLanguage, lessonId, lectureLabel, videoTimeSec]);
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">
@@ -574,7 +329,7 @@ const CodePane = ({
             className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
             aria-label="Bookmark code to niotepad"
           >
-            {bookmarkConfirm ? (
+            {bookmarkSaved ? (
               <svg
                 width="14"
                 height="14"
@@ -623,7 +378,7 @@ const CodePane = ({
           minFirst={100}
           minSecond={128}
           storageKey="niotebook:split-editor-output"
-          resetOnLoad={shouldResetSplits ? "second" : undefined}
+          resetOnLoad="second"
           first={
             <div className="flex min-h-0 h-full flex-1 flex-col bg-workspace-editor">
               <EditorArea
@@ -638,9 +393,7 @@ const CodePane = ({
                 onRun={handleRun}
                 onStop={handleStop}
                 onClear={handleClear}
-                isRunning={
-                  runtimeState.status === "running" || terminalIsRunning
-                }
+                isRunning={isRunning}
                 actionsDisabled={terminalActionsDisabled}
               />
             </div>
