@@ -42,6 +42,8 @@ const VideoPane = ({
   showInfoStrip = false,
 }: VideoPaneProps): ReactElement => {
   const lesson = useQuery(getLessonRef, { lessonId });
+  // course is undefined while loading or if the Convex query errors (indistinguishable);
+  // null means the course record was not found in the database.
   const course = useQuery(
     getCourseByCourseIdRef,
     lesson?.courseId ? { courseId: lesson.courseId } : "skip",
