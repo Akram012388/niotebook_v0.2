@@ -135,6 +135,11 @@ const initCExecutor = async (): Promise<RuntimeExecutor> => {
     return new Promise<RuntimeRunResult>((resolve, reject) => {
       const timeoutHandle = setTimeout(() => {
         pendingRuns.delete(id);
+        // Terminate the worker — JSCPP runs synchronously, so there is no way
+        // to interrupt it mid-execution other than killing the entire Worker.
+        // A fresh Worker will be spawned lazily on the next run() call.
+        worker?.terminate();
+        worker = null;
         const msg = "C runtime timed out after 5s\n";
         input.onStderr?.(msg);
         resolve({
@@ -160,19 +165,26 @@ const initCExecutor = async (): Promise<RuntimeExecutor> => {
   };
 
   const stop = (): void => {
+    // Snapshot and clear pendingRuns BEFORE calling terminate() to avoid a
+    // potential double-resolve if the worker's onerror handler fires synchronously
+    // during terminate() and iterates the same map.
+    const snapshot = [...pendingRuns.entries()];
+    pendingRuns.clear();
+
     if (worker) {
       worker.terminate();
       worker = null;
     }
-    // Resolve all pending runs as timed-out/stopped so callers don't hang
-    for (const [id, pending] of pendingRuns) {
+
+    // Resolve all snapshotted runs — callers get a clean stopped result, not a hang
+    const now = performance.now();
+    for (const [, pending] of snapshot) {
       clearTimeout(pending.timeoutHandle);
-      pendingRuns.delete(id);
       pending.resolve({
         stdout: "",
         stderr: "C runtime stopped.\n",
         exitCode: 130,
-        runtimeMs: Math.round(performance.now() - pending.startMs),
+        runtimeMs: Math.round(now - pending.startMs),
         timedOut: false,
       });
     }

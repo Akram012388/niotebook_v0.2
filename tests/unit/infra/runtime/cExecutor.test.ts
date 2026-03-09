@@ -148,17 +148,17 @@ afterEach(() => {
 
 describe("cExecutor — init()", () => {
   it("spawns a Worker eagerly on init()", async () => {
-    const WorkerSpy = vi.mocked(Worker as unknown as { new (...a: unknown[]): MockWorker });
-    const callsBefore = (WorkerSpy as unknown as { mock: { instances: unknown[] } }).mock?.instances?.length ?? 0;
+    // Before init(), mockWorkerInstance may be from a previous test — capture it
+    const instanceBefore = mockWorkerInstance ?? null;
 
     const executor = await initCExecutor();
     await executor.init();
 
-    // A new MockWorker should have been created
+    // init() must have created a new Worker (mockWorkerInstance updated by the stub)
     expect(mockWorkerInstance).toBeInstanceOf(MockWorker);
-    // Worker constructor was called at least once during init
-    expect(mockWorkerInstance.postMessage).toBeDefined();
-    void callsBefore; // used to avoid lint warning
+    expect(mockWorkerInstance).not.toBe(instanceBefore);
+    // The worker is ready to receive messages
+    expect(mockWorkerInstance.postMessage).toBeTypeOf("function");
   });
 });
 
@@ -200,7 +200,7 @@ describe("cExecutor — run()", () => {
     expect(chunks).toEqual(["chunk1", "chunk2"]);
   });
 
-  it("resolves with timedOut: true after timeout fires", async () => {
+  it("resolves with timedOut: true after timeout fires AND terminates the worker", async () => {
     vi.useFakeTimers();
 
     // Handler that never sends a response — simulates an infinite loop
@@ -211,6 +211,7 @@ describe("cExecutor — run()", () => {
     const executor = await initCExecutor();
     await executor.init();
 
+    const workerBeforeTimeout = mockWorkerInstance;
     const onStderr = vi.fn();
     const runPromise = executor.run(makeRunInput({ onStderr }));
 
@@ -223,6 +224,8 @@ describe("cExecutor — run()", () => {
     expect(result.exitCode).toBe(124);
     expect(result.stderr).toContain("timed out");
     expect(onStderr).toHaveBeenCalled();
+    // The stuck worker must be terminated so the infinite loop stops burning CPU
+    expect(workerBeforeTimeout.terminate).toHaveBeenCalledTimes(1);
 
     vi.useRealTimers();
   });
