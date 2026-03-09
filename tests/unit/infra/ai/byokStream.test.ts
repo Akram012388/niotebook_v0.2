@@ -215,6 +215,61 @@ describe("streamWithByok", () => {
       code: "PROVIDER_5XX",
     });
   });
+
+  it("stops emitting tokens and emits no done event when isAborted returns true mid-stream", async () => {
+    const client = makeClient({ provider: "gemini", key: "gm-key" });
+
+    async function* slowStream(): AsyncGenerator<string> {
+      yield "first";
+      yield "second";
+      yield "third";
+    }
+
+    const providerResult: NioProviderStreamResult = {
+      provider: "gemini",
+      model: "gemini-3-flash-preview",
+      stream: slowStream(),
+    };
+    vi.mocked(streamGemini).mockResolvedValue(providerResult);
+
+    const events: NioSseEvent[] = [];
+    let aborted = false;
+
+    await streamWithByok({
+      ...BASE_ARGS,
+      client: client as never,
+      isAborted: () => aborted,
+      enqueue: (e) => {
+        events.push(e);
+        // Abort after receiving the first token
+        if (e.type === "token") {
+          aborted = true;
+        }
+      },
+    });
+
+    // meta + first token — then abort causes early return
+    expect(events[0]).toMatchObject({ type: "meta" });
+    const tokenEvents = events.filter((e) => e.type === "token");
+    expect(tokenEvents).toHaveLength(1);
+    expect(tokenEvents[0]).toMatchObject({ type: "token", token: "first" });
+    // No done event because function returned early on abort
+    expect(events.some((e) => e.type === "done")).toBe(false);
+  });
+
+  it("emits STREAM_ERROR when resolveForRequest returns an unrecognised provider", async () => {
+    const client = makeClient({ provider: "groq", key: "gk-key" });
+    const events: NioSseEvent[] = [];
+
+    await streamWithByok({
+      ...BASE_ARGS,
+      client: client as never,
+      enqueue: (e) => events.push(e),
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ type: "error", code: "STREAM_ERROR" });
+  });
 });
 
 // ---------------------------------------------------------------------------

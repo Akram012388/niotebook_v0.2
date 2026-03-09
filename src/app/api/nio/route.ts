@@ -313,7 +313,7 @@ export const POST = async (request: Request): Promise<Response> => {
         transcriptPayload = { ...transcriptPayload, lines };
       }
     } else if (transcriptResult.status === "rejected") {
-      debugLog("transcript: convex fetch failed", {
+      console.error("[nio] transcript fetch failed", {
         requestId: validation.data.requestId,
         error:
           transcriptResult.reason instanceof Error

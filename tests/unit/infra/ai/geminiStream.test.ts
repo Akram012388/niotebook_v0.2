@@ -145,6 +145,44 @@ describe("streamGemini", () => {
     }
   });
 
+  it("throws NioProviderStreamError with PROVIDER_5XX code on 500", async () => {
+    stubFetchError(500);
+
+    try {
+      await streamGemini(DEFAULT_INPUT);
+      expect.fail("Expected streamGemini to throw");
+    } catch (err) {
+      expect(err).toBeInstanceOf(NioProviderStreamError);
+      if (err instanceof NioProviderStreamError) {
+        expect(err.code).toBe("PROVIDER_5XX");
+        expect(err.status).toBe(500);
+        expect(err.provider).toBe("gemini");
+      }
+    }
+  });
+
+  it("throws NioProviderStreamError with STREAM_ERROR when response body is null", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        body: null,
+      }),
+    );
+
+    try {
+      await streamGemini(DEFAULT_INPUT);
+      expect.fail("Expected streamGemini to throw");
+    } catch (err) {
+      expect(err).toBeInstanceOf(NioProviderStreamError);
+      if (err instanceof NioProviderStreamError) {
+        expect(err.code).toBe("STREAM_ERROR");
+        expect(err.provider).toBe("gemini");
+      }
+    }
+  });
+
   it("throws NioProviderStreamError when fetch rejects (network error)", async () => {
     vi.stubGlobal(
       "fetch",

@@ -167,6 +167,25 @@ describe("fetchSubtitleWindow", () => {
     ]);
   });
 
+  it("does not re-fetch when the same URL is requested twice within the TTL", async () => {
+    const srt = buildSrt([
+      { id: 1, start: "00:00:01,000", end: "00:00:03,000", text: "Cached" },
+    ]);
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: () => Promise.resolve(srt),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const url = `${BASE}/cache-hit-test.srt`;
+    await fetchSubtitleWindow({ subtitlesUrl: url, startSec: 0, endSec: 5 });
+    await fetchSubtitleWindow({ subtitlesUrl: url, startSec: 0, endSec: 5 });
+
+    // fetch should only have been called once — second call is served from cache
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("throws when the URL hostname is not in the allowlist", async () => {
     await expect(
       fetchSubtitleWindow({

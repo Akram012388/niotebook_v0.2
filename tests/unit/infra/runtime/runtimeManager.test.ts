@@ -31,6 +31,7 @@ import {
   loadExecutor,
   runRuntime,
   setSandboxEnabled,
+  stopRuntime,
 } from "../../../../src/infra/runtime/runtimeManager";
 import { STREAMED_SENTINEL } from "../../../../src/infra/runtime/runtimeConstants";
 
@@ -231,5 +232,30 @@ describe("runRuntime", () => {
     const result = await runRuntime("js", { code: "", timeoutMs: 1000 });
 
     expect(result.stdout).toBe("raw output");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// stopRuntime
+// ---------------------------------------------------------------------------
+
+describe("stopRuntime", () => {
+  beforeEach(() => {
+    clearRuntime("js");
+  });
+
+  it("calls executor.stop() when the language has been loaded", async () => {
+    const stub = makeStubExecutor();
+    vi.mocked(initJsExecutor).mockResolvedValue(stub);
+
+    await loadExecutor("js");
+    await stopRuntime("js");
+
+    expect(stub.stop).toHaveBeenCalledOnce();
+  });
+
+  it("does not throw when called for a language that was never loaded", async () => {
+    clearRuntime("js");
+    await expect(stopRuntime("js")).resolves.toBeUndefined();
   });
 });

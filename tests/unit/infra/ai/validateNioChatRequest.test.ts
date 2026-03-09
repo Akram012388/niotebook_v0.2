@@ -267,6 +267,98 @@ describe("validateNioChatRequest", () => {
     });
   });
 
+  describe("max-length limits", () => {
+    it("accepts userMessage at exactly the 4000 char limit", () => {
+      const result = validateNioChatRequest({
+        ...validMinimal,
+        userMessage: "a".repeat(4000),
+      });
+      expect(result.ok).toBe(true);
+    });
+
+    it("rejects userMessage exceeding 4000 chars", () => {
+      const result = validateNioChatRequest({
+        ...validMinimal,
+        userMessage: "a".repeat(4001),
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toMatch(/userMessage/i);
+      }
+    });
+
+    it("accepts recentMessages at exactly 50 entries", () => {
+      const result = validateNioChatRequest({
+        ...validMinimal,
+        recentMessages: Array.from({ length: 50 }, (_, i) => ({
+          role: i % 2 === 0 ? "user" : "assistant",
+          content: "msg",
+        })),
+      });
+      expect(result.ok).toBe(true);
+    });
+
+    it("rejects recentMessages exceeding 50 entries", () => {
+      const result = validateNioChatRequest({
+        ...validMinimal,
+        recentMessages: Array.from({ length: 51 }, (_, i) => ({
+          role: i % 2 === 0 ? "user" : "assistant",
+          content: "msg",
+        })),
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toMatch(/recentMessages/i);
+      }
+    });
+
+    it("accepts transcript.lines at exactly 500 entries", () => {
+      const result = validateNioChatRequest({
+        ...validMinimal,
+        transcript: {
+          startSec: 0,
+          endSec: 10,
+          lines: Array.from({ length: 500 }, () => "line"),
+        },
+      });
+      expect(result.ok).toBe(true);
+    });
+
+    it("rejects transcript.lines exceeding 500 entries", () => {
+      const result = validateNioChatRequest({
+        ...validMinimal,
+        transcript: {
+          startSec: 0,
+          endSec: 10,
+          lines: Array.from({ length: 501 }, () => "line"),
+        },
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toMatch(/transcript\.lines/i);
+      }
+    });
+
+    it("accepts code.code at exactly 50000 chars", () => {
+      const result = validateNioChatRequest({
+        ...validMinimal,
+        code: { language: "python", code: "x".repeat(50000) },
+      });
+      expect(result.ok).toBe(true);
+    });
+
+    it("rejects code.code exceeding 50000 chars", () => {
+      const result = validateNioChatRequest({
+        ...validMinimal,
+        code: { language: "python", code: "x".repeat(50001) },
+      });
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toMatch(/code\.code/i);
+      }
+    });
+  });
+
   describe("non-object payload", () => {
     it("rejects null", () => {
       const result = validateNioChatRequest(null);
