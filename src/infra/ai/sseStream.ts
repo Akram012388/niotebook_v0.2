@@ -48,7 +48,10 @@ export async function* readSseStream(
           parsed = JSON.parse(payloadText);
         } catch {
           if (process.env.NIO_DEBUG === "1") {
-            console.warn("[sseStream] Failed to parse SSE payload:", payloadText.slice(0, 100));
+            console.warn(
+              "[sseStream] Failed to parse SSE payload:",
+              payloadText.slice(0, 100),
+            );
           }
           continue;
         }

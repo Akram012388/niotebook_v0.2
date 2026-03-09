@@ -195,7 +195,10 @@ async function initSqlExecutor(): Promise<RuntimeExecutor> {
             try {
               db.close();
             } catch (closeErr) {
-              console.error("[sqlExecutor] db.close() failed during lesson reset:", closeErr);
+              console.error(
+                "[sqlExecutor] db.close() failed during lesson reset:",
+                closeErr,
+              );
             }
           }
           db = null;

@@ -17,6 +17,7 @@ const eslintConfig = defineConfig([
     "node_modules/**",
     "convex/_generated/**",
     ".tmp/**",
+    ".claude/worktrees/**",
   ]),
 ]);
 

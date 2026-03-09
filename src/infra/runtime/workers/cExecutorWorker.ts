@@ -25,7 +25,14 @@ type WorkerIncoming =
 type WorkerOutgoing =
   | { type: "stdout"; id: string; chunk: string }
   | { type: "stderr"; id: string; chunk: string }
-  | { type: "result"; id: string; stdout: string; stderr: string; exitCode: number; runtimeMs: number }
+  | {
+      type: "result";
+      id: string;
+      stdout: string;
+      stderr: string;
+      exitCode: number;
+      runtimeMs: number;
+    }
   | { type: "error"; id: string; message: string };
 
 let jscpp: JSCPPModule | null = null;
