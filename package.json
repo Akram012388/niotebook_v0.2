@@ -20,8 +20,8 @@
     "e2e:convex:push": "bun ./scripts/e2eConvexPush.ts",
     "e2e:seed": "bun ./scripts/e2eSeed.ts",
     "ingest:cs50x": "bun ./scripts/ingestCs50x2026.ts",
-    "check:any": "rg --hidden --no-ignore-vcs '\\bany\\b' convex tests --type ts --glob '!convex/_generated/**' && echo 'error: any is forbidden in convex & tests' && exit 1 || exit 0",
-    "check:unknown": "rg --hidden --no-ignore-vcs '\\bunknown\\b' src/domain && echo 'error: unknown is forbidden in src/domain' && exit 1 || exit 0",
+    "check:any": "bun run scripts/check-forbidden.ts any convex tests",
+    "check:unknown": "bun run scripts/check-forbidden.ts unknown src/domain",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "lefthook install"

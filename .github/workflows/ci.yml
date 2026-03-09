@@ -18,7 +18,6 @@ jobs:
         with:
           bun-version: "1.1.19"
       - run: bun install --frozen-lockfile
-      - run: sudo apt-get update && sudo apt-get install -y ripgrep
       - run: bun run lint
       - name: Check formatting
         run: bun run format:check
