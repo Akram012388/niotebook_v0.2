@@ -191,7 +191,7 @@ const getLessonCountsByCourse = query({
           .query("lessons")
           .withIndex("by_courseId", (q) => q.eq("courseId", course._id))
           .collect();
-        return { courseId: course._id, count: lessons.length };
+        return { courseId: toDomainId(course._id), count: lessons.length };
       }),
     );
   },
