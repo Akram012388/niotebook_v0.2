@@ -119,6 +119,8 @@ const verifyTranscriptWindows = query({
     lectureTenCount: number;
     lectureZeroCount: number;
     lectureZeroLabel?: string;
+    errorCount: number;
+    errorSlugs: string[];
   }> => {
     ensureIngestToken(args.ingestToken);
 
@@ -152,7 +154,11 @@ const verifyTranscriptWindows = query({
         if (candidate) {
           lectureTen = candidate;
         }
-      } catch {
+      } catch (err) {
+        console.warn(
+          "[verifyTranscriptWindows] failed to load defaultLessonId:",
+          err instanceof Error ? err.message : err,
+        );
         lectureTen = null;
       }
     }
@@ -226,7 +232,16 @@ const verifyTranscriptWindows = query({
       }
     }
 
-    return { lectureTenCount, lectureZeroCount, lectureZeroLabel };
+    const errorLessons = lessons.filter((l) => l.transcriptStatus === "error");
+    const errorSlugs = errorLessons.map((l) => l.title ?? `order:${l.order}`);
+
+    return {
+      lectureTenCount,
+      lectureZeroCount,
+      lectureZeroLabel,
+      errorCount: errorLessons.length,
+      errorSlugs,
+    };
   },
 });
 

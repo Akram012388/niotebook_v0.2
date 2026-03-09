@@ -453,7 +453,11 @@ const parseWeekLesson = async (
       transcriptStatus,
       durationSec,
     };
-  } catch {
+  } catch (err) {
+    console.error(
+      `[ingest] transcript fetch/parse failed for ${slug} (order ${order}):`,
+      err instanceof Error ? err.message : err,
+    );
     return {
       order,
       slug,
@@ -517,6 +521,19 @@ const runIngest = async (): Promise<void> => {
     const order = index + 1;
     const lesson = await parseWeekLesson(slug, order, navTitles.get(slug));
     lessons.push(buildLessonMetadata(lesson));
+  }
+
+  // Fail before writing to Convex if any lesson failed transcript fetch.
+  // A partial ingest (some lessons with transcriptStatus: "error") is worse
+  // than no ingest — it silently degrades course quality.
+  const failedLessons = lessons.filter((l) => l.transcriptStatus === "error");
+  if (failedLessons.length > 0) {
+    const names = failedLessons
+      .map((l) => `${l.slug} (order ${l.order})`)
+      .join(", ");
+    throw new Error(
+      `${failedLessons.length} lesson(s) failed transcript fetch or quality check — aborting to prevent partial ingest: ${names}`,
+    );
   }
 
   const coursePayload = {

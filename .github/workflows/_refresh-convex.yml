@@ -22,6 +22,7 @@ on:
         required: true
 
 env:
+  # Keep in sync with BUN_VERSION in ci.yml and e2e.yml
   BUN_VERSION: "1.1.19"
   NEXT_PUBLIC_DEFAULT_LESSON_ID: k170tmrc8zxxqtabctyddvhhqx7zkgae
 
