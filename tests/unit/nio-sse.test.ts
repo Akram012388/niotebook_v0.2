@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { NioSseEvent } from "../../src/domain/ai/types";
+import type { NioSseEvent } from "../../src/domain/nio";
 import { encodeSseEvent, parseSseEvent } from "../../src/infra/ai/nioSse";
 
 describe("nio SSE", (): void => {

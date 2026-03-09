@@ -1,4 +1,4 @@
-import { storageAdapter } from "./storageAdapter";
+import { storageAdapter } from "../storageAdapter";
 
 type ChatCacheMessage = {
   id: string;

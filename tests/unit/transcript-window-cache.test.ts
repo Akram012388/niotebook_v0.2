@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   cacheTranscriptWindowMemory,
   getCachedTranscriptWindowMemory,
-} from "../../src/infra/transcriptWindowCache";
+} from "../../src/infra/cache/transcriptWindowCache";
 
 const lessonId = "lesson-1";
 

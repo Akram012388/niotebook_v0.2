@@ -30,7 +30,7 @@ import { ControlCenterDrawer } from "./ControlCenterDrawer";
 import type { SettingsRoute } from "./ControlCenterDrawer";
 import { NiotepadPill } from "../niotepad/NiotepadPill";
 import { useNiotepadStore } from "@/infra/niotepad/useNiotepadStore";
-import { useDevAuthBypass } from "@/infra/devAuthBypassContext";
+import { useDevAuthBypass } from "@/infra/dev/devAuthBypassContext";
 
 const LESSON_STORAGE_KEY = "niotebook.lesson";
 

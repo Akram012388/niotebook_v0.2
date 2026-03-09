@@ -3,7 +3,7 @@ import type {
   NioCodePayload,
   NioErrorCode,
   NioTranscriptPayload,
-} from "./ai/types";
+} from "./nio";
 
 type NioContextMessageRole = "system" | "user" | "assistant";
 

@@ -14,12 +14,15 @@ import { useMutation, useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
 import type { ChatMessageSummary, ChatThreadSummary } from "../../domain/chat";
 import { orderChatMessages } from "../../domain/chat";
-import type { NioChatRequest } from "../../domain/ai/types";
+import type { NioChatRequest } from "../../domain/nio";
 import { parseSseEvent } from "../../infra/ai/nioSse";
 import { formatTimestamp } from "../formatTimestamp";
 import type { ChatMessage, ChatStreamState } from "./chatTypes";
 import type { EventLogResult } from "../../domain/events";
-import { readChatCache, writeChatCache } from "../../infra/chatLocalCache";
+import {
+  readChatCache,
+  writeChatCache,
+} from "../../infra/cache/chatLocalCache";
 import {
   createChatMessageRef,
   ensureChatThreadRef,

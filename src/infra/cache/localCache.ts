@@ -1,5 +1,5 @@
-import type { CodeSnapshotSummary, FrameSummary } from "../domain/resume";
-import { storageAdapter } from "./storageAdapter";
+import type { CodeSnapshotSummary, FrameSummary } from "../../domain/resume";
+import { storageAdapter } from "../storageAdapter";
 
 const cacheFrame = (lessonId: string, frame: FrameSummary): void => {
   storageAdapter.setItem(`niotebook.frame.${lessonId}`, JSON.stringify(frame));

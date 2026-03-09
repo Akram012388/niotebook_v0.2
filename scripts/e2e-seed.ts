@@ -1,3 +1,10 @@
+/**
+ * E2E utility — calls seed:seedE2E on Convex to create a fresh lesson fixture
+ * and writes the result to .e2e-seed.json (or NIOTEBOOK_E2E_SEED_PATH).
+ * Run before e2e-env.ts. Blocked in production.
+ *
+ * Usage: CONVEX_URL=<url> NIOTEBOOK_INGEST_TOKEN=<token> bun ./scripts/e2e-seed.ts
+ */
 import { writeFileSync } from "node:fs";
 import { ConvexHttpClient } from "convex/browser";
 import type { FunctionReference } from "convex/server";

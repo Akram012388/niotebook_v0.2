@@ -20,12 +20,6 @@ Tag: `auth-e2e-docs-alignment-2026-01-30`
 - `CLERK_JWT_ISSUER_DOMAIN` - Clerk issuer for Convex auth config (set in Convex env vars).
 - `NIOTEBOOK_ADMIN_EMAILS` - Comma-separated allowlist for admin users.
 
-## Gmail automation
-
-- `GMAIL_CLIENT_ID` - Google OAuth2 client ID for Gmail API. Used in `src/infra/email/gmailClient.ts`.
-- `GMAIL_CLIENT_SECRET` - Google OAuth2 client secret. Used in `src/infra/email/gmailClient.ts`.
-- `GMAIL_REDIRECT_URI` - OAuth2 redirect URI (default: `http://localhost:3000/api/gmail/callback`). Used in `src/infra/email/gmailClient.ts`.
-
 ## Feature toggles
 
 - `NIOTEBOOK_E2E_PREVIEW` - Enables stubbed AI responses and allows dev auth bypass in preview. Used in `src/app/api/nio/route.ts` and `convex/auth.ts`.
@@ -39,12 +33,12 @@ Tag: `auth-e2e-docs-alignment-2026-01-30`
 ## Ingest safeguards
 
 - `NIOTEBOOK_ALLOW_PROD_INGEST` - Required to allow ingest when `NODE_ENV=production`. Set to `true` only on preview-data and prod deployments that run ingest.
-- `NIOTEBOOK_INGEST_TOKEN` - Shared ingest/ops token used by `scripts/ingestCs50x2026.ts`, `scripts/verifyTranscriptWindows.ts`, and `scripts/e2eSeed.ts`.
+- `NIOTEBOOK_INGEST_TOKEN` - Shared ingest/ops token used by `scripts/ingest-cs50x-2026.ts`, `scripts/verify-transcript-windows.ts`, and `scripts/e2e-seed.ts`.
 
 ## Dev auth bypass
 
 - `NIOTEBOOK_DEV_AUTH_BYPASS` - Enables dev bypass on Convex server. Used in `convex/auth.ts`.
-- `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS` - Enables dev bypass on client. Used in `src/infra/devAuth.ts` and `src/infra/convexClient.ts`.
+- `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS` - Enables dev bypass on client. Used in `src/infra/dev/devAuth.ts` and `src/infra/convexClient.ts`.
 - `NIOTEBOOK_ALLOW_DEV_BYPASS_IN_DEV` - Allows bypass in local dev outside preview. Used in `convex/auth.ts`.
 
 Do not set `NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS=true` in production. The client
@@ -64,7 +58,7 @@ The repository includes automated data refresh workflows:
 - `preview-data refresh` (nightly + manual) uses `CONVEX_PREVIEW_DEPLOY_KEY`, `PREVIEW_DATA_CONVEX_URL`, and `NIOTEBOOK_INGEST_TOKEN_PREVIEW_DATA`.
 - `prod refresh` (manual) uses `CONVEX_PROD_DEPLOY_KEY`, `PROD_CONVEX_URL`, and `NIOTEBOOK_INGEST_TOKEN_PROD`.
 
-Both workflows call token-gated verification via `scripts/verifyTranscriptWindows.ts`.
+Both workflows call token-gated verification via `scripts/verify-transcript-windows.ts`.
 
 ## E2E workflow requirements
 
@@ -74,7 +68,7 @@ The E2E workflow (`.github/workflows/e2e.yml`) expects:
 - `NIOTEBOOK_INGEST_TOKEN_PREVIEW_DATA`
 - `NIOTEBOOK_E2E_VIDEO_ID`
 
-The seed script (`scripts/e2eSeed.ts`) runs against preview-data and requires
+The seed script (`scripts/e2e-seed.ts`) runs against preview-data and requires
 `CONVEX_URL`, `NIOTEBOOK_INGEST_TOKEN`, and `NIOTEBOOK_E2E_VIDEO_ID`.
 
 Local e2e runs that use the webServer need a preview deploy key available as

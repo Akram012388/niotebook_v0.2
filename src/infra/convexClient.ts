@@ -1,5 +1,5 @@
 import { ConvexReactClient } from "convex/react";
-import { enableDevAuthBypass } from "./devAuth";
+import { enableDevAuthBypass } from "./dev/devAuth";
 
 type ConvexClientWithAdminAuth = ConvexReactClient & {
   setAdminAuth: (

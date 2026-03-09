@@ -1,3 +1,8 @@
+/**
+ * E2E utility — reads .e2e-seed.json written by e2e-seed.ts and exports
+ * NIOTEBOOK_E2E_VIDEO_ID to the environment. Run after e2e-seed.ts.
+ * In CI, pass --github to append the variable to GITHUB_ENV.
+ */
 import { appendFileSync, readFileSync } from "node:fs";
 
 const main = (): void => {

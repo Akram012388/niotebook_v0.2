@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { streamStub, streamWithByok } from "@/infra/ai/byokStream";
 import { streamGemini } from "@/infra/ai/geminiStream";
-import type { NioSseEvent } from "@/domain/ai/types";
+import type { NioSseEvent } from "@/domain/nio";
 import type { NioContextMessage } from "@/domain/nioContextBuilder";
 import type { NioProviderStreamResult } from "@/infra/ai/providerTypes";
 import { NioProviderStreamError } from "@/infra/ai/providerTypes";
