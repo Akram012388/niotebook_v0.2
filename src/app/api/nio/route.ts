@@ -61,10 +61,7 @@ const isConvexAuthRequired = (): boolean => {
     return false;
   }
 
-  if (
-    process.env.NIOTEBOOK_DEV_AUTH_BYPASS === "true" ||
-    process.env.NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS === "true"
-  ) {
+  if (process.env.NIOTEBOOK_DEV_AUTH_BYPASS === "true") {
     return false;
   }
 
