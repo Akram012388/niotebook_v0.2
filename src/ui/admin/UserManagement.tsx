@@ -53,6 +53,7 @@ const RoleBadge = ({ role }: { role: string }): ReactElement => {
 const UserManagement = (): ReactElement => {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<Role | "all">("all");
+  const [roleError, setRoleError] = useState<string | null>(null);
 
   const users = useQuery(listAllRef);
   const updateRole = useMutation(updateRoleRef);
@@ -61,7 +62,15 @@ const UserManagement = (): ReactElement => {
     userId: string,
     role: Role,
   ): Promise<void> => {
-    await updateRole({ userId: userId as GenericId<"users">, role });
+    setRoleError(null);
+    try {
+      await updateRole({ userId: userId as GenericId<"users">, role });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to update role.";
+      console.error("Failed to update role:", error);
+      setRoleError(message);
+    }
   };
 
   const filtered = users
@@ -95,6 +104,8 @@ const UserManagement = (): ReactElement => {
           <option value="user">User</option>
         </select>
       </div>
+
+      {roleError && <p className="text-xs text-red-500">{roleError}</p>}
 
       <div className="overflow-x-auto rounded-2xl border border-border">
         <table className="w-full text-sm">

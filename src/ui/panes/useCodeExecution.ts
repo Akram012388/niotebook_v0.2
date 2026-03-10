@@ -51,7 +51,7 @@ function useCodeExecution({
   const terminalIsRunning = useTerminalStore((s) => s.isRunning);
   const isRunning = runtimeState.status === "running" || terminalIsRunning;
 
-  const handleRun = async (): Promise<void> => {
+  const handleRun = useCallback(async (): Promise<void> => {
     if (terminalActionsDisabled) return;
 
     useEditorStore.getState().saveAll();
@@ -145,7 +145,7 @@ function useCodeExecution({
     } finally {
       termStore.writePrompt();
     }
-  };
+  }, [activeLanguage, environment, terminalActionsDisabled, lessonId]);
 
   const handleStop = useCallback((): void => {
     if (terminalActionsDisabled) return;

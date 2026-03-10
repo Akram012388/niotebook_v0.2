@@ -69,8 +69,10 @@ const loadExecutor = async (
       case "r":
         executor = await initRExecutor();
         break;
-      default:
-        executor = await initJsExecutor();
+      default: {
+        const _exhaustive: never = language;
+        throw new Error(`Unsupported language: ${_exhaustive}`);
+      }
     }
 
     await executor.init();

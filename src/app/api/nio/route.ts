@@ -61,6 +61,15 @@ const isConvexAuthRequired = (): boolean => {
     return false;
   }
 
+  if (process.env.NIOTEBOOK_SKIP_API_AUTH === "true") {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "NIOTEBOOK_SKIP_API_AUTH must not be true in production.",
+      );
+    }
+    return false;
+  }
+
   return true;
 };
 

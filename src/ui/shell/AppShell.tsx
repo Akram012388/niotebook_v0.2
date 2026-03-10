@@ -1,11 +1,8 @@
 "use client";
 
-import { Suspense, useMemo, type ReactElement, type ReactNode } from "react";
+import { Suspense, type ReactElement, type ReactNode } from "react";
 import dynamic from "next/dynamic";
-import {
-  LayoutPresetProvider,
-  useLayoutPreset,
-} from "../layout/LayoutPresetContext";
+import { LayoutPresetProvider } from "../layout/LayoutPresetContext";
 import { useDevAuthBypass } from "@/infra/dev/devAuthBypassContext";
 import { TopNav } from "./TopNav";
 import { NiotepadProvider } from "../niotepad/NiotepadProvider";
@@ -17,16 +14,10 @@ type AppShellProps = {
   children: ReactNode;
 };
 
-const AppShellFrame = ({ children }: AppShellProps): ReactElement => {
-  const { activePreset } = useLayoutPreset();
-  const isDevBypass = useDevAuthBypass();
+const mainClass = "flex w-full flex-1 flex-col overflow-hidden";
 
-  const mainClass = useMemo(() => {
-    if (activePreset === "single") {
-      return "flex w-full flex-1 flex-col overflow-hidden";
-    }
-    return "flex w-full flex-1 flex-col overflow-hidden";
-  }, [activePreset]);
+const AppShellFrame = ({ children }: AppShellProps): ReactElement => {
+  const isDevBypass = useDevAuthBypass();
 
   const navFallback = (
     <div className="border-b border-border bg-surface">

@@ -38,7 +38,15 @@ const parseChatMessage = (value: unknown): NioChatMessage | null => {
     return null;
   }
 
-  return { role, content };
+  // Truncate overlength messages rather than rejecting — users have no control
+  // over historical message lengths accumulated during a chat session.
+  const MAX_MESSAGE_LENGTH = 8000;
+  const trimmedContent =
+    content.length > MAX_MESSAGE_LENGTH
+      ? content.slice(0, MAX_MESSAGE_LENGTH)
+      : content;
+
+  return { role, content: trimmedContent };
 };
 
 const parseTranscript = (value: unknown): NioTranscriptPayload | null => {
@@ -213,6 +221,13 @@ const validateNioChatRequest = (payload: unknown): ValidationResult => {
     return { ok: false, error: "lastError must be a string." };
   }
 
+  // Cap lastError length to bound server-side processing.
+  const MAX_LAST_ERROR_LENGTH = 2000;
+  const sanitizedLastError =
+    isString(lastError) && lastError.length > MAX_LAST_ERROR_LENGTH
+      ? lastError.slice(0, MAX_LAST_ERROR_LENGTH)
+      : lastError;
+
   return {
     ok: true,
     data: {
@@ -226,7 +241,7 @@ const validateNioChatRequest = (payload: unknown): ValidationResult => {
       transcript: parsedTranscript,
       code: parsedCode,
       lesson: parsedLesson ?? undefined,
-      lastError,
+      lastError: sanitizedLastError,
     },
   };
 };

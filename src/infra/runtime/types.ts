@@ -1,4 +1,4 @@
-type RuntimeLanguage = "js" | "python" | "html" | "c" | "css" | "sql" | "r";
+import type { RuntimeLanguage } from "../../domain/runtime";
 
 type RuntimePackage = {
   language: RuntimeLanguage;

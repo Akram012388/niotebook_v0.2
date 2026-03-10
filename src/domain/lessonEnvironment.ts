@@ -4,7 +4,7 @@
  * Defines the shape of per-lesson environment configurations that control
  * which language(s) are available, starter files, packages, and runtime settings.
  */
-import type { RuntimeLanguage } from "../infra/runtime/types";
+import type { RuntimeLanguage } from "./runtime";
 
 // ── Preset identifiers ────────────────────────────────────────
 

@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, type ReactElement } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactElement,
+} from "react";
 import { useFileSystemStore } from "../../infra/vfs/useFileSystemStore";
 
 type FileTreeActionsProps = {
@@ -15,6 +21,13 @@ type FileTreeActionsProps = {
   onClose: () => void;
 };
 
+type InlineMode =
+  | { kind: "newFile" }
+  | { kind: "newFolder" }
+  | { kind: "rename"; defaultValue: string }
+  | { kind: "confirmDelete" }
+  | null;
+
 const FileTreeActions = ({
   targetPath,
   isDirectory,
@@ -22,9 +35,11 @@ const FileTreeActions = ({
   y,
   onClose,
 }: FileTreeActionsProps): ReactElement => {
-  const menuRef = useRef<HTMLUListElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { createFile, createDirectory, deleteNode, renameNode } =
     useFileSystemStore();
+  const [mode, setMode] = useState<InlineMode>(null);
 
   // Close on outside click
   useEffect(() => {
@@ -46,6 +61,14 @@ const FileTreeActions = ({
     return () => document.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  // Auto-focus inline input
+  useEffect(() => {
+    if (mode && mode.kind !== "confirmDelete") {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [mode]);
+
   const parentDir =
     isDirectory && targetPath
       ? targetPath
@@ -53,35 +76,55 @@ const FileTreeActions = ({
         ? targetPath.slice(0, targetPath.lastIndexOf("/")) || "/"
         : "/project";
 
-  const handleNewFile = useCallback(() => {
-    const name = window.prompt("New file name:");
-    if (!name) return;
-    createFile(`${parentDir}/${name}`);
-    onClose();
-  }, [parentDir, createFile, onClose]);
+  const submitInput = useCallback(
+    (value: string) => {
+      if (!value.trim()) return;
+      if (!mode) return;
 
-  const handleNewFolder = useCallback(() => {
-    const name = window.prompt("New folder name:");
-    if (!name) return;
-    createDirectory(`${parentDir}/${name}`);
-    onClose();
-  }, [parentDir, createDirectory, onClose]);
+      switch (mode.kind) {
+        case "newFile":
+          createFile(`${parentDir}/${value.trim()}`);
+          break;
+        case "newFolder":
+          createDirectory(`${parentDir}/${value.trim()}`);
+          break;
+        case "rename": {
+          if (!targetPath) break;
+          const newPath =
+            (targetPath.slice(0, targetPath.lastIndexOf("/")) || "/") +
+            "/" +
+            value.trim();
+          renameNode(targetPath, newPath);
+          break;
+        }
+      }
+      onClose();
+    },
+    [
+      mode,
+      parentDir,
+      targetPath,
+      createFile,
+      createDirectory,
+      renameNode,
+      onClose,
+    ],
+  );
 
-  const handleRename = useCallback(() => {
-    if (!targetPath) return;
-    const oldName = targetPath.slice(targetPath.lastIndexOf("/") + 1);
-    const newName = window.prompt("Rename to:", oldName);
-    if (!newName || newName === oldName) return;
-    const newPath =
-      (targetPath.slice(0, targetPath.lastIndexOf("/")) || "/") + "/" + newName;
-    renameNode(targetPath, newPath);
-    onClose();
-  }, [targetPath, renameNode, onClose]);
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        submitInput(e.currentTarget.value);
+      } else if (e.key === "Escape") {
+        onClose();
+      }
+      e.stopPropagation();
+    },
+    [submitInput, onClose],
+  );
 
   const handleDelete = useCallback(() => {
     if (!targetPath) return;
-    const confirmed = window.confirm(`Delete "${targetPath}"?`);
-    if (!confirmed) return;
     deleteNode(targetPath);
     onClose();
   }, [targetPath, deleteNode, onClose]);
@@ -89,38 +132,115 @@ const FileTreeActions = ({
   const itemClass =
     "px-3 py-1.5 text-xs cursor-pointer hover:bg-workspace-editor text-workspace-text";
 
+  // Inline input mode
+  if (mode && mode.kind !== "confirmDelete") {
+    const label =
+      mode.kind === "newFile"
+        ? "File name:"
+        : mode.kind === "newFolder"
+          ? "Folder name:"
+          : "Rename to:";
+
+    return (
+      <div
+        ref={menuRef}
+        className="fixed z-50 min-w-[180px] rounded-md border border-workspace-border bg-workspace-sidebar p-2 shadow-lg"
+        style={{ left: x, top: y }}
+      >
+        <label className="mb-1 block text-[10px] text-workspace-text-muted">
+          {label}
+        </label>
+        <input
+          ref={inputRef}
+          type="text"
+          defaultValue={mode.kind === "rename" ? mode.defaultValue : ""}
+          onKeyDown={handleInputKeyDown}
+          onBlur={() => onClose()}
+          className="w-full rounded border border-workspace-border bg-workspace-editor px-2 py-1 text-xs text-workspace-text outline-none focus:border-accent"
+        />
+      </div>
+    );
+  }
+
+  // Confirm delete mode
+  if (mode?.kind === "confirmDelete") {
+    return (
+      <div
+        ref={menuRef}
+        className="fixed z-50 min-w-[180px] rounded-md border border-workspace-border bg-workspace-sidebar p-2 shadow-lg"
+        style={{ left: x, top: y }}
+      >
+        <p className="mb-2 text-xs text-workspace-text">
+          Delete &ldquo;{targetPath?.split("/").pop()}&rdquo;?
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={handleDelete}
+            className="rounded bg-status-error px-2 py-1 text-xs text-white"
+          >
+            Delete
+          </button>
+          <button
+            onClick={onClose}
+            className="rounded border border-workspace-border px-2 py-1 text-xs text-workspace-text"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Default menu
   return (
-    <ul
+    <div
       ref={menuRef}
       className="fixed z-50 min-w-[140px] rounded-md border border-workspace-border bg-workspace-sidebar py-1 text-workspace-text shadow-lg"
       style={{ left: x, top: y }}
       role="menu"
     >
-      <li role="menuitem" className={itemClass} onClick={handleNewFile}>
+      <div
+        role="menuitem"
+        className={itemClass}
+        onClick={() => setMode({ kind: "newFile" })}
+      >
         New File
-      </li>
-      <li role="menuitem" className={itemClass} onClick={handleNewFolder}>
+      </div>
+      <div
+        role="menuitem"
+        className={itemClass}
+        onClick={() => setMode({ kind: "newFolder" })}
+      >
         New Folder
-      </li>
+      </div>
       {targetPath ? (
         <>
-          <li
+          <div
             role="separator"
             className="my-1 border-t border-workspace-border-muted"
           />
-          <li role="menuitem" className={itemClass} onClick={handleRename}>
+          <div
+            role="menuitem"
+            className={itemClass}
+            onClick={() =>
+              setMode({
+                kind: "rename",
+                defaultValue: targetPath.slice(targetPath.lastIndexOf("/") + 1),
+              })
+            }
+          >
             Rename
-          </li>
-          <li
+          </div>
+          <div
             role="menuitem"
             className={`${itemClass} text-status-error`}
-            onClick={handleDelete}
+            onClick={() => setMode({ kind: "confirmDelete" })}
           >
             Delete
-          </li>
+          </div>
         </>
       ) : null}
-    </ul>
+    </div>
   );
 };
 
