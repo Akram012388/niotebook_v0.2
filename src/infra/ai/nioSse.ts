@@ -1,12 +1,28 @@
 import type { NioErrorCode, NioSseEvent } from "../../domain/nio";
 import { isRecord, isString, isNumber } from "./typeGuards";
 
-const NIO_SSE_HEADERS: Record<string, string> = {
+// Resolved per-request so preview deployments (where NEXT_PUBLIC_APP_URL
+// differs from production) get the correct origin instead of a stale
+// module-level constant baked in at build time.
+const resolveAllowedOrigin = (): string =>
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://niotebook.com";
+
+const nioSseHeaders = (): Record<string, string> => ({
   "Content-Type": "text/event-stream; charset=utf-8",
   "Cache-Control": "no-cache, no-transform",
   Connection: "keep-alive",
   "X-Accel-Buffering": "no",
-};
+  "Access-Control-Allow-Origin": resolveAllowedOrigin(),
+  "Access-Control-Allow-Credentials": "true",
+});
+
+const nioCorsPreflightHeaders = (): Record<string, string> => ({
+  "Access-Control-Allow-Origin": resolveAllowedOrigin(),
+  "Access-Control-Allow-Credentials": "true",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Max-Age": "86400",
+});
 
 const encodeSseEvent = (event: NioSseEvent): string => {
   const payload = JSON.stringify(event);
@@ -234,4 +250,9 @@ const parseSseEvent = (rawEvent: string): NioSseEvent | null => {
   }
 };
 
-export { encodeSseEvent, parseSseEvent, NIO_SSE_HEADERS };
+export {
+  encodeSseEvent,
+  parseSseEvent,
+  nioSseHeaders,
+  nioCorsPreflightHeaders,
+};

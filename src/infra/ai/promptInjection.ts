@@ -4,16 +4,16 @@ type PromptNeutralizationResult = {
 };
 
 const INJECTION_PATTERNS: RegExp[] = [
-  /ignore (all|a[n]y|previous) instructions/gi,
-  /system prompt/gi,
-  /developer message/gi,
-  /jailbreak/gi,
-  /do anything now/gi,
-  /act as/gi,
-  /pretend to be/gi,
-  /reveal (the )?(system|hidden) prompt/gi,
-  /disclose (the )?(system|hidden) prompt/gi,
-  /bypass (the )?(rules|policy|policies)/gi,
+  /ignore (all|a[n]y|previous) instructions/i,
+  /system prompt/i,
+  /developer message/i,
+  /jailbreak/i,
+  /do anything now/i,
+  /act as/i,
+  /pretend to be/i,
+  /reveal (the )?(system|hidden) prompt/i,
+  /disclose (the )?(system|hidden) prompt/i,
+  /bypass (the )?(rules|policy|policies)/i,
 ];
 
 const neutralizePromptInjection = (
@@ -25,7 +25,10 @@ const neutralizePromptInjection = (
   for (const pattern of INJECTION_PATTERNS) {
     if (pattern.test(next)) {
       flagged = true;
-      next = next.replace(pattern, "[redacted]");
+      // Use gi flags for replace to strip ALL occurrences. The patterns
+      // themselves use only the i flag (no g) so .test() above won't
+      // advance lastIndex between calls.
+      next = next.replace(new RegExp(pattern.source, "gi"), "[redacted]");
     }
   }
 

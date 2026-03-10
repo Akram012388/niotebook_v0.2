@@ -26,6 +26,17 @@ if (
   );
 }
 
+// NIOTEBOOK_E2E_PREVIEW enables stub AI responses and relaxed auth for E2E
+// test environments. It must never reach a real production deployment.
+if (
+  process.env.NIOTEBOOK_E2E_PREVIEW === "true" &&
+  process.env.NODE_ENV === "production"
+) {
+  throw new Error(
+    "[build] NIOTEBOOK_E2E_PREVIEW must not be true in production builds.",
+  );
+}
+
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
   openAnalyzer: false,
@@ -43,6 +54,23 @@ const nextConfig: NextConfig = {
       {
         key: "Permissions-Policy",
         value: "camera=(), microphone=(), geolocation=()",
+      },
+      {
+        // CSP: unsafe-inline required by Next.js for inline <script> hydration
+        // markers; unsafe-eval required by Pyodide WASM execution. Both are
+        // scoped to script-src only.
+        key: "Content-Security-Policy",
+        value: [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.clerk.accounts.dev",
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          "font-src 'self' https://fonts.gstatic.com",
+          "img-src 'self' data: blob: https://*.clerk.com https://img.clerk.com https://i.ytimg.com",
+          "connect-src 'self' https://*.convex.cloud https://*.clerk.accounts.dev https://generativelanguage.googleapis.com https://api.groq.com https://api.openai.com https://api.anthropic.com",
+          "frame-src https://www.youtube.com https://www.youtube-nocookie.com 'self'",
+          "worker-src 'self' blob:",
+          "media-src 'self' blob:",
+        ].join("; "),
       },
       ...(process.env.NODE_ENV === "production"
         ? [

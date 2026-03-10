@@ -4,7 +4,11 @@ import type { RateLimitDecision } from "../../../domain/rate-limits";
 import type { NioSseEvent } from "../../../domain/nio";
 import { buildNioContext } from "../../../domain/nioContextBuilder";
 import { NIO_SYSTEM_PROMPT } from "../../../domain/nioPrompt";
-import { encodeSseEvent, NIO_SSE_HEADERS } from "../../../infra/ai/nioSse";
+import {
+  encodeSseEvent,
+  nioSseHeaders,
+  nioCorsPreflightHeaders,
+} from "../../../infra/ai/nioSse";
 import { neutralizePromptInjection } from "../../../infra/ai/promptInjection";
 import { fetchSubtitleWindow } from "../../../infra/ai/subtitleFallback";
 import { fetchYoutubeTranscriptWindow } from "../../../infra/ai/youtubeTranscriptFallback";
@@ -41,10 +45,7 @@ const debugLog = (message: string, data?: Record<string, unknown>): void => {
 };
 
 const isStubPreview = (): boolean => {
-  return (
-    process.env.NIOTEBOOK_E2E_PREVIEW === "true" ||
-    process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true"
-  );
+  return process.env.NIOTEBOOK_E2E_PREVIEW === "true";
 };
 
 const isConvexEnabled = (): boolean => {
@@ -52,10 +53,6 @@ const isConvexEnabled = (): boolean => {
 };
 
 const isConvexAuthRequired = (): boolean => {
-  if (process.env.NODE_ENV !== "production") {
-    return false;
-  }
-
   if (process.env.NIOTEBOOK_E2E_PREVIEW === "true") {
     return false;
   }
@@ -183,11 +180,14 @@ export const POST = async (request: Request): Promise<Response> => {
   const convexAuthHeader = resolveConvexAuthHeader(request);
 
   if (isConvexEnabled() && isConvexAuthRequired() && !convexAuthHeader) {
+    const isDev = process.env.NODE_ENV !== "production";
     return buildJsonResponse(
       {
         error: {
           code: "AUTH_REQUIRED",
-          message: "Authentication required for assistant requests.",
+          message: isDev
+            ? "Authentication required. Set NIOTEBOOK_DEV_AUTH_BYPASS=true in .env.local for local development."
+            : "Authentication required for assistant requests.",
         },
       },
       401,
@@ -557,6 +557,9 @@ export const POST = async (request: Request): Promise<Response> => {
 
   return new Response(stream, {
     status: 200,
-    headers: NIO_SSE_HEADERS,
+    headers: nioSseHeaders(),
   });
 };
+
+export const OPTIONS = (): Response =>
+  new Response(null, { status: 204, headers: nioCorsPreflightHeaders() });
