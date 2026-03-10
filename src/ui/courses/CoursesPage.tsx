@@ -31,7 +31,7 @@ function CoursesPage(): ReactElement {
   const resumeData = useQuery(getResumeDataRef);
 
   const lessonCounts = useMemo(() => {
-    if (!lessonCountsRaw) return undefined;
+    if (!Array.isArray(lessonCountsRaw)) return undefined;
     return Object.fromEntries(
       lessonCountsRaw.map(({ courseId, count }) => [courseId, count]),
     );
