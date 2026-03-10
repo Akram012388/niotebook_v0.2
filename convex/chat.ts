@@ -99,6 +99,8 @@ const getChatThread = query({
   },
 });
 
+// Race-safe: Convex OCC retries concurrent mutations that read/write the
+// same index range (by_userId_lessonId), so duplicate threads cannot be created.
 const ensureChatThread = mutation({
   args: {
     lessonId: v.id("lessons"),
