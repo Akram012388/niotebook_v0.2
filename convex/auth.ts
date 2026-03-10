@@ -64,6 +64,10 @@ const requireAdmin = async (ctx: AuthContext): Promise<AuthenticatedUser> => {
   const user = await requireUser(ctx);
 
   if (user.role !== "admin") {
+    console.warn("[auth] Admin access denied", {
+      userId: user.id,
+      role: user.role,
+    });
     throw new Error("Admin access required.");
   }
 
