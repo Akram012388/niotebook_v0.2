@@ -278,7 +278,12 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
     },
 
     stop() {
-      // webR doesn't support mid-execution abort
+      // Destroy the webR instance to release WASM resources.
+      // The next run will re-initialize a fresh instance.
+      if (webrPromise) {
+        void webrPromise.then(({ webr }) => webr.destroy()).catch(() => {});
+        webrPromise = null;
+      }
     },
   };
 

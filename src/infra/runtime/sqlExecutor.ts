@@ -213,7 +213,7 @@ async function initSqlExecutor(): Promise<RuntimeExecutor> {
 
         // Auto-execute seed files from VFS on first run only
         if (input.filesystem && !seeded) {
-          seeded = true;
+          let seedFailed = false;
           for (const seedName of ["schema.sql", "seed.sql"]) {
             const seedContent = input.filesystem.readFile(
               `/project/${seedName}`,
@@ -222,12 +222,17 @@ async function initSqlExecutor(): Promise<RuntimeExecutor> {
               try {
                 db.run(seedContent);
               } catch (seedErr) {
+                seedFailed = true;
                 const msg =
                   seedErr instanceof Error ? seedErr.message : String(seedErr);
                 stderr += `[${seedName}] ${msg}\n`;
                 input.onStderr?.(`[${seedName}] ${msg}\n`);
               }
             }
+          }
+          // Only mark seeded on success — allows retry after seed failure
+          if (!seedFailed) {
+            seeded = true;
           }
         }
 

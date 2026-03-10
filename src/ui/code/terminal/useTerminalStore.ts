@@ -19,6 +19,10 @@ type TerminalStoreState = {
   abortController: AbortController | null;
   /** Last error message from a failed code run (for AI context). */
   lastRunError: string | null;
+  /** Whether the last output chunk ended with a newline character. */
+  lastOutputEndedWithNewline: boolean;
+  /** Whether any output has been written since the last prompt. */
+  hasOutputSincePrompt: boolean;
 };
 
 type TerminalStoreActions = {
@@ -35,21 +39,6 @@ type TerminalStoreActions = {
   setLastRunError: (error: string | null) => void;
 };
 
-let lastOutputEndedWithNewline = true;
-let hasOutputSincePrompt = false;
-
-const updateOutputTracking = (data: string): void => {
-  if (!data) return;
-  hasOutputSincePrompt = true;
-  const endsWithNewline = /\r?\n$/.test(data);
-  lastOutputEndedWithNewline = endsWithNewline;
-};
-
-const markPromptWritten = (): void => {
-  hasOutputSincePrompt = false;
-  lastOutputEndedWithNewline = false;
-};
-
 const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
   (set, get) => ({
     isRunning: false,
@@ -58,6 +47,8 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
     inputHandler: null,
     abortController: null,
     lastRunError: null,
+    lastOutputEndedWithNewline: true,
+    hasOutputSincePrompt: false,
 
     setTerminal: (t) => {
       set({ terminalRef: t });
@@ -69,7 +60,12 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       if (!terminalRef.element) return;
       try {
         terminalRef.write(data);
-        updateOutputTracking(data);
+        if (data) {
+          set({
+            hasOutputSincePrompt: true,
+            lastOutputEndedWithNewline: /\r?\n$/.test(data),
+          });
+        }
       } catch {
         return;
       }
@@ -81,7 +77,12 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       if (!terminalRef.element) return;
       try {
         terminalRef.writeln(data);
-        updateOutputTracking(`${data}\n`);
+        if (data) {
+          set({
+            hasOutputSincePrompt: true,
+            lastOutputEndedWithNewline: true,
+          });
+        }
       } catch {
         return;
       }
@@ -92,12 +93,13 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       if (!terminalRef) return;
       if (!terminalRef.element) return;
       try {
-        if (hasOutputSincePrompt && !lastOutputEndedWithNewline) {
+        const state = get();
+        if (state.hasOutputSincePrompt && !state.lastOutputEndedWithNewline) {
           terminalRef.write("\r\n");
         }
         terminalRef.write("\x1b[2K\r");
         terminalRef.write(TERMINAL_PROMPT);
-        markPromptWritten();
+        set({ hasOutputSincePrompt: false, lastOutputEndedWithNewline: false });
       } catch {
         return;
       }
@@ -111,8 +113,7 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       } catch {
         return;
       }
-      hasOutputSincePrompt = false;
-      lastOutputEndedWithNewline = true;
+      set({ hasOutputSincePrompt: false, lastOutputEndedWithNewline: true });
       if (options?.withPrompt) {
         get().writePrompt();
       }

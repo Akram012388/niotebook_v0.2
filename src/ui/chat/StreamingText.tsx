@@ -71,13 +71,14 @@ const StreamingText = forwardRef<StreamingTextHandle>(
       const pending = pendingRef.current;
 
       if (pending.length === 0) {
-        // Nothing to reveal — flush any remaining dirty text and keep loop alive
+        // Nothing to reveal — flush any remaining dirty text and stop the loop.
+        // The loop restarts when append() adds new text.
         if (dirtyRef.current) {
           dirtyRef.current = false;
           lastRenderRef.current = performance.now();
           setDisplayTextRef.current(revealedRef.current);
         }
-        rafRef.current = requestAnimationFrame(tick);
+        rafRef.current = null;
         return;
       }
 
@@ -127,7 +128,12 @@ const StreamingText = forwardRef<StreamingTextHandle>(
       ref,
       () => ({
         append(text: string) {
+          const wasIdle = pendingRef.current.length === 0;
           pendingRef.current += text;
+          // Restart the RAF loop if it was idle (stopped due to empty buffer)
+          if (wasIdle && rafRef.current === null) {
+            rafRef.current = requestAnimationFrame(tick);
+          }
         },
         getText() {
           return revealedRef.current + pendingRef.current;
@@ -143,6 +149,8 @@ const StreamingText = forwardRef<StreamingTextHandle>(
           if (cursorRef.current) cursorRef.current.style.display = "none";
         },
       }),
+      // tick is stable (reads only refs) — no need to recreate handle
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       [],
     );
 

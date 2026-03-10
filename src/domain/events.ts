@@ -27,7 +27,7 @@ const EVENT_TYPES = [
   "session_end",
   "runtime_warmup_start",
   "runtime_warmup_end",
-  "transcript_ingest_started",
+  "transcript_ingest_completed",
   "transcript_ingest_succeeded",
   "transcript_ingest_failed",
   "transcript_duration_warn",
@@ -117,7 +117,7 @@ type RuntimeWarmupMetadata = {
   durationMs: number;
 };
 
-type TranscriptIngestStartedMetadata = {
+type TranscriptIngestCompletedMetadata = {
   lessonId: LessonId;
 };
 
@@ -181,7 +181,7 @@ type EventMetadataMap = {
   session_end: SessionEventMetadata;
   runtime_warmup_start: RuntimeWarmupMetadata;
   runtime_warmup_end: RuntimeWarmupMetadata;
-  transcript_ingest_started: TranscriptIngestStartedMetadata;
+  transcript_ingest_completed: TranscriptIngestCompletedMetadata;
   transcript_ingest_succeeded: TranscriptIngestSucceededMetadata;
   transcript_ingest_failed: TranscriptIngestFailedMetadata;
   transcript_duration_warn: TranscriptDurationWarnMetadata;
@@ -305,7 +305,7 @@ const EVENT_METADATA_VALIDATORS: Record<EventType, EventMetadataValidator> = {
     isStr(metadata.language) && typeof metadata.durationMs === "number"
       ? { ok: true }
       : invalidEventMetadata(),
-  transcript_ingest_started: (metadata) =>
+  transcript_ingest_completed: (metadata) =>
     isStr(metadata.lessonId) ? { ok: true } : invalidEventMetadata(),
   transcript_ingest_succeeded: (metadata) =>
     isStr(metadata.lessonId) &&

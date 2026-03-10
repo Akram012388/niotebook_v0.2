@@ -15,6 +15,7 @@ type PyodideInstance = {
   runPython: (code: string) => unknown;
   runPythonAsync?: (code: string) => Promise<unknown>;
   loadPackage?: (packages: string | string[]) => Promise<void>;
+  setInterruptBuffer?: (buffer: Int32Array) => void;
 };
 
 type LoadPyodide = (options?: {
@@ -112,6 +113,18 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
     await init();
     // Await Pyodide BEFORE starting the timeout so download time isn't counted
     const pyodide = await loadPyodideInstance();
+
+    // Set up interrupt buffer for cooperative cancellation if SharedArrayBuffer
+    // is available (requires COOP/COEP headers — present on /editor-sandbox).
+    let interruptBuffer: Int32Array | null = null;
+    if (
+      typeof SharedArrayBuffer !== "undefined" &&
+      pyodide.setInterruptBuffer
+    ) {
+      interruptBuffer = new Int32Array(new SharedArrayBuffer(4));
+      pyodide.setInterruptBuffer(interruptBuffer);
+    }
+
     const start = performance.now();
     const timeoutMs = input.timeoutMs ?? RUNTIME_TIMEOUT_MS;
     let suppressOutput = false;
@@ -189,6 +202,11 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
     const timeoutPromise = new Promise<RuntimeRunResult>((resolve) => {
       timeoutId = setTimeout(() => {
         suppressOutput = true;
+        // Signal KeyboardInterrupt to Pyodide via the interrupt buffer.
+        // Value 2 = SIGINT, which Pyodide translates to KeyboardInterrupt.
+        if (interruptBuffer) {
+          Atomics.store(interruptBuffer, 0, 2);
+        }
         const message = "Python runtime timed out";
         input.onStderr?.(`${message}\n`);
         resolve({
@@ -204,6 +222,10 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
     const result = await Promise.race([runPromise, timeoutPromise]);
     if (timeoutId !== null) {
       clearTimeout(timeoutId);
+    }
+    // Reset the interrupt buffer for subsequent runs
+    if (interruptBuffer) {
+      Atomics.store(interruptBuffer, 0, 0);
     }
     return result;
   };

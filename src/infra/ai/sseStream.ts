@@ -9,6 +9,42 @@
  * @param allowRawJson - When true, lines without a `data:` prefix are also
  *                      attempted as raw JSON (needed for Gemini alt=sse mode).
  */
+function parseSseLine(
+  line: string,
+  parseToken: (parsed: unknown) => string | null,
+  allowRawJson: boolean,
+): string | null {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+
+  let payloadText: string;
+
+  if (trimmed.startsWith("data:")) {
+    payloadText = trimmed.slice("data:".length).trim();
+  } else if (allowRawJson) {
+    payloadText = trimmed;
+  } else {
+    return null;
+  }
+
+  if (!payloadText || payloadText === "[DONE]") return null;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(payloadText);
+  } catch {
+    if (process.env.NIO_DEBUG === "1") {
+      console.warn(
+        "[sseStream] Failed to parse SSE payload:",
+        payloadText.slice(0, 100),
+      );
+    }
+    return null;
+  }
+
+  return parseToken(parsed);
+}
+
 export async function* readSseStream(
   body: ReadableStream<Uint8Array>,
   parseToken: (parsed: unknown) => string | null,
@@ -28,37 +64,16 @@ export async function* readSseStream(
       buffer = lines.pop() ?? "";
 
       for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-
-        let payloadText: string;
-
-        if (trimmed.startsWith("data:")) {
-          payloadText = trimmed.slice("data:".length).trim();
-        } else if (allowRawJson) {
-          payloadText = trimmed;
-        } else {
-          continue;
-        }
-
-        if (!payloadText || payloadText === "[DONE]") continue;
-
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(payloadText);
-        } catch {
-          if (process.env.NIO_DEBUG === "1") {
-            console.warn(
-              "[sseStream] Failed to parse SSE payload:",
-              payloadText.slice(0, 100),
-            );
-          }
-          continue;
-        }
-
-        const token = parseToken(parsed);
+        const token = parseSseLine(line, parseToken, allowRawJson);
         if (token) yield token;
       }
+    }
+
+    // Flush any remaining buffer content (incomplete final line without
+    // a trailing newline).
+    if (buffer.length > 0) {
+      const token = parseSseLine(buffer, parseToken, allowRawJson);
+      if (token) yield token;
     }
   } finally {
     reader.releaseLock();

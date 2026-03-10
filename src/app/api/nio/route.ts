@@ -480,6 +480,7 @@ export const POST = async (request: Request): Promise<Response> => {
       };
 
       const abort = (): void => {
+        clearTimeout(streamTimeoutHandle);
         aborted = true;
         close();
       };
