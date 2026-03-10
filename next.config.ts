@@ -30,7 +30,8 @@ if (
 // test environments. It must never reach a real production deployment.
 if (
   process.env.NIOTEBOOK_E2E_PREVIEW === "true" &&
-  process.env.NODE_ENV === "production"
+  process.env.NODE_ENV === "production" &&
+  process.env.VERCEL_ENV !== "preview"
 ) {
   throw new Error(
     "[build] NIOTEBOOK_E2E_PREVIEW must not be true in production builds.",
