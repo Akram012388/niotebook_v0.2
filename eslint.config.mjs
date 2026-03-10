@@ -7,6 +7,28 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   prettierConfig,
+  {
+    files: ["src/domain/**/*.ts", "src/domain/**/*.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "**/infra/**",
+                "@/infra/**",
+                "../infra/**",
+                "../../infra/**",
+              ],
+              message:
+                "Domain layer must not import from infrastructure. Move shared types to src/domain/.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   globalIgnores([
     ".next/**",
     "out/**",

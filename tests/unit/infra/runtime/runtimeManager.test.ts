@@ -109,15 +109,11 @@ describe("loadExecutor", () => {
     expect(stub.init).toHaveBeenCalledTimes(1);
   });
 
-  it("falls back to jsExecutor for an unrecognised language key", async () => {
-    const stub = makeStubExecutor();
-    vi.mocked(initJsExecutor).mockResolvedValue(stub);
-
-    // @ts-expect-error intentionally passing an invalid language to test default case
-    const executor = await loadExecutor("brainfuck");
-
-    expect(executor).toBe(stub);
-    expect(vi.mocked(initJsExecutor)).toHaveBeenCalledTimes(1);
+  it("throws for an unrecognised language key", async () => {
+    await expect(
+      // @ts-expect-error intentionally passing an invalid language to test default case
+      loadExecutor("brainfuck"),
+    ).rejects.toThrow("Unsupported language: brainfuck");
   });
 });
 

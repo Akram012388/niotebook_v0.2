@@ -1066,7 +1066,7 @@ const mainClass = "flex w-full flex-1 flex-col overflow-hidden";
 `handleVideoTime` and `handleVideoDisplayTime` have identical bodies.
 
 **Implementation:**
-Remove `handleVideoTime` and pass `handleVideoDisplayTime` to both props,
+Remove `handleVideoDisplayTime` and pass `handleVideoTime` to both props,
 or differentiate their implementations per the original design intent.
 
 **Test plan:**
@@ -1194,9 +1194,8 @@ E2E Pipeline Fix      → Branch: fix/e2e-preview-seed
   preview-data-refresh.yml disabled (ephemeral previews replace it).
 
 Wave 3 (Quality)      → Branch: refactor/oss-quality-improvements
-  ✅ COMPLETED — W3-01 through W3-15 (W3-09 skipped, already correct)
-  6 atomic commits: type unification, security hardening, error handling,
-  inline dialogs, dead code removal, hydration simplification.
+  W3-01 through W3-15 → PR #143
+  ✅ COMPLETED — all 15 findings resolved, review fixes applied
 ```
 
 Each wave is independently shippable. Waves 1–3 and the E2E fix have landed.

@@ -177,6 +177,7 @@ const ProviderRow = ({
 const ApiKeySettings = (): ReactElement => {
   const hints = useQuery(api.userApiKeys.listHints);
   const setActiveProvider = useMutation(api.userApiKeys.setActiveProvider);
+  const [providerError, setProviderError] = useState<string | null>(null);
 
   const providers: Provider[] = ["gemini", "openai", "anthropic"];
 
@@ -189,11 +190,23 @@ const ApiKeySettings = (): ReactElement => {
       (h: { provider: string; isActive: boolean }) => h.provider === provider,
     )?.isActive ?? false;
 
+  const handleSetActive = async (provider: Provider): Promise<void> => {
+    setProviderError(null);
+    try {
+      await setActiveProvider({ provider });
+    } catch (err) {
+      setProviderError(
+        err instanceof Error ? err.message : "Failed to switch provider.",
+      );
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <p className="text-xs font-semibold uppercase tracking-wide text-text-subtle">
         Nio AI Provider
       </p>
+      {providerError && <p className="text-xs text-red-500">{providerError}</p>}
       <div className="flex flex-col gap-1.5">
         {providers.map((provider) => (
           <ProviderRow
@@ -202,7 +215,7 @@ const ApiKeySettings = (): ReactElement => {
             keyHint={getHint(provider)}
             isActive={isActive(provider)}
             onSetActive={() => {
-              void setActiveProvider({ provider });
+              void handleSetActive(provider);
             }}
           />
         ))}

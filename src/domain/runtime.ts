@@ -1,4 +1,18 @@
-type RuntimeLanguage = "js" | "python" | "html" | "c" | "css" | "sql" | "r";
+const RUNTIME_LANGUAGES = [
+  "js",
+  "python",
+  "html",
+  "c",
+  "css",
+  "sql",
+  "r",
+] as const;
+
+type RuntimeLanguage = (typeof RUNTIME_LANGUAGES)[number];
+
+const isRuntimeLanguage = (value: string): value is RuntimeLanguage => {
+  return (RUNTIME_LANGUAGES as readonly string[]).includes(value);
+};
 
 type RuntimeOutput = {
   stdout: string;
@@ -23,4 +37,4 @@ const toRuntimeSnapshot = (
 };
 
 export type { RuntimeLanguage, RuntimeOutput, RuntimeSnapshot };
-export { toRuntimeSnapshot };
+export { isRuntimeLanguage, RUNTIME_LANGUAGES, toRuntimeSnapshot };
