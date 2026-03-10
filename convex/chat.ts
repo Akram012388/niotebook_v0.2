@@ -14,6 +14,7 @@ import {
 import { requireMutationUser, requireQueryUser } from "./auth";
 import { logEventInternal } from "./events";
 import { toDomainId, toGenericId } from "./idUtils";
+import { consumeRateLimit } from "./rateLimits";
 
 type ChatThreadRecord = {
   _id: GenericId<"chatThreads">;
@@ -240,6 +241,18 @@ const completeAssistantMessage = mutation({
   },
   handler: async (ctx, args): Promise<ChatMessageSummary> => {
     const user = await requireMutationUser(ctx);
+
+    const rateDecision = await consumeRateLimit(
+      ctx,
+      "ai_request",
+      user.id,
+      10 * 60 * 1000,
+      20,
+    );
+    if (!rateDecision.ok) {
+      throw new Error("Rate limit exceeded. Try again soon.");
+    }
+
     const thread = (await ctx.db.get(args.threadId)) as ChatThreadRecord | null;
 
     if (!thread || thread.userId !== toGenericId(user.id)) {
