@@ -1,84 +1,26 @@
 "use client";
 
-import { useEffect, type ReactElement, type ReactNode } from "react";
-import { ClerkLoaded, SignedIn, SignedOut } from "@clerk/nextjs";
-import { useConvexAuth } from "convex/react";
-import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import type { ReactElement, ReactNode } from "react";
+import { useDevAuthBypass } from "@/infra/dev/devAuthBypassContext";
 import { AuthShell } from "./AuthShell";
-import { useBootstrapUser } from "@/infra/useBootstrapUser";
 
 type AuthGateProps = {
   children: ReactNode;
 };
 
-/**
- * Redirects unauthenticated users to /sign-in instead of rendering
- * an inline SignIn form. This prevents a redirect loop where the
- * embedded SignIn component's fallbackRedirectUrl points back to
- * the same page that contains the AuthGate.
- */
-const RedirectToSignIn = (): ReactElement => {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace("/sign-in");
-  }, [router]);
-
-  return (
-    <AuthShell title="Redirecting" subtitle="Taking you to sign in...">
-      <div className="rounded-xl border border-dashed border-border bg-surface-muted px-4 py-6 text-sm text-text-muted">
-        Redirecting to sign in...
-      </div>
-    </AuthShell>
-  );
-};
-
-const AuthGateWithClerk = ({ children }: AuthGateProps): ReactElement => {
-  const { isAuthenticated, isLoading } = useConvexAuth();
-  const bootstrap = useBootstrapUser(isAuthenticated);
-
-  return (
-    <ClerkLoaded>
-      <SignedOut>
-        <RedirectToSignIn />
-      </SignedOut>
-      <SignedIn>
-        {isLoading || !isAuthenticated ? (
-          <AuthShell
-            title="Preparing your workspace"
-            subtitle="Verifying your session with Convex."
-          >
-            <div className="rounded-xl border border-dashed border-border bg-surface-muted px-4 py-6 text-sm text-text-muted">
-              Loading your workspace...
-            </div>
-          </AuthShell>
-        ) : bootstrap.ready ? (
-          <>{children}</>
-        ) : (
-          <AuthShell
-            title="Preparing your workspace"
-            subtitle={
-              bootstrap.error
-                ? "We hit a snag preparing your session. Refresh to try again."
-                : "Syncing your account and loading the workspace."
-            }
-          >
-            <div className="rounded-xl border border-dashed border-border bg-surface-muted px-4 py-6 text-sm text-text-muted">
-              {bootstrap.error ? bootstrap.error : "Loading your workspace..."}
-            </div>
-          </AuthShell>
-        )}
-      </SignedIn>
-    </ClerkLoaded>
-  );
-};
+// Lazy-loaded: avoids pulling @clerk/nextjs into the server bundle when
+// Clerk isn't used (e.g. dev auth bypass, E2E, or missing publishable key).
+const AuthGateWithClerk = dynamic(() => import("./AuthGateWithClerk"));
 
 const AuthGate = ({ children }: AuthGateProps): ReactElement => {
-  const isClerkEnabled = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  const isDevBypass = useDevAuthBypass();
+  const isClerkEnabled =
+    !isDevBypass && Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
   const isProd = process.env.NODE_ENV === "production";
 
   if (!isClerkEnabled) {
-    if (isProd) {
+    if (isProd && !isDevBypass) {
       return (
         <AuthShell
           title="Auth is not configured"

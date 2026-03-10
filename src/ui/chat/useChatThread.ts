@@ -9,7 +9,7 @@ import {
   useSyncExternalStore,
   type MutableRefObject,
 } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuthToken } from "@/infra/auth/authTokenContext";
 import { useMutation, useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
 import type { ChatMessageSummary, ChatThreadSummary } from "../../domain/chat";
@@ -140,7 +140,7 @@ const useChatThread = (
   lessonId: string,
   lectureLabel: string,
 ): UseChatThreadResult => {
-  const { getToken } = useAuth();
+  const getToken = useAuthToken();
   const isConvexEnabled = process.env.NEXT_PUBLIC_DISABLE_CONVEX !== "true";
   const [streamState, setStreamState] = useState<ChatStreamState>("idle");
   const [streamError, setStreamError] = useState<string | null>(null);

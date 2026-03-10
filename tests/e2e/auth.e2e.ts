@@ -3,19 +3,13 @@ import { expect, test } from "@playwright/test";
 test.describe("Auth flow", () => {
   test("sign-in page loads", async ({ page }) => {
     await page.goto("/sign-in");
-    // Should show the sign-in page with Clerk form or BootSequence animation
-    await expect(page.locator("body")).toBeVisible();
-    // BootSequence renders a mono-font container with green text
-    const hasBoot = await page
-      .locator(".font-mono")
-      .isVisible()
-      .catch(() => false);
-    const hasClerk = await page
-      .locator("[data-clerk]")
-      .isVisible()
-      .catch(() => false);
-    // At least one of these should be present on the sign-in page
-    expect(hasBoot || hasClerk).toBe(true);
+    // Wait for the sign-in page to render (client component hydration).
+    // With dev auth bypass: renders a font-mono bypass message.
+    // With Clerk: renders the Clerk sign-in form ([data-clerk]).
+    // BootSequence also has font-mono class.
+    await expect(page.locator(".font-mono, [data-clerk]").first()).toBeVisible({
+      timeout: 10000,
+    });
   });
 
   test("dev auth bypass allows access to /courses", async ({ page }) => {

@@ -31,10 +31,30 @@ const main = async (): Promise<void> => {
     skipConvexDeploymentUrlCheck: true,
   });
 
-  const seed = (await client.mutation(seedE2E, {
-    ingestToken,
-    videoId,
-  } as never)) as { lessonId: string; threadId: string };
+  console.error(
+    `Seeding via ${convexUrl.replace(/\/\/(.{6}).*(.{6})\./, "//$1…$2.")}…`,
+  );
+
+  let seed: { lessonId: string; threadId: string };
+  try {
+    seed = (await client.mutation(seedE2E, {
+      ingestToken,
+      videoId,
+    } as never)) as { lessonId: string; threadId: string };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`seed:seedE2E mutation failed: ${msg}`);
+    console.error("Checklist:");
+    console.error("  1. Was 'npx convex deploy' run before seeding?");
+    console.error(
+      "  2. Is NIOTEBOOK_PREVIEW_DATA=true set on the Convex deployment?",
+    );
+    console.error(
+      "  3. Is NIOTEBOOK_INGEST_TOKEN set on the Convex deployment?",
+    );
+    throw error;
+  }
+
   process.stdout.write(JSON.stringify(seed));
 
   if (process.env.NIOTEBOOK_E2E_SEED_PATH) {

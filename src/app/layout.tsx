@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import type { ReactElement, ReactNode } from "react";
-import { ClerkProvider } from "@clerk/nextjs";
+import type { ReactNode } from "react";
 import { Geist, Geist_Mono, Orbitron } from "next/font/google";
 import { Providers } from "./providers";
 import { DevAuthBypassProvider } from "./DevAuthBypassProvider";
@@ -64,10 +63,19 @@ type RootLayoutProps = {
   children: ReactNode;
 };
 
-export default function RootLayout({
-  children,
-}: RootLayoutProps): ReactElement {
+export default async function RootLayout({ children }: RootLayoutProps) {
   const isE2ePreview = process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true";
+  const isDevBypass = process.env.NIOTEBOOK_DEV_AUTH_BYPASS === "true";
+
+  // Dynamic import — @clerk/nextjs requires CLERK_SECRET_KEY at module init.
+  // When dev auth bypass is active, skip the import entirely to avoid errors.
+  let AuthWrapper: React.ComponentType<{ children: ReactNode }> = ({
+    children: c,
+  }) => <>{c}</>;
+  if (!isDevBypass) {
+    const { ClerkProviderWrapper } = await import("./ClerkProviderWrapper");
+    AuthWrapper = ClerkProviderWrapper;
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -91,11 +99,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} antialiased bg-background text-foreground nio-pattern`}
       >
-        <ClerkProvider>
-          <DevAuthBypassProvider>
+        <AuthWrapper>
+          <DevAuthBypassProvider bypassEnabled={isDevBypass}>
             <Providers>{children}</Providers>
           </DevAuthBypassProvider>
-        </ClerkProvider>
+        </AuthWrapper>
       </body>
     </html>
   );

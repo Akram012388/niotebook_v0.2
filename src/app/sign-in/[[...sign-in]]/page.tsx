@@ -1,12 +1,15 @@
 "use client";
 
-import { SignIn } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { useEffect, type ReactElement } from "react";
+import { useDevAuthBypass } from "@/infra/dev/devAuthBypassContext";
 import { AuthShell } from "@/ui/auth/AuthShell";
 import { BootSequence } from "@/ui/auth/BootSequence";
-import { clerkAppearance } from "@/ui/auth/clerkAppearance";
 import { MobileGate } from "@/ui/shared/MobileGate";
+
+// Lazy-load the Clerk sign-in form to avoid pulling @clerk/nextjs when bypass is active.
+const ClerkSignInForm = dynamic(() => import("./ClerkSignInForm"));
 
 const fadeUpSlow = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -15,6 +18,8 @@ const fadeUpSlow = (delay = 0) => ({
 });
 
 const SignInPage = (): ReactElement => {
+  const isDevBypass = useDevAuthBypass();
+
   /* Suppress the browser's native "Please fill out this field" tooltip.
      The `invalid` event does NOT bubble, so we must listen at the document
      level in capture phase to intercept it before the tooltip renders.
@@ -24,6 +29,26 @@ const SignInPage = (): ReactElement => {
     document.addEventListener("invalid", suppress, true);
     return () => document.removeEventListener("invalid", suppress, true);
   }, []);
+
+  if (isDevBypass) {
+    return (
+      <MobileGate>
+        <AuthShell
+          title="Sign in"
+          subtitle="Dev auth bypass is active — authentication is skipped."
+          sideContent={
+            <motion.div className="flex flex-1" {...fadeUpSlow(0.3)}>
+              <BootSequence />
+            </motion.div>
+          }
+        >
+          <div className="rounded-xl border border-dashed border-border bg-surface-muted px-4 py-6 text-sm text-text-muted font-mono">
+            Dev auth bypass enabled. Redirecting is not needed.
+          </div>
+        </AuthShell>
+      </MobileGate>
+    );
+  }
 
   return (
     <MobileGate>
@@ -36,41 +61,7 @@ const SignInPage = (): ReactElement => {
           </motion.div>
         }
       >
-        <motion.div
-          className="flex flex-col rounded-2xl border border-border dark:border-accent-border bg-surface shadow-sm overflow-hidden"
-          {...fadeUpSlow(0.2)}
-        >
-          <div className="flex-1">
-            <SignIn
-              appearance={clerkAppearance}
-              routing="path"
-              path="/sign-in"
-              signUpUrl=""
-              fallbackRedirectUrl="/courses"
-            />
-          </div>
-          <div className="border-t border-border-muted px-6 py-4 text-center">
-            <div className="flex items-center justify-center gap-1.5 text-xs text-text-subtle">
-              <span>Secured by</span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M12.596 3.904a1.6 1.6 0 0 0-.544-.384 5.6 5.6 0 0 0-8.104 0 1.6 1.6 0 0 0-.544.384A5.6 5.6 0 0 0 8 14.4a5.6 5.6 0 0 0 4.596-10.496ZM8 12.8a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"
-                  fill="currentColor"
-                />
-              </svg>
-              <span className="font-medium">clerk</span>
-            </div>
-            <p className="mt-1 text-[10px] font-medium text-accent">
-              Development mode
-            </p>
-          </div>
-        </motion.div>
+        <ClerkSignInForm />
       </AuthShell>
     </MobileGate>
   );

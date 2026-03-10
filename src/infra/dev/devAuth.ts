@@ -53,11 +53,9 @@ const enableDevAuthBypass = (
     return;
   }
 
-  const token = storageAdapter.getItem(DEV_BYPASS_KEY);
-
-  if (!token) {
-    return;
-  }
+  // Use localStorage token if available (normal dev flow), otherwise fall
+  // back to a static token (E2E / fresh browser with no prior session).
+  const token = storageAdapter.getItem(DEV_BYPASS_KEY) ?? "dev-bypass";
 
   client.setAdminAuth(token, {
     subject: "local-dev",
