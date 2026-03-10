@@ -57,7 +57,11 @@ const ProviderRow = ({
   };
 
   const handleRemove = async (): Promise<void> => {
-    await removeKey({ provider });
+    try {
+      await removeKey({ provider });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to remove key.");
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent): void => {

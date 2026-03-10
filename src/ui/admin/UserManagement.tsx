@@ -61,7 +61,11 @@ const UserManagement = (): ReactElement => {
     userId: string,
     role: Role,
   ): Promise<void> => {
-    await updateRole({ userId: userId as GenericId<"users">, role });
+    try {
+      await updateRole({ userId: userId as GenericId<"users">, role });
+    } catch (error) {
+      console.error("Failed to update role:", error);
+    }
   };
 
   const filtered = users
