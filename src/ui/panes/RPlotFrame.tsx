@@ -7,6 +7,13 @@
  * Note: a full useRef migration requires TerminalPanel.tsx to accept a forwarded
  * ref for the container — tracked separately as part of the 2C-4 follow-up.
  */
+
+const sanitizeSvg = (svg: string): string =>
+  svg
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, "");
+
 function renderRPlot(svgData: string): void {
   const container = document.getElementById("niotebook-runtime-frame");
   if (!container) {
@@ -16,11 +23,14 @@ function renderRPlot(svgData: string): void {
     return;
   }
 
+  const safeSvg = sanitizeSvg(svgData);
+
   const frame = document.createElement("iframe");
   frame.style.width = "100%";
   frame.style.height = "100%";
   frame.style.border = "none";
-  frame.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;display:flex;align-items:center;justify-content:center;background:#1C1917;min-height:100vh}svg{max-width:100%;max-height:100vh}</style></head><body>${svgData}</body></html>`;
+  frame.sandbox.add("allow-same-origin");
+  frame.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;display:flex;align-items:center;justify-content:center;background:#1C1917;min-height:100vh}svg{max-width:100%;max-height:100vh}</style></head><body>${safeSvg}</body></html>`;
   container.replaceChildren(frame);
 }
 
