@@ -6,7 +6,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
   type MutableRefObject,
 } from "react";
 import { useAuthToken } from "@/infra/auth/authTokenContext";
@@ -199,15 +198,8 @@ const useChatThread = (
     return orderChatMessages(messagesPage?.messages ?? []);
   }, [messagesPage]);
 
-  const subscribe = useCallback(() => {
-    return () => {};
-  }, []);
-
-  const isMounted = useSyncExternalStore(
-    subscribe,
-    () => true,
-    () => false,
-  );
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
 
   const cachedMessages = useMemo(() => {
     if (!isMounted) return [];

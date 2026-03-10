@@ -145,6 +145,12 @@ const fetchYoutubeTranscriptWindow = async (args: {
     segments = cached.segments;
   } else {
     segments = await fetchAllSegments(args.videoId);
+    if (segments.length === 0) {
+      console.warn(
+        `[youtubeTranscriptFallback] Empty response for ${args.videoId} — ` +
+          `Innertube client version ${INNERTUBE_CONTEXT.client.clientVersion} may be deprecated.`,
+      );
+    }
     ytCache.set(args.videoId, { segments, fetchedAtMs: Date.now() });
   }
 
