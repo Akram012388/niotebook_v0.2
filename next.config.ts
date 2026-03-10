@@ -26,6 +26,15 @@ if (
   );
 }
 
+if (
+  process.env.NIOTEBOOK_E2E_PREVIEW === "true" &&
+  process.env.NODE_ENV === "production"
+) {
+  throw new Error(
+    "[build] NIOTEBOOK_E2E_PREVIEW must not be true in production builds.",
+  );
+}
+
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
   openAnalyzer: false,
