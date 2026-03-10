@@ -1,4 +1,6 @@
-type RuntimeLanguage = "js" | "python" | "html" | "c" | "css" | "sql" | "r";
+// Canonical definition lives in src/domain/runtime.ts — re-export here for
+// backward-compatible imports from infra consumers.
+import type { RuntimeLanguage } from "../../domain/runtime";
 
 type RuntimePackage = {
   language: RuntimeLanguage;

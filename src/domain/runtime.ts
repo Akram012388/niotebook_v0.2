@@ -1,4 +1,4 @@
-type RuntimeLanguage = "js" | "python" | "html" | "c" | "css";
+type RuntimeLanguage = "js" | "python" | "html" | "c" | "css" | "sql" | "r";
 
 type RuntimeOutput = {
   stdout: string;
