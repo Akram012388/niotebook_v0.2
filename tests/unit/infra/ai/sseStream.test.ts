@@ -97,4 +97,16 @@ describe("readSseStream", () => {
     // empty string `t` causes parseTField to return null — skipped
     expect(tokens).toEqual(["real"]);
   });
+
+  it("trailing buffer: stream ending without newline still yields final token", async () => {
+    const stream = makeStream(['data: {"t":"final"}']);
+    const tokens = await collect(readSseStream(stream, parseTField));
+    expect(tokens).toEqual(["final"]);
+  });
+
+  it("trailing buffer: multi-chunk stream with no trailing newline on last chunk", async () => {
+    const stream = makeStream(['data: {"t":"a"}\n', 'data: {"t":"b"}']);
+    const tokens = await collect(readSseStream(stream, parseTField));
+    expect(tokens).toEqual(["a", "b"]);
+  });
 });

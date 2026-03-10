@@ -267,7 +267,8 @@ const getTopLessons = query({
   handler: async (ctx, args): Promise<TopLesson[]> => {
     await requireQueryAdmin(ctx);
 
-    const cutoff = args.timeWindowMs ? Date.now() - args.timeWindowMs : 0;
+    // Default to 90 days to avoid unbounded full-table scan when omitted.
+    const cutoff = Date.now() - (args.timeWindowMs ?? 90 * 24 * 60 * 60 * 1000);
 
     const events = (await ctx.db
       .query("events")

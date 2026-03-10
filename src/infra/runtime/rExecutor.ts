@@ -279,9 +279,19 @@ async function initRExecutor(): Promise<RuntimeExecutor> {
 
     stop() {
       // Destroy the webR instance to release WASM resources.
-      // The next run will re-initialize a fresh instance.
+      // The next run() call will re-initialize a fresh instance.
+      // Note: if run() is in-flight, it already holds live references.
+      // The destroy races with the in-flight execution, but run() will
+      // catch any resulting errors and re-initialize on the next call.
       if (webrPromise) {
-        void webrPromise.then(({ webr }) => webr.destroy()).catch(() => {});
+        void webrPromise
+          .then(({ webr }) => webr.destroy())
+          .catch((err) => {
+            console.warn(
+              "[rExecutor] Failed to destroy webR instance:",
+              err instanceof Error ? err.message : String(err),
+            );
+          });
         webrPromise = null;
       }
     },

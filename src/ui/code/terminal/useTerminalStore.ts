@@ -77,12 +77,12 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       if (!terminalRef.element) return;
       try {
         terminalRef.writeln(data);
-        if (data) {
-          set({
-            hasOutputSincePrompt: true,
-            lastOutputEndedWithNewline: true,
-          });
-        }
+        // writeln() always appends a newline, so track unconditionally
+        // (unlike write(), where empty data means nothing was written).
+        set({
+          hasOutputSincePrompt: true,
+          lastOutputEndedWithNewline: true,
+        });
       } catch {
         return;
       }
@@ -171,12 +171,14 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       set({ isRunning: false, abortController: null });
       get().writeLn("\r\n\x1b[33m^C\x1b[0m");
 
-      // TODO: JS execution via `new Function()` and Pyodide run on the main thread
-      // and cannot be truly interrupted mid-execution. The AbortController above
-      // prevents post-execution callbacks but doesn't halt the computation.
-      // For true interruptibility, JS execution should run in a Web Worker that
-      // can be `terminate()`d. Pyodide supports `pyodide.interruptBuffer` for
-      // cooperative cancellation. This is a known limitation.
+      // TODO: JS execution runs on the main thread and cannot be truly
+      // interrupted mid-execution. The AbortController above prevents
+      // post-execution callbacks but doesn't halt the computation.
+      // For true interruptibility, JS should run in a Web Worker.
+      //
+      // Pyodide timeout cancellation is now wired via interruptBuffer in
+      // pythonExecutor.ts, but this kill() path does not yet signal it
+      // directly — only the timeout handler does.
     },
   }),
 );
