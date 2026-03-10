@@ -1177,17 +1177,60 @@ These areas require no changes:
 ```
 Wave 1 (Security)     → Branch: fix/oss-security-hardening
   W1-01 through W1-08 → Single PR, thorough review
+  ✅ COMPLETED — PR #140, merged to main (commit 10ac30c)
 
-Wave 2 (Correctness)  → Branch: fix/oss-correctness-fixes
+Wave 2 (Correctness)  → Branch: fix/oss-wave-2
   W2-01 through W2-13 → Single PR, test-verified
+  ✅ COMPLETED — PR #141, merged to main (commit a11bc7e)
+  Note: W2-03 (AdminGuard TOCTOU) and W2-11 (dev bypass) were already fixed in Wave 1.
+  Additional fix: Vercel preview guard amended to check VERCEL_ENV !== "preview"
+  so E2E preview deployments are not blocked (commit 57de7f5).
 
 Wave 3 (Quality)      → Branch: refactor/oss-quality-improvements
   W3-01 through W3-15 → Single PR, can be split if large
+  ⏳ PENDING — blocked on E2E pipeline fix (see below)
 ```
 
-Each wave is independently shippable. Wave 1 must land before public OSS release.
-Waves 2 and 3 can follow shortly after.
+Each wave is independently shippable. Waves 1 and 2 have landed.
 
 ---
 
-> **Next step:** Seek approval to begin systematic implementation starting with Wave 1.
+## Pre-Wave 3 Blocker: E2E Pipeline Fix
+
+The Vercel preview guard fix in Wave 2 (commit `57de7f5`) unmasked a
+pre-existing E2E pipeline failure on PR branches. This must be resolved
+before Wave 3 to ensure CI checks pass on all future PRs.
+
+### Background
+
+**Before the Vercel fix:**
+
+- Vercel preview deployments were failing (the `NIOTEBOOK_E2E_PREVIEW` guard
+  checked `NODE_ENV === "production"`, but Vercel sets `NODE_ENV=production`
+  for all builds including previews)
+- The e2e `preflight` check was skipping because no preview was available
+- The `e2e` job was skipping as a result
+- The failure was **masked**, not absent
+
+**After the Vercel fix:**
+
+- Vercel previews now build successfully
+- The `preflight` passes, triggering the actual e2e run
+- The e2e **seed step** fails with a Convex HTTP client error
+- Every future PR will hit this same failure
+
+The e2e passes on `main` (confirmed from recent runs), so the issue is
+specific to the PR/preview environment — likely a Convex URL, auth token,
+or deployment configuration that doesn't work for preview contexts.
+
+### Investigation Required
+
+1. What Convex URL the e2e workflow uses for PR branches vs `main`
+2. Whether the e2e seed script authenticates correctly against the preview
+   Convex deployment
+3. The e2e workflow configuration (`.github/workflows/e2e.yml`) and seed
+   script (`scripts/e2e-seed.ts`)
+
+### Resolution
+
+Fix the e2e pipeline so it works on PR branches, then proceed with Wave 3.
