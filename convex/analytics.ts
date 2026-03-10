@@ -62,11 +62,12 @@ const getActiveUsers = query({
     const cutoff = Date.now() - args.timeWindowMs;
     const events = (await ctx.db
       .query("events")
+      .withIndex("by_createdAt", (q) => q.gte("createdAt", cutoff))
       .collect()) as unknown as EventRow[];
 
     const userIds = new Set<string>();
     for (const event of events) {
-      if (event.createdAt >= cutoff && event.userId) {
+      if (event.userId) {
         userIds.add(String(event.userId));
       }
     }
@@ -83,11 +84,12 @@ const getSessionCount = query({
     const cutoff = Date.now() - args.timeWindowMs;
     const events = (await ctx.db
       .query("events")
+      .withIndex("by_createdAt", (q) => q.gte("createdAt", cutoff))
       .collect()) as unknown as EventRow[];
 
     const sessionIds = new Set<string>();
     for (const event of events) {
-      if (event.createdAt >= cutoff && event.sessionId) {
+      if (event.sessionId) {
         sessionIds.add(event.sessionId);
       }
     }
@@ -179,11 +181,12 @@ const getDailyActiveUsersSeries = query({
     const cutoff = now - args.days * 24 * 60 * 60 * 1000;
     const events = (await ctx.db
       .query("events")
+      .withIndex("by_createdAt", (q) => q.gte("createdAt", cutoff))
       .collect()) as unknown as EventRow[];
 
     const buckets = new Map<string, Set<string>>();
     for (const event of events) {
-      if (event.createdAt >= cutoff && event.userId) {
+      if (event.userId) {
         const day = new Date(event.createdAt).toISOString().slice(0, 10);
         if (!buckets.has(day)) buckets.set(day, new Set());
         buckets.get(day)!.add(String(event.userId));
@@ -260,12 +263,16 @@ const getUserGrowth = query({
 });
 
 const getTopLessons = query({
-  args: { limit: v.number() },
+  args: { limit: v.number(), timeWindowMs: v.optional(v.number()) },
   handler: async (ctx, args): Promise<TopLesson[]> => {
     await requireQueryAdmin(ctx);
 
+    // Default to 90 days to avoid unbounded full-table scan when omitted.
+    const cutoff = Date.now() - (args.timeWindowMs ?? 90 * 24 * 60 * 60 * 1000);
+
     const events = (await ctx.db
       .query("events")
+      .withIndex("by_createdAt", (q) => q.gte("createdAt", cutoff))
       .collect()) as unknown as EventRow[];
 
     const counts = new Map<string, number>();
@@ -304,8 +311,12 @@ const getContentOverview = query({
       .query("lessons")
       .collect()) as unknown as LessonRow[];
     const completions = await ctx.db.query("lessonCompletions").collect();
+    // Use by_createdAt index to avoid unbounded full-table scan. Last 90 days
+    // provides a reasonable content overview window.
+    const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
     const events = (await ctx.db
       .query("events")
+      .withIndex("by_createdAt", (q) => q.gte("createdAt", cutoff))
       .collect()) as unknown as EventRow[];
 
     const completionCounts = new Map<string, number>();

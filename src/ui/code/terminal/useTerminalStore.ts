@@ -19,6 +19,10 @@ type TerminalStoreState = {
   abortController: AbortController | null;
   /** Last error message from a failed code run (for AI context). */
   lastRunError: string | null;
+  /** Whether the last output chunk ended with a newline character. */
+  lastOutputEndedWithNewline: boolean;
+  /** Whether any output has been written since the last prompt. */
+  hasOutputSincePrompt: boolean;
 };
 
 type TerminalStoreActions = {
@@ -35,21 +39,6 @@ type TerminalStoreActions = {
   setLastRunError: (error: string | null) => void;
 };
 
-let lastOutputEndedWithNewline = true;
-let hasOutputSincePrompt = false;
-
-const updateOutputTracking = (data: string): void => {
-  if (!data) return;
-  hasOutputSincePrompt = true;
-  const endsWithNewline = /\r?\n$/.test(data);
-  lastOutputEndedWithNewline = endsWithNewline;
-};
-
-const markPromptWritten = (): void => {
-  hasOutputSincePrompt = false;
-  lastOutputEndedWithNewline = false;
-};
-
 const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
   (set, get) => ({
     isRunning: false,
@@ -58,6 +47,8 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
     inputHandler: null,
     abortController: null,
     lastRunError: null,
+    lastOutputEndedWithNewline: true,
+    hasOutputSincePrompt: false,
 
     setTerminal: (t) => {
       set({ terminalRef: t });
@@ -69,7 +60,12 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       if (!terminalRef.element) return;
       try {
         terminalRef.write(data);
-        updateOutputTracking(data);
+        if (data) {
+          set({
+            hasOutputSincePrompt: true,
+            lastOutputEndedWithNewline: /\r?\n$/.test(data),
+          });
+        }
       } catch {
         return;
       }
@@ -81,7 +77,12 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       if (!terminalRef.element) return;
       try {
         terminalRef.writeln(data);
-        updateOutputTracking(`${data}\n`);
+        // writeln() always appends a newline, so track unconditionally
+        // (unlike write(), where empty data means nothing was written).
+        set({
+          hasOutputSincePrompt: true,
+          lastOutputEndedWithNewline: true,
+        });
       } catch {
         return;
       }
@@ -92,12 +93,13 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       if (!terminalRef) return;
       if (!terminalRef.element) return;
       try {
-        if (hasOutputSincePrompt && !lastOutputEndedWithNewline) {
+        const state = get();
+        if (state.hasOutputSincePrompt && !state.lastOutputEndedWithNewline) {
           terminalRef.write("\r\n");
         }
         terminalRef.write("\x1b[2K\r");
         terminalRef.write(TERMINAL_PROMPT);
-        markPromptWritten();
+        set({ hasOutputSincePrompt: false, lastOutputEndedWithNewline: false });
       } catch {
         return;
       }
@@ -111,8 +113,7 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       } catch {
         return;
       }
-      hasOutputSincePrompt = false;
-      lastOutputEndedWithNewline = true;
+      set({ hasOutputSincePrompt: false, lastOutputEndedWithNewline: true });
       if (options?.withPrompt) {
         get().writePrompt();
       }
@@ -170,12 +171,14 @@ const useTerminalStore = create<TerminalStoreState & TerminalStoreActions>()(
       set({ isRunning: false, abortController: null });
       get().writeLn("\r\n\x1b[33m^C\x1b[0m");
 
-      // TODO: JS execution via `new Function()` and Pyodide run on the main thread
-      // and cannot be truly interrupted mid-execution. The AbortController above
-      // prevents post-execution callbacks but doesn't halt the computation.
-      // For true interruptibility, JS execution should run in a Web Worker that
-      // can be `terminate()`d. Pyodide supports `pyodide.interruptBuffer` for
-      // cooperative cancellation. This is a known limitation.
+      // TODO: JS execution runs on the main thread and cannot be truly
+      // interrupted mid-execution. The AbortController above prevents
+      // post-execution callbacks but doesn't halt the computation.
+      // For true interruptibility, JS should run in a Web Worker.
+      //
+      // Pyodide timeout cancellation is now wired via interruptBuffer in
+      // pythonExecutor.ts, but this kill() path does not yet signal it
+      // directly — only the timeout handler does.
     },
   }),
 );

@@ -185,6 +185,7 @@ const schema = defineSchema({
     createdAt: v.number(),
   })
     .index("by_userId", ["userId"])
+    .index("by_createdAt", ["createdAt"])
     .index("by_type_createdAt", ["type", "createdAt"])
     .index("by_userId_createdAt", ["userId", "createdAt"])
     .index("by_lessonId_createdAt", ["lessonId", "createdAt"]),
@@ -201,6 +202,7 @@ const schema = defineSchema({
       v.literal("invite_redeem"),
       v.literal("ai_request"),
       v.literal("event_log"),
+      v.literal("feedback"),
     ),
     subject: v.string(),
     windowStartMs: v.number(),

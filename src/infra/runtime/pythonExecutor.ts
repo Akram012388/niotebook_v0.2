@@ -15,6 +15,7 @@ type PyodideInstance = {
   runPython: (code: string) => unknown;
   runPythonAsync?: (code: string) => Promise<unknown>;
   loadPackage?: (packages: string | string[]) => Promise<void>;
+  setInterruptBuffer?: (buffer: Int32Array) => void;
 };
 
 type LoadPyodide = (options?: {
@@ -95,6 +96,9 @@ await micropip.install(${JSON.stringify(requested)})
 
 const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
   let isReady = false;
+  // Shared interrupt buffer for cooperative cancellation across all runs.
+  // Initialized once on first run; reused so stop() can signal it too.
+  let interruptBuffer: Int32Array | null = null;
 
   const init = async (): Promise<void> => {
     if (isReady) {
@@ -112,6 +116,24 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
     await init();
     // Await Pyodide BEFORE starting the timeout so download time isn't counted
     const pyodide = await loadPyodideInstance();
+
+    // Initialize the shared interrupt buffer once so the timeout handler
+    // can signal KeyboardInterrupt to Pyodide. Requires SharedArrayBuffer
+    // (COOP/COEP headers — present on /editor-sandbox).
+    if (
+      !interruptBuffer &&
+      typeof SharedArrayBuffer !== "undefined" &&
+      pyodide.setInterruptBuffer
+    ) {
+      interruptBuffer = new Int32Array(new SharedArrayBuffer(4));
+      pyodide.setInterruptBuffer(interruptBuffer);
+    }
+    // Reset so a stale signal from a previous timeout doesn't immediately
+    // raise KeyboardInterrupt on this run.
+    if (interruptBuffer) {
+      Atomics.store(interruptBuffer, 0, 0);
+    }
+
     const start = performance.now();
     const timeoutMs = input.timeoutMs ?? RUNTIME_TIMEOUT_MS;
     let suppressOutput = false;
@@ -189,6 +211,11 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
     const timeoutPromise = new Promise<RuntimeRunResult>((resolve) => {
       timeoutId = setTimeout(() => {
         suppressOutput = true;
+        // Signal KeyboardInterrupt to Pyodide via the interrupt buffer.
+        // Value 2 = SIGINT, which Pyodide translates to KeyboardInterrupt.
+        if (interruptBuffer) {
+          Atomics.store(interruptBuffer, 0, 2);
+        }
         const message = "Python runtime timed out";
         input.onStderr?.(`${message}\n`);
         resolve({
@@ -205,11 +232,17 @@ const initPythonExecutor = async (): Promise<RuntimeExecutor> => {
     if (timeoutId !== null) {
       clearTimeout(timeoutId);
     }
+    // Buffer is reset at the start of the next run() call, so no need
+    // to clear it here — stop() may signal after Promise.race resolves.
     return result;
   };
 
   const stop = (): void => {
-    return;
+    // Signal KeyboardInterrupt via the shared interrupt buffer so Pyodide
+    // can cooperatively cancel at the next yield point.
+    if (interruptBuffer) {
+      Atomics.store(interruptBuffer, 0, 2);
+    }
   };
 
   return { init, run, stop };

@@ -523,7 +523,7 @@ const finalizeTranscriptIngest = mutation({
 
     {
       const result = await logEventInternal(ctx, {
-        eventType: "transcript_ingest_started",
+        eventType: "transcript_ingest_completed",
         lessonId: args.lessonId,
         metadata: {
           lessonId: lessonDomainId,
@@ -536,7 +536,7 @@ const finalizeTranscriptIngest = mutation({
           "[events] logEventInternal failed",
           result.error.code,
           result.error.message,
-          { eventType: "transcript_ingest_started" },
+          { eventType: "transcript_ingest_completed" },
         );
       }
     }

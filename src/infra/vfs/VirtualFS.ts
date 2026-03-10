@@ -240,6 +240,7 @@ class VirtualFS {
 
   restore(snapshot: VFSSnapshotNode): void {
     if (snapshot.kind !== "directory") return;
+    this.mainFilePath = null;
     this.root = this.deserializeDirectory(snapshot);
     // Recalculate total size
     this.totalSize = 0;
