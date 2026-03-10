@@ -14,7 +14,6 @@ import {
 import { requireMutationUser, requireQueryUser } from "./auth";
 import { logEventInternal } from "./events";
 import { toDomainId, toGenericId } from "./idUtils";
-import { consumeRateLimit } from "./rateLimits";
 
 type ChatThreadRecord = {
   _id: GenericId<"chatThreads">;
@@ -99,8 +98,9 @@ const getChatThread = query({
   },
 });
 
-// Race-safe: Convex OCC retries concurrent mutations that read/write the
-// same index range (by_userId_lessonId), so duplicate threads cannot be created.
+// Race-safe: Convex Optimistic Concurrency Control (OCC) retries concurrent
+// mutations that read/write the same index range (by_userId_lessonId), so
+// duplicate threads cannot be created.
 const ensureChatThread = mutation({
   args: {
     lessonId: v.id("lessons"),
@@ -242,18 +242,10 @@ const completeAssistantMessage = mutation({
     contextHash: v.string(),
   },
   handler: async (ctx, args): Promise<ChatMessageSummary> => {
+    // Rate limiting is enforced at the API route level (consumeAiRateLimit in
+    // route.ts) before streaming begins. No duplicate check here — that would
+    // halve the user's effective quota.
     const user = await requireMutationUser(ctx);
-
-    const rateDecision = await consumeRateLimit(
-      ctx,
-      "ai_request",
-      user.id,
-      10 * 60 * 1000,
-      20,
-    );
-    if (!rateDecision.ok) {
-      throw new Error("Rate limit exceeded. Try again soon.");
-    }
 
     const thread = (await ctx.db.get(args.threadId)) as ChatThreadRecord | null;
 
