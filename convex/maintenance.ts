@@ -1,4 +1,5 @@
 import { internalMutation, mutation } from "./_generated/server";
+import { requireMutationAdmin } from "./auth";
 
 type CleanupResult = {
   skipped: boolean;
@@ -11,6 +12,8 @@ type CleanupResult = {
 const cleanupPreviewData = mutation({
   args: {},
   handler: async (ctx): Promise<CleanupResult> => {
+    await requireMutationAdmin(ctx);
+
     if (process.env.NIOTEBOOK_PREVIEW_DATA !== "true") {
       return {
         skipped: true,
