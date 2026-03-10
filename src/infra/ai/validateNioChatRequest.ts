@@ -38,6 +38,10 @@ const parseChatMessage = (value: unknown): NioChatMessage | null => {
     return null;
   }
 
+  if (content.length > 8000) {
+    return null;
+  }
+
   return { role, content };
 };
 
@@ -211,6 +215,10 @@ const validateNioChatRequest = (payload: unknown): ValidationResult => {
 
   if (lastError !== undefined && !isString(lastError)) {
     return { ok: false, error: "lastError must be a string." };
+  }
+
+  if (isString(lastError) && lastError.length > 2000) {
+    return { ok: false, error: "lastError exceeds maximum length." };
   }
 
   return {
