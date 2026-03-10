@@ -1,11 +1,23 @@
 import type { NioErrorCode, NioSseEvent } from "../../domain/nio";
 import { isRecord, isString, isNumber } from "./typeGuards";
 
+const resolveAllowedOrigin = (): string =>
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://niotebook.com";
+
 const NIO_SSE_HEADERS: Record<string, string> = {
   "Content-Type": "text/event-stream; charset=utf-8",
   "Cache-Control": "no-cache, no-transform",
   Connection: "keep-alive",
   "X-Accel-Buffering": "no",
+  "Access-Control-Allow-Origin": resolveAllowedOrigin(),
+  "Access-Control-Allow-Credentials": "true",
+};
+
+const NIO_CORS_PREFLIGHT_HEADERS: Record<string, string> = {
+  "Access-Control-Allow-Origin": resolveAllowedOrigin(),
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Max-Age": "86400",
 };
 
 const encodeSseEvent = (event: NioSseEvent): string => {
@@ -234,4 +246,9 @@ const parseSseEvent = (rawEvent: string): NioSseEvent | null => {
   }
 };
 
-export { encodeSseEvent, parseSseEvent, NIO_SSE_HEADERS };
+export {
+  encodeSseEvent,
+  parseSseEvent,
+  NIO_SSE_HEADERS,
+  NIO_CORS_PREFLIGHT_HEADERS,
+};

@@ -4,7 +4,11 @@ import type { RateLimitDecision } from "../../../domain/rate-limits";
 import type { NioSseEvent } from "../../../domain/nio";
 import { buildNioContext } from "../../../domain/nioContextBuilder";
 import { NIO_SYSTEM_PROMPT } from "../../../domain/nioPrompt";
-import { encodeSseEvent, NIO_SSE_HEADERS } from "../../../infra/ai/nioSse";
+import {
+  encodeSseEvent,
+  NIO_SSE_HEADERS,
+  NIO_CORS_PREFLIGHT_HEADERS,
+} from "../../../infra/ai/nioSse";
 import { neutralizePromptInjection } from "../../../infra/ai/promptInjection";
 import { fetchSubtitleWindow } from "../../../infra/ai/subtitleFallback";
 import { fetchYoutubeTranscriptWindow } from "../../../infra/ai/youtubeTranscriptFallback";
@@ -553,3 +557,6 @@ export const POST = async (request: Request): Promise<Response> => {
     headers: NIO_SSE_HEADERS,
   });
 };
+
+export const OPTIONS = (): Response =>
+  new Response(null, { status: 204, headers: NIO_CORS_PREFLIGHT_HEADERS });
