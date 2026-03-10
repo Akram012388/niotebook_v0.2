@@ -4,15 +4,78 @@
  * Renders an R plot SVG into the runtime frame container.
  * The container div (id="niotebook-runtime-frame") is owned by TerminalPanel.
  *
- * Note: a full useRef migration requires TerminalPanel.tsx to accept a forwarded
- * ref for the container — tracked separately as part of the 2C-4 follow-up.
+ * Security: the iframe sandbox (`allow-same-origin`, no `allow-scripts`) is the
+ * primary XSS defense. The DOMParser sanitizer below is defense-in-depth — it
+ * strips elements and attributes that should never appear in R plot output.
  */
 
-const sanitizeSvg = (svg: string): string =>
-  svg
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
-    .replace(/\son\w+\s*=\s*'[^']*'/gi, "");
+const SVG_ELEMENT_ALLOWLIST = new Set([
+  "svg",
+  "g",
+  "path",
+  "rect",
+  "circle",
+  "ellipse",
+  "line",
+  "polyline",
+  "polygon",
+  "text",
+  "tspan",
+  "textPath",
+  "defs",
+  "clipPath",
+  "mask",
+  "pattern",
+  "linearGradient",
+  "radialGradient",
+  "stop",
+  "use",
+  "symbol",
+  "marker",
+  "image",
+  "title",
+  "desc",
+  "metadata",
+  "style",
+]);
+
+const DANGEROUS_ATTR_RE = /^on/i;
+const DANGEROUS_URI_RE = /^\s*javascript\s*:/i;
+
+const sanitizeSvgNode = (node: Element): void => {
+  const children = Array.from(node.children);
+  for (const child of children) {
+    if (!SVG_ELEMENT_ALLOWLIST.has(child.localName.toLowerCase())) {
+      child.remove();
+      continue;
+    }
+
+    for (const attr of Array.from(child.attributes)) {
+      if (DANGEROUS_ATTR_RE.test(attr.name)) {
+        child.removeAttribute(attr.name);
+      } else if (
+        (attr.name === "href" || attr.name === "xlink:href") &&
+        DANGEROUS_URI_RE.test(attr.value)
+      ) {
+        child.removeAttribute(attr.name);
+      }
+    }
+
+    sanitizeSvgNode(child);
+  }
+};
+
+const sanitizeSvg = (svg: string): string => {
+  const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
+
+  if (doc.querySelector("parsererror")) {
+    console.warn("[runtime] SVG parse failed during sanitization");
+    return "";
+  }
+
+  sanitizeSvgNode(doc.documentElement);
+  return new XMLSerializer().serializeToString(doc.documentElement);
+};
 
 function renderRPlot(svgData: string): void {
   const container = document.getElementById("niotebook-runtime-frame");
