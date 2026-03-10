@@ -6,8 +6,8 @@ import { buildNioContext } from "../../../domain/nioContextBuilder";
 import { NIO_SYSTEM_PROMPT } from "../../../domain/nioPrompt";
 import {
   encodeSseEvent,
-  NIO_SSE_HEADERS,
-  NIO_CORS_PREFLIGHT_HEADERS,
+  nioSseHeaders,
+  nioCorsPreflightHeaders,
 } from "../../../infra/ai/nioSse";
 import { neutralizePromptInjection } from "../../../infra/ai/promptInjection";
 import { fetchSubtitleWindow } from "../../../infra/ai/subtitleFallback";
@@ -180,11 +180,14 @@ export const POST = async (request: Request): Promise<Response> => {
   const convexAuthHeader = resolveConvexAuthHeader(request);
 
   if (isConvexEnabled() && isConvexAuthRequired() && !convexAuthHeader) {
+    const isDev = process.env.NODE_ENV !== "production";
     return buildJsonResponse(
       {
         error: {
           code: "AUTH_REQUIRED",
-          message: "Authentication required for assistant requests.",
+          message: isDev
+            ? "Authentication required. Set NIOTEBOOK_DEV_AUTH_BYPASS=true in .env.local for local development."
+            : "Authentication required for assistant requests.",
         },
       },
       401,
@@ -554,9 +557,9 @@ export const POST = async (request: Request): Promise<Response> => {
 
   return new Response(stream, {
     status: 200,
-    headers: NIO_SSE_HEADERS,
+    headers: nioSseHeaders(),
   });
 };
 
 export const OPTIONS = (): Response =>
-  new Response(null, { status: 204, headers: NIO_CORS_PREFLIGHT_HEADERS });
+  new Response(null, { status: 204, headers: nioCorsPreflightHeaders() });
