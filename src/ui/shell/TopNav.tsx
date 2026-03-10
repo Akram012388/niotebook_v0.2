@@ -16,7 +16,6 @@ import {
 import { Wordmark } from "../brand/Wordmark";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
-import { useUser, useClerk } from "@clerk/nextjs";
 import { storageAdapter } from "../../infra/storageAdapter";
 import { meRef } from "../auth/convexAuth";
 import type { CourseSummary, LessonSummary } from "../../domain/content";
@@ -34,12 +33,17 @@ import { useDevAuthBypass } from "@/infra/dev/devAuthBypassContext";
 
 const LESSON_STORAGE_KEY = "niotebook.lesson";
 
-const TopNav = (): ReactElement => {
+type TopNavProps = {
+  /** User email from Clerk (null when dev auth bypass is active). */
+  userEmail?: string | null;
+  /** Sign-out handler from Clerk (noop when dev auth bypass is active). */
+  onSignOut?: () => void;
+};
+
+const TopNav = ({ userEmail = null, onSignOut }: TopNavProps): ReactElement => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { user: clerkUser } = useUser();
-  const { signOut } = useClerk();
   const meData = useQuery(meRef);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -341,10 +345,10 @@ const TopNav = (): ReactElement => {
         onSelectLesson={handleSelectLesson}
         onSelectCourse={handleSelectCourse}
         userInfo={{
-          email: clerkUser?.primaryEmailAddress?.emailAddress ?? null,
+          email: userEmail,
           role: meData?.role ?? null,
         }}
-        onSignOut={() => void signOut()}
+        onSignOut={onSignOut ?? (() => {})}
         initialSettingsCard={drawerSettingsCard}
       />
     </header>

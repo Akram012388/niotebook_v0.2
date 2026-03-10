@@ -99,8 +99,8 @@ jobs:
     if: needs.preflight.outputs.ready == 'true'
     runs-on: ubuntu-latest
     env:
-      BASE_URL: ${{ needs.preflight.outputs.base_url }}
-      CONVEX_URL: ${{ secrets.PREVIEW_DATA_CONVEX_URL }}
+      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+      CLERK_JWT_ISSUER_DOMAIN: ${{ secrets.CLERK_JWT_ISSUER_DOMAIN }}
       NIOTEBOOK_INGEST_TOKEN: ${{ secrets.NIOTEBOOK_INGEST_TOKEN_PREVIEW_DATA }}
       NIOTEBOOK_E2E_VIDEO_ID: ${{ secrets.NIOTEBOOK_E2E_VIDEO_ID }}
       NIOTEBOOK_E2E_SEED_PATH: .e2e-seed.json
@@ -126,9 +126,55 @@ jobs:
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: bunx playwright install --with-deps
+      - name: Create Convex preview and deploy functions
+        run: bun run e2e:convex:push
+      - name: Set CONVEX_URL from preview
+        run: |
+          url=$(cat .e2e-convex-url)
+          if [ -z "$url" ]; then
+            echo "::error::e2e-convex-push did not produce a preview URL"
+            exit 1
+          fi
+          echo "CONVEX_URL=$url" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_CONVEX_URL=$url" >> "$GITHUB_ENV"
       - run: bun run e2e:seed
       - run: bun ./scripts/e2e-env.ts --github
-      - run: bun run test:e2e
+      - name: Run E2E tests with dev server
+        run: |
+          # The Vercel preview has NEXT_PUBLIC_CONVEX_URL baked in at build time
+          # pointing to the dev Convex deployment — not the E2E preview we just
+          # created and seeded. Start a local dev server connected to the preview
+          # so the app can actually find the seeded data.
+          NIOTEBOOK_DEV_AUTH_BYPASS=true \
+          NEXT_PUBLIC_NIOTEBOOK_DEV_AUTH_BYPASS=true \
+          NIOTEBOOK_E2E_PREVIEW=true \
+          NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=true \
+          bun run dev > /tmp/dev-server.log 2>&1 &
+          DEV_PID=$!
+
+          echo "Waiting for dev server on port 3000 (PID: $DEV_PID)..."
+          for i in $(seq 1 90); do
+            if ! kill -0 $DEV_PID 2>/dev/null; then
+              echo "::error::Dev server crashed before becoming ready"
+              echo "--- /tmp/dev-server.log ---"
+              cat /tmp/dev-server.log
+              exit 1
+            fi
+            if curl -sf http://localhost:3000 > /dev/null 2>&1; then
+              echo "Dev server ready after $((i*2))s"
+              break
+            fi
+            if [ $i -eq 90 ]; then
+              echo "::error::Dev server failed to start within 180s"
+              echo "--- /tmp/dev-server.log (last 50 lines) ---"
+              tail -50 /tmp/dev-server.log
+              exit 1
+            fi
+            sleep 2
+          done
+
+          NIOTEBOOK_E2E_PREVIEW=true \
+          BASE_URL=http://localhost:3000 bun run test:e2e
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -136,3 +182,4 @@ jobs:
           path: |
             test-results/**
             playwright-report/**
+            /tmp/dev-server.log

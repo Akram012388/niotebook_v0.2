@@ -1,27 +1,20 @@
 "use client";
 
-import { useCallback, type ReactElement } from "react";
-import { useClerk } from "@clerk/nextjs";
+import { type ReactElement } from "react";
+import { useDevAuthBypass } from "@/infra/dev/devAuthBypassContext";
 import { ThemeToggle } from "@/ui/shared/ThemeToggle";
+import dynamic from "next/dynamic";
+
+// Lazy-load the sign-out button to avoid pulling @clerk/nextjs when bypass is active.
+const ClerkSignOutButton = dynamic(() => import("./ClerkSignOutButton"));
 
 export function CoursesNavActions(): ReactElement {
-  const { signOut } = useClerk();
-
-  const handleSignOut = useCallback(() => {
-    void signOut();
-  }, [signOut]);
+  const isDevBypass = useDevAuthBypass();
 
   return (
     <>
       <ThemeToggle />
-
-      <button
-        type="button"
-        onClick={handleSignOut}
-        className="rounded-lg bg-surface-muted px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-border-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:px-4 sm:py-2"
-      >
-        Sign out
-      </button>
+      {!isDevBypass && <ClerkSignOutButton />}
     </>
   );
 }

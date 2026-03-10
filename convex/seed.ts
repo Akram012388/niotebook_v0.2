@@ -46,18 +46,22 @@ const seedE2E = mutation({
 
     ensureIngestToken(args.ingestToken);
 
+    // The dev auth bypass sets identity { subject: "local-dev", issuer: "niotebook" }
+    // which Convex maps to tokenIdentifier "niotebook|local-dev".
+    const devBypassToken = "niotebook|local-dev";
+
     const user = (await ctx.db
       .query("users")
       .withIndex("by_tokenIdentifier", (query) =>
-        query.eq("tokenIdentifier", "e2e-preview"),
+        query.eq("tokenIdentifier", devBypassToken),
       )
       .first()) as UserRecord | null;
 
     const userId = user
       ? user._id
       : await ctx.db.insert("users", {
-          tokenIdentifier: "e2e-preview",
-          email: "e2e@niotebook.local",
+          tokenIdentifier: devBypassToken,
+          email: "dev@niotebook.local",
           role: "admin",
         });
 

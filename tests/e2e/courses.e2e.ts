@@ -36,8 +36,10 @@ test.describe("Course browsing", () => {
     await expect(card).toBeVisible({ timeout: 15000 });
     await card.click();
     await page.waitForURL(/\/courses\//, { timeout: 10000 });
-    // Verify lecture list heading
-    await expect(page.getByText("Lectures")).toBeVisible({ timeout: 15000 });
+    // Verify lecture list heading (use .first() — sidebar may also contain "Lectures")
+    await expect(page.getByText("Lectures").first()).toBeVisible({
+      timeout: 15000,
+    });
     // Verify at least one lesson row exists
     await expect(page.getByText("Start").first()).toBeVisible({
       timeout: 10000,
@@ -50,7 +52,9 @@ test.describe("Course browsing", () => {
     await expect(card).toBeVisible({ timeout: 15000 });
     await card.click();
     await page.waitForURL(/\/courses\//, { timeout: 10000 });
-    await expect(page.getByText("Lectures")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Lectures").first()).toBeVisible({
+      timeout: 15000,
+    });
     const startBtn = page
       .locator('a[href^="/workspace?lessonId="]')
       .getByText("Start")

@@ -1,8 +1,9 @@
 "use client";
 
-import { type ReactElement, type ReactNode, useEffect } from "react";
+import { type ReactElement, type ReactNode, useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
+import { useDevAuthBypass } from "@/infra/dev/devAuthBypassContext";
 import { meRef } from "@/ui/auth/convexAuth";
 
 type AdminGuardProps = {
@@ -12,14 +13,26 @@ type AdminGuardProps = {
 const AdminGuard = ({ children }: AdminGuardProps): ReactElement => {
   const me = useQuery(meRef);
   const router = useRouter();
+  const isDevBypass = useDevAuthBypass();
 
-  const denied = me !== undefined && (me === null || me.role !== "admin");
+  // In dev auth bypass mode, setAdminAuth runs in a useEffect which fires
+  // AFTER the first render — the me query may return null before the identity
+  // propagates. Allow a short grace period before treating null as "denied".
+  const [graceExpired, setGraceExpired] = useState(!isDevBypass);
+  useEffect(() => {
+    if (!isDevBypass) return;
+    const timer = setTimeout(() => setGraceExpired(true), 3000);
+    return () => clearTimeout(timer);
+  }, [isDevBypass]);
+
+  const denied =
+    me !== undefined && (me === null || me.role !== "admin") && graceExpired;
 
   useEffect(() => {
     if (denied) router.replace("/");
   }, [denied, router]);
 
-  if (me === undefined) {
+  if (me === undefined || (isDevBypass && !graceExpired && me === null)) {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background">
         {/* Spinner */}
