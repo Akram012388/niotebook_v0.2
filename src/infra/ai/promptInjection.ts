@@ -25,7 +25,10 @@ const neutralizePromptInjection = (
   for (const pattern of INJECTION_PATTERNS) {
     if (pattern.test(next)) {
       flagged = true;
-      next = next.replace(pattern, "[redacted]");
+      // Use gi flags for replace to strip ALL occurrences. The patterns
+      // themselves use only the i flag (no g) so .test() above won't
+      // advance lastIndex between calls.
+      next = next.replace(new RegExp(pattern.source, "gi"), "[redacted]");
     }
   }
 
