@@ -1194,11 +1194,12 @@ E2E Pipeline Fix      → Branch: fix/e2e-preview-seed
   preview-data-refresh.yml disabled (ephemeral previews replace it).
 
 Wave 3 (Quality)      → Branch: refactor/oss-quality-improvements
-  W3-01 through W3-15 → Single PR, can be split if large
-  ⏳ READY — E2E pipeline blocker resolved
+  ✅ COMPLETED — W3-01 through W3-15 (W3-09 skipped, already correct)
+  6 atomic commits: type unification, security hardening, error handling,
+  inline dialogs, dead code removal, hydration simplification.
 ```
 
-Each wave is independently shippable. Waves 1, 2, and the E2E fix have landed.
+Each wave is independently shippable. Waves 1–3 and the E2E fix have landed.
 
 ---
 
