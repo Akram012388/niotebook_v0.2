@@ -247,7 +247,7 @@ const VideoPane = ({
     return () => {
       if (bookmarkTimerRef.current) clearTimeout(bookmarkTimerRef.current);
     };
-  }, []);
+  }, [lessonId]);
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col bg-surface">

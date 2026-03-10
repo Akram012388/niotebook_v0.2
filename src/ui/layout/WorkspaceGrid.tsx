@@ -304,11 +304,6 @@ const WorkspaceGrid = (): ReactElement => {
     setVideoTime(timestampSec);
   }, []);
 
-  const handleVideoDisplayTime = useCallback((timestampSec: number): void => {
-    videoTimeRef.current = timestampSec;
-    setVideoTime(timestampSec);
-  }, []);
-
   const handleThreadChange = useCallback(
     (nextThreadId: string | null): void => {
       setThreadId(nextThreadId);
@@ -458,7 +453,7 @@ const WorkspaceGrid = (): ReactElement => {
               lessonId={activeLessonId}
               seekRequest={seekRequest}
               onTimeChange={handleVideoTime}
-              onTimeUpdate={handleVideoDisplayTime}
+              onTimeUpdate={handleVideoTime}
               threadId={threadId ?? undefined}
               codeHash={codeHash ?? undefined}
               showInfoStrip
@@ -501,7 +496,7 @@ const WorkspaceGrid = (): ReactElement => {
                 lessonId={activeLessonId}
                 seekRequest={seekRequest}
                 onTimeChange={handleVideoTime}
-                onTimeUpdate={handleVideoDisplayTime}
+                onTimeUpdate={handleVideoTime}
                 threadId={threadId ?? undefined}
                 codeHash={codeHash ?? undefined}
                 showInfoStrip
@@ -573,7 +568,7 @@ const WorkspaceGrid = (): ReactElement => {
         lessonId={activeLessonId}
         seekRequest={seekRequest}
         onTimeChange={handleVideoTime}
-        onTimeUpdate={handleVideoDisplayTime}
+        onTimeUpdate={handleVideoTime}
         threadId={threadId ?? undefined}
         codeHash={codeHash ?? undefined}
         showInfoStrip
