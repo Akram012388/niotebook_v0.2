@@ -26,6 +26,8 @@ if (
   );
 }
 
+// NIOTEBOOK_E2E_PREVIEW enables stub AI responses and relaxed auth for E2E
+// test environments. It must never reach a real production deployment.
 if (
   process.env.NIOTEBOOK_E2E_PREVIEW === "true" &&
   process.env.NODE_ENV === "production"
@@ -54,6 +56,9 @@ const nextConfig: NextConfig = {
         value: "camera=(), microphone=(), geolocation=()",
       },
       {
+        // CSP: unsafe-inline required by Next.js for inline <script> hydration
+        // markers; unsafe-eval required by Pyodide WASM execution. Both are
+        // scoped to script-src only.
         key: "Content-Security-Policy",
         value: [
           "default-src 'self'",
