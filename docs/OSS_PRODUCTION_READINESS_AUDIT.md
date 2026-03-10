@@ -1188,49 +1188,39 @@ Wave 2 (Correctness)  → Branch: fix/oss-wave-2
 
 Wave 3 (Quality)      → Branch: refactor/oss-quality-improvements
   W3-01 through W3-15 → Single PR, can be split if large
-  ⏳ PENDING — blocked on E2E pipeline fix (see below)
+  ⏳ READY — E2E pipeline blocker resolved
 ```
 
 Each wave is independently shippable. Waves 1 and 2 have landed.
 
 ---
 
-## Pre-Wave 3 Blocker: E2E Pipeline Fix
+## E2E Pipeline Fix (Resolved)
 
 The Vercel preview guard fix in Wave 2 (commit `57de7f5`) unmasked a
-pre-existing E2E pipeline failure on PR branches. This must be resolved
-before Wave 3 to ensure CI checks pass on all future PRs.
+pre-existing E2E pipeline failure on PR branches. This has been resolved
+in PR #142 (`fix/e2e-preview-seed`).
 
-### Background
+### Root Causes Fixed
 
-**Before the Vercel fix:**
+1. **Clerk SSR crash** — `@clerk/nextjs` crashes at import time without
+   `CLERK_SECRET_KEY`. All Clerk imports are now lazy-loaded behind
+   `next/dynamic` boundaries.
+2. **Convex preview deployment** — The pipeline now creates an ephemeral
+   Convex preview per CI run (two-phase deploy: push functions, then set
+   env vars).
+3. **Seed identity mismatch** — The seed user's `tokenIdentifier` didn't
+   match the dev auth bypass identity. Aligned to `niotebook|local-dev`.
+4. **Baked-in CONVEX_URL** — Vercel preview has the wrong URL baked at
+   build time. The pipeline now starts a local dev server connected to the
+   ephemeral Convex preview.
+5. **Admin guard timing race** — `AdminGuard` redirected before the dev
+   bypass identity could propagate. Added a 3-second grace period.
+6. **Test assertion bugs** — Playwright strict mode violations (`.first()`),
+   wrong nav labels, missing env var passthrough.
 
-- Vercel preview deployments were failing (the `NIOTEBOOK_E2E_PREVIEW` guard
-  checked `NODE_ENV === "production"`, but Vercel sets `NODE_ENV=production`
-  for all builds including previews)
-- The e2e `preflight` check was skipping because no preview was available
-- The `e2e` job was skipping as a result
-- The failure was **masked**, not absent
+### Result
 
-**After the Vercel fix:**
-
-- Vercel previews now build successfully
-- The `preflight` passes, triggering the actual e2e run
-- The e2e **seed step** fails with a Convex HTTP client error
-- Every future PR will hit this same failure
-
-The e2e passes on `main` (confirmed from recent runs), so the issue is
-specific to the PR/preview environment — likely a Convex URL, auth token,
-or deployment configuration that doesn't work for preview contexts.
-
-### Investigation Required
-
-1. What Convex URL the e2e workflow uses for PR branches vs `main`
-2. Whether the e2e seed script authenticates correctly against the preview
-   Convex deployment
-3. The e2e workflow configuration (`.github/workflows/e2e.yml`) and seed
-   script (`scripts/e2e-seed.ts`)
-
-### Resolution
-
-Fix the e2e pipeline so it works on PR branches, then proceed with Wave 3.
+20 tests pass, 4 intentionally skipped, 0 failures.
+The `preview-data-refresh.yml` workflow has been disabled — ephemeral
+previews replace the static preview-data deployment.

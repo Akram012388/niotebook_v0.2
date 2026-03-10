@@ -55,24 +55,24 @@ can initialize the client:
 
 The repository includes automated data refresh workflows:
 
-- `preview-data refresh` (nightly + manual) uses `CONVEX_PREVIEW_DEPLOY_KEY`, `PREVIEW_DATA_CONVEX_URL`, and `NIOTEBOOK_INGEST_TOKEN_PREVIEW_DATA`.
+- `preview-data refresh` — **DISABLED**. The E2E pipeline now uses ephemeral Convex previews. `PREVIEW_DATA_CONVEX_URL` is stale and can be removed.
 - `prod refresh` (manual) uses `CONVEX_PROD_DEPLOY_KEY`, `PROD_CONVEX_URL`, and `NIOTEBOOK_INGEST_TOKEN_PROD`.
 
 Both workflows call token-gated verification via `scripts/verify-transcript-windows.ts`.
 
 ## E2E workflow requirements
 
-The E2E workflow (`.github/workflows/e2e.yml`) expects:
+The E2E workflow (`.github/workflows/e2e.yml`) creates an ephemeral Convex
+preview per run and expects:
 
-- `PREVIEW_DATA_CONVEX_URL`
+- `CONVEX_PREVIEW_DEPLOY_KEY`
+- `CLERK_JWT_ISSUER_DOMAIN`
 - `NIOTEBOOK_INGEST_TOKEN_PREVIEW_DATA`
 - `NIOTEBOOK_E2E_VIDEO_ID`
 
-The seed script (`scripts/e2e-seed.ts`) runs against preview-data and requires
-`CONVEX_URL`, `NIOTEBOOK_INGEST_TOKEN`, and `NIOTEBOOK_E2E_VIDEO_ID`.
-
-Local e2e runs that use the webServer need a preview deploy key available as
-`CONVEX_DEPLOY_KEY` or `CONVEX_PREVIEW_DEPLOY_KEY`.
+The seed script (`scripts/e2e-seed.ts`) runs against the ephemeral preview and
+requires `CONVEX_URL`, `NIOTEBOOK_INGEST_TOKEN`, and `NIOTEBOOK_E2E_VIDEO_ID`
+(set automatically by the workflow).
 
 The workflow preflights the deployed URL and only runs Playwright if it finds
 the `niotebook-e2e` marker (emitted when `NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW=true`).

@@ -1,12 +1,14 @@
-name: preview-data refresh
+name: preview-data refresh (DISABLED)
 
+# DISABLED: The E2E pipeline now uses ephemeral Convex previews per run,
+# so a static preview-data deployment is no longer needed.
+# Safe to delete this file once PREVIEW_DATA_CONVEX_URL secret is removed.
 on:
-  schedule:
-    - cron: "0 2 * * *"
   workflow_dispatch:
 
 jobs:
   refresh:
+    if: false
     uses: ./.github/workflows/_refresh-convex.yml
     secrets:
       CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
