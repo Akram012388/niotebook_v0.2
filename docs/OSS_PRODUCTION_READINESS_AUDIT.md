@@ -1186,12 +1186,19 @@ Wave 2 (Correctness)  → Branch: fix/oss-wave-2
   Additional fix: Vercel preview guard amended to check VERCEL_ENV !== "preview"
   so E2E preview deployments are not blocked (commit 57de7f5).
 
+E2E Pipeline Fix      → Branch: fix/e2e-preview-seed
+  ✅ COMPLETED — PR #142, merged to main
+  Clerk lazy-loading, ephemeral Convex previews, seed identity alignment,
+  local dev server for tests, AdminGuard grace period, test assertion fixes.
+  Stale secrets cleaned up: PREVIEW_DATA_CONVEX_URL, OPENCODE_API_KEY deleted.
+  preview-data-refresh.yml disabled (ephemeral previews replace it).
+
 Wave 3 (Quality)      → Branch: refactor/oss-quality-improvements
   W3-01 through W3-15 → Single PR, can be split if large
   ⏳ READY — E2E pipeline blocker resolved
 ```
 
-Each wave is independently shippable. Waves 1 and 2 have landed.
+Each wave is independently shippable. Waves 1, 2, and the E2E fix have landed.
 
 ---
 
@@ -1224,3 +1231,8 @@ in PR #142 (`fix/e2e-preview-seed`).
 20 tests pass, 4 intentionally skipped, 0 failures.
 The `preview-data-refresh.yml` workflow has been disabled — ephemeral
 previews replace the static preview-data deployment.
+
+### Cleanup
+
+- Stale GitHub secrets deleted: `PREVIEW_DATA_CONVEX_URL`, `OPENCODE_API_KEY`
+- `preview-data-refresh.yml` disabled (cron removed, `if: false` guard)
