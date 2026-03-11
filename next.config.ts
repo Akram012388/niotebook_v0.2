@@ -58,8 +58,12 @@ const nextConfig: NextConfig = {
       },
       {
         // CSP: unsafe-inline required by Next.js for inline <script> hydration
-        // markers; unsafe-eval required by Pyodide WASM execution. Both are
-        // scoped to script-src only.
+        // markers; unsafe-eval required by Pyodide WASM and by the JS sandbox
+        // iframe that executes user code on the same origin. Both are scoped to
+        // script-src only. youtube.com and s.ytimg.com are required by the
+        // YouTube IFrame API: the bootstrapper (/iframe_api) loads from
+        // youtube.com and dynamically injects player scripts from s.ytimg.com
+        // into the parent page context.
         key: "Content-Security-Policy",
         value: [
           "default-src 'self'",
