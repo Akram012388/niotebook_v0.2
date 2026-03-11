@@ -199,7 +199,6 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
                 key={lesson.id}
                 custom={i}
                 variants={lectureCardVariants}
-                viewport={{ once: true, amount: 0.2 }}
                 className={`flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 transition-all duration-200 hover:border-accent/30 hover:shadow-md ${
                   isCompleted
                     ? "border-l-[3px] border-l-accent bg-accent/[0.03]"

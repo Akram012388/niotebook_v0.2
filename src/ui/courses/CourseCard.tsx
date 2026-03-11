@@ -152,7 +152,7 @@ const CourseCard = memo(function CourseCard({
               ? `${lessonCount} lecture${lessonCount !== 1 ? "s" : ""}`
               : "—"}
           </span>
-          {completedCount > 0 && (
+          {completedCount > 0 && lessonCount !== undefined && (
             <div className="flex flex-col gap-1">
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
                 <div
