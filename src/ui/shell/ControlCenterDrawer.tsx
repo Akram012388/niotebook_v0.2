@@ -5,6 +5,7 @@ import {
   CopySimple,
   FacebookLogo,
   Gear,
+  Key,
   ListNumbers,
   PaperPlaneTilt,
   Star,
@@ -107,9 +108,7 @@ const ControlCenterDrawer = ({
     if (isOpen && !wasOpen && initialSettingsCard) {
       window.requestAnimationFrame(() => {
         setPanelView("settings");
-        setActiveSettingsCard(
-          initialSettingsCard === "api-keys" ? null : initialSettingsCard,
-        );
+        setActiveSettingsCard(initialSettingsCard);
       });
     }
   }, [isOpen, initialSettingsCard]);
@@ -195,7 +194,9 @@ const ControlCenterDrawer = ({
     });
   };
 
-  const handleSettingsCardToggle = (next: "share" | "feedback"): void => {
+  const handleSettingsCardToggle = (
+    next: "share" | "feedback" | "api-keys",
+  ): void => {
     setActiveSettingsCard((prev) => {
       const nextState = prev === next ? null : next;
       if (nextState === "share") {
@@ -313,10 +314,10 @@ const ControlCenterDrawer = ({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-border bg-surface-muted p-2 text-text-muted transition hover:bg-surface"
+              className="rounded-full border border-border bg-surface-muted p-1.5 text-text-muted transition hover:bg-surface"
               aria-label="Close control center"
             >
-              <X size={16} weight="regular" />
+              <X size={14} weight="regular" />
             </button>
           </div>
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
@@ -476,10 +477,6 @@ const ControlCenterDrawer = ({
                 )
               ) : panelView === "settings" ? (
                 <div className="flex flex-col gap-4">
-                  {/* Nio AI settings */}
-                  <section className="flex flex-col gap-2 border-b border-border pb-4">
-                    <ApiKeySettings />
-                  </section>
                   <div className="flex items-center justify-between">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
                       Theme
@@ -489,6 +486,23 @@ const ControlCenterDrawer = ({
                   <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
                     Actions
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSettingsCardToggle("api-keys")}
+                    className={`flex items-center justify-between rounded-xl border border-border px-3 py-2 text-xs font-medium transition ${
+                      activeSettingsCard === "api-keys"
+                        ? "bg-accent text-white border-accent"
+                        : "bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
+                    }`}
+                  >
+                    <span>Nio AI Provider</span>
+                    <Key size={14} weight="regular" />
+                  </button>
+                  {activeSettingsCard === "api-keys" ? (
+                    <div className="rounded-xl border border-border bg-surface-muted px-4 py-4">
+                      <ApiKeySettings />
+                    </div>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => handleSettingsCardToggle("share")}
