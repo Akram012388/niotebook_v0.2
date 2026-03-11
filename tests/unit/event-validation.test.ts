@@ -8,15 +8,6 @@ import {
 describe("event validation", (): void => {
   // ── happy-path tests ──────────────────────────────────────────────────────
 
-  it("accepts valid invite_issued metadata (two string fields)", (): void => {
-    const result = validateEventMetadata("invite_issued", {
-      inviteId: "invite-1",
-      createdBy: "user-1",
-    });
-
-    expect(result.ok).toBe(true);
-  });
-
   it("accepts valid video_play metadata (string + number fields)", (): void => {
     const result = validateEventMetadata("video_play", {
       lessonId: "lesson-1",
@@ -67,21 +58,6 @@ describe("event validation", (): void => {
 
   // ── empty string rejection ────────────────────────────────────────────────
 
-  it("rejects empty string for inviteId in invite_issued", (): void => {
-    const result = validateEventMetadata("invite_issued", {
-      inviteId: "",
-      createdBy: "user-1",
-    });
-
-    expect(result.ok).toBe(false);
-
-    if (!result.ok) {
-      expect(result.error).toEqual(
-        buildEventLogError("INVALID_EVENT_METADATA", "invite_issued"),
-      );
-    }
-  });
-
   it("rejects empty string for emailHash in magic_link_sent", (): void => {
     const result = validateEventMetadata("magic_link_sent", {
       emailHash: "",
@@ -112,15 +88,6 @@ describe("event validation", (): void => {
   it("rejects number where string expected (courseId in course_selected)", (): void => {
     const result = validateEventMetadata("course_selected", {
       courseId: 123,
-    });
-
-    expect(result.ok).toBe(false);
-  });
-
-  it("rejects boolean where string expected (inviteId in invite_issued)", (): void => {
-    const result = validateEventMetadata("invite_issued", {
-      inviteId: true,
-      createdBy: "user-1",
     });
 
     expect(result.ok).toBe(false);
@@ -162,20 +129,6 @@ describe("event validation", (): void => {
     });
 
     expect(result.ok).toBe(false);
-  });
-
-  it("rejects missing createdBy in invite_issued (missing field)", (): void => {
-    const result = validateEventMetadata("invite_issued", {
-      inviteId: "invite-1",
-    });
-
-    expect(result.ok).toBe(false);
-
-    if (!result.ok) {
-      expect(result.error).toEqual(
-        buildEventLogError("INVALID_EVENT_METADATA", "invite_issued"),
-      );
-    }
   });
 
   // ── error structure ───────────────────────────────────────────────────────

@@ -1,15 +1,6 @@
-import type {
-  ChatThreadId,
-  CourseId,
-  EventId,
-  InviteId,
-  LessonId,
-  UserId,
-} from "./ids";
+import type { ChatThreadId, CourseId, EventId, LessonId, UserId } from "./ids";
 
 const EVENT_TYPES = [
-  "invite_issued",
-  "invite_redeemed",
   "magic_link_sent",
   "magic_link_verified",
   "course_selected",
@@ -40,16 +31,6 @@ const EVENT_TYPES = [
 ] as const;
 
 type EventType = (typeof EVENT_TYPES)[number];
-
-type InviteIssuedMetadata = {
-  inviteId: InviteId;
-  createdBy: UserId;
-};
-
-type InviteRedeemedMetadata = {
-  inviteId: InviteId;
-  redeemedBy: UserId;
-};
 
 type MagicLinkSentMetadata = {
   emailHash: string;
@@ -162,8 +143,6 @@ type FeedbackDismissedMetadata = {
 };
 
 type EventMetadataMap = {
-  invite_issued: InviteIssuedMetadata;
-  invite_redeemed: InviteRedeemedMetadata;
   magic_link_sent: MagicLinkSentMetadata;
   magic_link_verified: MagicLinkVerifiedMetadata;
   course_selected: CourseSelectedMetadata;
@@ -228,14 +207,6 @@ const isStr = (val: string | number | boolean | undefined): val is string =>
   typeof val === "string" && val.length > 0;
 
 const EVENT_METADATA_VALIDATORS: Record<EventType, EventMetadataValidator> = {
-  invite_issued: (metadata) =>
-    isStr(metadata.inviteId) && isStr(metadata.createdBy)
-      ? { ok: true }
-      : invalidEventMetadata(),
-  invite_redeemed: (metadata) =>
-    isStr(metadata.inviteId) && isStr(metadata.redeemedBy)
-      ? { ok: true }
-      : invalidEventMetadata(),
   magic_link_sent: (metadata) =>
     isStr(metadata.emailHash) ? { ok: true } : invalidEventMetadata(),
   magic_link_verified: (metadata) =>
