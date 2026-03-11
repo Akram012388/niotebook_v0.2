@@ -38,7 +38,7 @@ type UserInfo = {
   role: string | null;
 };
 
-type SettingsRoute = "share" | "feedback" | "api-keys";
+type SettingsRoute = "share" | "feedback" | "api-keys" | "user";
 
 type ControlCenterDrawerProps = {
   isOpen: boolean;
@@ -88,13 +88,11 @@ const ControlCenterDrawer = ({
   const [activeTab, setActiveTab] = useState<"lectures" | "courses">(
     "lectures",
   );
-  const [panelView, setPanelView] = useState<"content" | "user" | "settings">(
-    "content",
-  );
+  const [panelView, setPanelView] = useState<"content" | "settings">("content");
   const [lectureQuery, setLectureQuery] = useState("");
   const [courseQuery, setCourseQuery] = useState("");
   const [activeSettingsCard, setActiveSettingsCard] = useState<
-    "share" | "feedback" | "api-keys" | null
+    "share" | "feedback" | "api-keys" | "user" | null
   >(null);
 
   // When the drawer opens with an initial settings card route, navigate directly to it.
@@ -184,7 +182,7 @@ const ControlCenterDrawer = ({
     setActiveSettingsCard(null);
   };
 
-  const handlePanelToggle = (next: "user" | "settings"): void => {
+  const handlePanelToggle = (next: "settings"): void => {
     setPanelView((prev) => {
       const nextView = prev === next ? "content" : next;
       if (nextView !== "settings") {
@@ -195,7 +193,7 @@ const ControlCenterDrawer = ({
   };
 
   const handleSettingsCardToggle = (
-    next: "share" | "feedback" | "api-keys",
+    next: "share" | "feedback" | "api-keys" | "user",
   ): void => {
     setActiveSettingsCard((prev) => {
       const nextState = prev === next ? null : next;
@@ -325,7 +323,7 @@ const ControlCenterDrawer = ({
               type="button"
               onClick={() => handleTabChange("lectures")}
               className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
-                activeTab === "lectures"
+                activeTab === "lectures" && panelView === "content"
                   ? "border-accent bg-accent text-white"
                   : "border-transparent text-text-muted hover:bg-surface-muted"
               }`}
@@ -337,13 +335,25 @@ const ControlCenterDrawer = ({
               type="button"
               onClick={() => handleTabChange("courses")}
               className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
-                activeTab === "courses"
+                activeTab === "courses" && panelView === "content"
                   ? "border-accent bg-accent text-white"
                   : "border-transparent text-text-muted hover:bg-surface-muted"
               }`}
             >
               <Stack size={14} weight="regular" />
               Courses
+            </button>
+            <button
+              type="button"
+              onClick={() => handlePanelToggle("settings")}
+              className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
+                panelView === "settings"
+                  ? "border-accent bg-accent text-white"
+                  : "border-transparent text-text-muted hover:bg-surface-muted"
+              }`}
+            >
+              <Gear size={14} weight="regular" />
+              Settings
             </button>
           </div>
           <div className="flex min-h-0 flex-1 flex-col">
@@ -486,6 +496,47 @@ const ControlCenterDrawer = ({
                   <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
                     Actions
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSettingsCardToggle("user")}
+                    className={`flex items-center justify-between rounded-xl border border-border px-3 py-2 text-xs font-medium transition ${
+                      activeSettingsCard === "user"
+                        ? "bg-accent text-white border-accent"
+                        : "bg-surface-muted text-text-muted hover:bg-surface hover:text-foreground"
+                    }`}
+                  >
+                    <span>Account</span>
+                    <UserCircle size={14} weight="regular" />
+                  </button>
+                  {activeSettingsCard === "user" ? (
+                    <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface-muted px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <UserCircle
+                          size={28}
+                          weight="regular"
+                          className="text-text-muted"
+                        />
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-medium text-foreground">
+                            {userInfo?.email ?? "—"}
+                          </span>
+                          <span className="text-[10px] uppercase tracking-[0.08em] text-text-subtle">
+                            {userInfo?.role ?? "user"}
+                          </span>
+                        </div>
+                      </div>
+                      {onSignOut ? (
+                        <button
+                          type="button"
+                          onClick={onSignOut}
+                          className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface-muted hover:text-foreground"
+                        >
+                          <SignOut size={14} weight="regular" />
+                          Sign out
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => handleSettingsCardToggle("api-keys")}
@@ -722,67 +773,8 @@ const ControlCenterDrawer = ({
                       </div>
                     </div>
                   ) : null}
-                  <div className="rounded-xl border border-dashed border-border bg-surface-muted px-3 py-3 text-xs text-text-muted">
-                    More settings coming soon.
-                  </div>
                 </div>
-              ) : (
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted px-4 py-4">
-                    <UserCircle
-                      size={28}
-                      weight="regular"
-                      className="text-text-muted"
-                    />
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-sm font-medium text-foreground">
-                        {userInfo?.email ?? "—"}
-                      </span>
-                      <span className="text-[10px] uppercase tracking-[0.08em] text-text-subtle">
-                        {userInfo?.role ?? "user"}
-                      </span>
-                    </div>
-                  </div>
-                  {onSignOut ? (
-                    <button
-                      type="button"
-                      onClick={onSignOut}
-                      className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-medium text-text-muted transition hover:bg-surface hover:text-foreground"
-                    >
-                      <SignOut size={14} weight="regular" />
-                      Sign out
-                    </button>
-                  ) : null}
-                </div>
-              )}
-            </div>
-            <div className="border-t border-border bg-surface px-3 py-2">
-              <div className="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => handlePanelToggle("user")}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
-                    panelView === "user"
-                      ? "border-accent bg-accent text-white"
-                      : "border-transparent text-text-muted hover:bg-surface-muted"
-                  }`}
-                >
-                  <UserCircle size={14} weight="regular" />
-                  User
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handlePanelToggle("settings")}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition ${
-                    panelView === "settings"
-                      ? "border-accent bg-accent text-white"
-                      : "border-transparent text-text-muted hover:bg-surface-muted"
-                  }`}
-                >
-                  <Gear size={14} weight="regular" />
-                  Settings
-                </button>
-              </div>
+              ) : null}
             </div>
           </div>
         </div>
