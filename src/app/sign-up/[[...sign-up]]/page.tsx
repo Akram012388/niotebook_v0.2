@@ -11,7 +11,7 @@ const SignUpPage = (): ReactElement => {
     <MobileGate>
       <AuthShell
         title="Create your account"
-        subtitle="Complete the invite flow with your email code to enter the alpha."
+        subtitle="Create your free account to get started."
       >
         <SignUp
           appearance={clerkAppearance}

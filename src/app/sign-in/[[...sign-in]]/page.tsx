@@ -54,7 +54,7 @@ const SignInPage = (): ReactElement => {
     <MobileGate>
       <AuthShell
         title="Sign in"
-        subtitle="Niotebook alpha is invite-only. Use the email code from your invite to continue."
+        subtitle="Welcome back. Sign in to continue."
         sideContent={
           <motion.div className="flex flex-1" {...fadeUpSlow(0.3)}>
             <BootSequence />
