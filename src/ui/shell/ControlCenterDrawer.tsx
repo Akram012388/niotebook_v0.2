@@ -314,10 +314,10 @@ const ControlCenterDrawer = ({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-border bg-surface-muted p-1.5 text-text-muted transition hover:bg-surface"
+              className="rounded-full border border-border bg-surface-muted p-1 text-text-subtle transition hover:text-text-muted hover:bg-surface"
               aria-label="Close control center"
             >
-              <X size={14} weight="regular" />
+              <X size={12} weight="regular" />
             </button>
           </div>
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
