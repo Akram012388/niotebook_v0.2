@@ -11,6 +11,7 @@ import {
 import { useAuthToken } from "@/infra/auth/authTokenContext";
 import { useMutation, useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
+import { api } from "../../../convex/_generated/api";
 import type { ChatMessageSummary, ChatThreadSummary } from "../../domain/chat";
 import { orderChatMessages } from "../../domain/chat";
 import type { NioChatRequest } from "../../domain/nio";
@@ -145,6 +146,21 @@ const useChatThread = (
   const [streamError, setStreamError] = useState<string | null>(null);
   const [noApiKey, setNoApiKey] = useState(false);
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
+
+  // Reactively clear noApiKey when the user adds an API key without refreshing.
+  // listHints returns an entry for every stored key, so any non-empty result
+  // means the user now has at least one key configured.
+  const apiKeyHints = useQuery(
+    api.userApiKeys.listHints,
+    isConvexEnabled ? undefined : "skip",
+  );
+  const hasApiKey = (apiKeyHints?.length ?? 0) > 0;
+  useEffect(() => {
+    if (noApiKey && hasApiKey) {
+      setNoApiKey(false);
+      setStreamError(null);
+    }
+  }, [noApiKey, hasApiKey]);
 
   const thread = useQuery(
     getChatThreadRef,
