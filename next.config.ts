@@ -63,10 +63,10 @@ const nextConfig: NextConfig = {
         key: "Content-Security-Policy",
         value: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.clerk.accounts.dev",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.clerk.accounts.dev https://www.youtube.com https://s.ytimg.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
           "font-src 'self' https://fonts.gstatic.com",
-          "img-src 'self' data: blob: https://*.clerk.com https://img.clerk.com https://i.ytimg.com",
+          "img-src 'self' data: blob: https://*.clerk.com https://img.clerk.com https://*.ytimg.com",
           "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://*.clerk.accounts.dev https://generativelanguage.googleapis.com https://api.groq.com https://api.openai.com https://api.anthropic.com https://*.public.blob.vercel-storage.com",
           "frame-src https://www.youtube.com https://www.youtube-nocookie.com 'self'",
           "worker-src 'self' blob:",
