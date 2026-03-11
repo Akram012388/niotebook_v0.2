@@ -247,10 +247,10 @@ export default function InfoPage(): ReactElement {
               when.
             </p>
             <p>
-              The platform is currently in alpha. Early access users are helping
-              shape the product, and feedback directly influences what ships
-              next. A structured changelog with versioned entries is coming as
-              the release cadence stabilizes.
+              The platform is currently in open beta. Early access users are
+              helping shape the product, and feedback directly influences what
+              ships next. A structured changelog with versioned entries is
+              coming as the release cadence stabilizes.
             </p>
           </div>
         </section>
@@ -271,7 +271,7 @@ export default function InfoPage(): ReactElement {
               code execution handled by in-browser runtimes.
             </p>
             <p>
-              During the alpha phase, occasional downtime may occur as
+              During the beta phase, occasional downtime may occur as
               infrastructure is tuned and new features are deployed. A dedicated
               status page with real-time incident tracking and uptime metrics
               will be published as the platform approaches general availability.
@@ -316,8 +316,7 @@ export default function InfoPage(): ReactElement {
                 You must create an account to access Niotebook. You are
                 responsible for maintaining the confidentiality of your account
                 credentials and for all activity that occurs under your account.
-                The Service is currently in an invite-only alpha phase; access
-                may be revoked at our discretion during this period.
+                Access may be revoked at our discretion.
               </p>
             </div>
 
@@ -356,7 +355,7 @@ export default function InfoPage(): ReactElement {
                 The Service is provided &ldquo;as is&rdquo; without warranties
                 of any kind, either express or implied. Niotebook shall not be
                 liable for any indirect, incidental, special, or consequential
-                damages arising from your use of the Service. During the alpha
+                damages arising from your use of the Service. During the beta
                 phase, data loss or service interruptions may occur.
               </p>
             </div>
