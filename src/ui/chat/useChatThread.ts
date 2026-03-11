@@ -11,6 +11,7 @@ import {
 import { useAuthToken } from "@/infra/auth/authTokenContext";
 import { useMutation, useQuery } from "convex/react";
 import { makeFunctionReference } from "convex/server";
+import { api } from "../../../convex/_generated/api";
 import type { ChatMessageSummary, ChatThreadSummary } from "../../domain/chat";
 import { orderChatMessages } from "../../domain/chat";
 import type { NioChatRequest } from "../../domain/nio";
@@ -145,6 +146,30 @@ const useChatThread = (
   const [streamError, setStreamError] = useState<string | null>(null);
   const [noApiKey, setNoApiKey] = useState(false);
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
+
+  // Reactively clear noApiKey when the user *adds* an API key without refreshing.
+  // We track the previous count and only clear on a 0 → 1+ transition so that
+  // a server-side NO_API_KEY error (e.g. decryption failure, expired key) is
+  // never silently dismissed just because a hint already exists in Convex.
+  //
+  // At the moment the clear fires, noApiKey is true and streamError holds the
+  // NO_API_KEY SSE message — the only path that sets noApiKey=true is the SSE
+  // error handler (lines ~520-521), which also calls setStreamError with the
+  // same event.message on the next line, so nulling streamError here is safe.
+  const apiKeyHints = useQuery(
+    api.userApiKeys.listHints,
+    isConvexEnabled ? undefined : "skip",
+  );
+  const apiKeyCount = apiKeyHints?.length ?? 0;
+  const prevApiKeyCountRef = useRef(0);
+  useEffect(() => {
+    const prevCount = prevApiKeyCountRef.current;
+    prevApiKeyCountRef.current = apiKeyCount;
+    if (noApiKey && prevCount === 0 && apiKeyCount > 0) {
+      setNoApiKey(false);
+      setStreamError(null);
+    }
+  }, [noApiKey, apiKeyCount]);
 
   const thread = useQuery(
     getChatThreadRef,
