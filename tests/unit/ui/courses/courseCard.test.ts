@@ -139,6 +139,32 @@ describe("CourseCard", () => {
       );
       expect(screen.queryByText(/% complete/)).toBeNull();
     });
+
+    it("renders em-dash when lessonCount is undefined (loading state)", () => {
+      render(
+        createElement(CourseCard, {
+          id: courseId,
+          title: "CS50x",
+          lessonCount: undefined,
+          variant: "active",
+        }),
+      );
+      expect(screen.getByText("—")).toBeDefined();
+      expect(screen.queryByText(/lectures/)).toBeNull();
+    });
+
+    it("does not render progress bar when lessonCount is undefined with completions", () => {
+      render(
+        createElement(CourseCard, {
+          id: courseId,
+          title: "CS50x",
+          lessonCount: undefined,
+          completedCount: 3,
+          variant: "active",
+        }),
+      );
+      expect(screen.queryByText(/% complete/)).toBeNull();
+    });
   });
 
   describe("coming-soon variant", () => {

@@ -10,7 +10,7 @@ type CourseCardProps = {
   title: string;
   provider?: string;
   description?: string;
-  lessonCount: number;
+  lessonCount: number | undefined;
   completedCount?: number;
   license?: string;
   sourceUrl?: string;
@@ -45,7 +45,9 @@ const CourseCard = memo(function CourseCard({
   index = 0,
 }: CourseCardProps): ReactElement {
   const progressPct =
-    lessonCount > 0 ? Math.round((completedCount / lessonCount) * 100) : 0;
+    lessonCount && lessonCount > 0
+      ? Math.round((completedCount / lessonCount) * 100)
+      : 0;
 
   if (variant === "coming-soon") {
     return (
@@ -146,9 +148,11 @@ const CourseCard = memo(function CourseCard({
             )}
           </div>
           <span className="text-xs text-text-muted">
-            {lessonCount} lecture{lessonCount !== 1 ? "s" : ""}
+            {lessonCount !== undefined
+              ? `${lessonCount} lecture${lessonCount !== 1 ? "s" : ""}`
+              : "—"}
           </span>
-          {completedCount > 0 && (
+          {completedCount > 0 && lessonCount !== undefined && (
             <div className="flex flex-col gap-1">
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
                 <div
