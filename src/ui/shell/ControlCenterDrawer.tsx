@@ -114,6 +114,7 @@ const ControlCenterDrawer = ({
   const [feedbackCategories, setFeedbackCategories] = useState<string[]>([]);
   const [feedbackNotes, setFeedbackNotes] = useState("");
   const [copyConfirm, setCopyConfirm] = useState(false);
+  const shareUrlInputRef = useRef<HTMLInputElement>(null);
 
   const logEvent = useMutation(api.events.logEvent);
   const submitFeedbackMutation = useMutation(api.feedback.submit);
@@ -129,8 +130,9 @@ const ControlCenterDrawer = ({
         eventType: "share_copy",
         metadata: { surface: "control_center" },
       });
-    } catch {
-      // clipboard not available
+    } catch (err) {
+      console.error("[share] clipboard write failed:", err);
+      shareUrlInputRef.current?.select();
     }
   }, [shareUrl, logEvent]);
 
@@ -145,9 +147,14 @@ const ControlCenterDrawer = ({
         // user cancelled or share failed
       }
     } else {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopyConfirm(true);
-      setTimeout(() => setCopyConfirm(false), 2000);
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopyConfirm(true);
+        setTimeout(() => setCopyConfirm(false), 2000);
+      } catch (err) {
+        console.error("[share] clipboard write failed:", err);
+        shareUrlInputRef.current?.select();
+      }
     }
     void logEvent({
       eventType: "share_copy",
@@ -585,6 +592,7 @@ const ControlCenterDrawer = ({
                         </div>
                         <div className="flex items-center gap-2">
                           <input
+                            ref={shareUrlInputRef}
                             readOnly
                             value={shareUrl}
                             className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-xs text-foreground"
