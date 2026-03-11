@@ -147,20 +147,29 @@ const useChatThread = (
   const [noApiKey, setNoApiKey] = useState(false);
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
 
-  // Reactively clear noApiKey when the user adds an API key without refreshing.
-  // listHints returns an entry for every stored key, so any non-empty result
-  // means the user now has at least one key configured.
+  // Reactively clear noApiKey when the user *adds* an API key without refreshing.
+  // We track the previous count and only clear on a 0 → 1+ transition so that
+  // a server-side NO_API_KEY error (e.g. decryption failure, expired key) is
+  // never silently dismissed just because a hint already exists in Convex.
+  //
+  // At the moment the clear fires, noApiKey is true and streamError holds the
+  // NO_API_KEY SSE message — the only path that sets noApiKey=true is the SSE
+  // error handler (lines ~520-521), which also calls setStreamError with the
+  // same event.message on the next line, so nulling streamError here is safe.
   const apiKeyHints = useQuery(
     api.userApiKeys.listHints,
     isConvexEnabled ? undefined : "skip",
   );
-  const hasApiKey = (apiKeyHints?.length ?? 0) > 0;
+  const apiKeyCount = apiKeyHints?.length ?? 0;
+  const prevApiKeyCountRef = useRef(0);
   useEffect(() => {
-    if (noApiKey && hasApiKey) {
+    const prevCount = prevApiKeyCountRef.current;
+    prevApiKeyCountRef.current = apiKeyCount;
+    if (noApiKey && prevCount === 0 && apiKeyCount > 0) {
       setNoApiKey(false);
       setStreamError(null);
     }
-  }, [noApiKey, hasApiKey]);
+  }, [noApiKey, apiKeyCount]);
 
   const thread = useQuery(
     getChatThreadRef,
