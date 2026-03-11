@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { type ReactElement } from "react";
+import { useRef, useState, type ReactElement } from "react";
 import { motion } from "framer-motion";
 
 export function HeroSection(): ReactElement {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  function handlePlay() {
+    videoRef.current?.play();
+  }
+
   return (
     <section className="relative z-[2] flex flex-col items-center justify-center overflow-hidden px-6 sm:px-8 pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16">
       <div className="relative z-10 max-w-4xl mx-auto text-center">
@@ -102,14 +109,35 @@ export function HeroSection(): ReactElement {
         transition={{ duration: 0.8, delay: 1.1 }}
       >
         <video
+          ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover"
           src="https://bmsvebvrbefdj0lp.public.blob.vercel-storage.com/videos/niotebook-demo-v2-final-pCWph04qFrJSOUDTBpsSU5EThVfTXG.mp4"
-          autoPlay
+          preload="none"
           loop
           muted
           playsInline
           aria-label="Niotebook demo video showing the integrated learning environment"
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
         />
+        {!isPlaying && (
+          <button
+            onClick={handlePlay}
+            className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors group"
+            aria-label="Play demo video"
+          >
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-white/15 backdrop-blur-sm transition-transform duration-200 group-hover:scale-110">
+              <svg
+                className="ml-1 h-6 w-6 text-white"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </button>
+        )}
       </motion.div>
     </section>
   );
