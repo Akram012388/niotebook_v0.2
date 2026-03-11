@@ -69,7 +69,7 @@ export function HeroSection(): ReactElement {
           transition={{ duration: 0.6, delay: 0.9 }}
         >
           <Link
-            href="/workspace"
+            href="/sign-in"
             className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-accent text-accent-foreground hover:shadow-[0_0_30px_var(--accent-muted)]"
           >
             Start Learning

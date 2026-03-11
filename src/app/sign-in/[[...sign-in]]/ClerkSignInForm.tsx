@@ -22,7 +22,6 @@ export default function ClerkSignInForm(): ReactElement {
           appearance={clerkAppearance}
           routing="path"
           path="/sign-in"
-          signUpUrl=""
           fallbackRedirectUrl="/courses"
         />
       </div>

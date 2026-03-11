@@ -25,7 +25,9 @@ async function getClerkHandler(): Promise<NextMiddleware> {
     ]);
     cachedClerkHandler = clerkMiddleware(async (auth, request) => {
       if (isProtectedRoute(request)) {
-        await auth.protect();
+        await auth.protect({
+          unauthenticatedUrl: new URL("/sign-in", request.url).href,
+        });
       }
     }) as unknown as NextMiddleware;
   }
