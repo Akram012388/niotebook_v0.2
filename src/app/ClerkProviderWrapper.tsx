@@ -6,5 +6,13 @@ type ClerkProviderWrapperProps = {
 };
 
 export function ClerkProviderWrapper({ children }: ClerkProviderWrapperProps) {
-  return <ClerkProvider>{children}</ClerkProvider>;
+  return (
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignOutUrl="/"
+    >
+      {children}
+    </ClerkProvider>
+  );
 }
