@@ -176,7 +176,7 @@ function CoursesPage(): ReactElement {
                   title={course.title}
                   description={course.description}
                   provider="Harvard"
-                  lessonCount={lessonCounts?.[course.id as string] ?? 0}
+                  lessonCount={lessonCounts?.[course.id as string]}
                   completedCount={completionCounts?.[course.id as string] ?? 0}
                   license={course.license}
                   variant="active"

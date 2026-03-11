@@ -128,7 +128,7 @@ export function HeroSection(): ReactElement {
           >
             <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-white/15 backdrop-blur-sm transition-transform duration-200 group-hover:scale-110">
               <svg
-                className="ml-1 h-6 w-6 text-white"
+                className="h-6 w-6 text-white"
                 fill="currentColor"
                 viewBox="0 0 24 24"
                 aria-hidden="true"

@@ -190,8 +190,7 @@ function CourseDetailPage({ courseId }: CourseDetailPageProps): ReactElement {
           className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5"
           variants={lectureContainerVariants}
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          animate={lessons ? "visible" : "hidden"}
         >
           {(lessons ?? []).map((lesson, i) => {
             const isCompleted = completedLessonIds.has(lesson.id as string);
