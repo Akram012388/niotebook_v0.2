@@ -81,6 +81,7 @@ const schema = defineSchema({
     tokenIdentifier: v.string(),
     email: v.optional(v.string()),
     role: v.union(v.literal("admin"), v.literal("user")),
+    inviteBatchId: v.optional(v.string()),
     activeAiProvider: v.optional(
       v.union(v.literal("gemini"), v.literal("openai"), v.literal("anthropic")),
     ),
