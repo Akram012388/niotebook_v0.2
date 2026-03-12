@@ -13,8 +13,6 @@ type TranscriptSegmentId = DomainId<"transcriptSegments">;
 
 type UserId = DomainId<"users">;
 
-type InviteId = DomainId<"invites">;
-
 type FrameId = DomainId<"frames">;
 
 type CodeSnapshotId = DomainId<"codeSnapshots">;
@@ -36,7 +34,6 @@ export type {
   ChapterId,
   TranscriptSegmentId,
   UserId,
-  InviteId,
   FrameId,
   CodeSnapshotId,
   ChatThreadId,

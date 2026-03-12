@@ -25,14 +25,13 @@ Define baseline failure modes, degradation paths, and security rules for v0.2.
 
 ### Auth + roles
 
-- Alpha uses Clerk invite-only auth; invitations are managed in Clerk.
+- Open beta uses Clerk auth; signup is unrestricted (no allowlist).
 - Role enforcement is server-side in Convex mutations/queries.
 - Admin routes require explicit role check; guests never access workspace.
 - Guests cannot access course content or transcripts; content/transcript queries require authenticated identity.
 
 ### Rate limiting + abuse
 
-- Throttle invite redemption attempts only if custom invite-code flow returns.
 - Throttle AI requests: 20 requests/10 minutes/user.
 
 ### Prompt injection + AI safety

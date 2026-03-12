@@ -81,7 +81,6 @@ const schema = defineSchema({
     tokenIdentifier: v.string(),
     email: v.optional(v.string()),
     role: v.union(v.literal("admin"), v.literal("user")),
-    inviteBatchId: v.optional(v.string()),
     activeAiProvider: v.optional(
       v.union(v.literal("gemini"), v.literal("openai"), v.literal("anthropic")),
     ),
@@ -156,9 +155,6 @@ const schema = defineSchema({
     sessionId: v.optional(v.string()),
     type: v.string(),
     metadata: v.object({
-      inviteId: v.optional(v.string()),
-      createdBy: v.optional(v.id("users")),
-      redeemedBy: v.optional(v.id("users")),
       userId: v.optional(v.id("users")),
       emailHash: v.optional(v.string()),
       courseId: v.optional(v.id("courses")),
@@ -200,7 +196,6 @@ const schema = defineSchema({
   }).index("by_userId", ["userId"]),
   rateLimits: defineTable({
     scope: v.union(
-      v.literal("invite_redeem"),
       v.literal("ai_request"),
       v.literal("event_log"),
       v.literal("feedback"),

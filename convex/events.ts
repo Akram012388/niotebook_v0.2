@@ -33,9 +33,6 @@ const logEvent = mutation({
     lessonId: v.optional(v.id("lessons")),
     sessionId: v.optional(v.string()),
     metadata: v.object({
-      inviteId: v.optional(v.string()),
-      createdBy: v.optional(v.id("users")),
-      redeemedBy: v.optional(v.id("users")),
       userId: v.optional(v.id("users")),
       emailHash: v.optional(v.string()),
       courseId: v.optional(v.id("courses")),
