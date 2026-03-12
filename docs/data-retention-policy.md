@@ -17,7 +17,7 @@ Deletion trigger: Clerk webhook on account closure, or manual admin action via t
 
 ## 2. Event Logs (`events` table)
 
-Stores behavioral events such as code runs, video seeks, AI requests, and invite redemptions. Each row has a `createdAt` timestamp.
+Stores behavioral events such as code runs, video seeks, and AI requests. Each row has a `createdAt` timestamp.
 
 **Retention window:**
 
@@ -52,7 +52,7 @@ A thread with no remaining messages should be deleted in the same cleanup pass.
 
 ## 5. AI Rate Limits (`rateLimits` table)
 
-Stores rolling-window counters for three scopes: `invite_redeem`, `ai_request`, and `event_log`. Each row has a `windowStartMs` timestamp marking when the current window opened.
+Stores rolling-window counters for three scopes: `ai_request`, `event_log`, and `feedback`. Each row has a `windowStartMs` timestamp marking when the current window opened.
 
 **Retention window:** 24 hours. Rows whose window has expired are short-lived by design. A TTL cleanup cron (Wave 4) will delete expired buckets automatically. Until that cron is deployed, stale rows accumulate but are functionally inert — the application ignores buckets outside the current window.
 
@@ -122,7 +122,7 @@ When a user requests deletion of their data, the following must be removed:
 
 **Current process:** manual, performed by an admin via the Convex dashboard and the Clerk dashboard. There is no automated erasure API today.
 
-**Future:** an automated erasure mutation triggered by a Clerk `user.deleted` webhook is the intended implementation. This should be prioritized before scaling beyond the alpha cohort.
+**Future:** an automated erasure mutation triggered by a Clerk `user.deleted` webhook is the intended implementation. This should be prioritized before scaling beyond the current user base.
 
 Retention of anonymized aggregate data (e.g., aggregate course completion counts with no user linkage) is outside the scope of erasure.
 
