@@ -36,6 +36,11 @@ jobs:
     env:
       NEXT_PUBLIC_CONVEX_URL: ${{ secrets.DEV_CONVEX_URL }}
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      # Dependabot PRs cannot access repo secrets. When the Clerk key is
+      # missing, enable dev auth bypass so the build can prerender pages
+      # without Clerk. The bypass is blocked in production by next.config.ts.
+      NIOTEBOOK_DEV_AUTH_BYPASS: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY == '' && 'true' || '' }}
+      NIOTEBOOK_ALLOW_DEV_BYPASS_IN_DEV: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY == '' && 'true' || '' }}
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
