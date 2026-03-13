@@ -240,20 +240,34 @@ const NiotepadPanel = (): ReactElement => {
     const page = state.activePageId
       ? state.pages.find((p) => p.id === state.activePageId)
       : state.pages[0];
-    if (!page) return;
-    const md = buildPageMarkdown(page);
-    const filename = `niotepad-${slugify(page.title)}-${todayIso()}.md`;
-    downloadMarkdownFile(md, filename);
+    if (!page) {
+      console.warn("[niotepad] export page: no active page found");
+      return;
+    }
+    try {
+      const md = buildPageMarkdown(page);
+      const filename = `niotepad-${slugify(page.title)}-${todayIso()}.md`;
+      downloadMarkdownFile(md, filename);
+    } catch (err) {
+      console.error("[niotepad] export page failed", err);
+    }
   }, []);
 
   const handleExportAll = useCallback(() => {
     const state = useNiotepadStore.getState();
-    if (state.pages.length === 0) return;
-    // Try to derive course title from first page's title
-    const courseTitle = state.pages[0]?.title?.split(":")[0]?.trim();
-    const md = buildAllPagesMarkdown(state.pages, courseTitle);
-    const filename = `niotepad-all-${slugify(courseTitle || "notes")}-${todayIso()}.md`;
-    downloadMarkdownFile(md, filename);
+    if (state.pages.length === 0) {
+      console.warn("[niotepad] export all: no pages to export");
+      return;
+    }
+    try {
+      // Try to derive course title from first page's title
+      const courseTitle = state.pages[0]?.title?.split(":")[0]?.trim();
+      const md = buildAllPagesMarkdown(state.pages, courseTitle);
+      const filename = `niotepad-all-${slugify(courseTitle || "notes")}-${todayIso()}.md`;
+      downloadMarkdownFile(md, filename);
+    } catch (err) {
+      console.error("[niotepad] export all failed", err);
+    }
   }, []);
 
   // Focus trap: wrap Tab to keep focus inside the panel

@@ -6,9 +6,12 @@ const downloadMarkdownFile = (content: string, filename: string): void => {
   anchor.download = filename;
   anchor.style.display = "none";
   document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-  URL.revokeObjectURL(url);
+  try {
+    anchor.click();
+  } finally {
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }
 };
 
 export { downloadMarkdownFile };

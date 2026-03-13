@@ -106,6 +106,8 @@ const NiotepadDragHandle = memo(function NiotepadDragHandle({
           className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
           style={{ color: "var(--niotepad-text-muted)" }}
           aria-label="Export notes"
+          aria-haspopup="menu"
+          aria-expanded={isDropdownOpen}
         >
           <DownloadSimple size={14} weight="bold" />
         </button>
@@ -122,20 +124,12 @@ const NiotepadDragHandle = memo(function NiotepadDragHandle({
             <button
               type="button"
               role="menuitem"
-              className="w-full px-3 py-1.5 text-left text-[12px] transition hover:bg-accent/10"
+              className="w-full px-3 py-1.5 text-left text-[12px] transition hover:bg-accent/10 hover:text-foreground"
               style={{ color: "var(--niotepad-text-muted)" }}
               onClick={(e) => {
                 e.stopPropagation();
                 onExportPage();
                 setIsDropdownOpen(false);
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.color =
-                  "var(--foreground)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.color =
-                  "var(--niotepad-text-muted)";
               }}
             >
               Export Page
@@ -143,20 +137,12 @@ const NiotepadDragHandle = memo(function NiotepadDragHandle({
             <button
               type="button"
               role="menuitem"
-              className="w-full px-3 py-1.5 text-left text-[12px] transition hover:bg-accent/10"
+              className="w-full px-3 py-1.5 text-left text-[12px] transition hover:bg-accent/10 hover:text-foreground"
               style={{ color: "var(--niotepad-text-muted)" }}
               onClick={(e) => {
                 e.stopPropagation();
                 onExportAll();
                 setIsDropdownOpen(false);
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.color =
-                  "var(--foreground)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.color =
-                  "var(--niotepad-text-muted)";
               }}
             >
               Export All
