@@ -94,9 +94,7 @@ export function HeroSection(): ReactElement {
               />
             </svg>
           </Link>
-          <span className="text-xs text-text-subtle">
-            Free during beta · No credit card
-          </span>
+          <span className="text-xs text-text-subtle">Free and open source</span>
         </motion.div>
       </div>
 

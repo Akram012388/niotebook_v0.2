@@ -1,13 +1,15 @@
 "use client";
 
-import { memo, type ReactElement } from "react";
-import { X } from "@phosphor-icons/react";
+import { memo, useEffect, useRef, useState, type ReactElement } from "react";
+import { DownloadSimple, X } from "@phosphor-icons/react";
 
 interface NiotepadDragHandleProps {
   pageTitle?: string;
   entryCount: number;
   onClose: () => void;
   onPointerDown: (e: React.PointerEvent) => void;
+  onExportPage: () => void;
+  onExportAll: () => void;
 }
 
 const GripDots = (): ReactElement => (
@@ -34,7 +36,27 @@ const NiotepadDragHandle = memo(function NiotepadDragHandle({
   entryCount,
   onClose,
   onPointerDown,
+  onExportPage,
+  onExportAll,
 }: NiotepadDragHandleProps): ReactElement {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+    const handleMouseDown = (e: MouseEvent): void => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, [isDropdownOpen]);
+
   return (
     <div
       role="toolbar"
@@ -73,19 +95,74 @@ const NiotepadDragHandle = memo(function NiotepadDragHandle({
         )}
       </div>
 
-      {/* Right: close button */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onClose();
-        }}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-        style={{ color: "var(--niotepad-text-muted)" }}
-        aria-label="Close niotepad"
-      >
-        <X size={14} weight="bold" />
-      </button>
+      {/* Right: export + close buttons */}
+      <div ref={dropdownRef} className="relative flex items-center gap-1">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsDropdownOpen((prev) => !prev);
+          }}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          style={{ color: "var(--niotepad-text-muted)" }}
+          aria-label="Export notes"
+          aria-haspopup="menu"
+          aria-expanded={isDropdownOpen}
+        >
+          <DownloadSimple size={14} weight="bold" />
+        </button>
+
+        {isDropdownOpen && (
+          <div
+            role="menu"
+            className="absolute top-full right-0 z-10 mt-1 min-w-[140px] overflow-hidden rounded-lg border py-1 shadow-lg"
+            style={{
+              background: "var(--niotepad-header-bg)",
+              borderColor: "var(--niotepad-header-border)",
+            }}
+          >
+            <button
+              type="button"
+              role="menuitem"
+              className="w-full px-3 py-1.5 text-left text-[12px] transition hover:bg-accent/10 hover:text-foreground"
+              style={{ color: "var(--niotepad-text-muted)" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onExportPage();
+                setIsDropdownOpen(false);
+              }}
+            >
+              Export Page
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="w-full px-3 py-1.5 text-left text-[12px] transition hover:bg-accent/10 hover:text-foreground"
+              style={{ color: "var(--niotepad-text-muted)" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onExportAll();
+                setIsDropdownOpen(false);
+              }}
+            >
+              Export All
+            </button>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition hover:bg-accent/10 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          style={{ color: "var(--niotepad-text-muted)" }}
+          aria-label="Close niotepad"
+        >
+          <X size={14} weight="bold" />
+        </button>
+      </div>
     </div>
   );
 });
