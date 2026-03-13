@@ -28,7 +28,7 @@
     "prepare": "lefthook install",
     "setup": "bun install && cp -n .env.example .env.local && echo 'Ready. Edit .env.local then run: bun run dev:all'",
     "clean": "rm -rf .next node_modules .turbo",
-    "dev:all": "npx concurrently -n convex,next -c blue,green \"bun run dev:convex\" \"bun run dev\""
+    "dev:all": "concurrently -n convex,next -c blue,green \"bun run dev:convex\" \"bun run dev\""
   },
   "dependencies": {
     "@clerk/nextjs": "^6.37.0",
