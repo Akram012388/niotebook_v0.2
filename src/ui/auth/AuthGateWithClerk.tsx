@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, type ReactElement, type ReactNode } from "react";
-import { ClerkLoaded, SignedIn, SignedOut } from "@clerk/nextjs";
+import { ClerkLoaded, Show } from "@clerk/nextjs";
 import { useConvexAuth } from "convex/react";
 import { useRouter } from "next/navigation";
 import { AuthShell } from "./AuthShell";
@@ -35,10 +35,7 @@ export default function AuthGateWithClerk({
 
   return (
     <ClerkLoaded>
-      <SignedOut>
-        <RedirectToSignIn />
-      </SignedOut>
-      <SignedIn>
+      <Show when="signed-in" fallback={<RedirectToSignIn />}>
         {isLoading || !isAuthenticated ? (
           <AuthShell
             title="Preparing your workspace"
@@ -64,7 +61,7 @@ export default function AuthGateWithClerk({
             </div>
           </AuthShell>
         )}
-      </SignedIn>
+      </Show>
     </ClerkLoaded>
   );
 }
