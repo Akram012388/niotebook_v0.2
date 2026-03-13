@@ -55,6 +55,15 @@ describe("users — me", () => {
 
     expect(result).toBeNull();
   });
+
+  it("returns null for authenticated user not in DB", async () => {
+    const t = makeTestEnv();
+    // Don't seed any users — just provide identity
+    const result = await t
+      .withIdentity({ tokenIdentifier: "https://convex.test|unknown-user" })
+      .query(api.users.me, {});
+    expect(result).toBeNull();
+  });
 });
 
 describe("users — listAll", () => {

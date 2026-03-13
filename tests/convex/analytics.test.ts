@@ -80,6 +80,41 @@ describe("analytics — getActiveUsers", () => {
 
     expect(count).toBe(2);
   });
+
+  it("excludes events outside the time window", async () => {
+    const { t, userId } = await seedFixture();
+
+    const now = Date.now();
+    const ONE_HOUR = 3_600_000;
+    await t.run(async (ctx) => {
+      // Event 48 hours ago — outside the 24-hour window
+      await ctx.db.insert("events", {
+        userId,
+        type: "lesson_started",
+        metadata: {},
+        createdAt: now - 48 * ONE_HOUR,
+      });
+
+      // Event 1 hour ago — inside the 24-hour window
+      const user2 = await ctx.db.insert("users", {
+        tokenIdentifier: "https://convex.test|user2-window-test",
+        role: "user",
+      });
+      await ctx.db.insert("events", {
+        userId: user2,
+        type: "lesson_started",
+        metadata: {},
+        createdAt: now - ONE_HOUR,
+      });
+    });
+
+    const count = await t
+      .withIdentity({ tokenIdentifier: ADMIN_TOKEN })
+      .query(api.analytics.getActiveUsers, { timeWindowMs: 24 * ONE_HOUR });
+
+    // Only the recent event's user should be counted
+    expect(count).toBe(1);
+  });
 });
 
 describe("analytics — getSessionCount", () => {
