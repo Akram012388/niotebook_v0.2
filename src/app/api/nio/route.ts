@@ -2,6 +2,12 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../convex/_generated/api";
 import type { RateLimitDecision } from "../../../domain/rate-limits";
 import type { NioSseEvent } from "../../../domain/nio";
+import {
+  AuthError,
+  NioError,
+  RateLimitError,
+  ValidationError,
+} from "../../../domain/errors";
 import { buildNioContext } from "../../../domain/nioContextBuilder";
 import { NIO_SYSTEM_PROMPT } from "../../../domain/nioPrompt";
 import {
@@ -150,425 +156,419 @@ const consumeAiRateLimit = async (
 };
 
 export const POST = async (request: Request): Promise<Response> => {
-  let payload: unknown = null;
-
   try {
-    payload = await request.json();
-  } catch {
-    return buildJsonResponse(
-      {
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid JSON payload.",
-        },
-      },
-      400,
-    );
-  }
+    let payload: unknown = null;
 
-  const validation = validateNioChatRequest(payload);
+    try {
+      payload = await request.json();
+    } catch {
+      throw new ValidationError("Invalid JSON payload.");
+    }
 
-  if (!validation.ok) {
-    return buildJsonResponse(
-      {
-        error: {
-          code: "VALIDATION_ERROR",
-          message: validation.error,
-        },
-      },
-      400,
-    );
-  }
+    const validation = validateNioChatRequest(payload);
 
-  debugLog("nio request", {
-    requestId: validation.data.requestId,
-    stubMode: isStubPreview(),
-    disableConvex: process.env.NEXT_PUBLIC_DISABLE_CONVEX === "true",
-  });
+    if (!validation.ok) {
+      throw new ValidationError(validation.error);
+    }
 
-  const convexAuthHeader = resolveConvexAuthHeader(request);
+    debugLog("nio request", {
+      requestId: validation.data.requestId,
+      stubMode: isStubPreview(),
+      disableConvex: process.env.NEXT_PUBLIC_DISABLE_CONVEX === "true",
+    });
 
-  if (isConvexEnabled() && isConvexAuthRequired() && !convexAuthHeader) {
-    const isDev = process.env.NODE_ENV !== "production";
-    return buildJsonResponse(
-      {
-        error: {
-          code: "AUTH_REQUIRED",
-          message: isDev
-            ? "Authentication required. Set NIOTEBOOK_DEV_AUTH_BYPASS=true in .env.local for local development."
-            : "Authentication required for assistant requests.",
-        },
-      },
-      401,
-    );
-  }
+    const convexAuthHeader = resolveConvexAuthHeader(request);
 
-  const convexClient = createConvexClient(convexAuthHeader);
+    if (isConvexEnabled() && isConvexAuthRequired() && !convexAuthHeader) {
+      const isDev = process.env.NODE_ENV !== "production";
+      throw new AuthError(
+        isDev
+          ? "Authentication required. Set NIOTEBOOK_DEV_AUTH_BYPASS=true in .env.local for local development."
+          : "Authentication required for assistant requests.",
+      );
+    }
 
-  let rateLimitDecision: RateLimitDecision | null = null;
+    const convexClient = createConvexClient(convexAuthHeader);
 
-  try {
-    rateLimitDecision = await consumeAiRateLimit(convexClient);
-  } catch (error) {
-    console.error("[nio] rate limit check failed", error);
-    return buildJsonResponse(
-      {
-        error: {
-          code: "SERVICE_UNAVAILABLE",
-          message: "Service temporarily unavailable. Please try again.",
-        },
-      },
-      503,
-    );
-  }
+    let rateLimitDecision: RateLimitDecision | null = null;
 
-  if (rateLimitDecision && !rateLimitDecision.ok) {
-    const retryAfterMs = Math.max(rateLimitDecision.resetAtMs - Date.now(), 0);
+    try {
+      rateLimitDecision = await consumeAiRateLimit(convexClient);
+    } catch (error) {
+      console.error("[nio] rate limit check failed", error);
+      throw new NioError(
+        "SERVICE_UNAVAILABLE",
+        "Service temporarily unavailable. Please try again.",
+      );
+    }
 
-    return buildJsonResponse(
-      {
-        error: {
-          code: "RATE_LIMITED",
-          message: "Rate limit exceeded. Try again soon.",
-        },
+    if (rateLimitDecision && !rateLimitDecision.ok) {
+      const retryAfterMs = Math.max(
+        rateLimitDecision.resetAtMs - Date.now(),
+        0,
+      );
+      throw new RateLimitError(
+        "Rate limit exceeded. Try again soon.",
         retryAfterMs,
-      },
-      429,
-      {
-        "Retry-After": Math.ceil(retryAfterMs / 1000).toString(),
-      },
-    );
-  }
+      );
+    }
 
-  const sanitizedUser = neutralizePromptInjection(validation.data.userMessage);
-  const sanitizedHistory = validation.data.recentMessages.map((message) =>
-    message.role === "user"
+    const sanitizedUser = neutralizePromptInjection(
+      validation.data.userMessage,
+    );
+    const sanitizedHistory = validation.data.recentMessages.map((message) =>
+      message.role === "user"
+        ? {
+            ...message,
+            content: neutralizePromptInjection(message.content).text,
+          }
+        : message,
+    );
+
+    if (sanitizedUser.flagged) {
+      debugLog("prompt injection neutralized", {
+        requestId: validation.data.requestId,
+      });
+    }
+
+    let transcriptPayload = validation.data.transcript;
+
+    const hasTranscriptLines = transcriptPayload.lines.some(
+      (line) => line.trim().length > 0,
+    );
+
+    debugLog("transcript: client payload", {
+      requestId: validation.data.requestId,
+      lineCount: transcriptPayload.lines.length,
+      hasContent: hasTranscriptLines,
+      startSec: transcriptPayload.startSec,
+      endSec: transcriptPayload.endSec,
+    });
+
+    let lessonMeta: {
+      title?: string;
+      order?: number;
+      lectureNumber?: number;
+      subtitlesUrl?: string;
+      transcriptUrl?: string;
+      videoId?: string;
+    } | null = validation.data.lesson
       ? {
-          ...message,
-          content: neutralizePromptInjection(message.content).text,
+          title: validation.data.lesson.title,
+          lectureNumber: validation.data.lesson.lectureNumber,
+          subtitlesUrl: validation.data.lesson.subtitlesUrl,
+          transcriptUrl: validation.data.lesson.transcriptUrl,
         }
-      : message,
-  );
+      : null;
 
-  if (sanitizedUser.flagged) {
-    debugLog("prompt injection neutralized", {
-      requestId: validation.data.requestId,
-    });
-  }
+    // Always fetch lesson meta server-side to avoid stale client data
+    const needsTranscript = !hasTranscriptLines && isConvexEnabled();
+    const needsLessonMeta = isConvexEnabled();
 
-  let transcriptPayload = validation.data.transcript;
+    if (needsTranscript || needsLessonMeta) {
+      const [transcriptResult, lessonMetaResult] = await Promise.allSettled([
+        needsTranscript
+          ? fetchTranscriptWindow({
+              lessonId: validation.data.lessonId,
+              startSec: transcriptPayload.startSec,
+              endSec: transcriptPayload.endSec,
+              client: convexClient,
+            })
+          : Promise.resolve(null),
+        needsLessonMeta
+          ? fetchLessonMeta({
+              lessonId: validation.data.lessonId,
+              client: convexClient,
+            })
+          : Promise.resolve(null),
+      ]);
 
-  const hasTranscriptLines = transcriptPayload.lines.some(
-    (line) => line.trim().length > 0,
-  );
-
-  debugLog("transcript: client payload", {
-    requestId: validation.data.requestId,
-    lineCount: transcriptPayload.lines.length,
-    hasContent: hasTranscriptLines,
-    startSec: transcriptPayload.startSec,
-    endSec: transcriptPayload.endSec,
-  });
-
-  let lessonMeta: {
-    title?: string;
-    order?: number;
-    lectureNumber?: number;
-    subtitlesUrl?: string;
-    transcriptUrl?: string;
-    videoId?: string;
-  } | null = validation.data.lesson
-    ? {
-        title: validation.data.lesson.title,
-        lectureNumber: validation.data.lesson.lectureNumber,
-        subtitlesUrl: validation.data.lesson.subtitlesUrl,
-        transcriptUrl: validation.data.lesson.transcriptUrl,
+      if (transcriptResult.status === "fulfilled" && transcriptResult.value) {
+        const lines = transcriptResult.value;
+        debugLog("transcript: convex fetch result", {
+          requestId: validation.data.requestId,
+          lineCount: lines.length,
+        });
+        if (lines.length > 0) {
+          transcriptPayload = { ...transcriptPayload, lines };
+        }
+      } else if (transcriptResult.status === "rejected") {
+        console.error("[nio] transcript fetch failed", {
+          requestId: validation.data.requestId,
+          error:
+            transcriptResult.reason instanceof Error
+              ? transcriptResult.reason.message
+              : String(transcriptResult.reason),
+        });
       }
-    : null;
 
-  // Always fetch lesson meta server-side to avoid stale client data
-  const needsTranscript = !hasTranscriptLines && isConvexEnabled();
-  const needsLessonMeta = isConvexEnabled();
+      if (lessonMetaResult.status === "fulfilled" && lessonMetaResult.value) {
+        lessonMeta = lessonMetaResult.value;
+      } else if (lessonMetaResult.status === "rejected") {
+        console.error("[nio] lesson meta fetch failed", {
+          requestId: validation.data.requestId,
+          error:
+            lessonMetaResult.reason instanceof Error
+              ? lessonMetaResult.reason.message
+              : String(lessonMetaResult.reason),
+        });
+      }
+    }
 
-  if (needsTranscript || needsLessonMeta) {
-    const [transcriptResult, lessonMetaResult] = await Promise.allSettled([
-      needsTranscript
-        ? fetchTranscriptWindow({
-            lessonId: validation.data.lessonId,
-            startSec: transcriptPayload.startSec,
-            endSec: transcriptPayload.endSec,
-            client: convexClient,
-          })
-        : Promise.resolve(null),
-      needsLessonMeta
-        ? fetchLessonMeta({
-            lessonId: validation.data.lessonId,
-            client: convexClient,
-          })
-        : Promise.resolve(null),
-    ]);
+    if (lessonMeta && lessonMeta.lectureNumber === undefined) {
+      lessonMeta.lectureNumber =
+        resolveLectureNumber({
+          subtitlesUrl: lessonMeta.subtitlesUrl,
+          transcriptUrl: lessonMeta.transcriptUrl,
+          title: lessonMeta.title,
+          order: lessonMeta.order,
+        }) ?? undefined;
+    }
 
-    if (transcriptResult.status === "fulfilled" && transcriptResult.value) {
-      const lines = transcriptResult.value;
-      debugLog("transcript: convex fetch result", {
+    if (
+      !transcriptPayload.lines.some((line) => line.trim().length > 0) &&
+      lessonMeta?.subtitlesUrl
+    ) {
+      debugLog("transcript: attempting SRT fallback", {
         requestId: validation.data.requestId,
-        lineCount: lines.length,
+        subtitlesUrl: lessonMeta.subtitlesUrl,
       });
-      if (lines.length > 0) {
-        transcriptPayload = { ...transcriptPayload, lines };
+      try {
+        const lines = await fetchSubtitleWindow({
+          subtitlesUrl: lessonMeta.subtitlesUrl,
+          startSec: transcriptPayload.startSec,
+          endSec: transcriptPayload.endSec,
+        });
+        debugLog("transcript: SRT fallback result", {
+          requestId: validation.data.requestId,
+          lineCount: lines.length,
+        });
+        if (lines.length > 0) {
+          transcriptPayload = {
+            ...transcriptPayload,
+            lines,
+          };
+        }
+      } catch (err) {
+        debugLog("transcript: SRT fallback failed", {
+          requestId: validation.data.requestId,
+          subtitlesUrl: lessonMeta.subtitlesUrl,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
-    } else if (transcriptResult.status === "rejected") {
-      console.error("[nio] transcript fetch failed", {
+    } else if (
+      !transcriptPayload.lines.some((line) => line.trim().length > 0)
+    ) {
+      debugLog("transcript: no SRT fallback available", {
         requestId: validation.data.requestId,
-        error:
-          transcriptResult.reason instanceof Error
-            ? transcriptResult.reason.message
-            : String(transcriptResult.reason),
+        hasLessonMeta: Boolean(lessonMeta),
+        subtitlesUrl: lessonMeta?.subtitlesUrl ?? "none",
       });
     }
 
-    if (lessonMetaResult.status === "fulfilled" && lessonMetaResult.value) {
-      lessonMeta = lessonMetaResult.value;
-    } else if (lessonMetaResult.status === "rejected") {
-      console.error("[nio] lesson meta fetch failed", {
-        requestId: validation.data.requestId,
-        error:
-          lessonMetaResult.reason instanceof Error
-            ? lessonMetaResult.reason.message
-            : String(lessonMetaResult.reason),
-      });
-    }
-  }
-
-  if (lessonMeta && lessonMeta.lectureNumber === undefined) {
-    lessonMeta.lectureNumber =
-      resolveLectureNumber({
-        subtitlesUrl: lessonMeta.subtitlesUrl,
-        transcriptUrl: lessonMeta.transcriptUrl,
-        title: lessonMeta.title,
-        order: lessonMeta.order,
-      }) ?? undefined;
-  }
-
-  if (
-    !transcriptPayload.lines.some((line) => line.trim().length > 0) &&
-    lessonMeta?.subtitlesUrl
-  ) {
-    debugLog("transcript: attempting SRT fallback", {
-      requestId: validation.data.requestId,
-      subtitlesUrl: lessonMeta.subtitlesUrl,
-    });
-    try {
-      const lines = await fetchSubtitleWindow({
-        subtitlesUrl: lessonMeta.subtitlesUrl,
-        startSec: transcriptPayload.startSec,
-        endSec: transcriptPayload.endSec,
-      });
-      debugLog("transcript: SRT fallback result", {
-        requestId: validation.data.requestId,
-        lineCount: lines.length,
-      });
-      if (lines.length > 0) {
-        transcriptPayload = {
-          ...transcriptPayload,
-          lines,
-        };
-      }
-    } catch (err) {
-      debugLog("transcript: SRT fallback failed", {
-        requestId: validation.data.requestId,
-        subtitlesUrl: lessonMeta.subtitlesUrl,
-        error: err instanceof Error ? err.message : String(err),
-      });
-    }
-  } else if (!transcriptPayload.lines.some((line) => line.trim().length > 0)) {
-    debugLog("transcript: no SRT fallback available", {
-      requestId: validation.data.requestId,
-      hasLessonMeta: Boolean(lessonMeta),
-      subtitlesUrl: lessonMeta?.subtitlesUrl ?? "none",
-    });
-  }
-
-  // YouTube transcript fallback (for courses without SRT files, e.g. CS50R)
-  if (
-    !transcriptPayload.lines.some((line) => line.trim().length > 0) &&
-    lessonMeta?.videoId
-  ) {
-    debugLog("transcript: attempting YouTube fallback", {
-      requestId: validation.data.requestId,
-      videoId: lessonMeta.videoId,
-    });
-    try {
-      const lines = await fetchYoutubeTranscriptWindow({
-        videoId: lessonMeta.videoId,
-        startSec: transcriptPayload.startSec,
-        endSec: transcriptPayload.endSec,
-      });
-      debugLog("transcript: YouTube fallback result", {
-        requestId: validation.data.requestId,
-        lineCount: lines.length,
-      });
-      if (lines.length > 0) {
-        transcriptPayload = { ...transcriptPayload, lines };
-      }
-    } catch (err) {
-      debugLog("transcript: YouTube fallback failed", {
+    // YouTube transcript fallback (for courses without SRT files, e.g. CS50R)
+    if (
+      !transcriptPayload.lines.some((line) => line.trim().length > 0) &&
+      lessonMeta?.videoId
+    ) {
+      debugLog("transcript: attempting YouTube fallback", {
         requestId: validation.data.requestId,
         videoId: lessonMeta.videoId,
-        error: err instanceof Error ? err.message : String(err),
+      });
+      try {
+        const lines = await fetchYoutubeTranscriptWindow({
+          videoId: lessonMeta.videoId,
+          startSec: transcriptPayload.startSec,
+          endSec: transcriptPayload.endSec,
+        });
+        debugLog("transcript: YouTube fallback result", {
+          requestId: validation.data.requestId,
+          lineCount: lines.length,
+        });
+        if (lines.length > 0) {
+          transcriptPayload = { ...transcriptPayload, lines };
+        }
+      } catch (err) {
+        debugLog("transcript: YouTube fallback failed", {
+          requestId: validation.data.requestId,
+          videoId: lessonMeta.videoId,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+
+    if (!transcriptPayload.lines.some((line) => line.trim().length > 0)) {
+      console.warn("[nio] all transcript sources empty", {
+        requestId: validation.data.requestId,
+        lessonId: validation.data.lessonId,
+        clientLines: validation.data.transcript.lines.length,
+        subtitlesUrl: lessonMeta?.subtitlesUrl ?? "none",
       });
     }
-  }
 
-  if (!transcriptPayload.lines.some((line) => line.trim().length > 0)) {
-    console.warn("[nio] all transcript sources empty", {
-      requestId: validation.data.requestId,
+    const contextResult = buildNioContext({
+      systemPrompt: NIO_SYSTEM_PROMPT,
       lessonId: validation.data.lessonId,
-      clientLines: validation.data.transcript.lines.length,
-      subtitlesUrl: lessonMeta?.subtitlesUrl ?? "none",
+      lessonTitle: lessonMeta?.title,
+      lectureNumber: lessonMeta?.lectureNumber,
+      videoTimeSec: validation.data.videoTimeSec,
+      transcript: transcriptPayload,
+      code: validation.data.code,
+      recentMessages: sanitizedHistory,
+      userMessage: sanitizedUser.text,
+      lastError: validation.data.lastError,
     });
-  }
 
-  const contextResult = buildNioContext({
-    systemPrompt: NIO_SYSTEM_PROMPT,
-    lessonId: validation.data.lessonId,
-    lessonTitle: lessonMeta?.title,
-    lectureNumber: lessonMeta?.lectureNumber,
-    videoTimeSec: validation.data.videoTimeSec,
-    transcript: transcriptPayload,
-    code: validation.data.code,
-    recentMessages: sanitizedHistory,
-    userMessage: sanitizedUser.text,
-    lastError: validation.data.lastError,
-  });
+    if (!contextResult.ok) {
+      throw new ValidationError(contextResult.message);
+    }
 
-  if (!contextResult.ok) {
-    return buildJsonResponse(
-      {
-        error: {
-          code: contextResult.code,
-          message: contextResult.message,
-        },
-      },
-      400,
-    );
-  }
+    const contextHash = await hashString(contextResult.contextText);
+    const assistantTimeWindow = {
+      startSec: Math.max(0, validation.data.videoTimeSec - 60),
+      endSec: validation.data.videoTimeSec + 60,
+    };
 
-  const contextHash = await hashString(contextResult.contextText);
-  const assistantTimeWindow = {
-    startSec: Math.max(0, validation.data.videoTimeSec - 60),
-    endSec: validation.data.videoTimeSec + 60,
-  };
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        const encoder = new TextEncoder();
+        let aborted = false;
+        let closed = false;
+        let lastSeq = 0;
 
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      const encoder = new TextEncoder();
-      let aborted = false;
-      let closed = false;
-      let lastSeq = 0;
+        const enqueue = (event: NioSseEvent): void => {
+          if (closed || aborted) {
+            return;
+          }
 
-      const enqueue = (event: NioSseEvent): void => {
-        if (closed || aborted) {
-          return;
-        }
+          if (event.type !== "meta") {
+            lastSeq = event.seq;
+          }
 
-        if (event.type !== "meta") {
-          lastSeq = event.seq;
-        }
+          controller.enqueue(encoder.encode(encodeSseEvent(event)));
+        };
 
-        controller.enqueue(encoder.encode(encodeSseEvent(event)));
-      };
+        const close = (): void => {
+          if (closed) {
+            return;
+          }
 
-      const close = (): void => {
-        if (closed) {
-          return;
-        }
+          closed = true;
+          controller.close();
+        };
 
-        closed = true;
-        controller.close();
-      };
+        const abort = (): void => {
+          clearTimeout(streamTimeoutHandle);
+          aborted = true;
+          close();
+        };
 
-      const abort = (): void => {
-        clearTimeout(streamTimeoutHandle);
-        aborted = true;
-        close();
-      };
+        request.signal.addEventListener("abort", abort);
 
-      request.signal.addEventListener("abort", abort);
+        const run = async (): Promise<void> => {
+          if (isStubPreview()) {
+            await streamStub({
+              requestId: validation.data.requestId,
+              assistantTempId: validation.data.assistantTempId,
+              contextHash,
+              inputChars: contextResult.inputChars,
+              budget: contextResult.budget,
+              threadId: validation.data.threadId,
+              videoTimeSec: validation.data.videoTimeSec,
+              timeWindow: assistantTimeWindow,
+              codeHash: validation.data.code.codeHash,
+              client: convexClient,
+              enqueue,
+              isAborted: () => aborted,
+            });
+            close();
+            return;
+          }
 
-      const run = async (): Promise<void> => {
-        if (isStubPreview()) {
-          await streamStub({
+          await streamWithByok({
             requestId: validation.data.requestId,
             assistantTempId: validation.data.assistantTempId,
             contextHash,
             inputChars: contextResult.inputChars,
             budget: contextResult.budget,
             threadId: validation.data.threadId,
+            lessonId: validation.data.lessonId,
             videoTimeSec: validation.data.videoTimeSec,
             timeWindow: assistantTimeWindow,
             codeHash: validation.data.code.codeHash,
+            messages: contextResult.messages,
             client: convexClient,
             enqueue,
             isAborted: () => aborted,
           });
           close();
-          return;
-        }
+        };
 
-        await streamWithByok({
-          requestId: validation.data.requestId,
-          assistantTempId: validation.data.assistantTempId,
-          contextHash,
-          inputChars: contextResult.inputChars,
-          budget: contextResult.budget,
-          threadId: validation.data.threadId,
-          lessonId: validation.data.lessonId,
-          videoTimeSec: validation.data.videoTimeSec,
-          timeWindow: assistantTimeWindow,
-          codeHash: validation.data.code.codeHash,
-          messages: contextResult.messages,
-          client: convexClient,
-          enqueue,
-          isAborted: () => aborted,
+        let streamTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
+        const streamTimeoutPromise = new Promise<never>((_, reject) => {
+          streamTimeoutHandle = setTimeout(
+            () => reject(new Error("Stream body timeout")),
+            120_000,
+          );
         });
-        close();
-      };
 
-      let streamTimeoutHandle: ReturnType<typeof setTimeout> | undefined;
-      const streamTimeoutPromise = new Promise<never>((_, reject) => {
-        streamTimeoutHandle = setTimeout(
-          () => reject(new Error("Stream body timeout")),
-          120_000,
-        );
-      });
-
-      Promise.race([
-        run().finally(() => {
-          clearTimeout(streamTimeoutHandle);
-        }),
-        streamTimeoutPromise,
-      ]).catch(() => {
-        enqueue({
-          type: "error",
-          requestId: validation.data.requestId,
-          assistantTempId: validation.data.assistantTempId,
-          seq: Math.max(1, lastSeq + 1),
-          code: "STREAM_ERROR",
-          message: "Streaming failed unexpectedly.",
+        Promise.race([
+          run().finally(() => {
+            clearTimeout(streamTimeoutHandle);
+          }),
+          streamTimeoutPromise,
+        ]).catch(() => {
+          enqueue({
+            type: "error",
+            requestId: validation.data.requestId,
+            assistantTempId: validation.data.assistantTempId,
+            seq: Math.max(1, lastSeq + 1),
+            code: "STREAM_ERROR",
+            message: "Streaming failed unexpectedly.",
+          });
+          close();
         });
-        close();
-      });
-    },
-    cancel() {
-      return;
-    },
-  });
+      },
+      cancel() {
+        return;
+      },
+    });
 
-  return new Response(stream, {
-    status: 200,
-    headers: nioSseHeaders(),
-  });
+    return new Response(stream, {
+      status: 200,
+      headers: nioSseHeaders(),
+    });
+  } catch (error) {
+    if (error instanceof RateLimitError) {
+      return buildJsonResponse(
+        {
+          error: { code: error.code, message: error.message },
+          retryAfterMs: error.retryAfterMs,
+        },
+        429,
+        { "Retry-After": Math.ceil(error.retryAfterMs / 1000).toString() },
+      );
+    }
+    if (error instanceof AuthError) {
+      return buildJsonResponse(
+        { error: { code: error.code, message: error.message } },
+        401,
+      );
+    }
+    if (error instanceof ValidationError) {
+      return buildJsonResponse(
+        { error: { code: error.code, message: error.message } },
+        400,
+      );
+    }
+    if (error instanceof NioError) {
+      return buildJsonResponse(
+        { error: { code: error.code, message: error.message } },
+        503,
+      );
+    }
+    throw error; // Re-throw unexpected errors
+  }
 };
 
 export const OPTIONS = (): Response =>
