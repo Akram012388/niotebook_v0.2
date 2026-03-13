@@ -1,7 +1,9 @@
-class NioError extends Error {
-  readonly code: string;
+import type { NioErrorCode } from "./nio";
 
-  constructor(code: string, message: string) {
+class NioError extends Error {
+  readonly code: NioErrorCode;
+
+  constructor(code: NioErrorCode, message: string) {
     super(message);
     this.name = "NioError";
     this.code = code;

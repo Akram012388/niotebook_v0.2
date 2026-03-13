@@ -420,7 +420,7 @@ export const POST = async (request: Request): Promise<Response> => {
     });
 
     if (!contextResult.ok) {
-      throw new ValidationError(contextResult.message);
+      throw new NioError(contextResult.code, contextResult.message);
     }
 
     const contextHash = await hashString(contextResult.contextText);
@@ -517,7 +517,11 @@ export const POST = async (request: Request): Promise<Response> => {
             clearTimeout(streamTimeoutHandle);
           }),
           streamTimeoutPromise,
-        ]).catch(() => {
+        ]).catch((err) => {
+          console.error("[nio] stream failed", {
+            requestId: validation.data.requestId,
+            error: err instanceof Error ? err.message : String(err),
+          });
           enqueue({
             type: "error",
             requestId: validation.data.requestId,

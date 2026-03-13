@@ -7,25 +7,26 @@ type ErrorBoundaryProps = {
 };
 
 type ErrorBoundaryState = {
-  hasError: boolean;
+  error: Error | null;
 };
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { error: null };
   }
 
-  static getDerivedStateFromError(): ErrorBoundaryState {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error("[ErrorBoundary] Uncaught error:", error, errorInfo);
+    // TODO: Report to Sentry when client-side error tracking is configured
   }
 
   render(): ReactNode {
-    if (this.state.hasError) {
+    if (this.state.error) {
       return (
         <div
           style={{
@@ -44,7 +45,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             Something went wrong
           </h1>
           <p style={{ fontSize: "14px", opacity: 0.6 }}>
-            An unexpected error occurred. Please reload the page.
+            An unexpected error occurred. Please reload the page. If the problem
+            persists, try clearing your browser cache.
           </p>
           <button
             type="button"
