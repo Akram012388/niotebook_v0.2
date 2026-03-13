@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono, Orbitron } from "next/font/google";
+import { ErrorBoundary } from "@/ui/shared/ErrorBoundary";
 import { Providers } from "./providers";
 import { DevAuthBypassProvider } from "./DevAuthBypassProvider";
 import "./globals.css";
@@ -101,7 +102,9 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       >
         <AuthWrapper>
           <DevAuthBypassProvider bypassEnabled={isDevBypass}>
-            <Providers>{children}</Providers>
+            <ErrorBoundary>
+              <Providers>{children}</Providers>
+            </ErrorBoundary>
           </DevAuthBypassProvider>
         </AuthWrapper>
       </body>
