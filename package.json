@@ -25,7 +25,10 @@
     "check:unknown": "bun run scripts/check-forbidden.ts unknown src/domain",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "setup": "bun install && cp -n .env.example .env.local && echo 'Ready. Edit .env.local then run: bun run dev:all'",
+    "clean": "rm -rf .next node_modules .turbo",
+    "dev:all": "npx concurrently -n convex,next -c blue,green \"bun run dev:convex\" \"bun run dev\""
   },
   "dependencies": {
     "@clerk/nextjs": "^6.37.0",
@@ -74,6 +77,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "convex-test": "^0.0.41",
     "eslint": "^9",
     "eslint-config-next": "16.1.2",
