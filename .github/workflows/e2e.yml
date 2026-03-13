@@ -106,7 +106,7 @@ jobs:
       NIOTEBOOK_E2E_SEED_PATH: .e2e-seed.json
       E2E_USE_WEBSERVER: "false"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.preflight.outputs.checkout_ref }}
       - uses: oven-sh/setup-bun@v2
