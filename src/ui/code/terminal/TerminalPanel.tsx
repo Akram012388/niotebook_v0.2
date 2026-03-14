@@ -34,15 +34,17 @@ const TerminalPanel = ({
       actionsDisabled={actionsDisabled}
     />
     <div id="niotebook-runtime-frame" className="h-48" />
-    {/* overflow-hidden is required so xterm.js v6 handles scrollback
-         internally via its overlay scrollbar. overflow-auto would let this
-         container scroll, breaking FitAddon row calculation and auto-scroll.
-         p-2 (not p-4) maximises usable terminal area within the split pane. */}
+    {/* relative + overflow-hidden container with absolute-inset child
+         gives xterm.js v6 a pixel-exact bounding box for FitAddon.fit()
+         and its overlay scrollbar. Without this, the flex chain can leave
+         the .xterm element with no resolved height, breaking scroll. */}
     <div
-      className="min-h-0 flex-1 overflow-hidden p-2"
+      className="relative min-h-0 flex-1 overflow-hidden"
       style={{ background: "#0A0A0A" }}
     >
-      <XTermView />
+      <div className="absolute inset-0 p-2">
+        <XTermView />
+      </div>
     </div>
   </div>
 );
