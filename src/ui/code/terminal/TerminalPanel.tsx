@@ -34,17 +34,11 @@ const TerminalPanel = ({
       actionsDisabled={actionsDisabled}
     />
     <div id="niotebook-runtime-frame" className="h-48" />
-    {/* relative + overflow-hidden container with absolute-inset child
-         gives xterm.js v6 a pixel-exact bounding box for FitAddon.fit()
-         and its overlay scrollbar. Without this, the flex chain can leave
-         the .xterm element with no resolved height, breaking scroll. */}
     <div
-      className="relative min-h-0 flex-1 overflow-hidden"
+      className="min-h-0 flex-1 overflow-hidden p-4"
       style={{ background: "#0A0A0A" }}
     >
-      <div className="absolute inset-0 p-2">
-        <XTermView />
-      </div>
+      <XTermView />
     </div>
   </div>
 );
