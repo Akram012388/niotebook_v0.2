@@ -26,7 +26,10 @@ const CodeMirrorEditor = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onStateChangeRef = useRef(onStateChange);
-  onStateChangeRef.current = onStateChange;
+
+  useEffect(() => {
+    onStateChangeRef.current = onStateChange;
+  }, [onStateChange]);
 
   // Create the EditorView once on mount
   useEffect(() => {

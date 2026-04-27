@@ -64,15 +64,20 @@ type RootLayoutProps = {
   children: ReactNode;
 };
 
+const PassthroughAuthWrapper = ({
+  children,
+}: {
+  children: ReactNode;
+}): ReactNode => children;
+
 export default async function RootLayout({ children }: RootLayoutProps) {
   const isE2ePreview = process.env.NEXT_PUBLIC_NIOTEBOOK_E2E_PREVIEW === "true";
   const isDevBypass = process.env.NIOTEBOOK_DEV_AUTH_BYPASS === "true";
 
   // Dynamic import — @clerk/nextjs requires CLERK_SECRET_KEY at module init.
   // When dev auth bypass is active, skip the import entirely to avoid errors.
-  let AuthWrapper: React.ComponentType<{ children: ReactNode }> = ({
-    children: c,
-  }) => <>{c}</>;
+  let AuthWrapper: React.ComponentType<{ children: ReactNode }> =
+    PassthroughAuthWrapper;
   if (!isDevBypass) {
     const { ClerkProviderWrapper } = await import("./ClerkProviderWrapper");
     AuthWrapper = ClerkProviderWrapper;

@@ -181,10 +181,12 @@ const useChatThread = (
 
   // Reset local state when the lesson changes
   useEffect(() => {
-    setLocalMessages([]);
-    setLocalThreadId(null);
-    setStreamState("idle");
-    setStreamError(null);
+    queueMicrotask(() => {
+      setLocalMessages([]);
+      setLocalThreadId(null);
+      setStreamState("idle");
+      setStreamError(null);
+    });
   }, [lessonId]);
 
   const activeThreadId = (thread?.id as string | undefined) ?? localThreadId;
@@ -224,7 +226,9 @@ const useChatThread = (
   }, [messagesPage]);
 
   const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => setIsMounted(true), []);
+  useEffect(() => {
+    queueMicrotask(() => setIsMounted(true));
+  }, []);
 
   const cachedMessages = useMemo(() => {
     if (!isMounted) return [];
@@ -297,9 +301,12 @@ const useChatThread = (
   const streamStartedAtRef = useRef<number>(0);
   const mergedMessagesRef: MutableRefObject<ChatMessage[]> =
     useRef(mergedMessages);
-  mergedMessagesRef.current = mergedMessages;
   const streamStateRef: MutableRefObject<ChatStreamState> = useRef(streamState);
-  streamStateRef.current = streamState;
+
+  useEffect(() => {
+    mergedMessagesRef.current = mergedMessages;
+    streamStateRef.current = streamState;
+  }, [mergedMessages, streamState]);
 
   /** Mutable callback ref — AiPane wires this to StreamingText.append(). */
   const onStreamTokenRef = useRef<OnStreamToken | null>(null);

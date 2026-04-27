@@ -21,8 +21,10 @@ export default function EditorSandboxPage() {
   useEffect(() => {
     // Only run inside an iframe
     if (window === window.parent) {
-      setStatus("error");
-      setErrorMsg("This page must be loaded inside an iframe.");
+      queueMicrotask(() => {
+        setStatus("error");
+        setErrorMsg("This page must be loaded inside an iframe.");
+      });
       return;
     }
 
