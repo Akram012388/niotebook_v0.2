@@ -66,7 +66,7 @@ describe("useChatThread", () => {
     vi.resetAllMocks();
   });
 
-  it("places the optimistic user prompt before any assistant placeholder", async () => {
+  it("places the optimistic user prompt before the assistant placeholder", async () => {
     const { result } = renderHook(() => useChatThread("lesson-1", "Lecture 1"));
 
     await act(async () => {
