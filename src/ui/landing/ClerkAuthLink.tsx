@@ -15,8 +15,13 @@ export default function ClerkAuthLink(): ReactElement {
       Courses
     </Link>
   ) : (
-    <Link href="/sign-in" className={linkClassName}>
-      Sign in
-    </Link>
+    <>
+      <Link href="/sign-up" className={linkClassName}>
+        New User
+      </Link>
+      <Link href="/sign-in" className={linkClassName}>
+        Sign in
+      </Link>
+    </>
   );
 }
