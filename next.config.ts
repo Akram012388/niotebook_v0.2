@@ -67,14 +67,15 @@ const nextConfig: NextConfig = {
         key: "Content-Security-Policy",
         value: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.clerk.accounts.dev https://www.youtube.com https://s.ytimg.com https://sql.js.org https://webr.r-wasm.org",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com https://www.youtube.com https://s.ytimg.com https://sql.js.org https://webr.r-wasm.org",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
           "font-src 'self' https://fonts.gstatic.com",
           "img-src 'self' data: blob: https://*.clerk.com https://img.clerk.com https://*.ytimg.com",
-          "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://*.clerk.accounts.dev https://generativelanguage.googleapis.com https://api.groq.com https://api.openai.com https://api.anthropic.com https://*.public.blob.vercel-storage.com https://cdn.jsdelivr.net https://sql.js.org https://webr.r-wasm.org",
-          "frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com",
+          "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com https://*.clerk-telemetry.com https://generativelanguage.googleapis.com https://api.groq.com https://api.openai.com https://api.anthropic.com https://*.public.blob.vercel-storage.com https://cdn.jsdelivr.net https://sql.js.org https://webr.r-wasm.org",
+          "frame-src 'self' blob: https://challenges.cloudflare.com https://www.youtube.com https://www.youtube-nocookie.com",
           "worker-src 'self' blob:",
           "media-src 'self' blob: https://*.public.blob.vercel-storage.com",
+          "form-action 'self'",
         ].join("; "),
       },
       ...(process.env.NODE_ENV === "production"

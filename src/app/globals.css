@@ -692,10 +692,6 @@ button:disabled {
   caret-color: var(--foreground) !important;
 }
 
-[data-theme="dark"] .cl-otpCodeFieldInput {
-  border-color: var(--accent-border) !important;
-}
-
 /* ==========================================================================
    Runtime frame
    ========================================================================== */
