@@ -216,6 +216,40 @@ const resolveForRequest = action({
   },
 });
 
+const resolveFallbacksForRequest = action({
+  args: {},
+  handler: async (ctx): Promise<Array<{ provider: Provider; key: string }>> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return [];
+    }
+
+    const secret = process.env.NIOTEBOOK_KEY_ENCRYPTION_SECRET;
+    if (!secret) {
+      throw new Error("NIOTEBOOK_KEY_ENCRYPTION_SECRET is not configured");
+    }
+
+    const { keys, activeProvider } = await ctx.runQuery(
+      internal.userApiKeys._getKeysByUser,
+      {
+        tokenIdentifier: identity.tokenIdentifier,
+      },
+    );
+
+    const orderedKeys = [
+      ...keys.filter((key) => key.provider === activeProvider),
+      ...keys.filter((key) => key.provider !== activeProvider),
+    ];
+
+    return Promise.all(
+      orderedKeys.map(async (savedKey) => ({
+        provider: savedKey.provider,
+        key: await decryptApiKey(savedKey.encryptedKey, savedKey.iv, secret),
+      })),
+    );
+  },
+});
+
 // ─── Public mutations ─────────────────────────────────────────────────────────
 
 const remove = mutation({
@@ -350,6 +384,7 @@ export {
   setActiveProvider,
   listHints,
   resolveForRequest,
+  resolveFallbacksForRequest,
   _getUserByToken,
   _upsertKey,
   _getActiveKey,

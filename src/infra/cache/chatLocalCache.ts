@@ -9,16 +9,25 @@ type ChatCacheMessage = {
   requestId?: string;
 };
 
-const CACHE_VERSION = 1;
+const CACHE_VERSION = 2;
 const CACHE_PREFIX = `niotebook.chatCache.v${CACHE_VERSION}`;
 const CACHE_LIMIT = 50;
 
-const buildCacheKey = (lessonId: string): string => {
-  return `${CACHE_PREFIX}.${lessonId}`;
+type ChatCacheScope = {
+  lessonId: string;
+  threadId?: string;
+  accountId?: string;
 };
 
-const readChatCache = (lessonId: string): ChatCacheMessage[] => {
-  const raw = storageAdapter.getItem(buildCacheKey(lessonId));
+const buildCacheKey = (scope: ChatCacheScope): string => {
+  const accountPart = scope.accountId ? `account.${scope.accountId}.` : "";
+  return scope.threadId
+    ? `${CACHE_PREFIX}.${accountPart}thread.${scope.threadId}`
+    : `${CACHE_PREFIX}.${accountPart}lesson.${scope.lessonId}`;
+};
+
+const readChatCache = (scope: ChatCacheScope): ChatCacheMessage[] => {
+  const raw = storageAdapter.getItem(buildCacheKey(scope));
   if (!raw) {
     return [];
   }
@@ -44,12 +53,12 @@ const readChatCache = (lessonId: string): ChatCacheMessage[] => {
 };
 
 const writeChatCache = (
-  lessonId: string,
+  scope: ChatCacheScope,
   messages: ChatCacheMessage[],
 ): void => {
   const trimmed = messages.slice(-CACHE_LIMIT);
-  storageAdapter.setItem(buildCacheKey(lessonId), JSON.stringify(trimmed));
+  storageAdapter.setItem(buildCacheKey(scope), JSON.stringify(trimmed));
 };
 
-export type { ChatCacheMessage };
+export type { ChatCacheMessage, ChatCacheScope };
 export { readChatCache, writeChatCache };

@@ -67,7 +67,7 @@ const ChatMessage = memo(function ChatMessage({
             data-testid="chat-message"
           >
             {message.isStreaming ? (
-              <StreamingText ref={streamingTextRef} />
+              <StreamingText ref={streamingTextRef} content={message.content} />
             ) : (
               <RenderedMarkdown content={message.content} />
             )}

@@ -22,6 +22,7 @@ import type { EventLogResult } from "../../domain/events";
 import {
   readChatCache,
   writeChatCache,
+  type ChatCacheScope,
 } from "../../infra/cache/chatLocalCache";
 import {
   createChatMessageRef,
@@ -33,7 +34,7 @@ import {
 const STUCK_STREAM_TIMEOUT_MS = 30_000;
 
 /** Callback invoked for each token during streaming (bypasses React state). */
-type OnStreamToken = (token: string) => void;
+type OnStreamToken = (token: string, fullText: string) => void;
 
 type ChatSendContext = {
   videoTimeSec: number;
@@ -136,6 +137,23 @@ const buildRecentMessages = (
     .map((message) => ({ role: message.role, content: message.content }));
 };
 
+const buildChatCacheScope = (
+  lessonId: string,
+  threadId: string | null | undefined,
+  accountId: string | null | undefined,
+  isConvexEnabled: boolean,
+): ChatCacheScope | null => {
+  if (isConvexEnabled && (!threadId || !accountId)) {
+    return null;
+  }
+
+  return {
+    lessonId,
+    threadId: threadId ?? undefined,
+    accountId: accountId ?? undefined,
+  };
+};
+
 const useChatThread = (
   lessonId: string,
   lectureLabel: string,
@@ -232,9 +250,23 @@ const useChatThread = (
 
   const cachedMessages = useMemo(() => {
     if (!isMounted) return [];
-    const cached = readChatCache(lessonId);
+    const cacheScope = buildChatCacheScope(
+      lessonId,
+      activeThreadId,
+      thread?.userId as string | undefined,
+      isConvexEnabled,
+    );
+    if (!cacheScope) return [];
+    const cached = readChatCache(cacheScope);
     return cached.map((message) => fromCachedMessage(message, lectureLabel));
-  }, [isMounted, lectureLabel, lessonId]);
+  }, [
+    activeThreadId,
+    isConvexEnabled,
+    isMounted,
+    lectureLabel,
+    lessonId,
+    thread?.userId,
+  ]);
 
   const mergedMessages = useMemo(() => {
     // Single-pass dedup using Maps keyed by id and requestId
@@ -280,6 +312,15 @@ const useChatThread = (
     }
     cacheTimerRef.current = setTimeout(() => {
       cacheTimerRef.current = null;
+      const cacheScope = buildChatCacheScope(
+        lessonId,
+        activeThreadId,
+        thread?.userId as string | undefined,
+        isConvexEnabled,
+      );
+      if (!cacheScope) {
+        return;
+      }
       const cacheCandidates = mergedMessages.filter(
         (message) => !message.isStreaming && message.content.trim().length > 0,
       );
@@ -287,7 +328,7 @@ const useChatThread = (
         return;
       }
       writeChatCache(
-        lessonId,
+        cacheScope,
         cacheCandidates.map((message) => toCachedMessage(message)),
       );
     }, 500);
@@ -296,7 +337,13 @@ const useChatThread = (
         clearTimeout(cacheTimerRef.current);
       }
     };
-  }, [lessonId, mergedMessages]);
+  }, [
+    activeThreadId,
+    isConvexEnabled,
+    lessonId,
+    mergedMessages,
+    thread?.userId,
+  ]);
 
   const streamStartedAtRef = useRef<number>(0);
   const mergedMessagesRef: MutableRefObject<ChatMessage[]> =
@@ -343,7 +390,7 @@ const useChatThread = (
 
       const requestId = crypto.randomUUID();
       const assistantTempId = crypto.randomUUID();
-      const fallbackThreadId = activeThreadId ?? "local-thread";
+      const fallbackThreadId = activeThreadId ?? `local-thread-${lessonId}`;
       const recentMessages = buildRecentMessages(mergedMessagesRef.current);
 
       try {
@@ -386,11 +433,11 @@ const useChatThread = (
             ]);
           } catch (err) {
             console.error("[chat] Convex calls failed:", err);
-            // continue with local-only thread
-            if (!activeThreadId) {
-              setLocalThreadId(fallbackThreadId);
-            }
-            resolvedThreadId = fallbackThreadId;
+            const errorMessage =
+              "Unable to save your message. Please refresh and try again.";
+            setStreamError(errorMessage);
+            setStreamState("idle");
+            return;
           }
         } else if (!activeThreadId) {
           setLocalThreadId(fallbackThreadId);
@@ -518,7 +565,15 @@ const useChatThread = (
               if (event.type === "token") {
                 fullText += event.token;
                 // Push token directly to StreamingText — no React state
-                onStreamTokenRef.current?.(event.token);
+                const onStreamToken = onStreamTokenRef.current;
+                if (onStreamToken) {
+                  onStreamToken(event.token, fullText);
+                } else {
+                  updateLocalMessage(assistantTempId, (message) => ({
+                    ...message,
+                    content: fullText,
+                  }));
+                }
               }
 
               if (event.type === "done") {

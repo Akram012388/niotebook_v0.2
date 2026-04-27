@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { streamStub, streamWithByok } from "@/infra/ai/byokStream";
 import { streamGemini } from "@/infra/ai/geminiStream";
+import { streamOpenAI } from "@/infra/ai/openaiStream";
 import type { NioSseEvent } from "@/domain/nio";
 import type { NioContextMessage } from "@/domain/nioContextBuilder";
 import type { NioProviderStreamResult } from "@/infra/ai/providerTypes";
@@ -33,9 +34,20 @@ type FakeClient = {
 };
 
 const makeClient = (
-  resolvedValue: { provider: string; key: string } | null = null,
+  resolvedValue:
+    | Array<{ provider: string; key: string }>
+    | { provider: string; key: string }
+    | null = null,
 ): FakeClient => ({
-  action: vi.fn().mockResolvedValue(resolvedValue),
+  action: vi
+    .fn()
+    .mockResolvedValue(
+      Array.isArray(resolvedValue)
+        ? resolvedValue
+        : resolvedValue
+          ? [resolvedValue]
+          : [],
+    ),
   mutation: vi.fn().mockResolvedValue(undefined),
 });
 
@@ -84,6 +96,8 @@ beforeEach(() => {
 
 afterEach(() => {
   delete process.env.NEXT_PUBLIC_DISABLE_CONVEX;
+  vi.useRealTimers();
+  vi.restoreAllMocks();
   vi.resetAllMocks();
 });
 
@@ -92,7 +106,7 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("streamWithByok", () => {
-  it("emits NO_API_KEY error when resolveForRequest returns null", async () => {
+  it("emits NO_API_KEY error when resolveForRequest returns no keys", async () => {
     const client = makeClient(null);
     const events: NioSseEvent[] = [];
 
@@ -157,6 +171,174 @@ describe("streamWithByok", () => {
 
     const done = events.at(-1);
     expect(done).toMatchObject({ type: "done", finalText: "Hello world" });
+  });
+
+  it("measures timeToFirstTokenMs when the first provider token arrives", async () => {
+    vi.useFakeTimers();
+    const client = makeClient({ provider: "gemini", key: "gm-key" });
+
+    async function* delayedStream(): AsyncGenerator<string> {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      yield "Hello";
+    }
+
+    vi.mocked(streamGemini).mockResolvedValue({
+      provider: "gemini",
+      model: "gemini-3-flash-preview",
+      stream: delayedStream(),
+    });
+
+    const events: NioSseEvent[] = [];
+    const promise = streamWithByok({
+      ...BASE_ARGS,
+      client: client as never,
+      enqueue: (e) => events.push(e),
+    });
+
+    await vi.advanceTimersByTimeAsync(250);
+    await promise;
+    vi.useRealTimers();
+
+    const done = events.at(-1);
+    expect(done).toMatchObject({ type: "done", timeToFirstTokenMs: 250 });
+  });
+
+  it("falls back to another configured provider for transient provider failure", async () => {
+    const client = makeClient([
+      { provider: "gemini", key: "gm-key" },
+      { provider: "openai", key: "oa-key" },
+    ]);
+    vi.mocked(streamGemini).mockRejectedValue(
+      new NioProviderStreamError("Rate limited", "PROVIDER_429", 429, "gemini"),
+    );
+    vi.mocked(streamOpenAI).mockResolvedValue({
+      provider: "openai",
+      model: "gpt-4o-mini",
+      stream: makeTokenStream(["Fallback"]),
+    });
+
+    const events: NioSseEvent[] = [];
+    await streamWithByok({
+      ...BASE_ARGS,
+      client: client as never,
+      enqueue: (e) => events.push(e),
+    });
+
+    expect(events[0]).toMatchObject({ type: "meta", provider: "openai" });
+    expect(events.at(-1)).toMatchObject({
+      type: "done",
+      finalText: "Fallback",
+      usedFallback: true,
+    });
+  });
+
+  it("persists the assistant message before emitting done when Convex is enabled", async () => {
+    delete process.env.NEXT_PUBLIC_DISABLE_CONVEX;
+    const client = makeClient({ provider: "gemini", key: "gm-key" });
+    const providerResult: NioProviderStreamResult = {
+      provider: "gemini",
+      model: "gemini-3-flash-preview",
+      stream: makeTokenStream(["Persisted", " reply"]),
+    };
+    vi.mocked(streamGemini).mockResolvedValue(providerResult);
+
+    const order: string[] = [];
+    client.mutation.mockImplementation(async () => {
+      order.push("persist");
+    });
+
+    const events: NioSseEvent[] = [];
+    await streamWithByok({
+      ...BASE_ARGS,
+      client: client as never,
+      enqueue: (e) => {
+        events.push(e);
+        if (e.type === "done") {
+          order.push("done");
+        }
+      },
+    });
+
+    expect(client.mutation).toHaveBeenCalledTimes(1);
+    expect(client.mutation).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        threadId: BASE_ARGS.threadId,
+        requestId: BASE_ARGS.requestId,
+        content: "Persisted reply",
+        provider: "gemini",
+        model: "gemini-3-flash-preview",
+      }),
+    );
+    expect(order).toEqual(["persist", "done"]);
+    expect(events.at(-1)).toMatchObject({ type: "done" });
+  });
+
+  it("emits an error instead of done when assistant persistence fails with Convex enabled", async () => {
+    delete process.env.NEXT_PUBLIC_DISABLE_CONVEX;
+    vi.useFakeTimers();
+    const client = makeClient({ provider: "gemini", key: "gm-key" });
+    client.mutation.mockRejectedValue(new Error("write failed"));
+    const providerResult: NioProviderStreamResult = {
+      provider: "gemini",
+      model: "gemini-3-flash-preview",
+      stream: makeTokenStream(["Unsaved"]),
+    };
+    vi.mocked(streamGemini).mockResolvedValue(providerResult);
+
+    const events: NioSseEvent[] = [];
+    const promise = streamWithByok({
+      ...BASE_ARGS,
+      client: client as never,
+      enqueue: (e) => events.push(e),
+    });
+    await vi.waitFor(() => {
+      expect(client.mutation).toHaveBeenCalledTimes(1);
+    });
+    await vi.advanceTimersByTimeAsync(2_000);
+    await promise;
+
+    expect(events.some((e) => e.type === "done")).toBe(false);
+    expect(events.at(-1)).toMatchObject({
+      type: "error",
+      code: "STREAM_ERROR",
+    });
+  });
+
+  it("measures timeToFirstTokenMs when the first token arrives", async () => {
+    delete process.env.NEXT_PUBLIC_DISABLE_CONVEX;
+    let nowMs = 1_000;
+    vi.spyOn(Date, "now").mockImplementation(() => nowMs);
+    const client = makeClient({ provider: "gemini", key: "gm-key" });
+    client.mutation.mockResolvedValue(undefined);
+
+    async function* delayedFirstTokenStream(): AsyncGenerator<string> {
+      nowMs = 1_500;
+      yield "First";
+      nowMs = 1_600;
+      yield " token";
+    }
+
+    vi.mocked(streamGemini).mockImplementation(async () => {
+      nowMs = 1_100;
+      return {
+        provider: "gemini",
+        model: "gemini-3-flash-preview",
+        stream: delayedFirstTokenStream(),
+      };
+    });
+
+    const events: NioSseEvent[] = [];
+    await streamWithByok({
+      ...BASE_ARGS,
+      client: client as never,
+      enqueue: (e) => events.push(e),
+    });
+
+    expect(events.at(-1)).toMatchObject({
+      type: "done",
+      timeToFirstTokenMs: 500,
+    });
   });
 
   it("emits error event when the provider stream function throws", async () => {

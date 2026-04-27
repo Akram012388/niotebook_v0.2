@@ -8,6 +8,11 @@ import { streamOpenAI } from "./openaiStream";
 import { streamAnthropic } from "./anthropicStream";
 import type { NioProviderId, NioProviderStreamResult } from "./providerTypes";
 import { isProviderStreamError, NioProviderStreamError } from "./providerTypes";
+import {
+  AI_FALLBACK_TIMEOUT_MS,
+  shouldFallbackForStatus,
+  shouldFallbackForTimeout,
+} from "../../domain/ai-fallback";
 
 const STUB_PROVIDER = "stub";
 const STUB_MODEL = "nio-stub";
@@ -74,6 +79,86 @@ const normalizeProviderError = (
     undefined,
     provider,
   );
+};
+
+const isFallbackEligibleError = (error: NioProviderStreamError): boolean => {
+  if (error.status !== undefined) {
+    return shouldFallbackForStatus(error.status);
+  }
+
+  return error.code === "PROVIDER_429" || error.code === "PROVIDER_5XX";
+};
+
+const createProviderResult = async (args: {
+  provider: NioProviderId;
+  key: string;
+  messages: NioContextMessage[];
+  maxOutputTokens: number;
+}): Promise<NioProviderStreamResult> => {
+  if (args.provider === "gemini") {
+    return streamGemini({
+      messages: args.messages,
+      maxOutputTokens: args.maxOutputTokens,
+      apiKey: args.key,
+    });
+  }
+
+  if (args.provider === "openai") {
+    return streamOpenAI({
+      messages: args.messages,
+      maxOutputTokens: args.maxOutputTokens,
+      apiKey: args.key,
+    });
+  }
+
+  if (args.provider === "anthropic") {
+    return streamAnthropic({
+      messages: args.messages,
+      maxOutputTokens: args.maxOutputTokens,
+      apiKey: args.key,
+    });
+  }
+
+  throw new NioProviderStreamError(
+    "Unknown provider.",
+    "STREAM_ERROR",
+    undefined,
+    args.provider,
+  );
+};
+
+const readNextWithFirstTokenTimeout = async <T>(
+  iterator: AsyncIterator<T>,
+  startedAtMs: number,
+): Promise<IteratorResult<T>> => {
+  const elapsedMs = Date.now() - startedAtMs;
+  const remainingMs = AI_FALLBACK_TIMEOUT_MS - elapsedMs;
+
+  if (remainingMs <= 0) {
+    throw new NioProviderStreamError(
+      "Provider timed out before first token.",
+      "STREAM_ERROR",
+    );
+  }
+
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      iterator.next(),
+      new Promise<never>((_, reject) => {
+        timeoutHandle = setTimeout(() => {
+          reject(
+            new NioProviderStreamError(
+              "Provider timed out before first token.",
+              "STREAM_ERROR",
+            ),
+          );
+        }, remainingMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
 };
 
 const streamStub = async (args: {
@@ -206,67 +291,88 @@ const streamWithByok = async (args: {
     });
   };
 
-  // Resolve user's API key from Convex
-  let resolved: { provider: NioProviderId; key: string } | null = null;
+  // Resolve user's API keys from Convex, ordered active provider first.
+  let resolvedKeys: Array<{ provider: NioProviderId; key: string }> = [];
   try {
-    resolved = await args.client.action(api.userApiKeys.resolveForRequest, {});
+    resolvedKeys = await args.client.action(
+      api.userApiKeys.resolveFallbacksForRequest,
+      {},
+    );
   } catch (err) {
     console.error("[nio] resolveForRequest failed", err);
     emitError("STREAM_ERROR", "Failed to resolve API key.");
     return;
   }
 
-  if (!resolved) {
+  if (resolvedKeys.length === 0) {
     emitError("NO_API_KEY", "No API key configured. Add one in Settings.");
     return;
   }
 
-  const { provider, key } = resolved;
+  let providerResult: NioProviderStreamResult | null = null;
+  let iterator: AsyncIterator<string> | null = null;
+  let firstResult: IteratorResult<string> | null = null;
+  let timeToFirstTokenMs = 0;
+  let usedFallback = false;
+  let lastProviderError: NioProviderStreamError | null = null;
 
-  let providerResult: NioProviderStreamResult;
-  try {
-    if (provider === "gemini") {
-      providerResult = await streamGemini({
+  for (const [index, resolved] of resolvedKeys.entries()) {
+    const { provider, key } = resolved;
+    try {
+      providerResult = await createProviderResult({
+        provider,
+        key,
         messages: args.messages,
         maxOutputTokens: args.budget.maxOutputTokens,
-        apiKey: key,
       });
-    } else if (provider === "openai") {
-      providerResult = await streamOpenAI({
-        messages: args.messages,
-        maxOutputTokens: args.budget.maxOutputTokens,
-        apiKey: key,
+      iterator = providerResult.stream[Symbol.asyncIterator]();
+      firstResult = await readNextWithFirstTokenTimeout(iterator, startedAtMs);
+      timeToFirstTokenMs = Date.now() - startedAtMs;
+      usedFallback = index > 0;
+      break;
+    } catch (error) {
+      if (!isProviderStreamError(error)) {
+        console.error("[nio] provider stream error", error);
+      }
+      const providerError = normalizeProviderError(error, provider);
+      lastProviderError = providerError;
+      if (
+        index < resolvedKeys.length - 1 &&
+        (isFallbackEligibleError(providerError) ||
+          shouldFallbackForTimeout(Date.now() - startedAtMs))
+      ) {
+        continue;
+      }
+
+      args.enqueue({
+        type: "error",
+        requestId: args.requestId,
+        assistantTempId: args.assistantTempId,
+        seq: 1,
+        code:
+          shouldFallbackForTimeout(Date.now() - startedAtMs) &&
+          providerError.code === "STREAM_ERROR"
+            ? "TIMEOUT_FIRST_TOKEN"
+            : providerError.code,
+        message: providerError.message,
+        provider: providerError.provider ?? provider,
       });
-    } else if (provider === "anthropic") {
-      providerResult = await streamAnthropic({
-        messages: args.messages,
-        maxOutputTokens: args.budget.maxOutputTokens,
-        apiKey: key,
-      });
-    } else {
-      emitError("STREAM_ERROR", "Unknown provider.");
       return;
     }
-  } catch (error) {
-    if (!isProviderStreamError(error)) {
-      console.error("[nio] provider stream error", error);
-    }
-    const providerError = normalizeProviderError(error, provider);
+  }
+
+  if (!providerResult || !iterator || !firstResult) {
     args.enqueue({
       type: "error",
       requestId: args.requestId,
       assistantTempId: args.assistantTempId,
       seq: 1,
-      code: providerError.code,
-      message: providerError.message,
-      provider: providerError.provider ?? provider,
+      code: lastProviderError?.code ?? "STREAM_ERROR",
+      message: lastProviderError?.message ?? "Provider stream unavailable.",
+      provider: lastProviderError?.provider,
     });
     return;
   }
-
-  const iterator = providerResult.stream[Symbol.asyncIterator]();
-
-  const timeToFirstTokenMs = Date.now() - startedAtMs;
 
   args.enqueue({
     type: "meta",
@@ -284,6 +390,18 @@ const streamWithByok = async (args: {
   let seq = 1;
 
   try {
+    if (!firstResult.done && firstResult.value) {
+      fullText += firstResult.value;
+      args.enqueue({
+        type: "token",
+        requestId: args.requestId,
+        assistantTempId: args.assistantTempId,
+        seq,
+        token: firstResult.value,
+      });
+      seq += 1;
+    }
+
     while (true) {
       const { value, done } = await iterator.next();
       if (done) break;
@@ -321,22 +439,6 @@ const streamWithByok = async (args: {
   }
 
   const latencyMs = Date.now() - startedAtMs;
-  args.enqueue({
-    type: "done",
-    requestId: args.requestId,
-    assistantTempId: args.assistantTempId,
-    seq,
-    provider: providerResult.provider,
-    model: providerResult.model,
-    usedFallback: false,
-    latencyMs,
-    timeToFirstTokenMs,
-    usageApprox: {
-      inputChars: args.inputChars,
-      outputChars: fullText.length,
-    },
-    finalText: fullText,
-  });
 
   const persistArgs = {
     threadId: args.threadId,
@@ -348,12 +450,12 @@ const streamWithByok = async (args: {
     provider: providerResult.provider,
     model: providerResult.model,
     latencyMs,
-    usedFallback: false,
+    usedFallback,
     contextHash: args.contextHash,
     client: args.client,
   };
 
-  void (async () => {
+  if (isConvexEnabled()) {
     try {
       await persistAssistantMessage(persistArgs);
     } catch (err) {
@@ -371,9 +473,36 @@ const streamWithByok = async (args: {
           error:
             retryErr instanceof Error ? retryErr.message : String(retryErr),
         });
+        args.enqueue({
+          type: "error",
+          requestId: args.requestId,
+          assistantTempId: args.assistantTempId,
+          seq,
+          code: "STREAM_ERROR",
+          message: "Assistant response could not be saved.",
+          provider: providerResult.provider,
+        });
+        return;
       }
     }
-  })();
+  }
+
+  args.enqueue({
+    type: "done",
+    requestId: args.requestId,
+    assistantTempId: args.assistantTempId,
+    seq,
+    provider: providerResult.provider,
+    model: providerResult.model,
+    usedFallback,
+    latencyMs,
+    timeToFirstTokenMs,
+    usageApprox: {
+      inputChars: args.inputChars,
+      outputChars: fullText.length,
+    },
+    finalText: fullText,
+  });
 };
 
 export { streamStub, streamWithByok };

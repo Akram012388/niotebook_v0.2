@@ -29,10 +29,16 @@ const rehypePlugins = [rehypeHighlight];
 type StreamingTextHandle = {
   /** Append new token text to the pending buffer. */
   append: (text: string) => void;
+  /** Replace the pending/revealed buffer with authoritative text. */
+  sync: (text: string) => void;
   /** Returns the full revealed text so far (for handoff to markdown). */
   getText: () => string;
   /** Reset internal state for a new stream. */
   reset: () => void;
+};
+
+type StreamingTextProps = {
+  content?: string;
 };
 
 /**
@@ -46,8 +52,8 @@ type StreamingTextHandle = {
  * React re-renders are throttled to ~20fps (every 50ms) to keep the main
  * thread responsive while still providing smooth visual updates.
  */
-const StreamingText = forwardRef<StreamingTextHandle>(
-  function StreamingText(_props, ref) {
+const StreamingText = forwardRef<StreamingTextHandle, StreamingTextProps>(
+  function StreamingText({ content = "" }, ref) {
     const dotsRef = useRef<HTMLSpanElement | null>(null);
     const cursorRef = useRef<HTMLSpanElement | null>(null);
     const rafRef = useRef<number | null>(null);
@@ -124,6 +130,24 @@ const StreamingText = forwardRef<StreamingTextHandle>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+      if (!content) {
+        return;
+      }
+
+      const current = revealedRef.current + pendingRef.current;
+      if (current.length >= content.length) {
+        return;
+      }
+
+      pendingRef.current += content.slice(current.length);
+      if (rafRef.current === null) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+      // tick is stable (refs only)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [content]);
+
     useImperativeHandle(
       ref,
       () => ({
@@ -132,6 +156,25 @@ const StreamingText = forwardRef<StreamingTextHandle>(
           pendingRef.current += text;
           // Restart the RAF loop if it was idle (stopped due to empty buffer)
           if (wasIdle && rafRef.current === null) {
+            rafRef.current = requestAnimationFrame(tick);
+          }
+        },
+        sync(text: string) {
+          const current = revealedRef.current + pendingRef.current;
+          if (current === text) {
+            return;
+          }
+
+          if (text.startsWith(current)) {
+            pendingRef.current += text.slice(current.length);
+          } else {
+            revealedRef.current = "";
+            pendingRef.current = text;
+            dirtyRef.current = true;
+            setDisplayText("");
+          }
+
+          if (rafRef.current === null) {
             rafRef.current = requestAnimationFrame(tick);
           }
         },

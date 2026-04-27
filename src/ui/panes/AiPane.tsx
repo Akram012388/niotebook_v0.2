@@ -143,8 +143,18 @@ const AiPane = ({
 
   // Wire the streaming token callback to the StreamingText component
   useEffect(() => {
-    onStreamTokenRef.current = (token: string) => {
-      streamingTextRef.current?.append(token);
+    onStreamTokenRef.current = (token: string, fullText: string) => {
+      const streamingText = streamingTextRef.current;
+      if (!streamingText) {
+        return;
+      }
+
+      if (streamingText.getText().length < fullText.length - token.length) {
+        streamingText.sync(fullText);
+        return;
+      }
+
+      streamingText.append(token);
     };
     return () => {
       onStreamTokenRef.current = null;
