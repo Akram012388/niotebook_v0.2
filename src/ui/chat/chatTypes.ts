@@ -7,6 +7,8 @@ type ChatMessage = {
   badge: string;
   timestampSec: number;
   createdAt: number;
+  /** UI-only ordering key for optimistic messages during an active stream. */
+  sortAt?: number;
   isStreaming?: boolean;
   requestId?: string;
 };

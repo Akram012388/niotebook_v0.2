@@ -272,10 +272,29 @@ const useChatThread = (
     // Single-pass dedup using Maps keyed by id and requestId
     const seenIds = new Map<string, ChatMessage>();
     const seenRequestIds = new Set<string>();
+    const localById = new Map(
+      localMessages.map((message) => [message.id, message]),
+    );
+    const localByRequestId = new Map(
+      localMessages
+        .filter((message) => message.requestId)
+        .map((message) => [message.requestId as string, message]),
+    );
+    const withLocalSortAt = (message: ChatMessage): ChatMessage => {
+      const local =
+        localById.get(message.id) ??
+        (message.requestId
+          ? localByRequestId.get(message.requestId)
+          : undefined);
+
+      return local?.sortAt !== undefined
+        ? { ...message, sortAt: local.sortAt }
+        : message;
+    };
 
     // Remote messages take priority
     for (const message of remoteMessages) {
-      const chat = toChatMessage(message, lectureLabel);
+      const chat = withLocalSortAt(toChatMessage(message, lectureLabel));
       seenIds.set(chat.id, chat);
       if (chat.requestId) seenRequestIds.add(chat.requestId);
     }
@@ -298,9 +317,11 @@ const useChatThread = (
       });
     }
 
-    return Array.from(seenIds.values()).sort(
-      (left, right) => left.createdAt - right.createdAt,
-    );
+    return Array.from(seenIds.values()).sort((left, right) => {
+      const leftOrder = left.sortAt ?? left.createdAt;
+      const rightOrder = right.sortAt ?? right.createdAt;
+      return leftOrder - rightOrder;
+    });
   }, [cachedMessages, lectureLabel, localMessages, remoteMessages]);
 
   const cacheTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -405,6 +426,7 @@ const useChatThread = (
         badge: `${lectureLabel} • ${formatTimestamp(context.videoTimeSec)}`,
         timestampSec: context.videoTimeSec,
         createdAt: userCreatedAt,
+        sortAt: userCreatedAt,
       };
 
       setLocalMessages((prev) => [...prev, optimisticUserMessage]);
@@ -445,7 +467,10 @@ const useChatThread = (
             setLocalMessages((prev) =>
               prev.map((message) =>
                 message.id === userTempId
-                  ? toChatMessage(createdMessage, lectureLabel)
+                  ? {
+                      ...toChatMessage(createdMessage, lectureLabel),
+                      sortAt: userCreatedAt,
+                    }
                   : message,
               ),
             );
@@ -471,6 +496,7 @@ const useChatThread = (
           badge: `${lectureLabel} • ${formatTimestamp(context.videoTimeSec)}`,
           timestampSec: context.videoTimeSec,
           createdAt: Math.max(Date.now(), userCreatedAt + 1),
+          sortAt: userCreatedAt + 1,
           isStreaming: true,
           requestId,
         };
