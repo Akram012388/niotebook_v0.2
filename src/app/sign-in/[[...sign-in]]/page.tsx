@@ -34,7 +34,7 @@ const SignInPage = (): ReactElement => {
     return (
       <MobileGate>
         <AuthShell
-          title="Sign in"
+          title="Welcome"
           subtitle="Dev auth bypass is active — authentication is skipped."
           sideContent={
             <motion.div className="flex flex-1" {...fadeUpSlow(0.3)}>
@@ -53,8 +53,8 @@ const SignInPage = (): ReactElement => {
   return (
     <MobileGate>
       <AuthShell
-        title="Sign in"
-        subtitle="Welcome back. Sign in to continue."
+        title="Welcome"
+        subtitle="Enter your email to continue."
         sideContent={
           <motion.div className="flex flex-1" {...fadeUpSlow(0.3)}>
             <BootSequence />

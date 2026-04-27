@@ -9,10 +9,7 @@ import { MobileGate } from "@/ui/shared/MobileGate";
 const SignUpPage = (): ReactElement => {
   return (
     <MobileGate>
-      <AuthShell
-        title="Create your account"
-        subtitle="Create your free account to get started."
-      >
+      <AuthShell title="Welcome" subtitle="Enter your email to continue.">
         <SignUp
           appearance={clerkAppearance}
           routing="path"
