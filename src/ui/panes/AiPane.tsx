@@ -161,10 +161,7 @@ const AiPane = ({
     };
   }, [onStreamTokenRef]);
 
-  // Scroll to bottom when the streaming placeholder message appears.
-  // The placeholder is added inside the async sendMessage (after Convex calls),
-  // so the scrollToBottom in handleSend fires too early. This catches the moment
-  // the placeholder actually enters the DOM.
+  // Scroll to bottom when local chat messages appear during send/stream.
   const prevMsgCountRef = useRef(messages.length);
   useEffect(() => {
     if (

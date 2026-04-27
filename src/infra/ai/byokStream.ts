@@ -127,6 +127,22 @@ const createProviderResult = async (args: {
   );
 };
 
+const resolveKeysForRequest = async (
+  client: ConvexHttpClient,
+): Promise<Array<{ provider: NioProviderId; key: string }>> => {
+  try {
+    return await client.action(api.userApiKeys.resolveFallbacksForRequest, {});
+  } catch (fallbackErr) {
+    console.warn(
+      "[nio] resolveFallbacksForRequest failed; falling back to resolveForRequest",
+      fallbackErr,
+    );
+
+    const resolved = await client.action(api.userApiKeys.resolveForRequest, {});
+    return resolved ? [resolved] : [];
+  }
+};
+
 const readNextWithFirstTokenTimeout = async <T>(
   iterator: AsyncIterator<T>,
   startedAtMs: number,
@@ -294,10 +310,7 @@ const streamWithByok = async (args: {
   // Resolve user's API keys from Convex, ordered active provider first.
   let resolvedKeys: Array<{ provider: NioProviderId; key: string }> = [];
   try {
-    resolvedKeys = await args.client.action(
-      api.userApiKeys.resolveFallbacksForRequest,
-      {},
-    );
+    resolvedKeys = await resolveKeysForRequest(args.client);
   } catch (err) {
     console.error("[nio] resolveForRequest failed", err);
     emitError("STREAM_ERROR", "Failed to resolve API key.");

@@ -135,6 +135,32 @@ describe("streamWithByok", () => {
     expect(events[0]).toMatchObject({ type: "error", code: "STREAM_ERROR" });
   });
 
+  it("falls back to resolveForRequest when resolveFallbacksForRequest is unavailable", async () => {
+    const client = makeClient();
+    client.action
+      .mockRejectedValueOnce(new Error("Could not find public function"))
+      .mockResolvedValueOnce({ provider: "gemini", key: "gm-key" });
+    vi.mocked(streamGemini).mockResolvedValue({
+      provider: "gemini",
+      model: "gemini-3-flash-preview",
+      stream: makeTokenStream(["Hello"]),
+    });
+
+    const events: NioSseEvent[] = [];
+    await streamWithByok({
+      ...BASE_ARGS,
+      client: client as never,
+      enqueue: (e) => events.push(e),
+    });
+
+    expect(client.action).toHaveBeenCalledTimes(2);
+    expect(events[0]).toMatchObject({ type: "meta", provider: "gemini" });
+    expect(events.at(-1)).toMatchObject({
+      type: "done",
+      finalText: "Hello",
+    });
+  });
+
   it("emits meta → tokens → done in order for a successful gemini stream", async () => {
     const client = makeClient({ provider: "gemini", key: "gm-key" });
     const providerResult: NioProviderStreamResult = {

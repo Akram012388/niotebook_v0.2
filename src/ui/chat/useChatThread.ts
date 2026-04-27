@@ -390,8 +390,24 @@ const useChatThread = (
 
       const requestId = crypto.randomUUID();
       const assistantTempId = crypto.randomUUID();
+      const userTempId = crypto.randomUUID();
       const fallbackThreadId = activeThreadId ?? `local-thread-${lessonId}`;
       const recentMessages = buildRecentMessages(mergedMessagesRef.current);
+      const userCreatedAt = Date.now();
+      const timeWindow = {
+        startSec: Math.max(0, context.videoTimeSec - 60),
+        endSec: context.videoTimeSec + 60,
+      };
+      const optimisticUserMessage: ChatMessage = {
+        id: userTempId,
+        role: "user",
+        content,
+        badge: `${lectureLabel} • ${formatTimestamp(context.videoTimeSec)}`,
+        timestampSec: context.videoTimeSec,
+        createdAt: userCreatedAt,
+      };
+
+      setLocalMessages((prev) => [...prev, optimisticUserMessage]);
 
       try {
         let resolvedThreadId = fallbackThreadId;
@@ -405,13 +421,8 @@ const useChatThread = (
               setLocalThreadId(resolvedThreadId);
             }
 
-            const timeWindow = {
-              startSec: Math.max(0, context.videoTimeSec - 60),
-              endSec: context.videoTimeSec + 60,
-            };
-
             // Run createMessage and logEvent in parallel
-            await Promise.all([
+            const [createdMessage] = await Promise.all([
               createMessage({
                 threadId: resolvedThreadId,
                 role: "user",
@@ -431,10 +442,20 @@ const useChatThread = (
                 console.error("[chat] logEvent failed:", err);
               }),
             ]);
+            setLocalMessages((prev) =>
+              prev.map((message) =>
+                message.id === userTempId
+                  ? toChatMessage(createdMessage, lectureLabel)
+                  : message,
+              ),
+            );
           } catch (err) {
             console.error("[chat] Convex calls failed:", err);
             const errorMessage =
               "Unable to save your message. Please refresh and try again.";
+            setLocalMessages((prev) =>
+              prev.filter((message) => message.id !== userTempId),
+            );
             setStreamError(errorMessage);
             setStreamState("idle");
             return;
@@ -449,7 +470,7 @@ const useChatThread = (
           content: "",
           badge: `${lectureLabel} • ${formatTimestamp(context.videoTimeSec)}`,
           timestampSec: context.videoTimeSec,
-          createdAt: Date.now(),
+          createdAt: Math.max(Date.now(), userCreatedAt + 1),
           isStreaming: true,
           requestId,
         };
