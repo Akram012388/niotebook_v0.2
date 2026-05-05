@@ -122,8 +122,8 @@ const FOOTER_COLUMNS: FooterColumn[] = [
       },
       {
         label: "GitHub",
-        href: "#",
-        muted: true,
+        href: "https://github.com/Akram012388/niotebook_v0.2",
+        external: true,
         icon: <GitHubIcon />,
       },
       {
@@ -149,14 +149,14 @@ const FOOTER_COLUMNS: FooterColumn[] = [
 export function LandingFooter(): ReactElement {
   return (
     <footer
-      className="relative z-[2] mt-12 sm:mt-16 w-full border-t border-surface-strong-foreground/10 bg-surface-strong text-surface-strong-foreground"
+      className="relative z-[2] w-full border-t border-surface-strong-foreground/10 bg-surface-strong text-surface-strong-foreground"
       role="contentinfo"
     >
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 py-12 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
         {/* Column grid */}
         <nav
           aria-label="Footer"
-          className="grid grid-cols-2 gap-y-10 gap-x-8 md:grid-cols-4 md:justify-items-center"
+          className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4 md:justify-items-start"
         >
           {FOOTER_COLUMNS.map((col) => (
             <div key={col.heading}>
