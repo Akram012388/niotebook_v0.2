@@ -1,185 +1,117 @@
 "use client";
 
+import Image from "next/image";
 import { type ReactElement } from "react";
 import { motion } from "framer-motion";
-import { NotebookFrame } from "@/ui/shared/NotebookFrame";
 
-interface Feature {
-  icon: ReactElement;
-  title: string;
-  description: string;
-}
-
-function SyncIcon(): ReactElement {
-  return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 32 32"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="2" y="4" width="12" height="9" rx="2" />
-      <rect x="18" y="4" width="12" height="9" rx="2" />
-      <path d="M8 13v4a2 2 0 002 2h12a2 2 0 002-2v-4" />
-      <path d="M16 19v7" />
-      <path d="M12 26h8" />
-    </svg>
-  );
-}
-
-function AiIcon(): ReactElement {
-  return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 32 32"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="16" cy="12" r="6" />
-      <path d="M16 6V2" />
-      <path d="M10.8 8.2L8 5.4" />
-      <path d="M21.2 8.2L24 5.4" />
-      <path d="M8 16H4" />
-      <path d="M28 16h-4" />
-      <path d="M6 26h20" />
-      <path d="M10 18v4a2 2 0 002 2h8a2 2 0 002-2v-4" />
-    </svg>
-  );
-}
-
-function LanguageIcon(): ReactElement {
-  return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 32 32"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M8 8l-4 8h8" />
-      <path d="M6 13h4" />
-      <rect x="18" y="6" width="10" height="12" rx="1.5" />
-      <path d="M21 10h4" />
-      <path d="M21 13h2" />
-      <path d="M4 22h24" />
-      <path d="M8 26h16" />
-    </svg>
-  );
-}
-
-function DoingIcon(): ReactElement {
-  return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 32 32"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4 8h16" />
-      <path d="M4 14h12" />
-      <path d="M4 20h8" />
-      <circle cx="24" cy="20" r="6" />
-      <path d="M22 20l2 2 3-3" />
-    </svg>
-  );
-}
-
-const FEATURES: Feature[] = [
+const STEPS = [
   {
-    icon: <SyncIcon />,
-    title: "Video + Code in Sync",
-    description:
-      "The lecture plays. The editor follows. Pause the video \u2014 the code is already there, cursor blinking, ready for you to run.",
+    label: "Pick a course",
+    detail: "Choose a serious open CS track and land directly in the lesson.",
   },
   {
-    icon: <AiIcon />,
-    title: "AI That Reads the Room",
-    description:
-      "Your tutor knows what slide you\u2019re on, what code you wrote, and where you got lost. Context-aware help, not generic answers.",
+    label: "Watch the lecture",
+    detail: "Keep the source material visible, paced, and grounded.",
   },
   {
-    icon: <LanguageIcon />,
-    title: "Python, JS, C, and More",
-    description:
-      "Switch languages mid-lesson. The runtime follows. From Python scripts to C pointers \u2014 one workspace, every language.",
+    label: "Code beside it",
+    detail: "Run ideas immediately in the same workspace.",
   },
   {
-    icon: <DoingIcon />,
-    title: "Learn by Shipping",
-    description:
-      "Every concept becomes runnable code in seconds. No setup, no boilerplate. Type, run, understand \u2014 then do it again.",
+    label: "Ask Nio",
+    detail: "Get help that knows the timestamp, the code, and the lesson.",
   },
-];
-
-function FeatureCard({
-  feature,
-  index,
-}: {
-  feature: Feature;
-  index: number;
-}): ReactElement {
-  return (
-    <motion.div
-      className="group relative p-6 sm:p-8 rounded-2xl border border-border bg-surface transition-all duration-200 hover:border-accent/30 hover:shadow-md"
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-    >
-      <div className="mb-4 text-accent">{feature.icon}</div>
-      <h3 className="text-base sm:text-lg font-semibold mb-2">
-        {feature.title}
-      </h3>
-      <p className="text-sm leading-relaxed text-text-muted">
-        {feature.description}
-      </p>
-    </motion.div>
-  );
-}
+] as const;
 
 export function FeaturesSection(): ReactElement {
   return (
-    <section className="relative z-[2] py-12 sm:py-16 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto">
-        <NotebookFrame>
-          <motion.div
-            className="text-center mb-10 sm:mb-12"
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <p className="text-[11px] font-mono uppercase tracking-[0.2em] mb-4 text-accent/60">
+    <section className="relative z-[2] overflow-hidden px-4 py-16 sm:px-6 sm:py-24">
+      <div className="mx-auto max-w-7xl">
+        <motion.div
+          className="grid items-start gap-10 border-y border-border py-12 lg:grid-cols-[0.72fr_1fr]"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div>
+            <p className="text-xs font-mono uppercase tracking-[0.24em] text-accent/70">
               How it works
             </p>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+            <h2 className="mt-5 max-w-xl text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl md:text-6xl">
               One canvas.
-              <br />
-              <span className="text-text-muted">Everything you need.</span>
+              <span className="block text-text-muted">
+                Everything stays connected.
+              </span>
             </h2>
-          </motion.div>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            {FEATURES.map((f, i) => (
-              <FeatureCard key={f.title} feature={f} index={i} />
+          <div className="grid gap-0">
+            {STEPS.map((step, index) => (
+              <div
+                key={step.label}
+                className="grid grid-cols-[56px_1fr] border-t border-border py-6 first:border-t-0"
+              >
+                <div className="font-mono text-sm text-accent">
+                  {String(index + 1).padStart(2, "0")}
+                </div>
+                <div className="grid gap-2 sm:grid-cols-[0.62fr_1fr] sm:gap-8">
+                  <h3 className="text-xl font-semibold tracking-tight text-foreground">
+                    {step.label}
+                  </h3>
+                  <p className="text-sm leading-7 text-text-muted">
+                    {step.detail}
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
-        </NotebookFrame>
+        </motion.div>
+
+        <div className="mt-20 border-y border-border py-14 sm:py-20">
+          <motion.div
+            className="grid items-end gap-8 lg:grid-cols-[0.72fr_1fr]"
+            initial={{ opacity: 0, x: 24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.65, delay: 0.08 }}
+          >
+            <div>
+              <p className="text-xs font-mono uppercase tracking-[0.24em] text-accent/70">
+                Bring your own key
+              </p>
+              <h2 className="mt-5 max-w-2xl text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">
+                Your learning loop stays yours.
+              </h2>
+            </div>
+
+            <p className="max-w-2xl text-base leading-8 text-text-muted sm:text-lg lg:justify-self-end">
+              Niotebook can stay free while letting learners choose their AI
+              provider. It is a practical beta path: honest costs, local
+              control, and no mystery layer between a student and the tools they
+              trust.
+            </p>
+          </motion.div>
+
+          <motion.div
+            className="mt-10 overflow-hidden rounded-[24px] border border-border bg-surface shadow-[0_24px_70px_rgba(28,25,23,0.12)]"
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.65, delay: 0.08 }}
+          >
+            <Image
+              src="/landing/byok-provider.png"
+              alt="Niotebook control center showing AI provider settings"
+              width={2940}
+              height={1668}
+              loading="eager"
+              unoptimized
+              className="h-auto w-full"
+              sizes="(max-width: 1024px) 100vw, 1180px"
+            />
+          </motion.div>
+        </div>
       </div>
     </section>
   );

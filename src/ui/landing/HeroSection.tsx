@@ -1,142 +1,111 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState, type ReactElement } from "react";
+import { type ReactElement } from "react";
 import { motion } from "framer-motion";
 
+const HERO_STATS = [
+  "6+ courses",
+  "5 languages",
+  "100% free",
+  "0 tab switches",
+] as const;
+
 export function HeroSection(): ReactElement {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  function handlePlay() {
-    videoRef.current?.play();
-  }
-
   return (
-    <section className="relative z-[2] flex flex-col items-center justify-center overflow-hidden px-6 sm:px-8 pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16">
-      <div className="relative z-10 max-w-4xl mx-auto text-center">
-        {/* Badge */}
+    <section className="relative z-[2] overflow-hidden px-4 pt-28 pb-20 sm:px-6 sm:pt-32 lg:pt-36">
+      <div className="mx-auto max-w-7xl">
+        <div className="grid items-end gap-10 lg:grid-cols-[0.82fr_1fr] lg:gap-16">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55 }}
+          >
+            <div className="mb-8 inline-flex items-center gap-2 border-y border-border py-2 pr-4 text-xs font-medium text-text-muted">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              Now in beta
+            </div>
+
+            <h1 className="max-w-4xl text-6xl font-bold leading-[0.88] tracking-tight text-foreground sm:text-7xl md:text-8xl xl:text-9xl">
+              <span className="block">watch.</span>
+              <span className="block text-accent">code.</span>
+              <span className="block">learn.</span>
+            </h1>
+          </motion.div>
+
+          <motion.div
+            className="max-w-xl lg:pb-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.12 }}
+          >
+            <p className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Your CS lecture just became an IDE.
+            </p>
+            <p className="mt-5 text-base leading-8 text-text-muted sm:text-lg">
+              Niotebook brings the lecture, editor, terminal, and context-aware
+              AI tutor into one focused canvas. No setup ritual. No tab maze.
+              Just watch, run, ask, and understand.
+            </p>
+
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+              <Link
+                href="/sign-up"
+                className="inline-flex h-12 w-fit items-center gap-2 rounded-[999px] bg-accent px-6 text-sm font-semibold leading-none text-accent-foreground shadow-sm transition duration-200 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.98]"
+              >
+                Start Learning
+                <span aria-hidden="true">-&gt;</span>
+              </Link>
+              <span className="text-sm text-text-subtle">
+                Free and open source
+              </span>
+            </div>
+
+            <dl className="mt-10 grid grid-cols-2 gap-x-8 gap-y-4 border-y border-border py-5 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+              {HERO_STATS.map((stat) => (
+                <div key={stat}>
+                  <dt className="sr-only">Niotebook stat</dt>
+                  <dd className="text-sm font-semibold text-foreground">
+                    {stat}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </motion.div>
+        </div>
+
         <motion.div
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-8 sm:mb-10 border border-border bg-surface text-text-muted"
-          initial={{ opacity: 0, y: -10 }}
+          className="mt-14 lg:mt-18"
+          initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.75, delay: 0.25 }}
         >
-          <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-accent" />
-          Now in beta
-        </motion.div>
-
-        {/* Headline */}
-        <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight leading-[0.9] mb-8 sm:mb-10 text-foreground">
-          <motion.span
-            className="inline-block"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            watch.
-          </motion.span>{" "}
-          <motion.span
-            className="inline-block text-accent"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            code.
-          </motion.span>{" "}
-          <motion.span
-            className="inline-block"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-          >
-            learn.
-          </motion.span>
-        </h1>
-
-        {/* Tagline */}
-        <motion.p
-          className="text-base sm:text-lg md:text-xl max-w-lg mx-auto mb-10 sm:mb-12 leading-relaxed text-text-muted"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
-        >
-          Your CS lecture just became an IDE.
-          <br />
-          <span className="font-mono text-sm text-text-subtle">
-            Video + editor + AI — one canvas, zero tab-switching.
-          </span>
-        </motion.p>
-
-        {/* CTA */}
-        <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-        >
-          <Link
-            href="/sign-up"
-            className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-accent text-accent-foreground hover:shadow-[0_0_30px_var(--accent-muted)]"
-          >
-            Start Learning
-            <svg
-              className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-              />
-            </svg>
-          </Link>
-          <span className="text-xs text-text-subtle">Free and open source</span>
+          <div className="relative overflow-hidden rounded-[28px] border border-border bg-surface shadow-[0_32px_90px_rgba(28,25,23,0.16)]">
+            <div className="flex items-center justify-between border-b border-border bg-surface-muted/80 px-4 py-3 sm:px-5">
+              <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-[0.18em] text-text-subtle">
+                <span className="h-2 w-2 rounded-full bg-accent" />
+                Live workspace
+              </div>
+              <div className="hidden items-center gap-5 text-xs font-medium text-text-muted sm:flex">
+                <span>Lecture</span>
+                <span>Code</span>
+                <span>Nio</span>
+              </div>
+            </div>
+            <Image
+              src="/landing/workspace-full-stack.png"
+              alt="Niotebook workspace with lecture video, code editor, terminal, and AI assistant"
+              width={2940}
+              height={1668}
+              priority
+              unoptimized
+              className="h-auto w-full"
+              sizes="(max-width: 768px) 1200px, 1280px"
+            />
+          </div>
         </motion.div>
       </div>
-
-      {/* Demo video */}
-      <motion.div
-        className="relative z-10 w-full max-w-5xl mt-12 sm:mt-16 lg:mt-20 rounded-2xl overflow-hidden shadow-2xl shadow-accent/5 border border-border bg-surface-strong"
-        style={{ aspectRatio: "16 / 9" }}
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.1 }}
-      >
-        <video
-          ref={videoRef}
-          className="absolute inset-0 w-full h-full object-cover"
-          src="https://bmsvebvrbefdj0lp.public.blob.vercel-storage.com/videos/niotebook-demo-v2-final-pCWph04qFrJSOUDTBpsSU5EThVfTXG.mp4"
-          preload="none"
-          loop
-          muted
-          playsInline
-          aria-label="Niotebook demo video showing the integrated learning environment"
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-        />
-        {!isPlaying && (
-          <button
-            onClick={handlePlay}
-            className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors group"
-            aria-label="Play demo video"
-          >
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-white/15 backdrop-blur-sm transition-transform duration-200 group-hover:scale-110">
-              <svg
-                className="h-6 w-6 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
-          </button>
-        )}
-      </motion.div>
     </section>
   );
 }
