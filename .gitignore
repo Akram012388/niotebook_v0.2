@@ -53,8 +53,9 @@ next-env.d.ts
  dist
  .turbo
 
- # local artifacts
- .tmp/
+# local artifacts
+.tmp/
+/farukh/
 
  # convex
 
