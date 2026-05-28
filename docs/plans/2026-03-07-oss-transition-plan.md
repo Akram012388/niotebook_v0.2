@@ -237,7 +237,7 @@ A free, open-source learning companion for CS50 students. Watch lectures, write
 and run code, and chat with Nio — an AI tutor that knows exactly where you are
 in the course.
 
-Built by someone six months into learning to program. The git history is the story.
+Built in the open. The git history is the story.
 
 ## What It Does
 
